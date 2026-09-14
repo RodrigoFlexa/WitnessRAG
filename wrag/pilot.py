@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import random
@@ -319,7 +320,41 @@ def launch(args):
         if not manifests:
             print("Nenhuma rodada chegou à avaliação. Consulte logs; não há resultados de qualidade.")
     print(f"Estado: {status}. Resultados: {output}", flush=True)
+    print_results(output, status)
     return 0 if status == "complete" else 2
+
+
+def print_results(output, status):
+    """Resumo do mesmo report.json usado no relatório; sem recalcular métricas."""
+    def pct(value):
+        return f"{100 * value:.2f}" if isinstance(value, (int, float)) and math.isfinite(value) else "—"
+
+    reports = sorted((Path(output) / "benchmark").glob("*/report.json"))
+    if not reports:
+        print("Resumo indisponível: nenhum report.json foi gerado.", flush=True)
+    for path in reports:
+        try:
+            report = json.loads(path.read_text(encoding="utf-8"))
+            print(f"\nResultados ({'concluído' if status == 'complete' else 'PARCIAIS — ' + status}):")
+            for dataset, data in report.get("datasets", {}).items():
+                total = data.get("corpus", {}).get("n_questions", "?")
+                print(f"\n{dataset} — métricas em %, perguntas previstas: {total}")
+                print(f"{'método / categoria':<35} {'n':>5} {'F1':>8} {'EM':>8} {'R@5':>8} {'AR@5':>8}")
+                for method, result in data.get("metodos", {}).items():
+                    values = result.get("metricas", {})
+                    print(f"{method:<35} {result.get('n_avaliadas', 0):>5} "
+                          + " ".join(f"{pct(values.get(k)):>8}" for k in ("f1", "em", "recall@5", "all_recall@5")))
+                    for category, values in data.get("por_categoria", {}).get(method, {}).items():
+                        label = f"  {category}"
+                        print(f"{label:<35} {values.get('n', 0):>5} "
+                              + " ".join(f"{pct(values.get(k)):>8}" for k in ("f1", "em", "recall@5", "all_recall@5")))
+                if data.get("excluidas"):
+                    print(f"Excluídas por filtro de conteúdo: {len(data['excluidas'])}")
+                if dataset == "locomo":
+                    print("F1/EM do harness; não são as métricas do avaliador oficial LoCoMo.")
+            print(f"Relatório: {path.with_suffix('.md')}", flush=True)
+        except (OSError, ValueError, TypeError, AttributeError) as exc:
+            print(f"Não foi possível imprimir {path}: {exc}", flush=True)
 
 
 def main(argv=None):

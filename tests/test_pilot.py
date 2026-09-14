@@ -10,6 +10,22 @@ from wrag.pilot import make_plan, parser, prepare_data, wait_ready
 from wrag.util import write_json, append_jsonl, read_json
 
 
+def test_terminal_summary_uses_report_metrics_and_marks_partial(tmp_path, capsys):
+    from wrag.pilot import print_results
+    write_json(tmp_path / "benchmark/run/report.json", {"datasets": {"locomo": {
+        "corpus": {"n_questions": 102}, "excluidas": ["q1"],
+        "metodos": {"witnessrag": {"n_avaliadas": 10,
+            "metricas": {"f1": .425, "em": .3, "recall@5": .8, "all_recall@5": .6}}},
+        "por_categoria": {"witnessrag": {"single-hop": {"n": 7, "f1": .5},
+                                         "multi-hop": {"n": 3, "f1": .25}}}}}})
+    print_results(tmp_path, "time_limit")
+    output = capsys.readouterr().out
+    assert "PARCIAIS" in output and "102" in output
+    assert "42.50" in output and "single-hop" in output and "multi-hop" in output
+    assert "Excluídas por filtro de conteúdo: 1" in output
+    assert "report.md" in output
+
+
 def test_gpu_plan_isolated_from_parent_and_uses_hf_model(tmp_path, monkeypatch):
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "0,1")
     args = parser().parse_args(["--gpu", "5", "--model-revision", "abc123"])

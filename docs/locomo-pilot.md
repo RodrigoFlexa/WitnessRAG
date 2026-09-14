@@ -72,6 +72,9 @@ ser contexto necessário às demais perguntas.
 `data_selection.json` registra seleção, origem, hash, contagens e mapeamento das
 evidências. `benchmark/<rodada>/report.md` inclui resultados globais e por categoria;
 `benchmark/<rodada>/locomo/witnessrag.jsonl` contém cada pergunta e seus diagnósticos.
+Ao terminar, o piloto também imprime no terminal F1, EM, R@5 e AR@5 gerais,
+F1/recall por categoria e o caminho do relatório. Execuções interrompidas são
+identificadas como parciais, com o número de perguntas avaliadas.
 
 Para conferir os dados sem GPU e sem chamadas de modelo:
 
