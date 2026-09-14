@@ -20,7 +20,7 @@ from wrag.util import get_logger, normalize, read_json, sha
 
 log = get_logger("wrag.data")
 
-DATASETS = ("musique", "2wikimultihopqa", "hotpotqa", "sample")
+DATASETS = ("musique", "2wikimultihopqa", "hotpotqa", "sample", "locomo")
 
 
 @dataclass(frozen=True)
@@ -142,6 +142,9 @@ def load_dataset(
     data_dir = data_dir or C.DATA_DIR
     qpath, cpath = _dataset_paths(name, data_dir)
     if not qpath.exists():
+        if name == "locomo":
+            raise FileNotFoundError(f"{qpath} não existe. Use `python -m wrag.pilot --dataset locomo` "
+                                    "ou prepare com `python -m wrag.locomo --output <pasta>`.")
         raise FileNotFoundError(
             f"{qpath} não existe. Rode `python -m wrag.cli prepare-data` para copiar os "
             f"subconjuntos oficiais do repositório do HippoRAG."

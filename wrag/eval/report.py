@@ -102,7 +102,7 @@ def _dataset_block(dataset: str, records: dict[str, list[dict]], excluded: set[s
              f"{corpus.get('n_questions', '?')} perguntas · {corpus.get('n_passages', '?')} passagens · "
              f"{corpus.get('hops_medio', '?')} hops em média · "
              f"{len(excluded)} pergunta(s) excluída(s) por filtro de conteúdo em algum método\n"]
-    reduced = summary.get('subset_corpus', False) or summary.get('corpus_scope', 'provided').startswith('pilot_')
+    reduced = dataset == "locomo" or summary.get('subset_corpus', False) or summary.get('corpus_scope', 'provided').startswith('pilot_')
     lines.append(f"Corpus reduzido/piloto: {reduced} · "
                  f"embedding ajustado: `{summary.get('embedder', {}).get('chave', '?')}`.\n")
 
@@ -150,6 +150,20 @@ def _dataset_block(dataset: str, records: dict[str, list[dict]], excluded: set[s
         lines.append(f"| {method} | {cells} |")
 
     lines += _paired_block(compared, excluded, data)
+    if dataset == "locomo":
+        lines += ["\n### LoCoMo: categorias oficiais\n",
+                  "Adaptação textual de uma conversa. F1/EM são do harness, não do avaliador oficial LoCoMo. "
+                  "Recall é sobre blocos de diálogo. O número de blocos de apoio não define a categoria de hops.\n",
+                  "| método | categoria | n | F1 | R@5 | AR@5 |", "|---|---|---|---|---|---|"]
+        data["por_categoria"] = {}
+        for method, rows in compared.items():
+            data["por_categoria"][method] = {}
+            for category in ("single-hop", "multi-hop"):
+                subset = [r for r in rows if r["qid"] not in excluded and r.get("tipo") == category]
+                values = {k: M.aggregate(r[k] for r in subset) for k in ("f1", "recall@5", "all_recall@5")}
+                data["por_categoria"][method][category] = {"n": len(subset), **values}
+                lines.append(f"| {method} | {category} | {len(subset)} | "
+                             + " | ".join(_pct(values[k]) for k in values) + " |")
     lines += _by_shape(compared, excluded, data)
     lines += _structural_block(compared, excluded, data)
     lines += _witness_block(compared, excluded, data)

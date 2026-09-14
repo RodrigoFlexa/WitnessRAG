@@ -18,6 +18,9 @@ A [auditoria do piloto de 14/09/2026](docs/revisao-resultados-2026-09-14.md) rev
 
 ## Métodos
 
+Para executar somente WitnessRAG na primeira conversa do LoCoMo, com perguntas
+single-hop e multi-hop, consulte [o piloto LoCoMo](docs/locomo-pilot.md).
+
 | Identificador | Implementação local |
 |---|---|
 | `dense` | Similaridade de embeddings de passagens |

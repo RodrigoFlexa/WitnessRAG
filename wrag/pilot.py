@@ -38,11 +38,15 @@ def parser():
     p.add_argument("--existing-server", action="store_true", help="usa servidor já ativo em localhost:port")
     p.add_argument("--embed-model", default="BAAI/bge-base-en-v1.5")
     p.add_argument("--embed-device", default="cuda:0", help="cuda:0 é a GPU selecionada após remapeamento; ou cpu")
-    p.add_argument("--dataset", choices=["2wikimultihopqa", "musique", "hotpotqa", "sample"], default="2wikimultihopqa")
-    p.add_argument("-n", "--questions", type=int, default=100)
+    p.add_argument("--dataset", choices=["2wikimultihopqa", "musique", "hotpotqa", "sample", "locomo"], default="2wikimultihopqa")
+    p.add_argument("-n", "--questions", type=int, default=None,
+                   help="padrão: 100; LoCoMo: todas as perguntas das categorias 1 e 4")
+    p.add_argument("--locomo-conversation", type=int, default=0, help="índice da conversa, começando em zero")
+    p.add_argument("--locomo-turns-per-passage", type=int, default=8)
+    p.add_argument("--locomo-file", type=Path, help="opcional: locomo10.json local, sem download")
     p.add_argument("--distractors", type=int, default=300, help="passagens aleatórias adicionais ao corpus candidato")
     p.add_argument("--max-passages", type=int, default=1500, help="falha se o corpus candidato exceder este teto")
-    p.add_argument("--methods", default=DEFAULT_METHODS)
+    p.add_argument("--methods", default=None, help="LoCoMo: somente witnessrag; demais: todos os métodos")
     p.add_argument("--no-acquisition", action="store_true", help="ablação sem aquisição dirigida")
     p.add_argument("--binding-aware-grounding", action="store_true")
     p.add_argument("--verify-witnesses", action="store_true")
@@ -57,9 +61,17 @@ def parser():
 
 
 def make_plan(args, output):
+    if args.questions is None and args.dataset != "locomo":
+        args.questions = 100
+    if args.methods is None:
+        args.methods = "witnessrag" if args.dataset == "locomo" else DEFAULT_METHODS
+    if args.locomo_file:
+        args.locomo_file = args.locomo_file.resolve()
+    if args.locomo_conversation < 0 or args.locomo_turns_per_passage < 1:
+        raise ValueError("índice LoCoMo deve ser >= 0 e tamanho da passagem >= 1")
     if not args.gpu.strip() or "," in args.gpu:
         raise ValueError("selecione uma GPU; este piloto usa tensor-parallel-size=1")
-    if args.hours <= 2 / 60 or args.questions < 1 or args.max_passages < 1 or args.distractors < 0:
+    if args.hours <= 2 / 60 or (args.questions is not None and args.questions < 1) or args.max_passages < 1 or args.distractors < 0:
         raise ValueError("prazo deve exceder 2 minutos; n/teto positivos; distratores >= 0")
     if not 0 < args.gpu_memory_utilization < 1 or args.concurrency < 1 or not 1 <= args.port <= 65535:
         raise ValueError("memória, concorrência ou porta inválidas")
@@ -100,7 +112,9 @@ def make_plan(args, output):
         command += ["--quantization", args.quantization]
     return {"output": str(output), "env": env, "server_command": command, "methods": methods,
             "settings": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
-            "scope": "piloto com corpus candidato reduzido e distratores; adaptações locais dos artigos"}
+            "scope": ("LoCoMo: conversa completa, QA single-hop/multi-hop, adaptação textual"
+                      if args.dataset == "locomo" else
+                      "piloto com corpus candidato reduzido e distratores; adaptações locais dos artigos")}
 
 
 def prepare_data(plan):
@@ -108,6 +122,11 @@ def prepare_data(plan):
     from wrag.data import load_dataset
     from wrag.util import read_json, write_json
     settings = plan["settings"]
+    if settings["dataset"] == "locomo":
+        from wrag.locomo import prepare
+        return prepare(plan["output"], settings.get("locomo_file"),
+                       settings.get("locomo_conversation", 0), settings.get("locomo_turns_per_passage", 8),
+                       settings.get("questions"), settings["seed"], settings["max_passages"])
     data = Path(plan["output"]) / "data"
     source = Path(plan["output"]) / "source-data"
     source.mkdir(parents=True, exist_ok=True)
@@ -157,7 +176,7 @@ def worker(plan_path):
     settings = plan["settings"]
     print("Preparando corpus do piloto...", flush=True)
     metadata = prepare_data(plan)
-    print(json.dumps({k: v for k, v in metadata.items() if k != "question_ids"}, ensure_ascii=False), flush=True)
+    print(json.dumps({k: v for k, v in metadata.items() if k not in {"question_ids", "question_mapping"}}, ensure_ascii=False), flush=True)
     import importlib.metadata
     versions = {}
     for package in ("openai", "torch", "transformers", "sentence-transformers", "numpy", "scipy", "networkx", "igraph"):
@@ -171,8 +190,9 @@ def worker(plan_path):
                      stage="pilot.preflight")
     if not isinstance(probe.json(), dict) or probe.json().get("ok") is not True:
         raise RuntimeError("preflight não retornou o JSON esperado; confira modelo/endpoint")
-    cfg = C.RunConfig(n_questions=settings["questions"], seed=settings["seed"], top_k=5,
-                      interleave_methods=True, corpus_scope="pilot_candidates_plus_random_distractors")
+    cfg = C.RunConfig(n_questions=settings["questions"] or metadata["questions"], seed=settings["seed"], top_k=5,
+                      interleave_methods=True, corpus_scope=("locomo_full_selected_conversation"
+                      if settings["dataset"] == "locomo" else "pilot_candidates_plus_random_distractors"))
     cfg.witness.enable_acquisition = not settings["no_acquisition"]
     cfg.witness.binding_aware_grounding = settings.get("binding_aware_grounding", False)
     cfg.witness.verify_witnesses = settings.get("verify_witnesses", False)
