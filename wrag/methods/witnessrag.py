@@ -248,17 +248,15 @@ class WitnessRAGRetriever(Retriever):
             "busca_exaustiva": result.exhaustive,
             "cortes": result.truncations,
             "modo_aterramento": result.grounding_mode,
+            "aterramento_condicionado": cfg.binding_aware_grounding,
             "aquisicao_tipo": "heuristica_de_lacuna_por_similaridade",
             "rodadas_aquisicao": rounds,
             "aquisicoes": acquisitions,
         }
 
         if not result.complete:
-            # Nenhuma demonstração completa. Duas coisas continuam disponíveis e
-            # ambas são usadas: as passagens dos fatos que ATERRARAM parcialmente
-            # a consulta, e o ranking denso. A abstenção pura seria mais pura
-            # teoricamente, mas produziria uma tabela em que o método não compete.
-            diagnostics["fallback"] = "denso + aterramento parcial"
+            # Candidatos parciais são diagnóstico, não autorização para promover.
+            diagnostics["fallback"] = "denso (sem testemunha completa)"
             diagnostics["lacuna"] = result.gap.to_dict() if result.gap else None
             if not cfg.dense_fallback:
                 return RetrievalResult(diagnostics=diagnostics)
@@ -274,6 +272,22 @@ class WitnessRAGRetriever(Retriever):
             pids, scores = pad_with_dense(dense_pids[:k], dense_scores[:k],
                                           partial_pids, partial_scores, k)
             return RetrievalResult(pids=pids, scores=scores, diagnostics=diagnostics)
+
+        if cfg.verify_witnesses:
+            from wrag.witness.verification import verify_witnesses
+            proposed = result.witnesses
+            fitting = [w for w in proposed if len(set(w.pids)) <= k]
+            result.witnesses, verification = verify_witnesses(
+                self.ctx.llm, self.corpus, self.memory, question, query, fitting,
+                cfg.verification_max_witnesses, self.ctx.dataset)
+            verification["fora_do_orcamento_contexto"] = len(proposed) - len(fitting)
+            diagnostics["verificacao"] = verification
+            diagnostics["n_testemunhas_propostas"] = len(proposed)
+            if not result.complete:
+                diagnostics["fallback"] = "denso (nenhuma testemunha aprovada)"
+                return RetrievalResult(pids=dense_pids[:k] if cfg.dense_fallback else [],
+                                       scores=dense_scores[:k] if cfg.dense_fallback else [],
+                                       diagnostics=diagnostics)
 
         candidates = score_answers(result.witnesses, self.memory, cfg)
         pids, scores = rank_passages(candidates, k)
@@ -299,10 +313,7 @@ class WitnessRAGRetriever(Retriever):
     def _partial_passages(self, query: ConjunctiveQuery, k: int) -> tuple[list[str], list[float]]:
         """Passagens dos melhores candidatos de cada átomo, quando a junção falha.
 
-        Mesmo sem demonstração completa, os átomos que aterraram apontam para
-        passagens que contêm PARTE da prova — e no multi-hop essa parte costuma
-        ser o elo que a recuperação densa acha sozinha, mais o elo que ela não
-        acha. Manter os dois é melhor que devolver só o denso.
+        São candidatos sem validação semântica, mantidos para diagnóstico.
         """
         assert self.searcher is not None and self.memory is not None
         groundings = self.searcher.ground(query)

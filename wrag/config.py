@@ -205,6 +205,9 @@ class WitnessConfig:
     max_witnesses: int = 20
     beam_width: int = 400
     passage_penalty: float = 0.15      # λ: custo por passagem distinta na testemunha
+    binding_aware_grounding: bool = False  # ablação: expandir vizinhos após ligar variáveis
+    verify_witnesses: bool = False         # ablação: verificar no texto antes de promover
+    verification_max_witnesses: int = 5    # teto de chamadas por pergunta
 
     # -- proveniência e risco
     fact_confidence: float = 0.90      # p_e default de um fato extraído uma vez

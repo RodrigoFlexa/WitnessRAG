@@ -33,8 +33,10 @@ def load(bench: Path, dataset: str) -> dict[str, dict[str, dict]]:
     if not d.is_dir():
         return out
     for f in sorted(d.glob("*.jsonl")):
-        out[f.stem] = {r["qid"]: r for r in (json.loads(l) for l in
-                                             f.read_text(encoding="utf-8").splitlines())}
+        rows = [json.loads(l) for l in f.read_text(encoding="utf-8").splitlines() if l.strip()]
+        out[f.stem] = {r["qid"]: r for r in rows}
+        if len(out[f.stem]) != len(rows):
+            raise ValueError(f"{f}: qids duplicados")
     return out
 
 
@@ -44,13 +46,25 @@ def guard(new: Path, base: Path) -> list[str]:
     bad = []
     if a.get("datasets") != b.get("datasets"):
         bad.append("datasets diferentes")
-    if a.get("llm", {}).get("deployment") != b.get("llm", {}).get("deployment"):
-        bad.append("modelo do leitor diferente")
+    for key in ("backend", "deployment", "provider_identity"):
+        if a.get("llm", {}).get(key) != b.get("llm", {}).get(key):
+            bad.append(f"leitor.{key} diferente")
+    if a.get("config", {}).get("qa") != b.get("config", {}).get("qa"):
+        bad.append("configuração do leitor diferente")
     if a.get("embedder", {}).get("chave") != b.get("embedder", {}).get("chave"):
         bad.append("embedder diferente")
     for key in ("top_k", "seed", "n_questions"):
         if a.get("config", {}).get(key) != b.get("config", {}).get(key):
             bad.append(f"config.{key} diferente")
+    for dataset in a.get("datasets", []):
+        left, right = new / dataset / "corpus.json", base / dataset / "corpus.json"
+        if not left.exists() or not right.exists():
+            bad.append(f"{dataset}: manifesto do corpus ausente")
+            continue
+        ca, cb = (json.loads(p.read_text(encoding="utf-8")) for p in (left, right))
+        for key in ("corpus_hash", "questions_hash"):
+            if not ca.get(key) or not cb.get(key) or ca[key] != cb[key]:
+                bad.append(f"{dataset}: {key} ausente ou diferente")
     return bad
 
 
@@ -74,6 +88,11 @@ def main() -> int:
         merged = {**{m: r for m, r in B.items() if m not in A}, **A}
         origem = {m: ("nova" if m in A else "anterior") for m in merged}
         paired = set.intersection(*(set(v) for v in merged.values()))
+        if not paired:
+            raise ValueError(f"{dataset}: nenhuma pergunta pareada")
+        for method, rows in merged.items():
+            if len(rows) != len(paired):
+                print(f"  AVISO: {method}: {len(rows) - len(paired)} perguntas fora da interseção")
         print(f"\n{dataset} · {len(paired)} perguntas pareadas · "
               f"{sum(1 for o in origem.values() if o == 'nova')} método(s) da rodada nova")
         print(f"  {'método':<14} {'origem':<9} " + " ".join(f"{h:>6}" for _, h in FIELDS))

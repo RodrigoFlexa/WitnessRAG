@@ -44,6 +44,8 @@ def parser():
     p.add_argument("--max-passages", type=int, default=1500, help="falha se o corpus candidato exceder este teto")
     p.add_argument("--methods", default=DEFAULT_METHODS)
     p.add_argument("--no-acquisition", action="store_true", help="ablação sem aquisição dirigida")
+    p.add_argument("--binding-aware-grounding", action="store_true")
+    p.add_argument("--verify-witnesses", action="store_true")
     p.add_argument("--hours", type=float, default=6.5, help="janela total; reserva 2 min para finalização")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--output", type=Path)
@@ -172,6 +174,8 @@ def worker(plan_path):
     cfg = C.RunConfig(n_questions=settings["questions"], seed=settings["seed"], top_k=5,
                       interleave_methods=True, corpus_scope="pilot_candidates_plus_random_distractors")
     cfg.witness.enable_acquisition = not settings["no_acquisition"]
+    cfg.witness.binding_aware_grounding = settings.get("binding_aware_grounding", False)
+    cfg.witness.verify_witnesses = settings.get("verify_witnesses", False)
     # Mantém os demais hiperparâmetros consolidados: sem corte oculto de tokens/fatos.
     root = run([settings["dataset"]], plan["methods"], cfg, tag="qwen-pilot")
     write_json(Path(plan["output"]) / "completed.json", {"run_dir": str(root)})

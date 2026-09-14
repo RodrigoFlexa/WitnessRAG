@@ -4,6 +4,8 @@ Protótipo de memória orientada à preservação de **testemunhas de consultas 
 
 A proposta original está em [docs/proposta.md](docs/proposta.md). O estado efetivo do código, as correções da revisão e as limitações estão em [docs/revisao-implementacao.md](docs/revisao-implementacao.md).
 
+A [auditoria do piloto de 14/09/2026](docs/revisao-resultados-2026-09-14.md) revisa os resultados salvos e apresenta as ablações experimentais `--binding-aware-grounding` e `--verify-witnesses`, disponíveis na CLI e no piloto. Ambas são desligadas por padrão; ainda não têm ganho medido com modelo real.
+
 ## O que está implementado
 
 - Compilação falível de perguntas em consultas conjuntivas positivas, com uma variável de resposta: single-hop, cadeias e interseções. Comparações, contagem e negação ficam fora da execução lógica.

@@ -120,6 +120,8 @@ def cmd_run(args: argparse.Namespace) -> int:
     cfg.subset_corpus = args.subset_corpus
     cfg.train_questions_path = args.train_questions
     cfg.witness.grounding_mode = args.grounding
+    cfg.witness.binding_aware_grounding = args.binding_aware_grounding
+    cfg.witness.verify_witnesses = args.verify_witnesses
     cfg.witness.dense_fallback = not args.no_dense_fallback
     if args.budget is not None:
         cfg.witness.budget_fraction = args.budget
@@ -206,6 +208,10 @@ def main(argv: list[str] | None = None) -> int:
     p_run.add_argument("--budget", type=float, default=None,
                        help="fração da memória a preservar (ativa a seleção por ILP)")
     p_run.add_argument("--beam", type=int, default=None, help="largura do feixe da junção")
+    p_run.add_argument("--binding-aware-grounding", action="store_true",
+                       help="expande o próximo salto a partir das variáveis ligadas")
+    p_run.add_argument("--verify-witnesses", action="store_true",
+                       help="verifica testemunhas nos textos antes de promover passagens")
     p_run.add_argument("--no-acquisition", action="store_true",
                        help="desliga a aquisição adaptativa (ablação)")
     p_run.add_argument("--grounding", choices=["exact", "semantic"],

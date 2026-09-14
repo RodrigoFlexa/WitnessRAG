@@ -334,6 +334,41 @@ class WitnessSearcher:
 
     # -- junção -------------------------------------------------------------
 
+    def _bound_groundings(self, atom: Atom, state: _State,
+                          vectors: tuple[np.ndarray, np.ndarray],
+                          constants: dict[str, list[tuple[int, float]]]) -> list[Grounding] | None:
+        """Aplica a ligação ANTES do top-k; não refaz identidade por cosseno.
+
+        None significa que o estado ainda não liga variável deste átomo.
+        Uma lista vazia significa que a vizinhança ligada não tem candidato.
+        A pontuação mantém o átomo original para não contar novamente a
+        confiança de uma entidade intermediária já escolhida.
+        """
+        pools = []
+        for term, table in ((atom.subject, self._facts_by_cluster_subject),
+                            (atom.object, self._facts_by_cluster_object)):
+            if is_var(term) and var_name(term) in state.clusters:
+                pools.append(set(table.get(state.clusters[var_name(term)], [])))
+        if not pools:
+            return None
+        pool = set.intersection(*pools)
+        scored = []
+        for fid in sorted(pool):
+            if not self._permitted(fid):
+                continue
+            score = self._score_fact(atom, self.kg.facts[fid], fid,
+                                     vectors[0], vectors[1], constants, False)
+            grounding = Grounding(fid, score)
+            # Restrições repetidas (?x R ?x) também precedem o corte.
+            if score > 0 and self._extend(state, atom, grounding) is not None:
+                scored.append(grounding)
+        scored.sort(key=lambda g: (-g.score, g.fact_index))
+        limit = self.cfg.candidates_per_atom
+        if limit and len(scored) > limit:
+            self._ground_truncated = True
+            scored = scored[:limit]
+        return scored
+
     def join(self, query: ConjunctiveQuery,
              groundings: Sequence[Sequence[Grounding]] | None = None) -> SearchResult:
         cfg = self.cfg
@@ -352,6 +387,13 @@ class WitnessSearcher:
         # produto G × A_q; para interseção, é uma junção por variável.
         order = sorted(range(len(query.atoms)),
                        key=lambda i: (-query.atoms[i].n_constants, n_candidates[i]))
+        adaptive = (cfg.binding_aware_grounding and cfg.grounding_mode == "semantic"
+                    and not external_groundings)
+        if adaptive:
+            rel_vectors = self.embedder.encode([a.relation for a in query.atoms])
+            verb_vectors = self.embedder.encode([a.verbalize() for a in query.atoms])
+            constants = {c: self.match_entity(c) for c in query.constants()}
+        bound_cache: dict[tuple, list[Grounding] | None] = {}
 
         states = [_State({}, {}, (), 0.0, frozenset())]
         depth_reached = 0
@@ -361,13 +403,35 @@ class WitnessSearcher:
             truncations.append("candidatos")
         exhaustive = cfg.grounding_mode == "exact" and not truncations
 
-        for depth, ai in enumerate(order):
+        remaining = list(order)
+        for depth in range(len(order)):
+            # Seguir a fronteira ligada evita avaliar uma relação genérica
+            # desconectada antes de visitar o elo que a torna seletiva.
+            if adaptive:
+                bound = set(states[0].clusters) if states else set()
+                ai = min(remaining, key=lambda i: (
+                    -sum(is_var(t) and var_name(t) in bound
+                         for t in (query.atoms[i].subject, query.atoms[i].object)),
+                    -query.atoms[i].n_constants, n_candidates[i], i))
+            else:
+                ai = remaining[0]
+            remaining.remove(ai)
             atom = query.atoms[ai]
             candidates = groundings[ai]
             nxt: list[_State] = []
             seen: dict[tuple, _State] = {}
             for state in states:
-                for grounding in candidates:
+                local = candidates
+                if adaptive:
+                    key = (ai, tuple((var_name(t), state.clusters.get(var_name(t)))
+                                     for t in (atom.subject, atom.object) if is_var(t)))
+                    if key not in bound_cache:
+                        bound_cache[key] = self._bound_groundings(
+                            atom, state, (rel_vectors[ai], verb_vectors[ai]), constants)
+                    conditioned = bound_cache[key]
+                    if conditioned is not None:
+                        local = conditioned
+                for grounding in local:
                     extended = self._extend(state, atom, grounding)
                     if extended is None:
                         continue
@@ -376,6 +440,8 @@ class WitnessSearcher:
                     if previous is None or extended.log_score > previous.log_score:
                         seen[key] = extended
             nxt = list(seen.values())
+            if adaptive and self._ground_truncated and "candidatos" not in truncations:
+                truncations.append("candidatos")
 
             if not nxt:
                 gap = self._gap(ai, atom, states, depth)
