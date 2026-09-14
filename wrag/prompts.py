@@ -1,0 +1,240 @@
+"""
+Todos os prompts do benchmark, em um arquivo só.
+
+Duas convenções que o resto do código depende:
+
+1. Toda entrada variável vem depois de `### INPUT`. O backend `stub` corta por
+   esse marcador para achar a passagem ou a pergunta; um prompt que não o
+   respeite roda no Azure e falha no teste offline.
+2. Toda saída é JSON. `response_format` nem sempre está disponível no gateway,
+   então o parser é tolerante (`parse_json_loose`) e o prompt insiste no formato.
+
+Os prompts de NER e OpenIE seguem de perto o HippoRAG (extração em dois passos:
+primeiro entidades, depois triplas condicionadas às entidades), porque o mesmo
+extrator alimenta os quatro métodos com grafo. Trocar o extrator entre métodos
+mudaria a variável errada.
+"""
+
+from __future__ import annotations
+
+import json
+from typing import Any, Sequence
+
+# ---------------------------------------------------------------------------
+# Extração (compartilhada por GraphRAG, HippoRAG, HippoRAG 2 e WITNESS-RAG)
+# ---------------------------------------------------------------------------
+
+NER_SYSTEM = (
+    "You are an information extraction system. You extract named entities from text. "
+    "You always answer with a single JSON object and nothing else."
+)
+
+NER_TEMPLATE = """Extract every named entity from the passage below.
+
+Include people, organizations, locations, works (films, books, albums), events,
+dates and other proper nouns. Keep the surface form as it appears in the text.
+
+Answer with JSON exactly in this shape:
+{{"named_entities": ["entity one", "entity two"]}}
+
+### INPUT
+{text}"""
+
+
+OPENIE_SYSTEM = (
+    "You are an open information extraction system. You convert passages into "
+    "subject-relation-object triples. You always answer with a single JSON object and nothing else."
+)
+
+OPENIE_TEMPLATE = """Convert the passage below into open knowledge-graph triples.
+
+Rules:
+- Use the named entities listed as subjects or objects whenever they apply, but you
+  may also introduce other noun phrases (concepts, dates, values) when the passage
+  states a relation about them.
+- The relation must be a short phrase taken from or faithful to the passage.
+- Every triple must be supported by the passage on its own. Do not infer.
+- Keep dates and numbers as they are written.
+- At most {max_triples} triples.
+
+Answer with JSON exactly in this shape:
+{{"triples": [["subject", "relation", "object"]]}}
+
+Named entities found in this passage: {entities}
+
+### INPUT
+{text}"""
+
+
+# Extração dirigida, usada pela aquisição adaptativa do WITNESS-RAG. A diferença
+# em relação ao OpenIE geral é o alvo: aqui já sabemos qual buraco da testemunha
+# queremos fechar, então pedimos exatamente aquela relação.
+TARGETED_IE_SYSTEM = (
+    "You are a targeted extraction system. Given a passage and one specific relation "
+    "of interest, you extract only the triples that instantiate that relation. "
+    "You always answer with a single JSON object and nothing else."
+)
+
+TARGETED_IE_TEMPLATE = """Extract only triples that express the relation of interest.
+
+Relation of interest: "{relation}"
+{anchor_line}
+If the passage does not state that relation, answer with an empty list. Do not infer
+and do not substitute a different relation.
+
+Answer with JSON exactly in this shape:
+{{"triples": [["subject", "relation", "object"]]}}
+
+### INPUT
+{text}"""
+
+
+# ---------------------------------------------------------------------------
+# HippoRAG: NER da consulta / HippoRAG 2: recognition memory
+# ---------------------------------------------------------------------------
+
+QUERY_NER_SYSTEM = NER_SYSTEM
+
+QUERY_NER_TEMPLATE = """Extract the named entities mentioned in the question below.
+These are the entities a reader would look up to start answering it.
+
+Answer with JSON exactly in this shape:
+{{"named_entities": ["entity one"]}}
+
+### INPUT
+{question}"""
+
+
+TRIPLE_FILTER_SYSTEM = (
+    "You judge whether knowledge-graph facts are relevant to a question. "
+    "You always answer with a single JSON object and nothing else."
+)
+
+TRIPLE_FILTER_TEMPLATE = """Below is a question and a numbered list of candidate facts.
+
+Keep only the facts that a person would actually use while answering the question,
+including facts needed for an intermediate step. Drop facts about unrelated entities.
+Keep at most {max_kept} facts, ordered by usefulness.
+
+Answer with JSON exactly in this shape:
+{{"fact": [["subject", "relation", "object"]]}}
+
+### INPUT
+PERGUNTA: {question}
+
+{triples}"""
+
+
+# ---------------------------------------------------------------------------
+# GraphRAG: relatório de comunidade
+# ---------------------------------------------------------------------------
+
+COMMUNITY_SYSTEM = (
+    "You are an analyst writing a short report about a cluster of related entities. "
+    "You always answer with a single JSON object and nothing else."
+)
+
+COMMUNITY_TEMPLATE = """Write a short report about the community of entities below.
+
+The report is used to answer questions later, so state concrete facts and names,
+not generalities. Two to four sentences.
+
+Answer with JSON exactly in this shape:
+{{"title": "short title", "summary": "the report"}}
+
+### INPUT
+Entities: {entities}
+
+Relationships:
+{relationships}"""
+
+
+# ---------------------------------------------------------------------------
+# WITNESS-RAG: compilação da pergunta em consulta conjuntiva
+# ---------------------------------------------------------------------------
+
+COMPILE_SYSTEM = (
+    "You translate natural-language questions into conjunctive graph queries. "
+    "You always answer with a single JSON object and nothing else."
+)
+
+COMPILE_TEMPLATE = """Translate the question into a conjunctive query over a knowledge graph.
+
+A conjunctive query is a set of atoms that must ALL hold at the same time, sharing
+variables. Variables start with "?". The answer variable is "?x". Intermediate
+entities you do not know are variables too ("?y", "?z").
+
+Guidance:
+- A single-hop question becomes one atom: relation(constant, ?x).
+- A chain question becomes atoms linked by an intermediate variable:
+  relation1(constant, ?y) AND relation2(?y, ?x).
+- An intersection question repeats the SAME variable in two atoms:
+  relation1(?x, constantA) AND relation2(?x, constantB).
+- Write relations as short natural-language phrases ("director", "date of death",
+  "employer", "located in"). Do not invent a schema.
+- Constants must be entity names copied from the question.
+- At most {max_atoms} atoms. If the question needs comparison, counting or
+  negation, still emit the atoms that fetch the facts to be compared, and set
+  "aggregation" to describe what is done with them.
+
+Answer with JSON exactly in this shape:
+{{"answer_var": "x",
+  "atoms": [{{"relation": "...", "subject": "...", "object": "?x"}}],
+  "expected_type": "person|place|date|organization|work|number|other",
+  "aggregation": "none|max|min|compare|count",
+  "fallback": "a keyword query to use if the graph search fails"}}
+
+Examples:
+Question: "When did Lothair II's mother die?"
+{{"answer_var": "x", "atoms": [{{"relation": "mother", "subject": "Lothair II", "object": "?y"}}, {{"relation": "date of death", "subject": "?y", "object": "?x"}}], "expected_type": "date", "aggregation": "none", "fallback": "Lothair II mother date of death"}}
+
+Question: "Which Stanford professor works on Alzheimer's?"
+{{"answer_var": "x", "atoms": [{{"relation": "professor at", "subject": "?x", "object": "Stanford University"}}, {{"relation": "researches", "subject": "?x", "object": "Alzheimer's"}}], "expected_type": "person", "aggregation": "none", "fallback": "Stanford professor Alzheimer's research"}}
+
+### INPUT
+{question}"""
+
+
+# ---------------------------------------------------------------------------
+# Leitura final (idêntica para os cinco sistemas)
+# ---------------------------------------------------------------------------
+
+QA_SYSTEM = (
+    "You answer questions using only the passages provided. You always answer with a "
+    "single JSON object and nothing else."
+)
+
+QA_TEMPLATE = """Answer the question using only the passages below.
+
+Give the shortest answer that is complete: a name, a date, a number or a short noun
+phrase. Do not write a sentence. If the passages do not contain the answer, answer
+with "insufficient information".
+
+Answer with JSON exactly in this shape:
+{{"answer": "..."}}
+
+### INPUT
+{passages}
+
+PERGUNTA: {question}"""
+
+
+def format_passages(passages: Sequence[tuple[str, str]], max_chars: int | None = None) -> str:
+    """Formata (título, texto) para o prompt de leitura. Mesma formatação para
+    todos os métodos: a diferença entre eles tem que ser o que foi recuperado,
+    não como foi apresentado."""
+    blocks = []
+    for i, (title, text) in enumerate(passages, 1):
+        body = text if max_chars is None or len(text) <= max_chars else text[: max_chars - 3] + "..."
+        blocks.append(f"[{i}] {title}\n{body}")
+    return "\n\n".join(blocks) if blocks else "(nenhuma passagem recuperada)"
+
+
+def format_triples(triples: Sequence[Sequence[str]]) -> str:
+    return "\n".join(
+        f"{i}. ({t[0]} | {t[1]} | {t[2]})" for i, t in enumerate(triples, 1)
+    )
+
+
+def jdump(obj: Any) -> str:
+    return json.dumps(obj, ensure_ascii=False)

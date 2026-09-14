@@ -1,0 +1,119 @@
+# WITNESS-RAG
+
+Protótipo de memória orientada à preservação de **testemunhas de consultas conjuntivas**. A implementação distingue provas sobre uma base formal de fatos de aproximações semânticas produzidas por LLM e embeddings.
+
+A proposta original está em [docs/proposta.md](docs/proposta.md). O estado efetivo do código, as correções da revisão e as limitações estão em [docs/revisao-implementacao.md](docs/revisao-implementacao.md).
+
+## O que está implementado
+
+- Compilação falível de perguntas em consultas conjuntivas positivas, com uma variável de resposta: single-hop, cadeias e interseções. Comparações, contagem e negação ficam fora da execução lógica.
+- Junções dirigidas com atribuições consistentes de variáveis e proveniência por conjuntos de fatos. A identidade simbólica preserva pontuação: `C++`, `C#` e `C` são diferentes.
+- Aterramento `semantic` por padrão: usa similaridade com limiar de relação e é aproximado, sem garantia lógica. `--grounding exact` ativa o controle simbólico.
+- Seleção de contexto por testemunhas completas; uma prova que excede `top-k` não é cortada para parecer completa. O leitor recebe as passagens inteiras, sem o antigo corte oculto de 1.500 caracteres; isso pode aumentar o consumo de tokens.
+- Seleção de fatos por orçamento com ILP, preservando o E dentro de cada testemunha e o OU entre alternativas da mesma demanda.
+- Aquisição dirigida reversível por pergunta. A política atual é uma heurística de similaridade menos custo, não uma estimativa calibrada de valor da informação.
+- Resposta estrutural e resposta do leitor avaliadas separadamente. Scores de suporte e risco são **não calibrados**.
+
+## Métodos
+
+| Identificador | Implementação local |
+|---|---|
+| `dense` | Similaridade de embeddings de passagens |
+| `bm25` | BM25 lexical |
+| `graphrag` | Adaptação local com comunidades e ranking de passagens |
+| `hipporag` | Adaptação com entidades e difusão PPR |
+| `hipporag2` | Adaptação com triplas, filtro e nós de passagem |
+| `relational` | SQL exato, mesmo compilador/leitor, sem aquisição nem cortes de testemunhas |
+| `witnessrag` | Busca de testemunhas, limites configuráveis e aquisição opcional |
+| `witnessrag-annotated` | Diagnóstico com tradução heurística de anotações privilegiadas |
+| `witnessrag-oracle` | Nome legado da condição anotada; não é um teto garantido |
+
+Os comparadores com nomes de artigos são **adaptações**, com extração compartilhada. Seus números não reproduzem automaticamente os sistemas publicados. O controle SQL serve para separar os efeitos do executor dos efeitos da compilação, do leitor e da aquisição.
+
+## Instalação e testes
+
+PowerShell, em um ambiente Python apropriado:
+
+```powershell
+python -m pip install -r requirements-dev.txt
+python -m pytest tests -q
+```
+
+Para uso apenas com Azure, há `requirements-azure.txt`. A suíte de testes usa backends determinísticos e não chama APIs pagas. PuLP está limitado à série anterior à versão 4, pois a interface CBC usada aqui tem deprecações anunciadas.
+
+```powershell
+python -m wrag.cli prepare-data
+python -m wrag.cli selftest --methods dense,bm25,graphrag,hipporag,hipporag2,relational,witnessrag
+```
+
+`prepare-data` baixa os arquivos a partir do repositório HippoRAG e requer rede. `selftest` precisa dos dados locais e força LLM stub e TF-IDF; seus resultados verificam a execução, não a qualidade científica. Os testes de integração de `pytest` criam seus próprios dados e dispensam o download.
+
+## Configuração dos provedores
+
+Use `.env.example` como referência para configurar `.env`. Escolha explicitamente os provedores antes de uma rodada científica:
+
+```ini
+WRAG_LLM_BACKEND=azure
+WRAG_EMBED_BACKEND=azure
+WRAG_AZURE_DEPLOYMENT=<deployment-chat>
+WRAG_AZURE_EMBED_DEPLOYMENT=<deployment-embedding>
+AZURE_OPENAI_API_KEY=<chave>
+AZURE_OPENAI_BASE_URL=<url-do-gateway>
+```
+
+Endpoint, versão da API e certificado corporativo dependem do ambiente; consulte `.env.example` e `wrag/config.py`. `python -m wrag.cli diag-azure` testa a conexão e faz chamadas reais. Embeddings locais são opcionais; `auto` pode cair para TF-IDF, condição sinalizada no relatório. Use `WRAG_LLM_BACKEND=stub` e `WRAG_EMBED_BACKEND=tfidf` para execuções offline.
+
+## Experimentos
+
+Novas execuções usam aterramento semântico por padrão. Use embeddings semânticos reais para avaliar essa capacidade; TF-IDF continua sendo um fallback para testes offline. O método `relational` permanece sempre exato.
+
+Controle do executor, com a mesma extração e sem aquisição:
+
+```powershell
+python -m wrag.cli run --datasets musique --methods dense,bm25,hipporag2,relational,witnessrag -n 100 --grounding exact --exhaustive --no-acquisition --tag executor
+```
+
+`--exhaustive` requer `--grounding exact` e desativa os três cortes: candidatos por átomo, feixe e testemunhas finais. Pode exigir tempo e memória exponenciais no tamanho da consulta. O modo exato com limites só registra completude quando nenhum corte ocorreu. Não há completude garantida para linguagem natural.
+
+Ablação puramente estrutural, sem preencher lacunas com recuperação densa:
+
+```powershell
+python -m wrag.cli run --datasets musique --methods relational,witnessrag -n 100 --grounding exact --exhaustive --no-acquisition --no-dense-fallback --tag estrutural
+```
+
+Seleção sob orçamento:
+
+```powershell
+python -m wrag.cli run --datasets musique --methods relational,witnessrag -n 100 --budget 0.5 --no-acquisition --train-questions caminho/treino.json --tag budget
+```
+
+O treino precisa ser um JSON separado no formato do dataset; sobreposição de IDs ou texto das perguntas é rejeitada. Na ausência de demandas suficientes, são sintetizadas demandas sobre o grafo, com essa origem registrada. Não são usadas as perguntas restantes da avaliação como treino.
+
+O ILP é ótimo **sobre as testemunhas fornecidas**, somente quando o solver comprova otimalidade. Solução viável sob limite de tempo e fallback guloso são explicitamente distintos. A fração de orçamento controla uma máscara de fatos visíveis: não representa redução medida de RAM, pois o índice base permanece carregado.
+
+## Protocolo e retomada
+
+O padrão mantém o corpus completo disponível nos arquivos locais ao sortear perguntas. `--subset-corpus` é um piloto explicitamente reduzido. Os relatórios registram hashes de corpus, perguntas, código e configuração.
+
+```powershell
+python -m wrag.cli run --datasets musique --methods relational,witnessrag -n 100 --grounding exact --exhaustive --no-acquisition --resume-dir runs/ID
+python -m wrag.cli report runs/ID
+```
+
+Para retomar, repita a configuração original. Configuração, código ou dados incompatíveis são rejeitados. Registros concluídos são preservados; `--fresh` os substitui. A reindexação da retomada aparece em `index_attempts.json`, sem apagar o custo inicial. Custos de etapas interrompidas antes do checkpoint podem estar incompletos.
+
+`report.md` e `report.json` apresentam:
+
+- Recall e all-recall por passagens, EM/F1 do leitor comum e diferenças com bootstrap pareado.
+- A mesma interseção de IDs para todos os métodos; a união dos bloqueios por filtro é excluída dessa comparação. Essa é uma estimativa condicional, não disponibilidade sobre todas as solicitações.
+- EM estrutural, existência de testemunha completa no contexto e cobertura lexical de triplas dirigidas. Correspondência lexical não é auditoria semântica do texto.
+- Seletividade por score não calibrado, incluindo falhas sem prova e aceitando empates em bloco.
+- Custos de extração compartilhada, indexação própria, seleção e consultas. Tokens lógicos e sem cache são distintos; tokens de embeddings e custos financeiros totais não são medidos.
+
+## Piloto local com vLLM
+
+Para testar os sete métodos na A100 de 80 GB com Qwen2.5-14B, seleção `--gpu 5`, prazo de 6,5 horas e gráficos automáticos, veja [o guia do piloto](docs/piloto-vllm.md). O launcher é `python -m wrag.pilot --gpu 5`; o guia inclui a instalação em ambientes separados e os limites da comparação.
+
+## Limites científicos
+
+A implementação não demonstra novidade científica nem superioridade sobre GraphRAG/HippoRAG. Permanecem necessários: esquema e ontologia controlados, fatos tipados com tempo e escopo, consultas ouro verificadas, calibração de erros, um modelo efetivo de aquisição por valor da informação e experimentos em múltiplas sementes e corpora. A completude formal do executor não elimina erros de extração, de identidade ou de compilação.
