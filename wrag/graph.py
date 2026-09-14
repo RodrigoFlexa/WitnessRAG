@@ -25,6 +25,39 @@ log = get_logger("wrag.graph")
 
 MERGE_MARGIN = 0.10  # limiar de fusão = limiar de aresta + esta margem
 
+# Palavras que não discriminam identidade e por isso não contam na contenção.
+_IDENTITY_STOPWORDS = frozenset(
+    "a an the of de da do del la le les el los las in on at for and or to from "
+    "s dr mr mrs ms sir jr sr".split()
+)
+
+
+def _identity_tokens(surface: str) -> frozenset[str]:
+    return frozenset(t for t in normalize(surface).split() if t and t not in _IDENTITY_STOPWORDS)
+
+
+def _is_identity_variant(left: str, right: str) -> bool:
+    """Identidade por contenção lexical, confirmada depois pela semântica.
+
+    Similaridade de cosseno sozinha não prova identidade: 'the first half of X' e
+    'the second half of X' ficam em 0.95 e não são a mesma coisa. Exigir que um
+    conjunto de tokens contenha o outro descarta esse caso — 'first' e 'second'
+    são tokens discriminantes que nenhum dos dois lados absorve — e ainda aceita
+    'Juan Courten' ⊂ 'Juan de Courten' e 'New York' ⊂ 'New York City'.
+
+    Conservador de propósito: perde sinônimos sem sobreposição ('TV'/'television').
+    Numa proposta que emite proveniência, unir duas entidades distintas fabrica
+    testemunha falsa, que custa mais caro do que deixar uma cadeia em aberto.
+    """
+    a, b = _identity_tokens(left), _identity_tokens(right)
+    if not a or not b:
+        return False
+    if not (a <= b or b <= a):
+        return False
+    # Uma única palavra a mais pode inverter o referente ("Universidade X" vs
+    # "Universidade X Campus Y"); o limite mantém a fusão perto da abreviação.
+    return abs(len(a) - len(b)) <= max(1, min(len(a), len(b)) - 1)
+
 
 class UnionFind:
     def __init__(self, n: int) -> None:
@@ -167,6 +200,9 @@ def build_graph(
     merge_threshold = min(0.99, cfg.synonym_threshold + MERGE_MARGIN)
     for i, j, sim in pairs:
         if cfg.merge_similar_entities and sim >= merge_threshold:
+            uf.union(i, j)
+        elif (cfg.merge_identity_variants and sim >= cfg.identity_merge_threshold
+              and _is_identity_variant(kg.entities[i], kg.entities[j])):
             uf.union(i, j)
     kg.cluster_of = np.array([uf.find(i) for i in range(kg.n_entities)], dtype=np.int32)
 

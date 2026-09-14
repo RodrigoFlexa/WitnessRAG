@@ -47,6 +47,8 @@ def parser():
     p.add_argument("--hours", type=float, default=6.5, help="janela total; reserva 2 min para finalização")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--output", type=Path)
+    p.add_argument("--cache-dir", type=Path, default=None,
+                   help="reaproveita caches (OpenIE, embeddings) de outra rodada; a extração é a parte cara")
     p.add_argument("--dry-run", action="store_true", help="mostra comandos sem baixar dados ou iniciar processos")
     p.add_argument("--worker", type=Path, help=argparse.SUPPRESS)
     return p
@@ -78,7 +80,11 @@ def make_plan(args, output):
         "WRAG_EMBED_MODEL": args.embed_model, "WRAG_EMBED_DEVICE": args.embed_device,
         "WRAG_EMBED_BATCH_SIZE": "32", "WRAG_SEED": str(args.seed),
         "WRAG_DATA_DIR": str(output / "data"), "WRAG_RUNS_DIR": str(output / "benchmark"),
-        "WRAG_CACHE_DIR": str(output / "cache"), "WRAG_NO_PROGRESS": "1", "PYTHONUNBUFFERED": "1",
+        "WRAG_CACHE_DIR": str(args.cache_dir.resolve() if args.cache_dir else output / "cache"), "WRAG_NO_PROGRESS": "1", "PYTHONUNBUFFERED": "1",
+        # O sampler FlashInfer compila kernels via JIT e resolve o nvcc por `which nvcc`,
+        # que aqui aponta para CUDA 11.5 e rejeita --compress-mode=size (exige >= 12.8).
+        # A decodificação é gulosa (temperature=0), logo o sampler nativo não altera saídas.
+        "VLLM_USE_FLASHINFER_SAMPLER": "0",
     }
     command = [args.vllm_python, "-m", "vllm.entrypoints.cli.main", "serve", args.model,
                "--served-model-name", args.model, "--host", "127.0.0.1", "--port", str(args.port),

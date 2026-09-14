@@ -262,8 +262,17 @@ class WitnessRAGRetriever(Retriever):
             diagnostics["lacuna"] = result.gap.to_dict() if result.gap else None
             if not cfg.dense_fallback:
                 return RetrievalResult(diagnostics=diagnostics)
+            # Uma prova incompleta não emite certificado, então a evidência
+            # parcial não pode deslocar o ranking denso — e medindo, ela não
+            # merece: nas compositional que caem aqui, colocar as passagens
+            # parciais na frente dá R@5 21.4 contra 65.7 do denso puro, e em 20
+            # de 35 casos nenhuma das cinco passagens do denso sobrevivia.
+            # Nenhuma mistura testada superou o denso, então a parcial só ocupa
+            # as sobras e continua registrada no diagnóstico para análise.
             partial_pids, partial_scores = self._partial_passages(query, k)
-            pids, scores = pad_with_dense(partial_pids, partial_scores, dense_pids, dense_scores, k)
+            diagnostics["passagens_parciais"] = partial_pids[:k]
+            pids, scores = pad_with_dense(dense_pids[:k], dense_scores[:k],
+                                          partial_pids, partial_scores, k)
             return RetrievalResult(pids=pids, scores=scores, diagnostics=diagnostics)
 
         candidates = score_answers(result.witnesses, self.memory, cfg)

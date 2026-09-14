@@ -146,6 +146,11 @@ class IEConfig:
 @dataclass
 class GraphConfig:
     merge_similar_entities: bool = False  # experimental: similaridade não prova identidade
+    # Fusão por contenção lexical + confirmação semântica. Sem nenhuma
+    # canonicalização a junção conjuntiva quebra em variações triviais de grafia
+    # ("Juan Courten"/"Juan de Courten"), que é onde as cadeias morriam.
+    merge_identity_variants: bool = True
+    identity_merge_threshold: float = 0.80
     synonym_threshold: float = _env_float("WRAG_SYNONYM_THRESHOLD", 0.80)
     synonym_max_neighbors: int = 20
     ppr_damping: float = _env_float("WRAG_PPR_DAMPING", 0.50)
@@ -188,6 +193,10 @@ class WitnessConfig:
     relation_match_threshold: float = 0.65
     candidates_per_atom: int = 60
     entity_match_threshold: float = 0.55
+    # Quantos clusters de entidade uma constante da pergunta pode alcançar. Era 5
+    # fixo no código; com milhares de entidades no corpus, o cluster certo cai
+    # fora do top-5 e o átomo morre antes de qualquer teste de relação.
+    entity_top_k: int = 5
     relation_weight: float = 0.45      # peso da similaridade de relação
     argument_weight: float = 0.35      # peso da similaridade de argumento constante
     verbalization_weight: float = 0.20  # peso da similaridade do átomo verbalizado

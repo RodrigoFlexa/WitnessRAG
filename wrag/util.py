@@ -30,8 +30,10 @@ def setup_logging(level: str | None = None) -> None:
         datefmt="%H:%M:%S",
         stream=sys.stderr,
     )
-    logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("openai").setLevel(logging.WARNING)
+    # O cliente openai fala por httpx2; sem silenciá-lo o log vira uma linha
+    # "HTTP Request: POST ... 200 OK" por chamada e o progresso some no meio.
+    for noisy in ("httpx", "httpx2", "openai"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     _CONFIGURED = True
 
 

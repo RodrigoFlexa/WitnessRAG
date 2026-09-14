@@ -179,9 +179,10 @@ class WitnessSearcher:
 
     # -- aterramento --------------------------------------------------------
 
-    def match_entity(self, surface: str, top: int = 5) -> list[tuple[int, float]]:
+    def match_entity(self, surface: str, top: int | None = None) -> list[tuple[int, float]]:
         """Clusters candidatos para uma constante. Casamento exato ganha 1.0."""
         kg = self.kg
+        top = self.cfg.entity_top_k if top is None else top
         exact = kg.entity_id(surface)
         out: list[tuple[int, float]] = []
         if exact is not None:
