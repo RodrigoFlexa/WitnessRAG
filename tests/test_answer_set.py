@@ -267,6 +267,38 @@ def test_plan_compilation_returns_distinct_ordered_hypotheses():
     assert all(not p.to_dict()["uses_annotations"] for p in plans)
 
 
+def test_plan_prompt_has_diverse_few_shot_structures_and_exact_output_contract():
+    rendered = prompts.COMPILE_PLANS_TEMPLATE.format(
+        max_plans=3, max_atoms=4, vocabulary="\nGRAPH VOCABULARY: orbit; discover",
+        question="Who discovered the comet?")
+    assert '"relation":"play"' in rendered                 # direct
+    assert '"subject":"Omar","object":"?y"' in rendered  # chain
+    assert rendered.count('"subject":"?x"') >= 3          # intersection/count
+    assert '"aggregation":"set"' in rendered
+    assert '"aggregation":"count"' in rendered
+    assert "after(?x, conference)" in rendered              # explicit negative contrast
+    assert "one JSON object with only the `plans` field" in rendered
+    # The corpus vocabulary is closest to the real input, after synthetic examples.
+    assert rendered.index("GRAPH VOCABULARY") > rendered.index("Example 6")
+    assert rendered.index("GRAPH VOCABULARY") < rendered.index("### INPUT")
+
+
+def test_single_plan_prompt_uses_the_same_synthetic_structural_examples():
+    rendered = prompts.COMPILE_TEMPLATE.format(
+        max_atoms=4, vocabulary="\nGRAPH VOCABULARY: orbit; discover",
+        question="What did someone find?")
+    for marker in ("Nira", "Omar", "Northstar Institute", "Jun", "Mateo",
+                   '"aggregation":"count"'):
+        assert marker in rendered
+    # Benchmark participants must not appear in compiler demonstrations.
+    assert "Melanie" not in rendered
+    assert "Caroline" not in rendered
+    assert 'relation="play(Nira, ?x)"' in rendered
+    assert "Return one JSON object only" in rendered
+    assert rendered.index("GRAPH VOCABULARY") > rendered.index("How many apprentices")
+    assert rendered.index("GRAPH VOCABULARY") < rendered.index("### INPUT")
+
+
 def test_plan_compilation_rejects_artificial_boolean_atoms():
     from wrag.witness.query import compile_plans_with_llm
 

@@ -238,11 +238,14 @@ Guidance:
 - An intersection question repeats the SAME variable in two atoms:
   relation1(?x, constantA) AND relation2(?x, constantB).
 - Write relations as short natural-language phrases ("director", "date of death",
-  "employer", "located in"). Do not invent a schema.
+  "employer", "located in"). The relation field contains only that predicate
+  phrase. Put arguments only in subject/object: use relation="play",
+  subject="Nira", object="?x"; never relation="play(Nira, ?x)".
+  Do not invent a schema.
 - Constants must be entity names copied from the question.
 - Prefer the smallest query that expresses the question. Do not create separate
   atoms for adjectives, time phrases, reasons, feelings or event context. A
-  possessive common noun is a scoped constant ("Caroline's necklace"), not an
+  possessive common noun is a scoped constant ("Asha's necklace"), not an
   unknown intermediate entity, unless the question actually asks who owns it.
 - Qualifiers such as "recently", "after the accident" and "during the workshop"
   stay inside the main relation phrase; never encode them as artificial atoms
@@ -256,7 +259,7 @@ Guidance:
 - Use aggregation "set" when the question asks for all matching people or items.
   A witness then proves one member; the final answer is the union of all proven
   members. Use "none" when exactly one value is requested.
-{vocabulary}
+
 Answer with JSON exactly in this shape:
 {{"answer_var": "x",
   "atoms": [{{"relation": "...", "subject": "...", "object": "?x"}}],
@@ -264,18 +267,29 @@ Answer with JSON exactly in this shape:
   "aggregation": "none|set|max|min|compare|count",
   "fallback": "a keyword query to use if the graph search fails"}}
 
-Examples:
-Question: "When did Lothair II's mother die?"
-{{"answer_var": "x", "atoms": [{{"relation": "mother", "subject": "Lothair II", "object": "?y"}}, {{"relation": "date of death", "subject": "?y", "object": "?x"}}], "expected_type": "date", "aggregation": "none", "fallback": "Lothair II mother date of death"}}
+Synthetic examples follow. Learn their structure; do not copy their names or
+predicates into the answer.
 
-Question: "Which Stanford professor works on Alzheimer's?"
-{{"answer_var": "x", "atoms": [{{"relation": "professor at", "subject": "?x", "object": "Stanford University"}}, {{"relation": "researches", "subject": "?x", "object": "Alzheimer's"}}], "expected_type": "person", "aggregation": "none", "fallback": "Stanford professor Alzheimer's research"}}
+Question: "Which instrument does Nira play?"
+{{"answer_var":"x","atoms":[{{"relation":"play","subject":"Nira","object":"?x"}}],"expected_type":"other","aggregation":"none","fallback":"Nira instrument play"}}
 
-Question: "What activities does Melanie partake in?"
-{{"answer_var": "x", "atoms": [{{"relation": "participate in", "subject": "Melanie", "object": "?x"}}], "expected_type": "other", "aggregation": "set", "fallback": "Melanie activities participate"}}
+Question: "In which city is the laboratory led by Omar located?"
+{{"answer_var":"x","atoms":[{{"relation":"lead","subject":"Omar","object":"?y"}},{{"relation":"located in","subject":"?y","object":"?x"}}],"expected_type":"place","aggregation":"none","fallback":"Omar laboratory city"}}
 
-Question: "What does Caroline's necklace symbolize?"
-{{"answer_var": "x", "atoms": [{{"relation": "symbolize", "subject": "Caroline's necklace", "object": "?x"}}], "expected_type": "other", "aggregation": "none", "fallback": "Caroline necklace symbolize"}}
+Question: "Which researcher works at Northstar Institute and studies coral bleaching?"
+{{"answer_var":"x","atoms":[{{"relation":"work at","subject":"?x","object":"Northstar Institute"}},{{"relation":"study","subject":"?x","object":"coral bleaching"}}],"expected_type":"person","aggregation":"set","fallback":"Northstar researcher coral bleaching"}}
+
+Question: "What exhibition did Jun visit after the conference?"
+{{"answer_var":"x","atoms":[{{"relation":"visit after conference","subject":"Jun","object":"?x"}}],"expected_type":"other","aggregation":"none","fallback":"Jun exhibition after conference"}}
+
+Question: "Which dishes did Mateo cook for the festival?"
+{{"answer_var":"x","atoms":[{{"relation":"cook for festival","subject":"Mateo","object":"?x"}}],"expected_type":"other","aggregation":"set","fallback":"Mateo festival dishes"}}
+
+Question: "How many apprentices joined the observatory?"
+{{"answer_var":"x","atoms":[{{"relation":"join","subject":"?x","object":"the observatory"}}],"expected_type":"number","aggregation":"count","fallback":"observatory apprentices joined"}}
+
+Return one JSON object only. Do not include explanations, markdown or examples.
+{vocabulary}
 
 ### INPUT
 {question}"""
@@ -304,7 +318,7 @@ unconnected to the answer path. Never use true, false or yes as an argument.
 Preserve relation direction. For "What has Alice bought?", use buy(Alice, ?x).
 Use aggregation "set" for all matching members, "count" for a count, and "none"
 for one value. max/min/compare are allowed descriptions but are not executable.
-{vocabulary}
+
 Return JSON exactly in this shape:
 {{"plans": [
   {{"answer_var": "x",
@@ -313,6 +327,41 @@ Return JSON exactly in this shape:
     "aggregation": "none|set|max|min|compare|count",
     "fallback": "keyword query"}}
 ]}}
+
+Synthetic examples follow. Learn their STRUCTURE; do not copy their entity names
+or predicates into the answer. Return fewer than {max_plans} plans when additional
+plans would merely be padding.
+
+Example 1 — a direct fact needs one plan, not an invented chain.
+Question: "Which instrument does Nira play?"
+{{"plans":[{{"answer_var":"x","atoms":[{{"relation":"play","subject":"Nira","object":"?x"}}],"expected_type":"other","aggregation":"none","fallback":"Nira instrument play"}}]}}
+
+Example 2 — a real chain uses an unknown intermediate entity.
+Question: "In which city is the laboratory led by Omar located?"
+{{"plans":[{{"answer_var":"x","atoms":[{{"relation":"lead","subject":"Omar","object":"?y"}},{{"relation":"located in","subject":"?y","object":"?x"}}],"expected_type":"place","aggregation":"none","fallback":"Omar laboratory city"}}]}}
+
+Example 3 — an intersection repeats the answer variable because both conditions
+must describe the same answer.
+Question: "Which researcher works at Northstar Institute and studies coral bleaching?"
+{{"plans":[{{"answer_var":"x","atoms":[{{"relation":"work at","subject":"?x","object":"Northstar Institute"}},{{"relation":"study","subject":"?x","object":"coral bleaching"}}],"expected_type":"person","aggregation":"set","fallback":"Northstar researcher coral bleaching"}}]}}
+
+Example 4 — event context stays in the main predicate. It does not become
+`after(?x, conference)` or a boolean atom. A broader direct alternative is valid.
+Question: "What exhibition did Jun visit after the conference?"
+{{"plans":[{{"answer_var":"x","atoms":[{{"relation":"visit after conference","subject":"Jun","object":"?x"}}],"expected_type":"other","aggregation":"none","fallback":"Jun exhibition after conference"}},{{"answer_var":"x","atoms":[{{"relation":"visit","subject":"Jun","object":"?x"}}],"expected_type":"other","aggregation":"none","fallback":"Jun visit exhibition"}}]}}
+
+Example 5 — plural enumeration uses set; one witness may prove one member.
+Question: "Which dishes did Mateo cook for the festival?"
+{{"plans":[{{"answer_var":"x","atoms":[{{"relation":"cook for festival","subject":"Mateo","object":"?x"}}],"expected_type":"other","aggregation":"set","fallback":"Mateo festival dishes"}}]}}
+
+Example 6 — counting retrieves the members to count; the number is not an
+invented graph constant.
+Question: "How many apprentices joined the observatory?"
+{{"plans":[{{"answer_var":"x","atoms":[{{"relation":"join","subject":"?x","object":"the observatory"}}],"expected_type":"number","aggregation":"count","fallback":"observatory apprentices joined"}}]}}
+
+Remember: every response is one JSON object with only the `plans` field and the
+plan fields shown above. Do not include explanations, markdown or the examples.
+{vocabulary}
 
 ### INPUT
 {question}"""
