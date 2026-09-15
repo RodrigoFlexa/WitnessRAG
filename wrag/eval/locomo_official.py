@@ -193,8 +193,8 @@ def aggregate_runs(run_dirs: Sequence["Path"]) -> dict:
             if scored:
                 values["f1_locomo"] = _mean([r["f1_locomo"] for r in subset])
                 values["em_locomo"] = _mean([r["em_locomo"] for r in subset])
-            fired = [r for r in subset if isinstance(r.get("diagnosticos"), dict)
-                     and "forma_consulta" in r]
+            fired = ([r for r in subset if isinstance(r.get("diagnosticos"), dict)]
+                     if method.startswith("witnessrag") or method == "relational" else [])
             if fired:
                 values["taxa_de_disparo"] = _mean(
                     [float("fallback" not in r["diagnosticos"]) for r in fired])

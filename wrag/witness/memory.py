@@ -26,7 +26,7 @@ from typing import Any
 import numpy as np
 
 from wrag.embed import Embedder, cosine_topk
-from wrag.graph import KnowledgeGraph
+from wrag.graph import KnowledgeGraph, relation_signature
 from wrag.ie import Fact
 from wrag.util import get_logger, canonical_symbol as normalize
 
@@ -48,6 +48,7 @@ class MemoryView:
         self.entity_of: dict[str, int] = dict(base.entity_of)
         self.relations: list[str] = list(base.relations)
         self.relation_of: dict[str, int] = dict(base.relation_of)
+        self.relation_signature_of: dict[str, int] = dict(base.relation_signature_of)
 
         self.entity_vectors: np.ndarray = base.entity_vectors
         self.relation_vectors: np.ndarray = base.relation_vectors
@@ -63,6 +64,7 @@ class MemoryView:
         self._n_relations0 = len(self.relations)
         self._added_entity_keys: list[str] = []
         self._added_relation_keys: list[str] = []
+        self._added_relation_signatures: list[str] = []
         self._journal: list[tuple[dict, Any, int]] = []
 
         self.facts_by_subject = {eid: list(ids) for eid, ids in base.facts_by_subject.items()}
@@ -110,11 +112,16 @@ class MemoryView:
                 if key and key not in self.entity_of and all(normalize(s) != key for s in new_surfaces):
                     new_surfaces.append(surface)
 
-        new_relations = []
+        new_relations: list[tuple[str, str]] = []
+        pending_signatures: set[str] = set()
         for fact in facts:
             key = normalize(fact.relation)
-            if key and key not in self.relation_of and all(normalize(r) != key for r in new_relations):
-                new_relations.append(fact.relation)
+            signature = relation_signature(fact.relation)
+            if (key and key not in self.relation_of
+                    and signature not in self.relation_signature_of
+                    and signature not in pending_signatures):
+                new_relations.append((signature, fact.relation))
+                pending_signatures.add(signature)
 
         if new_surfaces:
             vectors = embedder.encode(new_surfaces)
@@ -131,13 +138,24 @@ class MemoryView:
                                    if self.entity_vectors.size else vectors)
 
         if new_relations:
-            vectors = embedder.encode(new_relations)
-            for relation in new_relations:
-                self.relation_of[normalize(relation)] = len(self.relations)
+            vectors = embedder.encode([relation for _, relation in new_relations])
+            for signature, relation in new_relations:
+                rid = len(self.relations)
+                self.relation_signature_of[signature] = rid
+                self._added_relation_signatures.append(signature)
                 self.relations.append(relation)
-                self._added_relation_keys.append(normalize(relation))
             self.relation_vectors = (np.vstack([self.relation_vectors, vectors])
                                      if self.relation_vectors.size else vectors)
+
+        # Toda forma nova vira um alias da família morfológica. Isso inclui
+        # variantes de relações que já existiam no índice base.
+        for fact in facts:
+            key = normalize(fact.relation)
+            if key and key not in self.relation_of:
+                rid = self.relation_signature_of.get(relation_signature(fact.relation))
+                if rid is not None:
+                    self.relation_of[key] = rid
+                    self._added_relation_keys.append(key)
 
         fact_vectors = embedder.encode([f.verbalize() for f in facts])
         self.fact_vectors = (np.vstack([self.fact_vectors, fact_vectors])
@@ -180,8 +198,11 @@ class MemoryView:
             self.entity_of.pop(key, None)
         for key in self._added_relation_keys:
             self.relation_of.pop(key, None)
+        for signature in self._added_relation_signatures:
+            self.relation_signature_of.pop(signature, None)
         self._added_entity_keys.clear()
         self._added_relation_keys.clear()
+        self._added_relation_signatures.clear()
 
         self.entity_vectors = self.base.entity_vectors
         self.relation_vectors = self.base.relation_vectors

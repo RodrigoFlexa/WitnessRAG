@@ -300,8 +300,9 @@ def test_aggregate_micro_averages_over_questions(tmp_path, capsys):
     def run_dir(name, rows):
         path = tmp_path / name / "locomo"
         path.mkdir(parents=True)
-        (path / "witnessrag.jsonl").write_text(
-            "\n".join(json.dumps(r) for r in rows), encoding="utf-8")
+        payload = "\n".join(json.dumps(r) for r in rows)
+        (path / "witnessrag.jsonl").write_text(payload, encoding="utf-8")
+        (path / "dense.jsonl").write_text(payload, encoding="utf-8")
         return path.parent
 
     def row(qid, tipo, pred, gold):
@@ -314,6 +315,7 @@ def test_aggregate_micro_averages_over_questions(tmp_path, capsys):
     values = summary["metodos"]["witnessrag"]
     assert values["n"] == 4
     assert set(values["por_conversa"]) == {"conv-a", "conv-b"}
+    assert "taxa_de_disparo" not in summary["metodos"]["dense"]
     if summary["oficial_disponivel"]:
         # 3 acertos e 1 erro: micro dá 0,75, não a média 0,5 entre conversas.
         assert values["f1_locomo"] == pytest.approx(0.75)

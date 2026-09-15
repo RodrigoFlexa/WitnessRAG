@@ -23,7 +23,7 @@ anterior, e por isso as rodadas já medidas continuam comparáveis.
 
 | opção (`cli run` e `wrag.pilot`) | efeito |
 |---|---|
-| `--answer-set` | a resposta é o **conjunto** de atribuições certas, com prova por item, em vez da testemunha mais barata; habilita `aggregation="count"`; o leitor passa a enumerar os itens sustentados pelas passagens |
+| `--answer-set` | a resposta é o **conjunto** de atribuições certas, com prova por item, em vez da testemunha mais barata; habilita `aggregation="set"` e `aggregation="count"`; o verificador julga cada membro, e o leitor enumera os itens sustentados pelas passagens |
 | `--vocab-compile` | a compilação recebe as relações e entidades do grafo mais próximas da pergunta, para não inventar predicados que nenhum fato instancia |
 | `--hybrid-fallback` | o fallback do WITNESS-RAG passa a ser fusão recíproca de postos entre denso e BM25 |
 | `--dialogue-ie` | extração adaptada a diálogo: falante como sujeito, correferência dentro do bloco e escopo temporal no fato. Muda a base de fatos compartilhada e exige nova extração |
@@ -32,6 +32,12 @@ anterior, e por isso as rodadas já medidas continuam comparáveis.
 A completude do conjunto de respostas **não é certificada**: ele contém o que a
 memória prova, e nada limita o que ficou de fora por falha de extração, de
 compilação ou de corte. `count` herda essa limitação.
+
+No modo de diálogo, relações flexionadas recebem uma família morfológica comum
+(`paint`, `painted`, `painting`) sem remover palavras nem preposições; por isso
+`work at` e `work for` permanecem distintas. A forma original do fato continua
+armazenada para auditoria. O compilador também repara a variável de resposta
+quando existe uma única variável possível e registra o reparo.
 
 O relatório traz a tabela **onde a pergunta parou**, com a taxa de disparo da
 testemunha. Ela vem antes de qualquer leitura de F1: com disparo baixo, a tabela

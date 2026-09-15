@@ -25,7 +25,7 @@ from wrag.ie import Fact, _cache_path, _parse_triples
 from wrag.llm.base import LLMResult
 from wrag.util import normalize
 from wrag.witness.provenance import answer_set, score_answers
-from wrag.witness.query import Atom, ConjunctiveQuery
+from wrag.witness.query import Atom, ConjunctiveQuery, looks_like_answer_set
 from wrag.witness.search import Witness, cover_answers, executable_aggregations
 
 from test_witness import build_toy
@@ -76,6 +76,29 @@ def test_count_is_executable_only_with_answer_set():
     assert not searcher.join(query).complete       # padrão: fora do escopo
     searcher.cfg.answer_set = True
     assert searcher.join(query).complete
+
+
+def test_set_is_executable_only_with_answer_set():
+    assert "set" in executable_aggregations(True)
+    assert "set" not in executable_aggregations(False)
+
+
+@pytest.mark.parametrize("question", [
+    "What activities does Melanie partake in?",
+    "Which books did Caroline read?",
+    "What has Melanie painted?",
+])
+def test_obvious_enumerations_are_detected_without_gold_labels(question):
+    assert looks_like_answer_set(question)
+
+
+@pytest.mark.parametrize("question", [
+    "What sports team does Melanie support?",
+    "What did Melanie paint yesterday?",
+    "Which city did Caroline visit?",
+])
+def test_ambiguous_or_singular_questions_are_not_forced_to_sets(question):
+    assert not looks_like_answer_set(question)
 
 
 def test_comparison_stays_out_of_scope():
@@ -162,6 +185,8 @@ def test_dialogue_prompt_forbids_the_degenerate_shapes():
     assert "one to four words" in template
     assert '"true", "false" or "yes"' in template
     assert "the fact is about the CONTENT, not about the listener" in template
+    assert "reusable canonical form" in template
+    assert "Scope unnamed relatives and possessions" in template
 
 
 def test_cache_key_unchanged_while_dialogue_mode_is_off():

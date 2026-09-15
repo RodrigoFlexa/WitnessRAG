@@ -218,7 +218,12 @@ def _firing_block(records, excluded, data):
     }
     block = {}
     for method, rows in records.items():
-        kept = [r for r in rows if r["qid"] not in excluded and "forma_consulta" in r]
+        # Dense/BM25/Hybrid não possuem testemunhas. Todos os registros têm a
+        # chave `forma_consulta` por uniformidade do schema, inclusive com None;
+        # usá-la como detector fazia esses métodos aparecerem com disparo 100%.
+        if not (method.startswith("witnessrag") or method == "relational"):
+            continue
+        kept = [r for r in rows if r["qid"] not in excluded]
         kept = [r for r in kept if isinstance(r.get("diagnosticos"), dict)]
         if not kept:
             continue

@@ -89,8 +89,14 @@ Rules:
   and do not guess a name.
 - Name relatives and belongings through their owner: "my son Theo" is
   ("Theo", "child of", "<speaker>"), not ("my son", ...).
-- The relation is SHORT: one to four words, a predicate and nothing else. It never
-  contains the object, a whole sentence, or the name of the person being addressed.
+- Scope unnamed relatives and possessions to their owner so generic entities do
+  not collide across speakers: "my grandmother" becomes "<speaker>'s grandmother"
+  and "my necklace symbolizes strength" has subject "<speaker>'s necklace".
+- The relation is SHORT: one to four words, a predicate and nothing else. Write it
+  in a reusable canonical form: base/present-tense verb plus any REQUIRED
+  preposition ("read", "paint", "work at", "child of"). Reuse exactly the same
+  relation for paraphrases in this block. It never contains the object, a whole
+  sentence, time, an adverb, or the name of the person being addressed.
 - For reported speech, the fact is about the CONTENT, not about the listener.
   "Mel: running is a great way to destress" is ("Mel", "destresses by", "running"),
   never ("Mel", "said running is a great way to destress", "<listener>").
@@ -117,7 +123,7 @@ Example. For the block
 the triples are
 {{"triples": [["Mel", "read", "Charlotte's Web", "last week"],
              ["Theo", "child of", "Mel", ""],
-             ["Caroline", "painted", "a sunset", "7 May, 2023"]]}}
+             ["Caroline", "paint", "a sunset", "7 May, 2023"]]}}
 
 Named entities found in this block: {entities}
 
@@ -224,6 +230,8 @@ variables. Variables start with "?". The answer variable is "?x". Intermediate
 entities you do not know are variables too ("?y", "?z").
 
 Guidance:
+- The literal variable "?x" MUST occur in at least one atom. It is the value the
+  question asks for. Use "?y" and "?z" only for intermediate entities.
 - A single-hop question becomes one atom: relation(constant, ?x).
 - A chain question becomes atoms linked by an intermediate variable:
   relation1(constant, ?y) AND relation2(?y, ?x).
@@ -232,15 +240,24 @@ Guidance:
 - Write relations as short natural-language phrases ("director", "date of death",
   "employer", "located in"). Do not invent a schema.
 - Constants must be entity names copied from the question.
+- Prefer the smallest query that expresses the question. Do not create separate
+  atoms for adjectives, time phrases, reasons, feelings or event context. A
+  possessive common noun is a scoped constant ("Caroline's necklace"), not an
+  unknown intermediate entity, unless the question actually asks who owns it.
+- Every atom must be connected through a shared variable or constant. Never emit
+  an unrelated atom merely because its words occur in the question.
 - At most {max_atoms} atoms. If the question needs comparison, counting or
   negation, still emit the atoms that fetch the facts to be compared, and set
   "aggregation" to describe what is done with them.
+- Use aggregation "set" when the question asks for all matching people or items.
+  A witness then proves one member; the final answer is the union of all proven
+  members. Use "none" when exactly one value is requested.
 {vocabulary}
 Answer with JSON exactly in this shape:
 {{"answer_var": "x",
   "atoms": [{{"relation": "...", "subject": "...", "object": "?x"}}],
   "expected_type": "person|place|date|organization|work|number|other",
-  "aggregation": "none|max|min|compare|count",
+  "aggregation": "none|set|max|min|compare|count",
   "fallback": "a keyword query to use if the graph search fails"}}
 
 Examples:
@@ -249,6 +266,12 @@ Question: "When did Lothair II's mother die?"
 
 Question: "Which Stanford professor works on Alzheimer's?"
 {{"answer_var": "x", "atoms": [{{"relation": "professor at", "subject": "?x", "object": "Stanford University"}}, {{"relation": "researches", "subject": "?x", "object": "Alzheimer's"}}], "expected_type": "person", "aggregation": "none", "fallback": "Stanford professor Alzheimer's research"}}
+
+Question: "What activities does Melanie partake in?"
+{{"answer_var": "x", "atoms": [{{"relation": "participate in", "subject": "Melanie", "object": "?x"}}], "expected_type": "other", "aggregation": "set", "fallback": "Melanie activities participate"}}
+
+Question: "What does Caroline's necklace symbolize?"
+{{"answer_var": "x", "atoms": [{{"relation": "symbolize", "subject": "Caroline's necklace", "object": "?x"}}], "expected_type": "other", "aggregation": "none", "fallback": "Caroline necklace symbolize"}}
 
 ### INPUT
 {question}"""

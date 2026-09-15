@@ -55,8 +55,11 @@ Depois da mudança, perguntas com alguma testemunha proposta subiram de 41 para
 48 em 102, e `destress method` virou `destress`.
 
 Fora do fragmento: negação, comparação, `max`/`min`. Essas caem no fallback com
-o motivo registrado. `count` é executável desde que `--answer-set` esteja ligado,
-porque contar exige enumerar o conjunto.
+o motivo registrado. `set` e `count` são executáveis desde que `--answer-set`
+esteja ligado, porque ambos exigem enumerar as atribuições. Se o compilador
+declara `?x`, mas produz exatamente uma outra variável, o executor adota essa
+variável e registra o reparo; com mais de uma possibilidade, continua falhando
+fechado.
 
 ### 2. Aterramento
 
@@ -94,7 +97,11 @@ localmente contra o texto da passagem. Falha fechada: saída inválida, bloquead
 ou sem citação não promove prova.
 
 Com `--answer-set`, o orçamento de verificação faz rodízio entre respostas
-distintas, em vez de gastar as cinco chamadas em provas da mesma resposta.
+distintas, em vez de gastar as cinco chamadas em provas da mesma resposta. Para
+`aggregation="set"`, cada chamada verifica se o candidato é um membro correto;
+ela não exige que uma única testemunha enumere sozinha todo o conjunto. Todos os
+átomos e citações continuam obrigatórios. O diagnóstico agrega as rejeições por
+tipo, mesmo quando os detalhes por chamada são removidos para limitar o JSONL.
 
 A verificação é o freio de qualidade do executor, e ela funciona: quando a
 extração degenerou, a aprovação caiu de 16,2% para 6,2% e as justificativas de

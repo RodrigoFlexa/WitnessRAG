@@ -24,6 +24,18 @@ log = get_logger("wrag.witness.query")
 
 VAR_RE = re.compile(r"^\?[A-Za-z_]\w*$")
 
+_SET_NOUNS = frozenset(
+    "activities items things books films movies songs instruments hobbies interests "
+    "places countries cities events plans goals projects jobs pets languages games "
+    "purchases paintings artworks subjects topics foods restaurants schools universities "
+    "awards people friends relatives".split()
+)
+_SET_VERBS = frozenset(
+    "buy bought purchase purchased paint painted read visit visited attend attended "
+    "join joined do done make made create created play played learn learned learnt "
+    "mention mentioned discuss discussed".split()
+)
+
 
 def is_var(term: str) -> bool:
     return bool(VAR_RE.match((term or "").strip()))
@@ -31,6 +43,23 @@ def is_var(term: str) -> bool:
 
 def var_name(term: str) -> str:
     return term.strip().lstrip("?")
+
+
+def looks_like_answer_set(question: str) -> bool:
+    """Detecta pedidos enumerativos pela pergunta, sem usar rótulos ouro.
+
+    O pós-processamento é deliberadamente conservador: cobre cabeças plurais
+    inequívocas e construções como "what has X painted?". Casos ambíguos ficam
+    a cargo do compilador, em vez de converter toda pergunta com *what* em lista.
+    """
+    words = re.findall(r"[a-z]+", (question or "").lower())
+    if not words:
+        return False
+    if words[0] in {"what", "which"} and any(w in _SET_NOUNS for w in words[1:4]):
+        return True
+    if words[0] == "what" and len(words) > 3 and words[1] in {"has", "have"}:
+        return any(w in _SET_VERBS for w in words[2:])
+    return False
 
 
 @dataclass
@@ -79,6 +108,7 @@ class ConjunctiveQuery:
     source: str = "llm"          # llm | decomposition | evidences
     filtered: bool = False       # a compilação foi bloqueada pelo filtro
     validation_error: str = ""
+    repairs: list[str] = field(default_factory=list)
 
     def __bool__(self) -> bool:
         return bool(self.atoms)
@@ -147,6 +177,7 @@ class ConjunctiveQuery:
                 "expected_type": self.expected_type, "aggregation": self.aggregation,
                 "shape": self.shape(), "source": self.source, "fallback": self.fallback,
                 "validation_error": self.validation_error,
+                "repairs": list(self.repairs),
                 # O vocabulário vem do grafo extraído, não de anotação do dataset.
                 "uses_annotations": self.source not in ("llm", "llm-vocabulario")}
 
@@ -217,11 +248,20 @@ def _repair(query: ConjunctiveQuery, question: Question) -> ConjunctiveQuery:
     resposta e a pergunta cairia no fallback denso por um motivo puramente
     sintático — e o experimento contaria como falha do método o que foi
     falha de formatação."""
+    query.aggregation = query.aggregation.strip().lower()
+    if query.aggregation in {"list", "all", "enumerate"}:
+        query.aggregation = "set"
+    if query.aggregation == "none" and looks_like_answer_set(question.question):
+        query.aggregation = "set"
     if not query.atoms:
         return query
     answer = query.answer_var
     present = {v for atom in query.atoms for v in atom.variables()}
     if answer in present:
+        return query
+    if len(present) == 1:
+        query.answer_var = next(iter(present))
+        query.repairs.append("variavel_de_resposta_unica")
         return query
     query.validation_error = "variavel_de_resposta_ausente"
     query.atoms = []

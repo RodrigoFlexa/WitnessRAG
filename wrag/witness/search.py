@@ -574,7 +574,7 @@ def executable_aggregations(answer_set: bool) -> frozenset[str]:
     texto, o que este fragmento não faz — continuam fora, e a pergunta cai no
     fallback declarado, em vez de receber uma resposta sem prova.
     """
-    return frozenset({"none", "count"} if answer_set else {"none"})
+    return frozenset({"none", "set", "count"} if answer_set else {"none"})
 
 
 def cover_answers(witnesses: Sequence[Witness], limit: int) -> list[Witness]:

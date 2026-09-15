@@ -19,6 +19,7 @@ from wrag.llm.filters import LEDGER, configure_ledger
 from wrag.llm.stub import StubLLM
 from wrag.methods.base import IndexContext, RetrievalResult
 from wrag.methods.hipporag2 import HippoRAG2Retriever
+from wrag.methods.witnessrag import preserve_fallback_order_if_same_set
 from wrag.util import canonical_symbol
 from wrag.witness.budget import Demand, select_ilp, toy_instance, utility
 from wrag.witness.demands import synthesize_demands
@@ -118,6 +119,64 @@ def test_witness_explores_wide_pool_but_delivers_reader_budget(monkeypatch):
     assert len(result.pids) == result.diagnostics["documentos_entregues"] == 5
     assert result.diagnostics["candidatos_explorados"] == 20
     assert result.diagnostics["orcamento_leitor"] == 5
+
+
+def test_same_documents_keep_fallback_order_but_new_evidence_keeps_proof_order():
+    pids, scores, changed = preserve_fallback_order_if_same_set(
+        ["c", "a", "b"], [.9, .8, .7], ["a", "b", "c"], [.6, .5, .4], 3)
+    assert pids == ["a", "b", "c"] and scores == [.6, .5, .4] and changed
+
+    pids, scores, changed = preserve_fallback_order_if_same_set(
+        ["new", "a", "b"], [.9, .8, .7], ["a", "b", "c"], [.6, .5, .4], 3)
+    assert pids == ["new", "a", "b"] and scores == [.9, .8, .7] and not changed
+
+
+def test_relation_inflections_share_one_conservative_family():
+    from wrag.graph import relation_signature
+
+    assert relation_signature("paint") == relation_signature("painted")
+    assert relation_signature("participates in") == relation_signature("participating in")
+    assert relation_signature("works at") != relation_signature("works for")
+
+
+def test_graph_and_reversible_memory_reuse_relation_families():
+    memory, embedder = custom_memory([
+        ("Ana", "paint", "sunset"),
+        ("Ana", "painted", "portrait"),
+        ("Ana", "works at", "Atlas"),
+        ("Ana", "works for", "Orion"),
+    ])
+    assert len(memory.relations) == 3
+    assert memory.facts[0].rel_id == memory.facts[1].rel_id
+    assert memory.facts[2].rel_id != memory.facts[3].rel_id
+
+    baseline = len(memory.relations)
+    added = memory.add_facts([
+        Fact("new", "Ana", "painting", "mural", "p-new")
+    ], embedder)
+    assert added and len(memory.relations) == baseline
+    assert memory.facts[added[0]].rel_id == memory.facts[0].rel_id
+    memory.reset()
+    assert len(memory.relations) == baseline
+
+
+def test_single_available_variable_repairs_the_declared_answer_variable():
+    from wrag.witness.query import _repair
+
+    question = Question("q", "What did Caroline find?", [])
+    query = ConjunctiveQuery(answer_var="x", atoms=[Atom("find", "Caroline", "?y")])
+    repaired = _repair(query, question)
+    assert repaired.atoms and repaired.answer_var == "y"
+    assert repaired.repairs == ["variavel_de_resposta_unica"]
+
+
+def test_ambiguous_missing_answer_variable_still_fails_closed():
+    from wrag.witness.query import _repair
+
+    question = Question("q", "What connects these things?", [])
+    query = ConjunctiveQuery(answer_var="x", atoms=[Atom("connect", "?y", "?z")])
+    repaired = _repair(query, question)
+    assert not repaired.atoms and repaired.validation_error == "variavel_de_resposta_ausente"
 
 
 def test_answer_normalization_removes_punctuation_without_splitting_tokens():

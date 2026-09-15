@@ -36,6 +36,24 @@ from wrag.witness.search import (Gap, SearchResult, WitnessSearcher, cover_answe
 log = get_logger("wrag.methods.witnessrag")
 
 
+def preserve_fallback_order_if_same_set(
+    pids: list[str], scores: list[float], fallback_pids: list[str],
+    fallback_scores: list[float], k: int,
+) -> tuple[list[str], list[float], bool]:
+    """Avoid changing the reader prompt when proof found no new document.
+
+    A structural ranking is useful when it promotes evidence missing from the
+    fallback top-k. If both rankings contain exactly the same documents,
+    reordering only perturbs an order-sensitive reader and cannot improve
+    retrieval recall. Preserve the established fallback order in that case.
+    """
+    fallback_pids = fallback_pids[:k]
+    fallback_scores = fallback_scores[:k]
+    if len(pids) == len(fallback_pids) and set(pids) == set(fallback_pids):
+        return list(fallback_pids), list(fallback_scores), pids != fallback_pids
+    return pids, scores, False
+
+
 @dataclass
 class AcquisitionAction:
     """Uma ação candidata: reler uma passagem procurando uma relação específica."""
@@ -351,6 +369,9 @@ class WitnessRAGRetriever(Retriever):
         pids, scores = rank_passages(candidates, k, cover_answers_first=cfg.answer_set)
         if cfg.dense_fallback:
             pids, scores = pad_with_dense(pids, scores, dense_pids, dense_scores, k)
+            pids, scores, order_preserved = preserve_fallback_order_if_same_set(
+                pids, scores, dense_pids, dense_scores, k)
+            diagnostics["ordem_fallback_preservada"] = order_preserved
         # O leitor só recebe estas passagens: não certificar uma prova truncada.
         delivered = [w for w in result.witnesses if set(w.pids) <= set(pids)]
         candidates = score_answers(delivered, self.memory, cfg)

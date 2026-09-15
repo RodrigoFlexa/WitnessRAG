@@ -95,6 +95,33 @@ def test_verifier_requires_complete_source_quotes_and_real_booleans(monkeypatch,
         assert kwargs["stage"] == "witness.verify"
 
 
+def test_set_verification_judges_each_member_instead_of_demanding_the_whole_list(monkeypatch):
+    memory, embedder, query, cfg = chain(monkeypatch)
+    cfg.binding_aware_grounding = True
+    cfg.answer_set = True
+    query.aggregation = "set"
+    witnesses = WitnessSearcher(memory, embedder, cfg).join(query).witnesses
+
+    class SetAwareJudge:
+        def chat(self, prompt, **kwargs):
+            assert "one correct member" in prompt
+            return LLMResult(text=json.dumps({
+                "supported": True, "answers_question": True,
+                "failure_type": "supported", "reason": "valid member",
+                "evidence": [
+                    {"atom": 0, "pid": "p0", "quote": "Ana works Atlas"},
+                    {"atom": 1, "pid": "p2", "quote": "Atlas located Recife"},
+                ],
+            }))
+
+    accepted, diag = verify_witnesses(
+        SetAwareJudge(), memory.corpus, memory,
+        Question("q", "Which places are connected to Ana's employer?", []),
+        query, witnesses, 1, "toy")
+    assert len(accepted) == 1
+    assert diag["rejeicoes_por_tipo"] == {}
+
+
 def comparator():
     spec = importlib.util.spec_from_file_location("compare_runs",
         Path(__file__).resolve().parents[1] / "scripts" / "compare-runs.py")

@@ -39,7 +39,7 @@ sem aumentar o orçamento da resposta.
 
 | opção | o que muda | por que |
 |---|---|---|
-| `--answer-set` | a resposta estrutural passa a ser o conjunto de atribuições certas, com prova por item; `aggregation="count"` vira executável, como o tamanho do conjunto; a verificação cobre uma resposta distinta por vez; o contexto leva uma prova de cada resposta antes de provas extras da mesma; o leitor recebe a variante ciente de conjunto | uma testemunha certifica UMA atribuição, e boa parte da categoria 1 do LoCoMo pede o conjunto ("o que X já fez", "onde X acampou"). Responder um item de um gabarito de três limita o F1 a ~1/3 por construção |
+| `--answer-set` | a resposta estrutural passa a ser o conjunto de atribuições certas, com prova por item; `aggregation="set"` e `aggregation="count"` viram executáveis; numa consulta `set`, o verificador decide se cada candidato é um membro correto, sem exigir que ele sozinho seja a lista inteira; o contexto leva uma prova de cada resposta antes de provas extras da mesma; o leitor recebe a variante ciente de conjunto | uma testemunha certifica UMA atribuição, e boa parte da categoria 1 do LoCoMo pede o conjunto ("o que X já fez", "onde X acampou"). Responder um item de um gabarito de três limita o F1 a ~1/3 por construção |
 | `--vocab-compile` | as relações e entidades do grafo mais próximas da pergunta entram no prompt de compilação | o compilador inventava predicados que nenhum fato instancia (`identity`, `destress method`) e o átomo morria no aterramento |
 | `--hybrid-fallback` | o fallback passa a ser fusão recíproca de postos entre denso e BM25 | respostas conversacionais dependem de nomes próprios raros que o vetor de um bloco de oito falas dilui |
 | `--dialogue-ie` | extração adaptada a diálogo: o falante vira o sujeito das falas em primeira pessoa, correferência é resolvida dentro do bloco e o fato ganha um escopo temporal | sem isso o sujeito da maioria dos fatos é um pronome, e nenhuma junção fecha |
@@ -47,9 +47,16 @@ sem aumentar o orçamento da resposta.
 | `--witness-candidate-pool N` | profundidade explorada antes da seleção por prova | preserva cobertura interna sem ampliar o contexto final |
 | `--locomo-ie-window-tokens N` | granularidade interna de NER/OpenIE | evita resumir um chunk longo inteiro no teto de 40 triplas; não cria documentos extras para o leitor |
 
-`--dialogue-ie` muda a base de fatos `F` compartilhada e exige nova extração;
-as outras três reaproveitam a extração em cache. A chave de cache só muda quando
-`--dialogue-ie` está ligado, então rodadas antigas não são reextraídas à toa.
+`--dialogue-ie` muda a base de fatos `F` compartilhada e exige nova extração.
+O prompt atual pede predicados canônicos reutilizáveis e o índice agrupa somente
+flexões com a mesma assinatura, preservando palavras e preposições. Assim,
+`paint`/`painted` compartilham uma relação, mas `work at`/`work for` não. A forma
+original continua no fato e nas citações. Esta revisão do prompt gera uma nova
+chave e não reutiliza automaticamente a extração anterior.
+
+As outras opções experimentais reaproveitam a extração em cache. A chave inclui
+o prompt efetivamente usado; esta revisão invalida apenas o cache do modo de
+diálogo, enquanto extrações legadas continuam válidas.
 
 O relatório passou a trazer **onde cada pergunta parou**: taxa de disparo da
 testemunha, quantas caíram por falta de consulta, por junção que não fechou e por

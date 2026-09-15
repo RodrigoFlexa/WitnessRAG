@@ -8,8 +8,9 @@ similaridade. Fusão vetorial é uma opção experimental e não prova identidad
 
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass, field
+from functools import lru_cache
 from typing import Any, Iterable, Sequence
 
 import numpy as np
@@ -30,6 +31,25 @@ _IDENTITY_STOPWORDS = frozenset(
     "a an the of de da do del la le les el los las in on at for and or to from "
     "s dr mr mrs ms sir jr sr".split()
 )
+
+
+@lru_cache(maxsize=4096)
+def relation_signature(surface: str) -> str:
+    """Assinatura morfológica conservadora para variantes do mesmo predicado.
+
+    Mantém todas as palavras e preposições, portanto ``work at`` e ``work for``
+    continuam distintas. Só reduz flexões como ``painted``/``painting``/``paint``.
+    A extração ainda guarda a forma original para auditoria.
+    """
+    value = normalize(surface)
+    if not value:
+        return ""
+    try:
+        from nltk.stem import PorterStemmer
+        stemmer = PorterStemmer()
+        return " ".join(stemmer.stem(token) for token in value.split())
+    except ImportError:  # o núcleo continua utilizável na instalação mínima
+        return value
 
 
 def _identity_tokens(surface: str) -> frozenset[str]:
@@ -89,6 +109,7 @@ class KnowledgeGraph:
     # relações canônicas
     relations: list[str] = field(default_factory=list)
     relation_of: dict[str, int] = field(default_factory=dict)
+    relation_signature_of: dict[str, int] = field(default_factory=dict)
     relation_vectors: np.ndarray = field(default_factory=lambda: np.zeros((0, 1), dtype=np.float32))
 
     # passagens
@@ -165,12 +186,30 @@ def build_graph(
 
     # -- relações canônicas (usadas pelo aterramento do WITNESS-RAG)
     rel_surfaces: dict[str, str] = {}
+    rel_counts: Counter[str] = Counter()
+    rel_groups: dict[str, list[str]] = {}
     for f in facts:
         key = normalize(f.relation)
-        if key and key not in rel_surfaces:
+        signature = relation_signature(f.relation)
+        if not key or not signature:
+            continue
+        rel_counts[key] += 1
+        if key not in rel_surfaces:
             rel_surfaces[key] = f.relation.strip()
-    kg.relations = [rel_surfaces[k] for k in rel_surfaces]
-    kg.relation_of = {k: i for i, k in enumerate(rel_surfaces)}
+        group = rel_groups.setdefault(signature, [])
+        if key not in group:
+            group.append(key)
+    signatures = list(rel_groups)
+    representative_keys = [
+        max(rel_groups[sig], key=lambda key: (rel_counts[key], -len(key)))
+        for sig in signatures
+    ]
+    kg.relations = [rel_surfaces[key] for key in representative_keys]
+    kg.relation_signature_of = {signature: i for i, signature in enumerate(signatures)}
+    kg.relation_of = {
+        key: kg.relation_signature_of[signature]
+        for signature, keys in rel_groups.items() for key in keys
+    }
 
     for i, f in enumerate(facts):
         f.subj_id = kg.entity_of.get(normalize(f.subject), -1)
