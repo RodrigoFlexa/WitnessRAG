@@ -179,7 +179,7 @@ class ConjunctiveQuery:
                 "validation_error": self.validation_error,
                 "repairs": list(self.repairs),
                 # O vocabulário vem do grafo extraído, não de anotação do dataset.
-                "uses_annotations": self.source not in ("llm", "llm-vocabulario")}
+                "uses_annotations": not self.source.startswith("llm")}
 
 
 # ---------------------------------------------------------------------------
@@ -205,11 +205,61 @@ def compile_with_llm(llm: LLM, question: Question, max_atoms: int = 4,
         log.debug("compilação não devolveu JSON para %s", question.qid)
         return ConjunctiveQuery(fallback=question.question)
 
+    return _query_from_data(data, question, max_atoms,
+                            "llm-vocabulario" if vocabulary else "llm")
+
+
+def compile_plans_with_llm(llm: LLM, question: Question, max_atoms: int = 4,
+                           max_plans: int = 3, temperature: float = 0.0,
+                           dataset: str = "", method: str = "witnessrag",
+                           vocabulary: str = "") -> list[ConjunctiveQuery]:
+    """Compila interpretações alternativas em uma chamada de LLM.
+
+    Os planos são hipóteses ordenadas, não programas confiáveis. O retriever os
+    valida contra o índice e mantém no diagnóstico tudo que foi tentado.
+    """
+    result = llm.chat(
+        prompts.COMPILE_PLANS_TEMPLATE.format(
+            question=question.question, max_atoms=max_atoms,
+            max_plans=max(1, max_plans), vocabulary=vocabulary),
+        system=prompts.COMPILE_SYSTEM,
+        params=GenParams(temperature=temperature, max_tokens=2200, json_mode=True),
+        stage="witness.compile",
+    )
+    if result.filtered:
+        LEDGER.add("compile", dataset, method, question.qid,
+                   "compilação dos planos bloqueada")
+        return [ConjunctiveQuery(fallback=question.question, filtered=True,
+                                 source="llm-plan")]
+    data = result.json()
+    raw_plans = data.get("plans") if isinstance(data, dict) else None
+    if not isinstance(raw_plans, list):
+        return [ConjunctiveQuery(fallback=question.question,
+                                 validation_error="planos_invalidos", source="llm-plan")]
+    source = "llm-plan-vocabulario" if vocabulary else "llm-plan"
+    plans, seen = [], set()
+    for raw in raw_plans[:max(1, max_plans)]:
+        if not isinstance(raw, dict):
+            continue
+        plan = _query_from_data(raw, question, max_atoms, source)
+        signature = tuple((normalize(a.subject), normalize(a.relation), normalize(a.object))
+                          for a in plan.atoms) + ((plan.answer_var, plan.aggregation),)
+        if signature not in seen:
+            seen.add(signature)
+            plans.append(plan)
+    return plans or [ConjunctiveQuery(fallback=question.question,
+                                      validation_error="planos_vazios", source=source)]
+
+
+def _query_from_data(data: dict[str, Any], question: Question, max_atoms: int,
+                     source: str) -> ConjunctiveQuery:
     atoms = _parse_atoms(data.get("atoms"), max_atoms)
     if isinstance(data.get("atoms"), list) and len(data["atoms"]) > max_atoms:
-        return ConjunctiveQuery(fallback=question.question, validation_error="limite_de_atomos")
+        return ConjunctiveQuery(fallback=question.question, validation_error="limite_de_atomos",
+                                source=source)
     if not isinstance(data.get("atoms"), list) or len(atoms) != len(data["atoms"]):
-        return ConjunctiveQuery(fallback=question.question, validation_error="atomo_invalido")
+        return ConjunctiveQuery(fallback=question.question, validation_error="atomo_invalido",
+                                source=source)
     answer = var_name(str(data.get("answer_var") or "x"))
     query = ConjunctiveQuery(
         answer_var=answer,
@@ -217,8 +267,13 @@ def compile_with_llm(llm: LLM, question: Question, max_atoms: int = 4,
         expected_type=str(data.get("expected_type") or "other"),
         aggregation=str(data.get("aggregation") or "none"),
         fallback=str(data.get("fallback") or question.question),
-        source="llm-vocabulario" if vocabulary else "llm",
+        source=source,
     )
+    if any(not is_var(term) and normalize(term) in {"true", "false", "yes"}
+           for atom in query.atoms for term in (atom.subject, atom.object)):
+        query.validation_error = "constante_booleana_artificial"
+        query.atoms = []
+        return query
     return _repair(query, question)
 
 
@@ -384,3 +439,16 @@ def compile_query(llm: LLM, question: Question, mode: str = "llm",
         return query  # nunca misturar silenciosamente anotação e compilação por LLM
     return compile_with_llm(llm, question, max_atoms=max_atoms, temperature=temperature,
                             dataset=dataset, method=method, vocabulary=vocabulary)
+
+
+def compile_query_plans(llm: LLM, question: Question, mode: str = "llm",
+                        max_atoms: int = 4, max_plans: int = 3,
+                        temperature: float = 0.0, dataset: str = "",
+                        method: str = "witnessrag", vocabulary: str = "") -> list[ConjunctiveQuery]:
+    if mode != "llm":
+        return [compile_query(llm, question, mode=mode, max_atoms=max_atoms,
+                              temperature=temperature, dataset=dataset,
+                              method=method, vocabulary=vocabulary)]
+    return compile_plans_with_llm(llm, question, max_atoms=max_atoms,
+                                  max_plans=max_plans, temperature=temperature,
+                                  dataset=dataset, method=method, vocabulary=vocabulary)

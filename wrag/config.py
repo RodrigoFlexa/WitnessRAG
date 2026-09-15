@@ -212,6 +212,10 @@ class WitnessConfig:
     vocabulary_aware_compile: bool = False
     vocabulary_relations: int = 40
     vocabulary_entities: int = 20
+    # Gera interpretações alternativas em uma chamada e usa o índice para
+    # escolher a primeira que fecha. Desligado para preservar o controle atual.
+    query_plans: bool = False
+    max_query_plans: int = 3
 
     # -- aterramento (grounding) dos átomos em fatos
     grounding_mode: str = "semantic"  # semantic: aproximação; exact: controle simbólico

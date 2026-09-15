@@ -29,7 +29,7 @@ from wrag.witness import budget as budget_mod
 from wrag.witness.memory import MemoryView
 from wrag.witness.provenance import (AnswerCandidate, answer_set, rank_passages,
                                      score_answers)
-from wrag.witness.query import ConjunctiveQuery, compile_query
+from wrag.witness.query import ConjunctiveQuery, compile_query, compile_query_plans
 from wrag.witness.search import (Gap, SearchResult, WitnessSearcher, cover_answers,
                                  executable_aggregations)
 
@@ -276,23 +276,60 @@ class WitnessRAGRetriever(Retriever):
         cfg = self.ctx.run.witness
 
         vocabulary = self._vocabulary(question) if self.compile_mode == "llm" else ""
-        query = compile_query(self.ctx.llm, question, mode=self.compile_mode,
-                              max_atoms=cfg.max_atoms, temperature=cfg.compile_temperature,
-                              dataset=self.ctx.dataset, method=self.name,
-                              vocabulary=vocabulary)
-        if query.filtered:
+        if cfg.query_plans:
+            plans = compile_query_plans(
+                self.ctx.llm, question, mode=self.compile_mode,
+                max_atoms=cfg.max_atoms, max_plans=cfg.max_query_plans,
+                temperature=cfg.compile_temperature, dataset=self.ctx.dataset,
+                method=self.name, vocabulary=vocabulary)
+        else:
+            plans = [compile_query(
+                self.ctx.llm, question, mode=self.compile_mode,
+                max_atoms=cfg.max_atoms, temperature=cfg.compile_temperature,
+                dataset=self.ctx.dataset, method=self.name, vocabulary=vocabulary)]
+
+        if plans and all(query.filtered for query in plans):
             return RetrievalResult(pids=dense_pids[:k] if cfg.dense_fallback else [],
                                    scores=dense_scores[:k] if cfg.dense_fallback else [], filtered=True,
                                    diagnostics={"fallback": "denso (compilação bloqueada)"})
-        if not query.atoms or query.aggregation not in executable_aggregations(cfg.answer_set):
+
+        attempts: list[tuple[int, ConjunctiveQuery, SearchResult]] = []
+        plan_diagnostics: list[dict[str, Any]] = []
+        for index, candidate in enumerate(plans):
+            supported = (bool(candidate.atoms)
+                         and candidate.aggregation in executable_aggregations(cfg.answer_set))
+            candidate_result = self.searcher.join(candidate) if supported else SearchResult()
+            if supported:
+                attempts.append((index, candidate, candidate_result))
+            plan_diagnostics.append({
+                "indice": index, "consulta": candidate.to_dict(),
+                "executavel": supported, "fechou": candidate_result.complete,
+                "profundidade": candidate_result.depth_reached,
+                "candidatos_por_atomo": candidate_result.n_candidates,
+            })
+
+        if not attempts:
+            query = plans[0] if plans else ConjunctiveQuery(fallback=question.question)
             return RetrievalResult(pids=dense_pids[:k] if cfg.dense_fallback else [],
                                    scores=dense_scores[:k] if cfg.dense_fallback else [],
                                    diagnostics={"fallback": "consulta ausente, inválida ou fora do escopo",
                                                 "suportada": False,
                                                 "agregacao": query.aggregation,
-                                                "consulta": query.to_dict()})
+                                                "consulta": query.to_dict(),
+                                                "planos_compilados": plan_diagnostics})
 
-        result = self.searcher.join(query)
+        complete = [attempt for attempt in attempts if attempt[2].complete]
+        if complete:
+            chosen_index, query, result = complete[0]  # ordem declarada pelo compilador
+        else:
+            # Aquisição custa chamadas: aplique-a somente ao plano que avançou
+            # proporcionalmente mais antes de encontrar uma lacuna. Empate
+            # preserva a preferência declarada pelo compilador.
+            chosen_index, query, result = max(
+                attempts,
+                key=lambda item: (item[2].depth_reached / max(1, item[1].n_atoms),
+                                  -item[0]))
+
         rounds = 0
         acquisitions: list[dict[str, Any]] = []
         while (not result.complete and cfg.enable_acquisition
@@ -321,6 +358,9 @@ class WitnessRAGRetriever(Retriever):
             "rodadas_aquisicao": rounds,
             "aquisicoes": acquisitions,
         }
+        if cfg.query_plans:
+            diagnostics["planos_compilados"] = plan_diagnostics
+            diagnostics["plano_escolhido"] = chosen_index
 
         if not result.complete:
             # Candidatos parciais são diagnóstico, não autorização para promover.

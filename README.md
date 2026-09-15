@@ -25,6 +25,7 @@ anterior, e por isso as rodadas já medidas continuam comparáveis.
 |---|---|
 | `--answer-set` | a resposta é o **conjunto** de atribuições certas, com prova por item, em vez da testemunha mais barata; habilita `aggregation="set"` e `aggregation="count"`; o verificador julga cada membro, e o leitor enumera os itens sustentados pelas passagens |
 | `--vocab-compile` | a compilação recebe as relações e entidades do grafo mais próximas da pergunta, para não inventar predicados que nenhum fato instancia |
+| `--query-plans` | uma chamada gera até três consultas ordenadas; a busca testa todas e escolhe a primeira que fecha, usando aquisição apenas no melhor plano parcial quando nenhuma fecha |
 | `--hybrid-fallback` | o fallback do WITNESS-RAG passa a ser fusão recíproca de postos entre denso e BM25 |
 | `--dialogue-ie` | extração adaptada a diálogo: falante como sujeito, correferência dentro do bloco e escopo temporal no fato. Muda a base de fatos compartilhada e exige nova extração |
 | `--no-relation-family-merge` | ablação que preserva cada flexão de relação separada no índice, sem refazer a extração |

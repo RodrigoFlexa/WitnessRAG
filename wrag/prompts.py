@@ -281,6 +281,40 @@ Question: "What does Caroline's necklace symbolize?"
 {question}"""
 
 
+COMPILE_PLANS_TEMPLATE = """Generate up to {max_plans} distinct candidate query plans for the question.
+
+Each plan is a positive conjunctive query. Variables start with "?" and the
+literal answer variable "?x" must occur in at least one atom. Each atom has a
+short relation, subject and object. Use at most {max_atoms} atoms per plan.
+
+Order plans from most faithful to least preferred:
+1. A minimal direct plan when the question can be expressed by one fact. Keep
+   qualifiers such as "recently", "after the accident" or "during the workshop"
+   inside that relation phrase.
+2. A chain plan only when an unnamed intermediate entity must genuinely be found.
+3. An intersection plan only when the same answer must independently satisfy
+   two relations.
+
+Plans must be meaningfully different. Never pad a plan with artificial atoms such
+as recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom
+unconnected to the answer path. Never use true, false or yes as an argument.
+Preserve relation direction. For "What has Alice bought?", use buy(Alice, ?x).
+Use aggregation "set" for all matching members, "count" for a count, and "none"
+for one value. max/min/compare are allowed descriptions but are not executable.
+{vocabulary}
+Return JSON exactly in this shape:
+{{"plans": [
+  {{"answer_var": "x",
+    "atoms": [{{"relation": "...", "subject": "...", "object": "?x"}}],
+    "expected_type": "person|place|date|organization|work|number|other",
+    "aggregation": "none|set|max|min|compare|count",
+    "fallback": "keyword query"}}
+]}}
+
+### INPUT
+{question}"""
+
+
 # ---------------------------------------------------------------------------
 # Leitura final (idêntica para os cinco sistemas)
 # ---------------------------------------------------------------------------

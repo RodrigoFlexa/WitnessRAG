@@ -248,6 +248,40 @@ def test_compilation_sends_the_vocabulary(monkeypatch):
     assert compiled.to_dict()["uses_annotations"] is False
 
 
+def test_plan_compilation_returns_distinct_ordered_hypotheses():
+    from wrag.witness.query import compile_plans_with_llm
+
+    class Planner:
+        def chat(self, prompt, **kwargs):
+            assert "up to 3 distinct candidate query plans" in prompt
+            return LLMResult(text='{"plans": ['
+                '{"answer_var":"x","atoms":[{"relation":"attended recently",'
+                '"subject":"Caroline","object":"?x"}],"aggregation":"none"},'
+                '{"answer_var":"x","atoms":[{"relation":"attended",'
+                '"subject":"Caroline","object":"?x"}],"aggregation":"none"}]}' )
+
+    plans = compile_plans_with_llm(
+        Planner(), Question("q", "What workshop did Caroline attend recently?", []),
+        max_plans=3)
+    assert [p.atoms[0].relation for p in plans] == ["attended recently", "attended"]
+    assert all(not p.to_dict()["uses_annotations"] for p in plans)
+
+
+def test_plan_compilation_rejects_artificial_boolean_atoms():
+    from wrag.witness.query import compile_plans_with_llm
+
+    class Planner:
+        def chat(self, prompt, **kwargs):
+            return LLMResult(text='{"plans":[{"answer_var":"x","atoms":['
+                '{"relation":"supports","subject":"?x","object":"Caroline"},'
+                '{"relation":"negative experience","subject":"Caroline",'
+                '"object":"true"}]}]}')
+
+    plan = compile_plans_with_llm(Planner(), Question("q", "Who supports Caroline?", []))[0]
+    assert not plan.atoms
+    assert plan.validation_error == "constante_booleana_artificial"
+
+
 # --- leitor ciente de conjunto ----------------------------------------------
 
 def test_reader_template_follows_the_configuration():
@@ -320,11 +354,13 @@ def test_cli_flags_reach_the_configuration(monkeypatch):
 
     monkeypatch.setattr(runner, "run", fake_run)
     cli.main(["run", "--datasets", "locomo", "--methods", "witnessrag", "--top-k", "10",
-              "--answer-set", "--vocab-compile", "--hybrid-fallback", "--dialogue-ie"])
+              "--answer-set", "--vocab-compile", "--query-plans",
+              "--hybrid-fallback", "--dialogue-ie"])
     cfg = captured["cfg"]
     assert cfg.top_k == 10
     assert cfg.witness.answer_set and cfg.qa.answer_set
     assert cfg.witness.vocabulary_aware_compile and cfg.witness.hybrid_fallback
+    assert cfg.witness.query_plans
     assert cfg.ie.dialogue_mode
     assert cfg.graph.merge_relation_inflections
 
@@ -333,6 +369,7 @@ def test_cli_flags_reach_the_configuration(monkeypatch):
     cfg = captured["cfg"]
     assert not cfg.witness.answer_set and not cfg.qa.answer_set
     assert not cfg.witness.vocabulary_aware_compile and not cfg.witness.hybrid_fallback
+    assert not cfg.witness.query_plans
     assert not cfg.ie.dialogue_mode      # o padrão preserva as rodadas anteriores
 
     captured.clear()
@@ -418,6 +455,24 @@ def test_retriever_executes_count_only_with_the_answer_set():
     plain = run_retriever(False, aggregation="count").diagnostics
     assert plain["fallback"] == "consulta ausente, inválida ou fora do escopo"
     assert plain["agregacao"] == "count"
+
+
+def test_retriever_chooses_the_first_plan_that_closes(monkeypatch):
+    from wrag.methods.witnessrag import WitnessRAGRetriever
+
+    ctx = build_context(answer_set_on=True)
+    ctx.run.witness.query_plans = True
+    retriever = WitnessRAGRetriever(ctx)
+    retriever.index()
+    bad = ConjunctiveQuery(answer_var="x", atoms=[Atom("missing", "Ana", "?x")])
+    good = intersection_query()
+    monkeypatch.setattr("wrag.methods.witnessrag.compile_query_plans",
+                        lambda *args, **kwargs: [bad, good])
+    result = retriever.retrieve(
+        Question("q", "Quem trabalha na Atlas e pesquisa Óptica?", ["Ana, Bruno"]), 5)
+    assert result.diagnostics["plano_escolhido"] == 1
+    assert [p["fechou"] for p in result.diagnostics["planos_compilados"]] == [False, True]
+    assert "fallback" not in result.diagnostics
 
 
 def test_acquisition_survives_a_fallback_with_another_score_scale():

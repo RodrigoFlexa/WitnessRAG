@@ -126,6 +126,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     cfg.witness.answer_set = args.answer_set
     cfg.qa.answer_set = args.answer_set
     cfg.witness.vocabulary_aware_compile = args.vocab_compile
+    cfg.witness.query_plans = args.query_plans
     cfg.witness.hybrid_fallback = args.hybrid_fallback
     cfg.ie.dialogue_mode = args.dialogue_ie
     cfg.graph.merge_relation_inflections = not args.no_relation_family_merge
@@ -221,6 +222,8 @@ def main(argv: list[str] | None = None) -> int:
                             "habilita aggregation=count e usa o leitor ciente de conjunto")
     p_run.add_argument("--vocab-compile", action="store_true",
                        help="compila a pergunta com as relações e entidades do grafo no prompt")
+    p_run.add_argument("--query-plans", action="store_true",
+                       help="gera até três consultas e escolhe usando a busca no grafo")
     p_run.add_argument("--hybrid-fallback", action="store_true",
                        help="fallback do WITNESS-RAG por fusão recíproca de postos (denso + BM25)")
     p_run.add_argument("--dialogue-ie", action="store_true",
