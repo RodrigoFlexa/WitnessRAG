@@ -269,6 +269,16 @@ def _query_from_data(data: dict[str, Any], question: Question, max_atoms: int,
         fallback=str(data.get("fallback") or question.question),
         source=source,
     )
+    # JSON already has separate subject/object fields. A model occasionally
+    # repeats Prolog-like arguments inside ``relation`` (for example,
+    # ``create(Melanie, ?x)``). Treating that whole string as a predicate makes
+    # grounding meaningless. Parenthetical natural qualifiers such as
+    # "go to beach (2023)" remain valid because whitespace precedes "(".
+    if any("?" in atom.relation or re.search(r"\w\(", atom.relation)
+           for atom in query.atoms):
+        query.validation_error = "relacao_contem_argumentos"
+        query.atoms = []
+        return query
     if any(not is_var(term) and normalize(term) in {"true", "false", "yes"}
            for atom in query.atoms for term in (atom.subject, atom.object)):
         query.validation_error = "constante_booleana_artificial"

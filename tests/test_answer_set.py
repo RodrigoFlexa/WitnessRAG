@@ -282,6 +282,38 @@ def test_plan_compilation_rejects_artificial_boolean_atoms():
     assert plan.validation_error == "constante_booleana_artificial"
 
 
+def test_plan_compilation_rejects_arguments_embedded_in_relation():
+    from wrag.witness.query import compile_plans_with_llm
+
+    class Planner:
+        def chat(self, prompt, **kwargs):
+            return LLMResult(text='{"plans":[{"answer_var":"x","atoms":['
+                '{"relation":"create(Melanie, ?x)","subject":"Melanie",'
+                '"object":"?x"}],"expected_type":"work","aggregation":"set",'
+                '"fallback":"art"}]}')
+
+    plan = compile_plans_with_llm(
+        Planner(), Question("q", "What did Melanie create?", []))[0]
+    assert not plan.atoms
+    assert plan.validation_error == "relacao_contem_argumentos"
+
+
+def test_plan_compilation_keeps_parenthetical_natural_qualifier():
+    from wrag.witness.query import compile_plans_with_llm
+
+    class Planner:
+        def chat(self, prompt, **kwargs):
+            return LLMResult(text='{"plans":[{"answer_var":"x","atoms":['
+                '{"relation":"go to beach (2023)","subject":"Melanie",'
+                '"object":"?x"}],"expected_type":"number","aggregation":"count",'
+                '"fallback":"beach"}]}')
+
+    plan = compile_plans_with_llm(
+        Planner(), Question("q", "How often in 2023?", []))[0]
+    assert plan.validation_error == ""
+    assert plan.atoms[0].relation == "go to beach (2023)"
+
+
 # --- leitor ciente de conjunto ----------------------------------------------
 
 def test_reader_template_follows_the_configuration():

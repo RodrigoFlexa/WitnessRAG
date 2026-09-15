@@ -51,6 +51,11 @@ devolve o mesmo top-k do fallback não constitui uma intervenção na leitura.
 
 Para executar somente WitnessRAG na primeira conversa do LoCoMo, com perguntas
 single-hop e multi-hop, consulte [o piloto LoCoMo](docs/locomo-pilot.md).
+Para comparar planejamento simples e múltiplos planos sobre a mesma conversa,
+execute `scripts/run-locomo-planning-ablation.sh`. O script roda as duas formas
+com a mesma configuração e só imprime a tabela pareada se ambas terminarem as
+102 perguntas. `scripts/compare-planning.py --allow-partial` existe apenas para
+diagnóstico de rodadas interrompidas.
 
 | Identificador | Implementação local |
 |---|---|

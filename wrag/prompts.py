@@ -285,7 +285,10 @@ COMPILE_PLANS_TEMPLATE = """Generate up to {max_plans} distinct candidate query 
 
 Each plan is a positive conjunctive query. Variables start with "?" and the
 literal answer variable "?x" must occur in at least one atom. Each atom has a
-short relation, subject and object. Use at most {max_atoms} atoms per plan.
+short relation, subject and object. The `relation` field contains ONLY the
+predicate phrase: write `{{"relation": "create", "subject": "Melanie",
+"object": "?x"}}`, never `{{"relation": "create(Melanie, ?x)", ...}}`.
+Use at most {max_atoms} atoms per plan.
 
 Order plans from most faithful to least preferred:
 1. A minimal direct plan when the question can be expressed by one fact. Keep
