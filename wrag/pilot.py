@@ -69,6 +69,8 @@ def parser():
                    help="candidatos explorados pelo Witness antes de entregar top-k ao leitor")
     p.add_argument("--dialogue-ie", action="store_true",
                    help="extração adaptada a diálogo: falante como sujeito e tempo do fato")
+    p.add_argument("--no-relation-family-merge", action="store_true",
+                   help="ablação: preserva flexões como paint/painted separadamente")
     p.add_argument("--hours", type=float, default=6.5, help="janela total; reserva 2 min para finalização")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--output", type=Path)
@@ -279,6 +281,7 @@ def _run_config(settings, n_questions):
     cfg.witness.hybrid_fallback = settings.get("hybrid_fallback", False)
     cfg.witness.candidate_pool_k = settings.get("witness_candidate_pool", 20)
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
+    cfg.graph.merge_relation_inflections = not settings.get("no_relation_family_merge", False)
     cfg.ie.window_tokens = settings.get("locomo_ie_window_tokens", 0)
     cfg.ie.window_tokenizer = settings["model"] if cfg.ie.window_tokens else ""
     cfg.ie.window_tokenizer_revision = settings.get("model_revision", "") if cfg.ie.window_tokens else ""
@@ -489,6 +492,7 @@ def _validate_resume(old, new):
               "locomo_conversation", "locomo_turns_per_passage", "locomo_chunk_tokens",
               "locomo_ie_window_tokens", "seed", "top_k", "witness_candidate_pool",
               "answer_set", "vocab_compile", "hybrid_fallback", "dialogue_ie",
+              "no_relation_family_merge",
               "binding_aware_grounding", "verify_witnesses", "no_acquisition")
     differences = [name for name in fields
                    if (old.get("settings", {}).get(name) or 0) !=
@@ -525,12 +529,15 @@ def print_locomo_aggregate(output, status, run_dirs):
     write_json(Path(output) / "locomo_agregado.json", summary)
     print(f"\nResultados ({'concluído' if status == 'complete' else 'PARCIAIS — ' + status}): "
           f"{summary['conversas']} conversa(s), {total} perguntas, média micro\n")
-    print(f"{'método / categoria':<35} {'n':>5} " + " ".join(f"{x:>8}" for x in labels) + f" {'disparo':>8}")
+    print(f"{'método / categoria':<35} {'n':>5} " + " ".join(f"{x:>8}" for x in labels)
+          + f" {'disparo':>8} {'mudouctx':>8}")
     for method, values in summary["metodos"].items():
         for label, block in [(method, values)] + [(f"  {k}", v) for k, v in values["por_categoria"].items()]:
             fire = pct(block["taxa_de_disparo"]) if "taxa_de_disparo" in block else "—"
+            changed = pct(block["taxa_de_intervencao"]) if "taxa_de_intervencao" in block else "—"
             print(f"{label:<35} {block['n']:>5} "
-                  + " ".join(f"{pct(block.get(k)):>8}" for k in keys) + f" {fire:>8}")
+                  + " ".join(f"{pct(block.get(k)):>8}" for k in keys)
+                  + f" {fire:>8} {changed:>8}")
     if official:
         print("\nF1ofic/EMofic reproduzem task_eval/evaluation.py do LoCoMo; F1/EM são do harness.")
     print(f"Agregado: {Path(output) / 'locomo_agregado.json'}", flush=True)
@@ -590,6 +597,8 @@ def print_results(output, status):
                     if stop:
                         print(f"{'  testemunha disparou em':<35} {pct(stop.get('taxa_de_disparo')):>8}% "
                               f"das perguntas; o resto veio do fallback")
+                        print(f"{'  contexto realmente alterado em':<35} "
+                              f"{pct(stop.get('taxa_de_intervencao')):>8}% das perguntas")
                 if data.get("excluidas"):
                     print(f"Excluídas por filtro de conteúdo: {len(data['excluidas'])}")
                 if dataset == "locomo":

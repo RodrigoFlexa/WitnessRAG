@@ -160,6 +160,18 @@ def test_graph_and_reversible_memory_reuse_relation_families():
     assert len(memory.relations) == baseline
 
 
+def test_relation_family_merge_can_be_disabled_for_ablation():
+    passages = [Passage("p0", "T0", "Ana paint sunset"),
+                Passage("p1", "T1", "Ana painted portrait")]
+    facts = [Fact("f0", "Ana", "paint", "sunset", "p0"),
+             Fact("f1", "Ana", "painted", "portrait", "p1")]
+    cfg = C.GraphConfig(merge_relation_inflections=False)
+    kg = build_graph(Corpus("toy", passages, []), ExtractionResult(facts=facts),
+                     ExactEmbedder(), cfg)
+    assert len(kg.relations) == 2
+    assert kg.facts[0].rel_id != kg.facts[1].rel_id
+
+
 def test_single_available_variable_repairs_the_declared_answer_variable():
     from wrag.witness.query import _repair
 
@@ -177,6 +189,17 @@ def test_ambiguous_missing_answer_variable_still_fails_closed():
     query = ConjunctiveQuery(answer_var="x", atoms=[Atom("connect", "?y", "?z")])
     repaired = _repair(query, question)
     assert not repaired.atoms and repaired.validation_error == "variavel_de_resposta_ausente"
+
+
+def test_what_has_repairs_an_unambiguously_reversed_single_atom():
+    from wrag.witness.query import _repair
+
+    question = Question("q", "What has Melanie bought?", [])
+    query = ConjunctiveQuery(answer_var="x", atoms=[Atom("buy", "?x", "Melanie")])
+    repaired = _repair(query, question)
+    assert repaired.atoms[0].subject == "Melanie"
+    assert repaired.atoms[0].object == "?x"
+    assert "direcao_what_has" in repaired.repairs
 
 
 def test_answer_normalization_removes_punctuation_without_splitting_tokens():

@@ -190,7 +190,7 @@ def build_graph(
     rel_groups: dict[str, list[str]] = {}
     for f in facts:
         key = normalize(f.relation)
-        signature = relation_signature(f.relation)
+        signature = relation_signature(f.relation) if cfg.merge_relation_inflections else key
         if not key or not signature:
             continue
         rel_counts[key] += 1

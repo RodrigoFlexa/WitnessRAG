@@ -46,6 +46,7 @@ sem aumentar o orçamento da resposta.
 | `--top-k N` | número de chunks entregues ao leitor | a comparação principal fixa `N=5`; use outro valor somente como ablação declarada |
 | `--witness-candidate-pool N` | profundidade explorada antes da seleção por prova | preserva cobertura interna sem ampliar o contexto final |
 | `--locomo-ie-window-tokens N` | granularidade interna de NER/OpenIE | evita resumir um chunk longo inteiro no teto de 40 triplas; não cria documentos extras para o leitor |
+| `--no-relation-family-merge` | mantém `paint`, `painted` e `painting` como relações distintas no índice, usando a mesma extração | ablação da normalização morfológica sem misturá-la com uma nova rodada de OpenIE |
 
 `--dialogue-ie` muda a base de fatos `F` compartilhada e exige nova extração.
 O prompt atual pede predicados canônicos reutilizáveis e o índice agrupa somente
@@ -60,7 +61,8 @@ diálogo, enquanto extrações legadas continuam válidas.
 
 O relatório passou a trazer **onde cada pergunta parou**: taxa de disparo da
 testemunha, quantas caíram por falta de consulta, por junção que não fechou e por
-verificação que rejeitou, além de testemunhas avaliadas e aprovadas. Comece por
+verificação que rejeitou, além de testemunhas avaliadas e aprovadas. Ele também
+separa disparo de contexto alterado e agrega os tipos de rejeição. Comece por
 essa tabela: com taxa de disparo baixa, a tabela principal mede o fallback, não o
 executor, e comparar F1 nesse regime compara outra coisa. A ablação do
 `--verify-witnesses` se lê nessa mesma tabela, ligando e desligando a opção.

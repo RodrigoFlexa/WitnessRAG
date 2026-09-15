@@ -128,6 +128,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     cfg.witness.vocabulary_aware_compile = args.vocab_compile
     cfg.witness.hybrid_fallback = args.hybrid_fallback
     cfg.ie.dialogue_mode = args.dialogue_ie
+    cfg.graph.merge_relation_inflections = not args.no_relation_family_merge
     if args.budget is not None:
         cfg.witness.budget_fraction = args.budget
     if args.no_acquisition:
@@ -224,6 +225,8 @@ def main(argv: list[str] | None = None) -> int:
                        help="fallback do WITNESS-RAG por fusão recíproca de postos (denso + BM25)")
     p_run.add_argument("--dialogue-ie", action="store_true",
                        help="extração adaptada a diálogo: falante como sujeito e tempo do fato")
+    p_run.add_argument("--no-relation-family-merge", action="store_true",
+                       help="ablação: preserva flexões como paint/painted separadamente")
     p_run.add_argument("--verify-witnesses", action="store_true",
                        help="verifica testemunhas nos textos antes de promover passagens")
     p_run.add_argument("--no-acquisition", action="store_true",

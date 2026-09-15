@@ -244,6 +244,10 @@ Guidance:
   atoms for adjectives, time phrases, reasons, feelings or event context. A
   possessive common noun is a scoped constant ("Caroline's necklace"), not an
   unknown intermediate entity, unless the question actually asks who owns it.
+- Qualifiers such as "recently", "after the accident" and "during the workshop"
+  stay inside the main relation phrase; never encode them as artificial atoms
+  like recent(?x, true), after(?x, accident) or during(?x, workshop). Never use
+  "true", "false" or "yes" as an argument.
 - Every atom must be connected through a shared variable or constant. Never emit
   an unrelated atom merely because its words occur in the question.
 - At most {max_atoms} atoms. If the question needs comparison, counting or

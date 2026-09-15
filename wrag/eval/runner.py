@@ -342,7 +342,8 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
             ("consulta", "forma", "lacuna", "fallback", "rodadas_aquisicao",
              "profundidade_alcancada", "risco", "risco_bruto", "score_estrutural", "n_testemunhas",
              "n_testemunhas_propostas", "agregacao_executada",
-             "resposta_estrutural", "testemunha_no_contexto", "grounding_mode", "exhaustive",
+             "resposta_estrutural", "testemunha_no_contexto", "ordem_fallback_preservada",
+             "contexto_alterado_pelo_witness", "grounding_mode", "exhaustive",
              "truncations", "aterramento", "exaustiva", "truncamentos",
              "modo_aterramento", "busca_exaustiva", "feixe_exaustivo", "cortes", "risco_calibrado")
             if k in diagnostics}

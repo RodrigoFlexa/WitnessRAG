@@ -164,6 +164,9 @@ class GraphConfig:
     # canonicalização a junção conjuntiva quebra em variações triviais de grafia
     # ("Juan Courten"/"Juan de Courten"), que é onde as cadeias morriam.
     merge_identity_variants: bool = True
+    # Agrupa apenas flexões com a mesma sequência de stems; pode ser desligado
+    # para medir a contribuição desta normalização mantendo a extração fixa.
+    merge_relation_inflections: bool = True
     identity_merge_threshold: float = 0.80
     synonym_threshold: float = _env_float("WRAG_SYNONYM_THRESHOLD", 0.80)
     synonym_max_neighbors: int = 20

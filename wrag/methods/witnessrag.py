@@ -372,6 +372,7 @@ class WitnessRAGRetriever(Retriever):
             pids, scores, order_preserved = preserve_fallback_order_if_same_set(
                 pids, scores, dense_pids, dense_scores, k)
             diagnostics["ordem_fallback_preservada"] = order_preserved
+            diagnostics["contexto_alterado_pelo_witness"] = pids != dense_pids[:k]
         # O leitor só recebe estas passagens: não certificar uma prova truncada.
         delivered = [w for w in result.witnesses if set(w.pids) <= set(pids)]
         candidates = score_answers(delivered, self.memory, cfg)

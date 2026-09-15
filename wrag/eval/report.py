@@ -229,6 +229,7 @@ def _firing_block(records, excluded, data):
             continue
         counts: dict[str, int] = {label: 0 for label in reasons.values()}
         counts["outro"] = 0
+        rejection_types: dict[str, int] = {}
         evaluated = accepted = 0
         for row in kept:
             diagnostics = row["diagnosticos"]
@@ -237,10 +238,17 @@ def _firing_block(records, excluded, data):
             verification = diagnostics.get("verificacao") or {}
             evaluated += int(verification.get("avaliadas", 0) or 0)
             accepted += int(verification.get("aceitas", 0) or 0)
+            for kind, count in (verification.get("rejeicoes_por_tipo") or {}).items():
+                rejection_types[str(kind)] = rejection_types.get(str(kind), 0) + int(count or 0)
         used = counts["testemunha usada"]
+        changed = sum(bool(r["diagnosticos"].get("contexto_alterado_pelo_witness"))
+                      for r in kept)
         block[method] = {"n": len(kept), "taxa_de_disparo": used / len(kept),
+                         "contextos_alterados": changed,
+                         "taxa_de_intervencao": changed / len(kept),
                          "por_parada": counts, "testemunhas_avaliadas": evaluated,
                          "testemunhas_aceitas": accepted,
+                         "rejeicoes_por_tipo": rejection_types,
                          "taxa_de_aprovacao": (accepted / evaluated) if evaluated else float("nan")}
     if not block:
         return []
@@ -249,15 +257,24 @@ def _firing_block(records, excluded, data):
              "Uma taxa de disparo baixa significa que a maior parte das respostas veio do "
              "fallback, não do executor: nesse regime a tabela principal mede o recuperador "
              "de reserva. Aprovação é sobre as testemunhas efetivamente verificadas.\n",
-             "| método | n | disparo | " + " | ".join(labels) + " | verificadas | aprovadas |",
-             "|" + "---|" * (len(labels) + 5)]
+             "| método | n | disparo | mudou contexto | " + " | ".join(labels) + " | verificadas | aprovadas |",
+             "|" + "---|" * (len(labels) + 6)]
     for method, values in block.items():
         cells = " | ".join(str(values["por_parada"][label]) for label in labels)
         approval = values["taxa_de_aprovacao"]
         approval_cell = "—" if approval != approval else f"{_pct(approval)}"
-        lines.append(f"| {method} | {values['n']} | {_pct(values['taxa_de_disparo'])} | {cells} | "
+        lines.append(f"| {method} | {values['n']} | {_pct(values['taxa_de_disparo'])} | "
+                     f"{_pct(values['taxa_de_intervencao'])} | {cells} | "
                      f"{values['testemunhas_avaliadas']} | {approval_cell} |")
     data["onde_parou"] = block
+    if any(values["rejeicoes_por_tipo"] for values in block.values()):
+        lines += ["\n#### Motivos de rejeição do verificador\n",
+                  "Contagem por testemunha avaliada; uma pergunta pode produzir várias rejeições.\n",
+                  "| método | motivo | n |", "|---|---|---|"]
+        for method, values in block.items():
+            for kind, count in sorted(values["rejeicoes_por_tipo"].items(),
+                                      key=lambda item: (-item[1], item[0])):
+                lines.append(f"| {method} | {kind} | {count} |")
 
     # Conjunto de respostas: só aparece quando a opção está ligada.
     sets = {}

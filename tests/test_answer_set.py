@@ -326,6 +326,7 @@ def test_cli_flags_reach_the_configuration(monkeypatch):
     assert cfg.witness.answer_set and cfg.qa.answer_set
     assert cfg.witness.vocabulary_aware_compile and cfg.witness.hybrid_fallback
     assert cfg.ie.dialogue_mode
+    assert cfg.graph.merge_relation_inflections
 
     captured.clear()
     cli.main(["run", "--datasets", "locomo", "--methods", "witnessrag"])
@@ -333,6 +334,11 @@ def test_cli_flags_reach_the_configuration(monkeypatch):
     assert not cfg.witness.answer_set and not cfg.qa.answer_set
     assert not cfg.witness.vocabulary_aware_compile and not cfg.witness.hybrid_fallback
     assert not cfg.ie.dialogue_mode      # o padrão preserva as rodadas anteriores
+
+    captured.clear()
+    cli.main(["run", "--datasets", "locomo", "--methods", "witnessrag",
+              "--no-relation-family-merge"])
+    assert not captured["cfg"].graph.merge_relation_inflections
 
 
 # --- integração no retriever ------------------------------------------------

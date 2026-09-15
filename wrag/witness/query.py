@@ -255,6 +255,21 @@ def _repair(query: ConjunctiveQuery, question: Question) -> ConjunctiveQuery:
         query.aggregation = "set"
     if not query.atoms:
         return query
+
+    # Erro de direção observado em perguntas inglesas do tipo
+    # "What has Alice bought?": alguns compiladores emitem buy(?x, Alice),
+    # embora a gramática torne Alice o agente e ?x o objeto. O reparo só vale
+    # para um único átomo e para o padrão explícito has/have; não tenta adivinhar
+    # a direção de relações arbitrárias.
+    words = re.findall(r"[a-z]+", question.question.lower())
+    if (len(query.atoms) == 1 and len(words) > 3 and words[0] == "what"
+            and words[1] in {"has", "have"}):
+        atom = query.atoms[0]
+        if (atom.subject_is_var and var_name(atom.subject) == query.answer_var
+                and not atom.object_is_var):
+            atom.subject, atom.object = atom.object, atom.subject
+            query.repairs.append("direcao_what_has")
+
     answer = query.answer_var
     present = {v for atom in query.atoms for v in atom.variables()}
     if answer in present:

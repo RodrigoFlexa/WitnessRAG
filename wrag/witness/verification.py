@@ -1,6 +1,8 @@
 """Verificação textual experimental; aprovação do LLM não é certificado lógico."""
 from __future__ import annotations
 
+import re
+
 from wrag.llm import GenParams
 from wrag.llm.filters import LEDGER
 from wrag.prompts import jdump
@@ -26,6 +28,17 @@ Return {{"supported": true|false, "answers_question": true|false,
 
 ### INPUT
 {payload}"""
+
+
+def _quote_in_source(quote: str, source: str) -> bool:
+    """Casamento literal tolerante apenas a espaços e quebras de linha.
+
+    Não remove pontuação, não aplica stemming e não aceita paráfrase. Isso evita
+    rejeitar uma citação copiada de uma passagem cuja quebra de linha foi
+    serializada como espaço pelo modelo.
+    """
+    compact = lambda value: re.sub(r"\s+", " ", value).strip()
+    return compact(quote) in compact(source)
 
 
 def verify_witnesses(llm, corpus, memory, question, query, witnesses, limit, dataset):
@@ -73,7 +86,7 @@ def verify_witnesses(llm, corpus, memory, question, query, witnesses, limit, dat
                 if (type(ai) is not int or not 0 <= ai < len(query.atoms)
                         or not isinstance(pid, str) or pid not in sources
                         or not isinstance(quote, str) or len(quote.strip()) < 8
-                        or quote not in sources[pid]):
+                        or not _quote_in_source(quote, sources[pid])):
                     valid = False
                     break
                 covered.add(ai)

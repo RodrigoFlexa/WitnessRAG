@@ -11,7 +11,7 @@ from wrag.data import Question
 from wrag.llm.base import LLMResult
 from wrag.witness.query import Atom, ConjunctiveQuery
 from wrag.witness.search import Grounding, WitnessSearcher
-from wrag.witness.verification import verify_witnesses
+from wrag.witness.verification import _quote_in_source, verify_witnesses
 
 
 def chain(monkeypatch):
@@ -120,6 +120,13 @@ def test_set_verification_judges_each_member_instead_of_demanding_the_whole_list
         query, witnesses, 1, "toy")
     assert len(accepted) == 1
     assert diag["rejeicoes_por_tipo"] == {}
+
+
+def test_quote_validation_tolerates_only_whitespace_layout():
+    assert _quote_in_source("raised awareness for\nmental health",
+                            "The race raised awareness for mental health.")
+    assert not _quote_in_source("raised awareness for physical health",
+                                "The race raised awareness for mental health.")
 
 
 def comparator():

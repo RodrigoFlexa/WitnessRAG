@@ -27,6 +27,7 @@ anterior, e por isso as rodadas já medidas continuam comparáveis.
 | `--vocab-compile` | a compilação recebe as relações e entidades do grafo mais próximas da pergunta, para não inventar predicados que nenhum fato instancia |
 | `--hybrid-fallback` | o fallback do WITNESS-RAG passa a ser fusão recíproca de postos entre denso e BM25 |
 | `--dialogue-ie` | extração adaptada a diálogo: falante como sujeito, correferência dentro do bloco e escopo temporal no fato. Muda a base de fatos compartilhada e exige nova extração |
+| `--no-relation-family-merge` | ablação que preserva cada flexão de relação separada no índice, sem refazer a extração |
 | `--top-k N` | blocos entregues ao leitor |
 
 A completude do conjunto de respostas **não é certificada**: ele contém o que a
@@ -41,7 +42,9 @@ quando existe uma única variável possível e registra o reparo.
 
 O relatório traz a tabela **onde a pergunta parou**, com a taxa de disparo da
 testemunha. Ela vem antes de qualquer leitura de F1: com disparo baixo, a tabela
-principal mede o recuperador de reserva, não o executor.
+principal mede o recuperador de reserva, não o executor. O relatório separa
+prova encontrada de **contexto realmente alterado**, pois uma testemunha que
+devolve o mesmo top-k do fallback não constitui uma intervenção na leitura.
 
 ## Métodos
 

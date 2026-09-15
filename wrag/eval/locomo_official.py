@@ -198,6 +198,9 @@ def aggregate_runs(run_dirs: Sequence["Path"]) -> dict:
             if fired:
                 values["taxa_de_disparo"] = _mean(
                     [float("fallback" not in r["diagnosticos"]) for r in fired])
+                values["taxa_de_intervencao"] = _mean(
+                    [float(bool(r["diagnosticos"].get("contexto_alterado_pelo_witness")))
+                     for r in fired])
             return values
 
         entry = block(rows)
