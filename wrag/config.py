@@ -141,6 +141,14 @@ class IEConfig:
     temperature: float = 0.0
     two_step: bool = True          # NER e depois OpenIE, como no HippoRAG
     max_triples_per_passage: int = 40
+    # O documento entregue ao leitor pode ser longo (2.048 tokens no protocolo
+    # ZeroMem), sem obrigar o extrator a resumir tudo em apenas 40 fatos. Quando
+    # positivo, OpenIE lê janelas sobrepostas e cada fato mantém como pid o
+    # documento pai; isto muda o custo de indexação, não o orçamento do leitor.
+    window_tokens: int = 0
+    window_overlap_tokens: int = 64
+    window_tokenizer: str = ""
+    window_tokenizer_revision: str = ""
     # Extração adaptada a diálogo: o sujeito de uma fala em primeira pessoa é o
     # falante, e a data da sessão vira o escopo temporal do fato. Sem isso, num
     # corpus conversacional a maior parte dos fatos fica sem sujeito resolvível
@@ -238,6 +246,9 @@ class WitnessConfig:
     # dependem de nomes próprios raros que um vetor de bloco longo dilui.
     hybrid_fallback: bool = False
     hybrid_rrf_k: int = 60
+    # Profundidade explorada antes do corte do contexto. O leitor continua
+    # recebendo exatamente RunConfig.top_k documentos.
+    candidate_pool_k: int = 20
 
     # -- proveniência e risco
     fact_confidence: float = 0.90      # p_e default de um fato extraído uma vez

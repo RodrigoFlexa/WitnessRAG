@@ -13,11 +13,11 @@ from wrag.embed import TfidfEmbedder
 from wrag.eval import metrics as M
 from wrag.eval.report import _dataset_block
 from wrag.graph import build_graph
-from wrag.ie import ExtractionResult, Fact, _cache_path, _dedupe, extract_targeted
+from wrag.ie import ExtractionResult, Fact, _cache_path, _dedupe, extract_corpus, extract_targeted
 from wrag.llm.base import LLMResult, UsageLedger
 from wrag.llm.filters import LEDGER, configure_ledger
 from wrag.llm.stub import StubLLM
-from wrag.methods.base import IndexContext
+from wrag.methods.base import IndexContext, RetrievalResult
 from wrag.methods.hipporag2 import HippoRAG2Retriever
 from wrag.util import canonical_symbol
 from wrag.witness.budget import Demand, select_ilp, toy_instance, utility
@@ -86,6 +86,38 @@ def test_reacquisition_of_pruned_fact_is_query_local(monkeypatch):
     retriever.searcher.rollback()
     memory.reset()
     assert not retriever.searcher.join(q).complete
+
+
+def test_witness_explores_wide_pool_but_delivers_reader_budget(monkeypatch):
+    from wrag.methods.witnessrag import WitnessRAGRetriever
+
+    cfg = C.RunConfig(top_k=5)
+    cfg.witness.candidate_pool_k = 20
+    corpus = Corpus("toy", [Passage(f"p{i}", "", str(i)) for i in range(20)], [])
+    retriever = WitnessRAGRetriever(IndexContext(corpus, StubLLM(), ExactEmbedder(), cfg))
+
+    class Dense:
+        requested = 0
+        def search(self, _text, k):
+            self.requested = k
+            return [f"p{i}" for i in range(k)], [1.0 / (i + 1) for i in range(k)]
+
+    class Resettable:
+        def rollback(self):
+            pass
+        def reset(self):
+            pass
+
+    retriever._dense = Dense()
+    retriever.memory = Resettable()
+    retriever.searcher = Resettable()
+    monkeypatch.setattr(retriever, "_retrieve_inner",
+                        lambda _q, k, pids, scores: RetrievalResult(pids[:k], scores[:k]))
+    result = retriever._retrieve(Question("q", "question", ["answer"]), 5)
+    assert retriever._dense.requested == 20
+    assert len(result.pids) == result.diagnostics["documentos_entregues"] == 5
+    assert result.diagnostics["candidatos_explorados"] == 20
+    assert result.diagnostics["orcamento_leitor"] == 5
 
 
 def test_answer_normalization_removes_punctuation_without_splitting_tokens():
@@ -224,6 +256,17 @@ def test_extraction_cache_depends_on_content_and_parameters():
     llm, cfg = StubLLM(), C.IEConfig()
     assert _cache_path(c1, llm, cfg) != _cache_path(c2, llm, cfg)
     assert _cache_path(c1, llm, cfg) != _cache_path(c1, llm, replace(cfg, max_tokens=42))
+
+
+def test_index_windows_keep_parent_provenance(monkeypatch):
+    corpus = Corpus("test", [Passage("p0", "History", "long parent document")], [])
+    monkeypatch.setattr("wrag.ie._extraction_windows",
+                        lambda _text, _cfg: ["Alice met Bob.", "Carol joined Delta."])
+    result = extract_corpus(corpus, StubLLM(), C.IEConfig(window_tokens=512,
+                            window_tokenizer="unused"), use_cache=False)
+    assert result.extraction_windows == 2
+    assert {f.pid for f in result.facts} == {"p0"}
+    assert {"Alice", "Bob", "Carol", "Delta"} <= set(result.entities_by_passage["p0"])
 
 
 def test_tfidf_cache_tracks_tail_and_one_word_corpus():

@@ -44,6 +44,8 @@ def main() -> None:
     if not runs:
         raise SystemExit("nenhuma rodada com locomo/*.jsonl encontrada nos caminhos dados")
     summary = aggregate_runs(runs)
+    for values in summary["metodos"].values():
+        values.pop("por_conversa", None)
     destination = (args.output or args.paths[0]) / "locomo_agregado.json"
     write_json(destination, summary)
 

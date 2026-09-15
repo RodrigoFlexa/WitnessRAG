@@ -17,6 +17,7 @@ import socket
 import subprocess
 import sys
 import time
+import traceback
 import urllib.request
 from datetime import datetime, timezone
 
@@ -46,6 +47,10 @@ def parser():
     p.add_argument("--locomo-conversation", default="0",
                    help="índice da conversa, começando em zero, ou 'all' para as dez em sequência")
     p.add_argument("--locomo-turns-per-passage", type=int, default=8)
+    p.add_argument("--locomo-chunk-tokens", type=int, default=0,
+                   help="0 usa blocos de falas; 2048 aproxima o RAG descrito no ZeroMem")
+    p.add_argument("--locomo-ie-window-tokens", type=int, default=0,
+                   help="janelas OpenIE internas; 512 preserva fatos em chunks longos sem ampliar o leitor")
     p.add_argument("--locomo-file", type=Path, help="opcional: locomo10.json local, sem download")
     p.add_argument("--distractors", type=int, default=300, help="passagens aleatórias adicionais ao corpus candidato")
     p.add_argument("--max-passages", type=int, default=1500, help="falha se o corpus candidato exceder este teto")
@@ -60,6 +65,8 @@ def parser():
                    help="compilação ancorada nas relações e entidades do grafo")
     p.add_argument("--hybrid-fallback", action="store_true",
                    help="fallback por fusão recíproca de postos (denso + BM25)")
+    p.add_argument("--witness-candidate-pool", type=int, default=20,
+                   help="candidatos explorados pelo Witness antes de entregar top-k ao leitor")
     p.add_argument("--dialogue-ie", action="store_true",
                    help="extração adaptada a diálogo: falante como sujeito e tempo do fato")
     p.add_argument("--hours", type=float, default=6.5, help="janela total; reserva 2 min para finalização")
@@ -68,6 +75,8 @@ def parser():
     p.add_argument("--cache-dir", type=Path, default=None,
                    help="reaproveita caches (OpenIE, embeddings) de outra rodada; a extração é a parte cara")
     p.add_argument("--dry-run", action="store_true", help="mostra comandos sem baixar dados ou iniciar processos")
+    p.add_argument("--resume", action="store_true",
+                   help="retoma um --output parcial compatível e pula conversas já concluídas")
     p.add_argument("--worker", type=Path, help=argparse.SUPPRESS)
     return p
 
@@ -91,6 +100,10 @@ def make_plan(args, output):
             raise ValueError("índice LoCoMo deve ser >= 0 ou 'all'")
     if args.locomo_turns_per_passage < 1:
         raise ValueError("tamanho da passagem deve ser >= 1")
+    if args.locomo_chunk_tokens < 0:
+        raise ValueError("locomo-chunk-tokens deve ser >= 0")
+    if args.locomo_ie_window_tokens < 0 or 0 < args.locomo_ie_window_tokens <= 64:
+        raise ValueError("locomo-ie-window-tokens deve ser 0 ou maior que o overlap de 64")
     if not args.gpu.strip() or "," in args.gpu:
         raise ValueError("selecione uma GPU; este piloto usa tensor-parallel-size=1")
     if args.hours <= 2 / 60 or (args.questions is not None and args.questions < 1) or args.max_passages < 1 or args.distractors < 0:
@@ -101,6 +114,8 @@ def make_plan(args, output):
         raise ValueError("use contexto >= 4096; o leitor recebe passagens completas")
     if args.top_k < 1:
         raise ValueError("top-k deve ser >= 1")
+    if args.witness_candidate_pool < 1:
+        raise ValueError("witness-candidate-pool deve ser >= 1")
     if args.embed_device not in {"cpu", "cuda", "cuda:0"}:
         raise ValueError("embed-device deve ser cpu ou cuda:0 na GPU remapeada")
     methods = [x.strip() for x in args.methods.split(",") if x.strip()]
@@ -156,7 +171,9 @@ def prepare_conversation(plan, index, output):
     shared = Path(plan["output"]) / "source-data" / "locomo10.json"
     source = settings.get("locomo_file") or (str(shared) if shared.exists() else None)
     return prepare(output, source, index, settings.get("locomo_turns_per_passage", 8),
-                   settings.get("questions"), settings["seed"], settings["max_passages"])
+                   settings.get("questions"), settings["seed"], settings["max_passages"],
+                   settings.get("locomo_chunk_tokens") or None, settings["model"],
+                   settings.get("model_revision") or None)
 
 
 def prepare_data(plan):
@@ -168,7 +185,9 @@ def prepare_data(plan):
         from wrag.locomo import prepare
         return prepare(plan["output"], settings.get("locomo_file"),
                        settings.get("locomo_conversation", 0), settings.get("locomo_turns_per_passage", 8),
-                       settings.get("questions"), settings["seed"], settings["max_passages"])
+                       settings.get("questions"), settings["seed"], settings["max_passages"],
+                       settings.get("locomo_chunk_tokens") or None, settings["model"],
+                       settings.get("model_revision") or None)
     data = Path(plan["output"]) / "data"
     source = Path(plan["output"]) / "source-data"
     source.mkdir(parents=True, exist_ok=True)
@@ -258,7 +277,11 @@ def _run_config(settings, n_questions):
     cfg.qa.answer_set = settings.get("answer_set", False)
     cfg.witness.vocabulary_aware_compile = settings.get("vocab_compile", False)
     cfg.witness.hybrid_fallback = settings.get("hybrid_fallback", False)
+    cfg.witness.candidate_pool_k = settings.get("witness_candidate_pool", 20)
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
+    cfg.ie.window_tokens = settings.get("locomo_ie_window_tokens", 0)
+    cfg.ie.window_tokenizer = settings["model"] if cfg.ie.window_tokens else ""
+    cfg.ie.window_tokenizer_revision = settings.get("model_revision", "") if cfg.ie.window_tokens else ""
     return cfg
 
 
@@ -274,12 +297,21 @@ def _run_every_conversation(plan, settings):
     """
     from wrag import config as C
     from wrag.eval.runner import run
-    from wrag.util import write_json
+    from wrag.util import read_json, write_json
 
     output = Path(plan["output"])
     deadline = plan.get("deadline_epoch")
-    roots, done = [], []
+    progress_path = output / "conversations.json"
+    previous = read_json(progress_path).get("conversas", []) if progress_path.exists() else []
+    done_by_index = {int(item["conversa"]): item for item in previous
+                     if _completed_conversation(item, plan["methods"])}
+    roots = [item["run_dir"] for _, item in sorted(done_by_index.items())]
+    done = [item for _, item in sorted(done_by_index.items())]
+    if done:
+        print(f"Retomada: {len(done)} conversa(s) completas serão preservadas.", flush=True)
     for index in locomo_conversations(plan):
+        if index in done_by_index:
+            continue
         if deadline is not None and time.time() >= deadline:
             print(f"Prazo atingido; conversas restantes não foram executadas.", flush=True)
             break
@@ -295,8 +327,24 @@ def _run_every_conversation(plan, settings):
         roots.append(str(root))
         done.append({"conversa": index, "sample_id": metadata["sample_id"],
                      "perguntas": metadata["questions"], "run_dir": str(root)})
-        write_json(output / "conversations.json", {"conversas": done})
+        done.sort(key=lambda item: item["conversa"])
+        write_json(progress_path, {"conversas": done})
     return roots
+
+
+def _completed_conversation(item, methods):
+    """Accept only a complete, readable run before skipping it on resume."""
+    try:
+        run_dir = Path(item["run_dir"])
+        manifest = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+        report = json.loads((run_dir / "report.json").read_text(encoding="utf-8"))
+        dataset = report["datasets"]["locomo"]
+        if not manifest.get("terminado_em"):
+            return False
+        expected = int(item["perguntas"])
+        return all(int(dataset["metodos"][method]["n_avaliadas"]) == expected for method in methods)
+    except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
+        return False
 
 
 def stop_owned(process):
@@ -348,8 +396,14 @@ def launch(args):
         return 0
     if os.name != "posix" and not args.existing_server:
         raise RuntimeError("execute o launcher no servidor Linux com NVIDIA/vLLM; use --dry-run para inspecionar")
-    if output.exists() and any(output.iterdir()):
-        raise ValueError("--output deve ser novo ou vazio; resultados existentes não serão sobrescritos")
+    if output.exists() and any(output.iterdir()) and not args.resume:
+        raise ValueError("--output deve ser novo ou vazio; use --resume para uma execução parcial")
+    if args.resume:
+        old_plan_path = output / "pilot.json"
+        if not old_plan_path.exists():
+            raise ValueError("--resume exige um pilot.json no diretório de saída")
+        old_plan = json.loads(old_plan_path.read_text(encoding="utf-8"))
+        _validate_resume(old_plan, plan)
     output.mkdir(parents=True, exist_ok=True)
     plan_path = output / "pilot.json"
     # O worker precisa do MESMO prazo para não começar uma conversa que não cabe:
@@ -386,7 +440,7 @@ def launch(args):
                 (output / "vllm-version.txt").write_text(version.stdout, encoding="utf-8")
             except (OSError, subprocess.SubprocessError):
                 pass
-        with (output / "benchmark.log").open("w", encoding="utf-8") as log:
+        with (output / "benchmark.log").open("a" if args.resume else "w", encoding="utf-8") as log:
             job = subprocess.Popen([sys.executable, "-m", "wrag.pilot", "--gpu", args.gpu,
                                     "--worker", str(plan_path)], env=env, cwd=ROOT,
                                    stdout=log, stderr=subprocess.STDOUT, start_new_session=os.name == "posix")
@@ -400,6 +454,10 @@ def launch(args):
             time.sleep(2)
         if job.poll() is not None:
             status = "complete" if job.returncode == 0 else "failed"
+            if status == "failed" and (output / "worker-error.txt").exists():
+                detail = (output / "worker-error.txt").read_text(encoding="utf-8").strip().splitlines()
+                if detail:
+                    print(f"Falha no benchmark: {detail[-1]}", file=sys.stderr)
     except KeyboardInterrupt:
         status = "interrupted"
     except Exception as exc:
@@ -425,8 +483,24 @@ def launch(args):
     return 0 if status == "complete" else 2
 
 
+def _validate_resume(old, new):
+    """Reject changes that would mix incomparable results in one aggregate."""
+    fields = ("model", "model_revision", "embed_model", "dataset", "questions",
+              "locomo_conversation", "locomo_turns_per_passage", "locomo_chunk_tokens",
+              "locomo_ie_window_tokens", "seed", "top_k", "witness_candidate_pool",
+              "answer_set", "vocab_compile", "hybrid_fallback", "dialogue_ie",
+              "binding_aware_grounding", "verify_witnesses", "no_acquisition")
+    differences = [name for name in fields
+                   if (old.get("settings", {}).get(name) or 0) !=
+                      (new.get("settings", {}).get(name) or 0)]
+    if old.get("methods") != new.get("methods"):
+        differences.append("methods")
+    if differences:
+        raise ValueError("--resume incompatível; mudou: " + ", ".join(differences))
+
+
 def print_locomo_aggregate(output, status, run_dirs):
-    """Tabela única das conversas rodadas, por método, com o detalhe por conversa.
+    """Tabela única das conversas rodadas, sem poluir a saída por conversa.
 
     A média é micro: toda pergunta pesa igual, conversas maiores pesam mais. As
     conversas continuam sendo corpora separados — isto é uma agregação de dez
@@ -436,7 +510,6 @@ def print_locomo_aggregate(output, status, run_dirs):
     from wrag.util import write_json
 
     summary = aggregate_runs(run_dirs)
-    write_json(Path(output) / "locomo_agregado.json", summary)
     official = summary.get("oficial_disponivel")
     keys = (("f1_locomo", "em_locomo") if official else ()) + ("f1", "em", "recall@5", "all_recall@5")
     labels = (("F1ofic", "EMofic") if official else ()) + ("F1", "EM", "R@5", "AR@5")
@@ -444,8 +517,12 @@ def print_locomo_aggregate(output, status, run_dirs):
     def pct(value):
         return f"{100 * value:.2f}" if isinstance(value, (int, float)) and math.isfinite(value) else "—"
 
-    total = sum(v["n"] for v in next(iter(summary["metodos"].values()), {"por_conversa": {}})["por_conversa"].values()) \
-        if summary["metodos"] else 0
+    total = next(iter(summary["metodos"].values()), {}).get("n", 0)
+    # O arquivo final segue a mesma apresentação do terminal: somente a média
+    # geral e as categorias, sem uma tabela por conversa.
+    for values in summary["metodos"].values():
+        values.pop("por_conversa", None)
+    write_json(Path(output) / "locomo_agregado.json", summary)
     print(f"\nResultados ({'concluído' if status == 'complete' else 'PARCIAIS — ' + status}): "
           f"{summary['conversas']} conversa(s), {total} perguntas, média micro\n")
     print(f"{'método / categoria':<35} {'n':>5} " + " ".join(f"{x:>8}" for x in labels) + f" {'disparo':>8}")
@@ -454,16 +531,6 @@ def print_locomo_aggregate(output, status, run_dirs):
             fire = pct(block["taxa_de_disparo"]) if "taxa_de_disparo" in block else "—"
             print(f"{label:<35} {block['n']:>5} "
                   + " ".join(f"{pct(block.get(k)):>8}" for k in keys) + f" {fire:>8}")
-    first = next(iter(summary["metodos"]), None)
-    if first and len(summary["metodos"][first]["por_conversa"]) > 1:
-        column = "f1_locomo" if official else "f1"
-        print(f"\nPor conversa ({'F1 oficial' if official else 'F1 harness'}):")
-        print(f"{'conversa':<12} {'n':>5} " + " ".join(f"{m:>14}" for m in summary["metodos"]))
-        for conversation in summary["metodos"][first]["por_conversa"]:
-            row = summary["metodos"][first]["por_conversa"][conversation]
-            cells = " ".join(f"{pct(summary['metodos'][m]['por_conversa'].get(conversation, {}).get(column)):>14}"
-                             for m in summary["metodos"])
-            print(f"{conversation:<12} {row['n']:>5} {cells}")
     if official:
         print("\nF1ofic/EMofic reproduzem task_eval/evaluation.py do LoCoMo; F1/EM são do harness.")
     print(f"Agregado: {Path(output) / 'locomo_agregado.json'}", flush=True)
@@ -537,7 +604,13 @@ def print_results(output, status):
 def main(argv=None):
     args = parser().parse_args(argv)
     if args.worker:
-        worker(args.worker)
+        try:
+            worker(args.worker)
+        except Exception:
+            plan = json.loads(args.worker.read_text(encoding="utf-8"))
+            Path(plan["output"]).joinpath("worker-error.txt").write_text(
+                traceback.format_exc(), encoding="utf-8")
+            raise
         return 0
     return launch(args)
 

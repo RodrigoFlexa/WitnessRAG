@@ -52,6 +52,16 @@ def test_sampling_never_removes_dialogue_and_ignores_qa_when_chunking():
     assert len(passages) == 3
 
 
+def test_token_chunking_is_dialogue_only_and_maps_supports():
+    questions, passages, metadata = convert(
+        sample(), chunk_tokens=12, token_counter=lambda text: len(text.split()))
+    assert len(passages) > 1 and metadata["chunk_tokens"] == 12
+    assert metadata["tokenizer_name"] == "Qwen/Qwen2.5-14B-Instruct"
+    assert all(q["paragraphs"] for q in questions)
+    joined = "\n".join(p["text"] for p in passages)
+    assert "SECRET" not in joined and "Question category" not in joined
+
+
 @pytest.mark.parametrize("error", ["missing", "duplicate", "empty_evidence", "index"])
 def test_invalid_annotations_fail_explicitly(error):
     raw = copy.deepcopy(sample())
@@ -60,6 +70,21 @@ def test_invalid_annotations_fail_explicitly(error):
     if error == "duplicate": raw[0]["conversation"]["session_2"][0]["dia_id"] = "D1:1"
     with pytest.raises(ValueError):
         convert(raw, conversation_index=99 if error == "index" else 0)
+
+
+def test_known_upstream_evidence_typo_is_repaired_and_audited():
+    raw = [{"sample_id": "conv-43", "conversation": {"session_11": [
+        {"dia_id": "D11:26", "speaker": "A", "text": "The book was The Alchemist."}
+    ]}, "qa": [
+        {"question": "ignored", "answer": "x", "category": 2, "evidence": []}
+        for _ in range(18)
+    ] + [{"question": "Which book?", "answer": "The Alchemist", "category": 4,
+          "evidence": ["D:11:26"]}]}]
+    questions, _passages, metadata = convert(raw)
+    assert len(questions) == 1
+    assert metadata["evidence_repairs"] == [
+        {"qa_index": 18, "original": "D:11:26", "replacement": "D11:26"}]
+    assert metadata["question_mapping"][questions[0]["id"]]["evidence_dialog_ids"] == ["D11:26"]
 
 
 def test_other_pilot_defaults_unchanged(tmp_path):
@@ -248,6 +273,10 @@ def test_every_conversation_runs_on_its_own_corpus(tmp_path, monkeypatch):
     assert [c["conversa"] for c in conversas] == [0, 1]
     assert [c["sample_id"] for c in conversas] == ["conv-test", "conv-test-2"]
 
+    # Uma retomada íntegra pula as duas rodadas já terminadas.
+    monkeypatch.setattr(runner, "run", lambda *_a, **_k: pytest.fail("não deveria rerodar"))
+    assert _run_every_conversation(plan, plan["settings"]) == roots
+
 
 def test_deadline_stops_between_conversations(tmp_path, monkeypatch):
     """Prazo estourado não começa conversa nova: rodada parcial não é comparável."""
@@ -263,7 +292,7 @@ def test_deadline_stops_between_conversations(tmp_path, monkeypatch):
     assert _run_every_conversation(plan, plan["settings"]) == []
 
 
-def test_aggregate_micro_averages_over_questions(tmp_path):
+def test_aggregate_micro_averages_over_questions(tmp_path, capsys):
     """A média é micro: a conversa com mais perguntas pesa mais."""
     from wrag.eval.locomo_official import aggregate_runs
     from wrag.util import write_json
@@ -288,3 +317,10 @@ def test_aggregate_micro_averages_over_questions(tmp_path):
     if summary["oficial_disponivel"]:
         # 3 acertos e 1 erro: micro dá 0,75, não a média 0,5 entre conversas.
         assert values["f1_locomo"] == pytest.approx(0.75)
+
+    from wrag.pilot import print_locomo_aggregate
+    print_locomo_aggregate(tmp_path / "final", "complete", [grande, pequena])
+    terminal = capsys.readouterr().out
+    assert "Por conversa" not in terminal and "2 conversa(s), 4 perguntas" in terminal
+    saved = read_json(tmp_path / "final" / "locomo_agregado.json")
+    assert "por_conversa" not in saved["metodos"]["witnessrag"]

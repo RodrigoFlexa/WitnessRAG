@@ -1,9 +1,9 @@
-# LoCoMo: primeira conversa, somente WitnessRAG
+# LoCoMo: avaliação do WitnessRAG
 
-O piloto usa a conversa de índice **0**, `conv-26`, do arquivo oficial
-`locomo10.json`. Inclui todas as **102 perguntas** das categorias **4 = single-hop
-(70)** e **1 = multi-hop (32)**. Exclui categorias 2 (temporal), 3 (open-domain)
-e 5 (adversarial). O filtro segue as categorias anotadas, sem reclassificar pela
+O protocolo principal usa as dez conversas do `locomo10.json`: **1.123
+perguntas**, sendo **841 single-hop** (categoria 4) e **282 multi-hop**
+(categoria 1). Exclui categorias 2 (temporal), 3 (open-domain) e 5
+(adversarial). O filtro segue as categorias anotadas, sem reclassificar pela
 redação da pergunta ou pelo número de evidências.
 
 Referências: [dataset e documentação](https://github.com/snap-research/locomo) e
@@ -13,22 +13,29 @@ e registra SHA-256 do arquivo. Não acompanha alterações futuras de `main` aut
 
 ## Executar no servidor Linux
 
-Depois de sincronizar o código, na pasta WitnessRAG:
+Para a comparação mais próxima do RAG descrito no ZeroMem, rode as dez
+conversas do zero. `dense` reproduz o controle sem memória; `hybrid` isola o
+fallback que o Witness usa; `witnessrag` mede o ganho estrutural. Os três usam o
+mesmo leitor e recebem exatamente cinco chunks.
 
 ```bash
 .venv-bench/bin/python -m wrag.pilot \
-  --dataset locomo --locomo-conversation 0 \
-  --methods witnessrag \
+  --dataset locomo --locomo-conversation all \
+  --methods dense,hybrid,witnessrag \
+  --model Qwen/Qwen2.5-14B-Instruct --embed-model BAAI/bge-m3 \
+  --locomo-chunk-tokens 2048 --locomo-ie-window-tokens 512 \
+  --top-k 5 --witness-candidate-pool 20 \
   --binding-aware-grounding --verify-witnesses \
-  --answer-set --vocab-compile --hybrid-fallback --dialogue-ie --top-k 10 \
+  --answer-set --vocab-compile --hybrid-fallback --dialogue-ie \
   --gpu 3 --vllm-python "$PWD/.venv-vllm/bin/python" --port 8087 \
-  --hours 3 --output runs/locomo-conjunto
+  --hours 12 --output runs/locomo-fair-top5
 ```
 
-Esse comando ativa as opções experimentais. Nenhum comparador é executado; o
-fallback interno continua sendo parte do WitnessRAG. Todas são **desligadas por
-padrão**, e omitir todas reproduz o comportamento das rodadas anteriores — é
-assim que as rodadas já medidas continuam comparáveis.
+Não reutilize o cache da rodada de oito falas: a unidade documental, o embedding
+e a extração mudaram. O pool de 20 é interno; somente cinco chunks chegam ao
+leitor. OpenIE processa janelas de 512 tokens com overlap de 64, mas cada fato
+mantém a proveniência do chunk pai. Assim o teto de 40 triplas vale por janela,
+sem aumentar o orçamento da resposta.
 
 | opção | o que muda | por que |
 |---|---|---|
@@ -36,7 +43,9 @@ assim que as rodadas já medidas continuam comparáveis.
 | `--vocab-compile` | as relações e entidades do grafo mais próximas da pergunta entram no prompt de compilação | o compilador inventava predicados que nenhum fato instancia (`identity`, `destress method`) e o átomo morria no aterramento |
 | `--hybrid-fallback` | o fallback passa a ser fusão recíproca de postos entre denso e BM25 | respostas conversacionais dependem de nomes próprios raros que o vetor de um bloco de oito falas dilui |
 | `--dialogue-ie` | extração adaptada a diálogo: o falante vira o sujeito das falas em primeira pessoa, correferência é resolvida dentro do bloco e o fato ganha um escopo temporal | sem isso o sujeito da maioria dos fatos é um pronome, e nenhuma junção fecha |
-| `--top-k N` | número de blocos entregues ao leitor | com dois a cinco blocos de evidência disputando cinco vagas, `AR@5` exige ranking perfeito; medir em `k` maior separa erro de recuperação de erro do leitor |
+| `--top-k N` | número de chunks entregues ao leitor | a comparação principal fixa `N=5`; use outro valor somente como ablação declarada |
+| `--witness-candidate-pool N` | profundidade explorada antes da seleção por prova | preserva cobertura interna sem ampliar o contexto final |
+| `--locomo-ie-window-tokens N` | granularidade interna de NER/OpenIE | evita resumir um chunk longo inteiro no teto de 40 triplas; não cria documentos extras para o leitor |
 
 `--dialogue-ie` muda a base de fatos `F` compartilhada e exige nova extração;
 as outras três reaproveitam a extração em cache. A chave de cache só muda quando
@@ -63,8 +72,8 @@ conversas diferentes, e as perguntas sobre ele ficariam ambíguas.
 A saída fica em `<output>/conversations/conv00..conv09/benchmark/<rodada>`, com
 `conversations.json` listando o que já terminou. Ao final o piloto imprime uma
 tabela agregada e escreve `locomo_agregado.json`; a média é **micro** (toda
-pergunta pesa igual, conversa maior pesa mais) e vem acompanhada do detalhe por
-conversa, porque a variância entre elas é grande.
+pergunta pesa igual, conversa maior pesa mais). A saída final mostra somente o
+agregado global e por categoria, sem tabela por conversa.
 
 O prazo é verificado **entre** conversas: com `--hours` curto, o piloto para
 depois da última conversa que coube, em vez de deixar uma rodada parcial com
@@ -74,12 +83,15 @@ denominador incomparável. Para reagregar o que existe:
 .venv-bench/bin/python scripts/locomo-aggregate.py runs/<piloto>
 ```
 
-O padrão LoCoMo roda todas as 102 perguntas; **não precisa passar `-n`**.
+O padrão LoCoMo roda todas as perguntas elegíveis da conversa selecionada;
+**não precisa passar `-n`**. A conversa zero tem 102 perguntas.
 Um `-n 10` explícito sorteia dez perguntas com a semente configurada, mantendo
 a conversa inteira como corpus. Para outros datasets, o padrão continua sendo
 100 perguntas e os sete métodos. A GPU/porta precisam estar disponíveis, ou use
 `--existing-server` com um servidor compatível já ativo. A pasta de saída deve
-ser nova ou vazia.
+ser nova ou vazia. Uma rodada parcial compatível pode ser retomada com
+`--resume`; mudanças de modelo, embedding, segmentação, métodos ou orçamento são
+recusadas para não misturar protocolos no agregado.
 
 Para evitar download, acrescente `--locomo-file /caminho/locomo10.json`. Para
 repetir sobre a mesma extração/embeddings, use
@@ -90,14 +102,15 @@ os fatos extraídos do 2Wiki não podem ser reaproveitados como fatos do LoCoMo.
 ## Corpus e avaliação
 
 - Toda a primeira conversa permanece disponível: 19 sessões, 419 falas.
-- Blocos contíguos de até oito falas, sem cruzar sessões: 61 passagens. O tamanho
-  é configurável com `--locomo-turns-per-passage`, sem usar perguntas ou gabaritos.
+- O modo legado usa blocos contíguos de até oito falas. O modo comparável usa
+  chunks contíguos de até 2.048 tokens: são 129 chunks nas dez conversas.
 - Cada passagem preserva participante, identificador da fala, data e texto.
   Legendas BLIP já distribuídas no dataset entram como legendas automáticas;
   imagens não são baixadas/processadas. Resumos, observações e QA não entram no índice.
 - Evidências `D...` são mapeadas aos blocos que as contêm somente para avaliação.
-  Referências compostas como `D8:6; D9:17` são separadas. Referência desconhecida
-  ou ausente causa erro explícito, em vez de reduzir silenciosamente o denominador.
+  Referências compostas como `D8:6; D9:17` são separadas. Quatro erros conhecidos
+  do snapshot oficial têm correções explícitas e auditadas; qualquer outro id
+  desconhecido continua causando erro.
 - O leitor e os demais componentes do Witness continuam os mesmos. `top_k=5`
   significa cinco blocos, não cinco falas nem cinco sessões.
 - O relatório traz uma tabela por **categoria oficial**. O campo genérico de
@@ -146,4 +159,4 @@ Para conferir os dados sem GPU e sem chamadas de modelo:
 Isso apenas prepara dados. Use uma pasta diferente para a execução do piloto.
 A conversão do arquivo real foi conferida localmente; os testes de integração
 usam LLM stub/TF-IDF e não demonstram qualidade com Qwen.
-A suíte local passou com 84 testes (143 avisos de deprecação do PuLP).
+A suíte local passou com 121 testes e 2 testes opcionais ignorados.

@@ -19,8 +19,19 @@ REVISION = "3eb6f2c585f5e1699204e3c3bdf7adc5c28cb376"
 URL = f"https://raw.githubusercontent.com/snap-research/locomo/{REVISION}/data/locomo10.json"
 CATEGORIES = {1: "multi-hop", 4: "single-hop"}
 
+# The released snapshot contains four malformed evidence references. Keep the
+# repairs narrow and auditable: any other unknown id remains a hard error.
+EVIDENCE_REPAIRS = {
+    ("conv-42", 58, "D10:19"): "D20:15",
+    ("conv-42", 88, "D"): "D1:16",
+    ("conv-43", 18, "D:11:26"): "D11:26",
+    ("conv-47", 38, "D4:36"): "D13:3",
+}
 
-def convert(raw, conversation_index=0, turns_per_passage=8, n_questions=None, seed=42):
+
+def convert(raw, conversation_index=0, turns_per_passage=8, n_questions=None, seed=42,
+            chunk_tokens=None, tokenizer_name="Qwen/Qwen2.5-14B-Instruct",
+            tokenizer_revision=None, token_counter=None):
     if not isinstance(raw, list) or not 0 <= conversation_index < len(raw):
         raise ValueError("índice de conversa inválido (começa em zero)")
     if turns_per_passage < 1 or (n_questions is not None and n_questions < 1):
@@ -31,28 +42,70 @@ def convert(raw, conversation_index=0, turns_per_passage=8, n_questions=None, se
     sessions = sorted((k for k in conversation if re.fullmatch(r"session_\d+", k)),
                       key=lambda k: int(k.split("_")[1]))
     passages, turn_to_passage = [], {}
-    # Segmentação determinada apenas pelo diálogo, jamais pela evidência ouro.
-    for session in sessions:
-        turns = conversation[session]
-        for start in range(0, len(turns), turns_per_passage):
-            block = turns[start:start + turns_per_passage]
-            lines = []
-            title = f"LoCoMo {sample_id} {session} block {start // turns_per_passage + 1}"
+
+    def turn_lines(turn):
+        dia_id = turn["dia_id"]
+        lines = [f"[{dia_id}] {turn['speaker']}: {turn['text']}"]
+        if turn.get("blip_caption"):
+            lines.append(f"[{dia_id}] Image caption (automatic): {turn['blip_caption']}")
+        return lines
+
+    if chunk_tokens:
+        if chunk_tokens < 1:
+            raise ValueError("tamanho do chunk em tokens deve ser positivo")
+        if token_counter is None:
+            from transformers import AutoTokenizer
+            tokenizer = AutoTokenizer.from_pretrained(
+                tokenizer_name, revision=tokenizer_revision or None)
+            token_counter = lambda text: len(tokenizer.encode(text, add_special_tokens=False))
+
+        current_lines, current_ids = [], []
+
+        def flush():
+            if not current_ids:
+                return
+            index = len(passages)
+            passages.append({"title": f"LoCoMo {sample_id} history chunk {index + 1}",
+                             "text": "\n".join(current_lines)})
+            for dia_id in current_ids:
+                turn_to_passage[dia_id] = index
+            current_lines.clear()
+            current_ids.clear()
+
+        for session in sessions:
             date = str(conversation.get(f"{session}_date_time", ""))
-            if date:
-                lines.append(f"Session date: {date}")
-            for turn in block:
+            for turn_index, turn in enumerate(conversation[session]):
                 dia_id = turn["dia_id"]
-                if dia_id in turn_to_passage:
+                if dia_id in turn_to_passage or dia_id in current_ids:
                     raise ValueError(f"dia_id duplicado: {dia_id}")
-                turn_to_passage[dia_id] = len(passages)
-                lines.append(f"[{dia_id}] {turn['speaker']}: {turn['text']}")
-                if turn.get("blip_caption"):
-                    lines.append(f"[{dia_id}] Image caption (automatic): {turn['blip_caption']}")
-            passages.append({"title": title, "text": "\n".join(lines)})
+                lines = ([f"Session date: {date}"] if date and turn_index == 0 else []) + turn_lines(turn)
+                if current_ids and token_counter("\n".join(current_lines + lines)) > chunk_tokens:
+                    flush()
+                    lines = ([f"Session date: {date}"] if date else []) + turn_lines(turn)
+                current_lines.extend(lines)
+                current_ids.append(dia_id)
+        flush()
+    else:
+        # Segmentação determinada apenas pelo diálogo, jamais pela evidência ouro.
+        for session in sessions:
+            turns = conversation[session]
+            for start in range(0, len(turns), turns_per_passage):
+                block = turns[start:start + turns_per_passage]
+                lines = []
+                title = f"LoCoMo {sample_id} {session} block {start // turns_per_passage + 1}"
+                date = str(conversation.get(f"{session}_date_time", ""))
+                if date:
+                    lines.append(f"Session date: {date}")
+                for turn in block:
+                    dia_id = turn["dia_id"]
+                    if dia_id in turn_to_passage:
+                        raise ValueError(f"dia_id duplicado: {dia_id}")
+                    turn_to_passage[dia_id] = len(passages)
+                    lines.extend(turn_lines(turn))
+                passages.append({"title": title, "text": "\n".join(lines)})
     if not passages:
         raise ValueError("conversa vazia")
-    questions, mapping = [], {}
+    questions, mapping, evidence_repairs = [], {}, []
     for qi, qa in enumerate(sample["qa"]):
         category = qa["category"]
         if category not in CATEGORIES:
@@ -62,6 +115,11 @@ def convert(raw, conversation_index=0, turns_per_passage=8, n_questions=None, se
             # A primeira conversa contém a anotação 'D8:6; D9:17'.
             refs = [s.strip() for s in re.split(r"[;,]", ref) if s.strip()]
             for dia_id in refs:
+                repaired = EVIDENCE_REPAIRS.get((sample_id, qi, dia_id))
+                if repaired is not None:
+                    evidence_repairs.append({"qa_index": qi, "original": dia_id,
+                                             "replacement": repaired})
+                    dia_id = repaired
                 if dia_id not in turn_to_passage:
                     raise ValueError(f"QA {qi}: evidência desconhecida {dia_id!r}")
                 if dia_id not in evidence:
@@ -87,15 +145,19 @@ def convert(raw, conversation_index=0, turns_per_passage=8, n_questions=None, se
                 "questions": len(questions), "questions_by_type": dict(Counter(q["type"] for q in questions)),
                 "sessions": len(sessions), "turns": len(turn_to_passage),
                 "selected_passages": len(passages), "turns_per_passage": turns_per_passage,
+                "chunk_tokens": chunk_tokens, "tokenizer_name": tokenizer_name if chunk_tokens else None,
+                "tokenizer_revision": tokenizer_revision if chunk_tokens else None,
                 "corpus_scope": "locomo_full_selected_conversation", "seed": seed,
                 "text_policy": "speaker + dialog id + date + text + released BLIP captions; no summaries/personas/QA",
-                "metric_policy": "harness EM/token F1; recall at passage-block level; not official LoCoMo scoring",
+                "metric_policy": "official LoCoMo F1/EM plus harness metrics; recall at passage-block level",
+                "evidence_repairs": evidence_repairs,
                 "question_mapping": {q["id"]: mapping[q["id"]] for q in questions}}
     return questions, passages, metadata
 
 
 def prepare(output, source_file=None, conversation_index=0, turns_per_passage=8,
-            n_questions=None, seed=42, max_passages=1500):
+            n_questions=None, seed=42, max_passages=1500, chunk_tokens=None,
+            tokenizer_name="Qwen/Qwen2.5-14B-Instruct", tokenizer_revision=None):
     output = Path(output)
     snapshot = output / "source-data" / "locomo10.json"
     if source_file:
@@ -109,7 +171,7 @@ def prepare(output, source_file=None, conversation_index=0, turns_per_passage=8,
             payload = response.read()
         source = URL
     questions, passages, metadata = convert(json.loads(payload), conversation_index,
-        turns_per_passage, n_questions, seed)
+        turns_per_passage, n_questions, seed, chunk_tokens, tokenizer_name, tokenizer_revision)
     if len(passages) > max_passages:
         raise ValueError(f"conversa tem {len(passages)} passagens; aumente --max-passages")
     snapshot.parent.mkdir(parents=True, exist_ok=True)
@@ -128,8 +190,11 @@ def main():
     p.add_argument("--source-file", type=Path)
     p.add_argument("--conversation-index", type=int, default=0)
     p.add_argument("--turns-per-passage", type=int, default=8)
+    p.add_argument("--chunk-tokens", type=int)
+    p.add_argument("--tokenizer", default="Qwen/Qwen2.5-14B-Instruct")
     args = p.parse_args()
-    meta = prepare(args.output, args.source_file, args.conversation_index, args.turns_per_passage)
+    meta = prepare(args.output, args.source_file, args.conversation_index, args.turns_per_passage,
+                   chunk_tokens=args.chunk_tokens, tokenizer_name=args.tokenizer)
     print(json.dumps({k: v for k, v in meta.items() if k != "question_mapping"}, ensure_ascii=False, indent=2))
 
 

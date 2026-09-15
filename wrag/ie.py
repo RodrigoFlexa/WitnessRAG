@@ -18,6 +18,7 @@ quantas passagens foram perdidas.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
@@ -78,6 +79,8 @@ class ExtractionResult:
     entities_by_passage: dict[str, list[str]] = field(default_factory=dict)
     blocked_pids: list[str] = field(default_factory=list)
     empty_pids: list[str] = field(default_factory=list)
+    extraction_windows: int = 0
+    blocked_windows: int = 0
 
     def stats(self) -> dict[str, Any]:
         """Contagens da extração, incluindo a fragmentação do vocabulário.
@@ -105,6 +108,8 @@ class ExtractionResult:
                                               for f in self.facts) / total, 2),
             "passagens_bloqueadas": len(self.blocked_pids),
             "passagens_sem_fato": len(self.empty_pids),
+            "janelas_extracao": self.extraction_windows,
+            "janelas_bloqueadas": self.blocked_windows,
         }
 
 
@@ -119,6 +124,10 @@ def _cache_path(corpus: Corpus, llm: LLM, cfg: C.IEConfig) -> Path:
         templates += [prompts.OPENIE_DIALOGUE_SYSTEM, prompts.OPENIE_DIALOGUE_TEMPLATE]
     else:
         config.pop("dialogue_mode", None)
+    if not cfg.window_tokens:
+        for name in ("window_tokens", "window_overlap_tokens", "window_tokenizer",
+                     "window_tokenizer_revision"):
+            config.pop(name, None)
     key = sha({
         "dataset": corpus.name,
         "passages": [(p.pid, p.title, p.text) for p in corpus.passages],
@@ -151,6 +160,8 @@ def extract_corpus(
                 entities_by_passage=cached.get("entities", {}),
                 blocked_pids=cached.get("blocked", []),
                 empty_pids=cached.get("empty", []),
+                extraction_windows=cached.get("extraction_windows", 0),
+                blocked_windows=cached.get("blocked_windows", 0),
             )
             for pid in result.blocked_pids:
                 LEDGER.add("index", corpus.name, "shared-ie", pid, "cache: bloqueado na extração")
@@ -160,55 +171,87 @@ def extract_corpus(
     passages = corpus.passages
     params = GenParams(temperature=cfg.temperature, max_tokens=cfg.max_tokens, json_mode=True)
 
+    # As mesmas janelas alimentam NER e OpenIE. Assim, um chunk de 2.048 tokens
+    # não sofre nem o teto global de 60 entidades nem o de 40 triplas.
+    units = [(p, wi, text) for p in passages
+             for wi, text in enumerate(_extraction_windows(p.full, cfg))]
+
     # -- passo 1: NER
     entities_by_passage: dict[str, list[str]] = {}
+    entities_by_unit: dict[tuple[str, int], list[str]] = {}
+    blocked_units: set[tuple[str, int]] = set()
     blocked: set[str] = set()
     if cfg.two_step:
-        ner_prompts = [prompts.NER_TEMPLATE.format(text=p.full) for p in passages]
+        ner_prompts = [prompts.NER_TEMPLATE.format(text=text) for _p, _wi, text in units]
         ner_results = llm.chat_many(ner_prompts, system=prompts.NER_SYSTEM, params=params,
                                     stage="index.ner", desc="NER das passagens")
-        for passage, result in zip(passages, ner_results):
+        for (passage, window_index, _text), result in zip(units, ner_results):
             if result.filtered:
-                blocked.add(passage.pid)
-                LEDGER.add("index", corpus.name, "shared-ie", passage.pid, "NER bloqueado")
+                blocked_units.add((passage.pid, window_index))
+                LEDGER.add("index", corpus.name, "shared-ie", passage.pid,
+                           f"NER bloqueado; janela={window_index}")
                 continue
             data = result.json()
             data = data if isinstance(data, dict) else {}
-            entities_by_passage[passage.pid] = [
+            found = [
                 str(e).strip() for e in (data.get("named_entities") or []) if str(e).strip()
             ][:60]
+            entities_by_unit[(passage.pid, window_index)] = found
+            known = entities_by_passage.setdefault(passage.pid, [])
+            seen = {normalize(e) for e in known}
+            for entity in found:
+                key = normalize(entity)
+                if key not in seen:
+                    known.append(entity)
+                    seen.add(key)
 
-    # -- passo 2: OpenIE condicionado às entidades
-    targets = [p for p in passages if p.pid not in blocked]
+    # -- passo 2: OpenIE condicionado às entidades. O leitor e o recuperador
+    # continuam vendo as passagens originais; somente a indexação pode quebrar
+    # uma passagem longa em janelas. Toda tripla volta ao pid da passagem pai.
+    targets = [(p, wi, text) for p, wi, text in units if (p.pid, wi) not in blocked_units]
     template, system = ((prompts.OPENIE_DIALOGUE_TEMPLATE, prompts.OPENIE_DIALOGUE_SYSTEM)
                         if cfg.dialogue_mode else (prompts.OPENIE_TEMPLATE, prompts.OPENIE_SYSTEM))
     ie_prompts = [
         template.format(
-            text=p.full,
-            entities=prompts.jdump(entities_by_passage.get(p.pid, [])),
+            text=text,
+            entities=prompts.jdump(entities_by_unit.get((p.pid, wi), [])),
             max_triples=cfg.max_triples_per_passage,
         )
-        for p in targets
+        for p, wi, text in targets
     ]
     ie_results = llm.chat_many(ie_prompts, system=system, params=params,
                                stage="index.openie", desc="OpenIE das passagens")
 
     facts: list[Fact] = []
-    empty: list[str] = []
-    for passage, result in zip(targets, ie_results):
+    facts_by_parent: dict[str, int] = {p.pid: 0 for p in passages}
+    windows_by_parent: dict[str, int] = {}
+    blocked_by_parent: dict[str, int] = {}
+    for pid, _wi in blocked_units:
+        blocked_by_parent[pid] = blocked_by_parent.get(pid, 0) + 1
+    for passage, _wi, _text in units:
+        windows_by_parent[passage.pid] = windows_by_parent.get(passage.pid, 0) + 1
+    for (passage, window_index, _text), result in zip(targets, ie_results):
         if result.filtered:
-            blocked.add(passage.pid)
-            LEDGER.add("index", corpus.name, "shared-ie", passage.pid, "OpenIE bloqueado")
+            blocked_by_parent[passage.pid] = blocked_by_parent.get(passage.pid, 0) + 1
+            LEDGER.add("index", corpus.name, "shared-ie", passage.pid,
+                       f"OpenIE bloqueado; janela={window_index}")
             continue
         triples = _parse_triples(result.json(), cfg.max_triples_per_passage)
-        if not triples:
-            empty.append(passage.pid)
-            continue
+        facts_by_parent[passage.pid] += len(triples)
         facts.extend(_facts_from_triples(triples, passage.pid))
+
+    # Uma janela bloqueada não apaga os fatos das demais. A passagem só entra em
+    # blocked_pids quando nenhuma janela pôde ser lida.
+    for pid, count in blocked_by_parent.items():
+        if count == windows_by_parent.get(pid, 0):
+            blocked.add(pid)
+    empty = [p.pid for p in passages if p.pid not in blocked and facts_by_parent[p.pid] == 0]
 
     facts = _dedupe(facts)
     out = ExtractionResult(facts=facts, entities_by_passage=entities_by_passage,
-                           blocked_pids=sorted(blocked), empty_pids=empty)
+                           blocked_pids=sorted(blocked), empty_pids=empty,
+                           extraction_windows=len(units),
+                           blocked_windows=sum(blocked_by_parent.values()))
     log.info("OpenIE concluída: %s", out.stats())
     if use_cache:
         write_json(path, {
@@ -216,8 +259,34 @@ def extract_corpus(
             "entities": entities_by_passage,
             "blocked": out.blocked_pids,
             "empty": empty,
+            "extraction_windows": out.extraction_windows,
+            "blocked_windows": out.blocked_windows,
         })
     return out
+
+
+def _extraction_windows(text: str, cfg: C.IEConfig) -> list[str]:
+    """Token windows for indexing only; output provenance stays on the parent."""
+    if not cfg.window_tokens:
+        return [text]
+    if cfg.window_tokens < 1 or not 0 <= cfg.window_overlap_tokens < cfg.window_tokens:
+        raise ValueError("janela OpenIE exige 0 <= overlap < window_tokens")
+    if not cfg.window_tokenizer:
+        raise ValueError("window_tokenizer é obrigatório quando window_tokens > 0")
+    tokenizer = _load_window_tokenizer(cfg.window_tokenizer, cfg.window_tokenizer_revision)
+    tokens = tokenizer.encode(text, add_special_tokens=False)
+    if len(tokens) <= cfg.window_tokens:
+        return [text]
+    step = cfg.window_tokens - cfg.window_overlap_tokens
+    return [tokenizer.decode(tokens[start:start + cfg.window_tokens], skip_special_tokens=True)
+            for start in range(0, len(tokens), step)
+            if tokens[start:start + cfg.window_tokens]]
+
+
+@lru_cache(maxsize=4)
+def _load_window_tokenizer(name: str, revision: str = ""):
+    from transformers import AutoTokenizer
+    return AutoTokenizer.from_pretrained(name, revision=revision or None)
 
 
 def _parse_triples(data: Any, limit: int) -> list[tuple[str, str, str, str]]:

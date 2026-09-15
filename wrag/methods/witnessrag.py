@@ -227,7 +227,8 @@ class WitnessRAGRetriever(Retriever):
     def _retrieve(self, question: Question, k: int) -> RetrievalResult:
         assert self.memory is not None and self.searcher is not None
         cfg = self.ctx.run.witness
-        dense_pids, dense_scores = self._dense.search(question.question, max(k, 20))
+        pool_k = max(k, cfg.candidate_pool_k)
+        dense_pids, dense_scores = self._dense.search(question.question, pool_k)
 
         before_events = len(LEDGER.events)
         try:
@@ -239,6 +240,9 @@ class WitnessRAGRetriever(Retriever):
             result.diagnostics["risco_calibrado"] = False
             result.diagnostics.setdefault("testemunha_no_contexto", False)
             result.diagnostics.setdefault("resposta_estrutural", "")
+            result.diagnostics["candidatos_explorados"] = len(dense_pids)
+            result.diagnostics["documentos_entregues"] = len(result.pids)
+            result.diagnostics["orcamento_leitor"] = k
             return result
         finally:
             if not getattr(cfg, "acquisition_persist", False):

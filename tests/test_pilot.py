@@ -41,6 +41,31 @@ def test_gpu_plan_isolated_from_parent_and_uses_hf_model(tmp_path, monkeypatch):
         make_plan(parser().parse_args(["--gpu", "5,6"]), tmp_path)
 
 
+def test_resume_rejects_metric_changing_configuration(tmp_path):
+    from wrag.pilot import _validate_resume
+    old = make_plan(parser().parse_args(["--gpu", "3", "--dataset", "locomo",
+                                         "--top-k", "15"]), tmp_path)
+    same = make_plan(parser().parse_args(["--gpu", "4", "--dataset", "locomo",
+                                          "--top-k", "15", "--resume"]), tmp_path)
+    _validate_resume(old, same)  # GPU e --resume não alteram a comparação.
+    changed = make_plan(parser().parse_args(["--gpu", "3", "--dataset", "locomo",
+                                             "--top-k", "5"]), tmp_path)
+    with pytest.raises(ValueError, match="top_k"):
+        _validate_resume(old, changed)
+
+
+def test_reader_budget_and_witness_candidate_pool_are_independent(tmp_path):
+    from wrag.pilot import _run_config
+    args = parser().parse_args(["--gpu", "3", "--dataset", "locomo", "--top-k", "5",
+                                "--witness-candidate-pool", "20",
+                                "--locomo-ie-window-tokens", "512"])
+    plan = make_plan(args, tmp_path)
+    cfg = _run_config(plan["settings"], 10)
+    assert cfg.top_k == 5 and cfg.qa.top_k == 5
+    assert cfg.witness.candidate_pool_k == 20
+    assert cfg.ie.window_tokens == 512 and cfg.ie.window_tokenizer == args.model
+
+
 def test_compatible_backend_uses_model_task_cap_and_endpoint_cache(tmp_path, monkeypatch):
     from wrag.llm.openai_compat import OpenAICompatLLM
     from wrag.llm.base import GenParams
