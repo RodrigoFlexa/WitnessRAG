@@ -35,7 +35,7 @@ def make_run(root: Path, query_plans: bool, qids=("q1", "q2"), *, top_k=5) -> Pa
         "question_ids": ["q1", "q2"],
     }), encoding="utf-8")
     records = [{
-        "qid": qid, "categoria_locomo": "single-hop", "f1_locomo": 1.0,
+        "qid": qid, "categoria_locomo": 4, "tipo": "single-hop", "f1_locomo": 1.0,
         "em_locomo": 1.0, "f1": 1.0, "em": 1.0, "recall@5": 1.0,
         "all_recall@5": 1.0, "diagnosticos": {},
     } for qid in qids]
@@ -68,3 +68,14 @@ def test_strict_comparison_rejects_partial_or_other_config_change(tmp_path):
     (multi / "run.json").write_text(json.dumps(manifest), encoding="utf-8")
     with pytest.raises(ValueError, match="configuração diferente"):
         compare.validate(simple, multi, True)
+
+
+def test_category_table_uses_normalized_question_type(tmp_path, capsys):
+    compare = module()
+    simple = make_run(tmp_path, False)
+    multi = make_run(tmp_path, True)
+    compare.table(compare.load_rows(simple), compare.load_rows(multi), {"q1", "q2"},
+                  "single-hop")
+    output = capsys.readouterr().out
+    assert "single-hop — 2 perguntas pareadas" in output
+    assert "simples" in output and "múltiplos" in output

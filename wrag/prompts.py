@@ -98,8 +98,8 @@ Rules:
   relation for paraphrases in this block. It never contains the object, a whole
   sentence, time, an adverb, or the name of the person being addressed.
 - For reported speech, the fact is about the CONTENT, not about the listener.
-  "Mel: running is a great way to destress" is ("Mel", "destresses by", "running"),
-  never ("Mel", "said running is a great way to destress", "<listener>").
+  "Ravi: running is a great way to destress" is ("Ravi", "destresses by", "running"),
+  never ("Ravi", "said running is a great way to destress", "<listener>").
 - The object is a thing, person, place, date or value taken from the text. Never
   "true", "false" or "yes": if a statement has no object, write the relation so
   that it has one, or leave the statement out.
@@ -117,13 +117,13 @@ Answer with JSON exactly in this shape:
 Example. For the block
 
   Session date: 8 May, 2023
-  [D1:1] Mel: I finally finished Charlotte's Web with my son Theo last week!
-  [D1:2] Caroline: Nice! I painted a sunset yesterday.
+  [D1:1] Ravi: I finally finished The Secret Garden with my son Niko last week!
+  [D1:2] Lea: Nice! I painted a sunset yesterday.
 
 the triples are
-{{"triples": [["Mel", "read", "Charlotte's Web", "last week"],
-             ["Theo", "child of", "Mel", ""],
-             ["Caroline", "paint", "a sunset", "7 May, 2023"]]}}
+{{"triples": [["Ravi", "read", "The Secret Garden", "last week"],
+             ["Niko", "child of", "Ravi", ""],
+             ["Lea", "paint", "a sunset", "7 May, 2023"]]}}
 
 Named entities found in this block: {entities}
 
@@ -300,14 +300,15 @@ COMPILE_PLANS_TEMPLATE = """Generate up to {max_plans} distinct candidate query 
 Each plan is a positive conjunctive query. Variables start with "?" and the
 literal answer variable "?x" must occur in at least one atom. Each atom has a
 short relation, subject and object. The `relation` field contains ONLY the
-predicate phrase: write `{{"relation": "create", "subject": "Melanie",
-"object": "?x"}}`, never `{{"relation": "create(Melanie, ?x)", ...}}`.
+predicate phrase: write `{{"relation": "create", "subject": "Asha",
+"object": "?x"}}`, never `{{"relation": "create(Asha, ?x)", ...}}`.
 Use at most {max_atoms} atoms per plan.
 
 Order plans from most faithful to least preferred:
-1. A minimal direct plan when the question can be expressed by one fact. Keep
+1. A minimal direct plan only when every requirement can be expressed by one fact. Keep
    qualifiers such as "recently", "after the accident" or "during the workshop"
-   inside that relation phrase.
+   inside that relation phrase. Never remove a person, time, place, reason or
+   other condition merely because a broader atom is easier to match.
 2. A chain plan only when an unnamed intermediate entity must genuinely be found.
 3. An intersection plan only when the same answer must independently satisfy
    two relations.
@@ -330,7 +331,9 @@ Return JSON exactly in this shape:
 
 Synthetic examples follow. Learn their STRUCTURE; do not copy their entity names
 or predicates into the answer. Return fewer than {max_plans} plans when additional
-plans would merely be padding.
+plans would merely be padding. When the question has a genuine intermediate entity,
+multiple independent conditions, or an ambiguous predicate, provide at least two
+faithful alternatives when possible.
 
 Example 1 — a direct fact needs one plan, not an invented chain.
 Question: "Which instrument does Nira play?"
@@ -346,9 +349,9 @@ Question: "Which researcher works at Northstar Institute and studies coral bleac
 {{"plans":[{{"answer_var":"x","atoms":[{{"relation":"work at","subject":"?x","object":"Northstar Institute"}},{{"relation":"study","subject":"?x","object":"coral bleaching"}}],"expected_type":"person","aggregation":"set","fallback":"Northstar researcher coral bleaching"}}]}}
 
 Example 4 — event context stays in the main predicate. It does not become
-`after(?x, conference)` or a boolean atom. A broader direct alternative is valid.
+`after(?x, conference)` or a boolean atom, and it must not be dropped.
 Question: "What exhibition did Jun visit after the conference?"
-{{"plans":[{{"answer_var":"x","atoms":[{{"relation":"visit after conference","subject":"Jun","object":"?x"}}],"expected_type":"other","aggregation":"none","fallback":"Jun exhibition after conference"}},{{"answer_var":"x","atoms":[{{"relation":"visit","subject":"Jun","object":"?x"}}],"expected_type":"other","aggregation":"none","fallback":"Jun visit exhibition"}}]}}
+{{"plans":[{{"answer_var":"x","atoms":[{{"relation":"visit after conference","subject":"Jun","object":"?x"}}],"expected_type":"other","aggregation":"none","fallback":"Jun exhibition after conference"}}]}}
 
 Example 5 — plural enumeration uses set; one witness may prove one member.
 Question: "Which dishes did Mateo cook for the festival?"
@@ -361,6 +364,7 @@ Question: "How many apprentices joined the observatory?"
 
 Remember: every response is one JSON object with only the `plans` field and the
 plan fields shown above. Do not include explanations, markdown or the examples.
+{planning_feedback}
 {vocabulary}
 
 ### INPUT

@@ -113,6 +113,8 @@ def cmd_diag_azure(args: argparse.Namespace) -> int:
 def cmd_run(args: argparse.Namespace) -> int:
     from wrag.eval.runner import run
 
+    if args.max_query_plans < 1:
+        raise ValueError("--max-query-plans deve ser >= 1")
     cfg = C.RunConfig()
     cfg.n_questions = args.n
     cfg.top_k = args.top_k
@@ -127,6 +129,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     cfg.qa.answer_set = args.answer_set
     cfg.witness.vocabulary_aware_compile = args.vocab_compile
     cfg.witness.query_plans = args.query_plans
+    cfg.witness.max_query_plans = args.max_query_plans
     cfg.witness.hybrid_fallback = args.hybrid_fallback
     cfg.ie.dialogue_mode = args.dialogue_ie
     cfg.graph.merge_relation_inflections = not args.no_relation_family_merge
@@ -223,7 +226,9 @@ def main(argv: list[str] | None = None) -> int:
     p_run.add_argument("--vocab-compile", action="store_true",
                        help="compila a pergunta com as relações e entidades do grafo no prompt")
     p_run.add_argument("--query-plans", action="store_true",
-                       help="gera até três consultas e escolhe usando a busca no grafo")
+                       help="gera e revisa planos usando o retorno da busca no grafo")
+    p_run.add_argument("--max-query-plans", type=int, default=5,
+                       help="orçamento global de planos distintos por pergunta (padrão: 5)")
     p_run.add_argument("--hybrid-fallback", action="store_true",
                        help="fallback do WITNESS-RAG por fusão recíproca de postos (denso + BM25)")
     p_run.add_argument("--dialogue-ie", action="store_true",

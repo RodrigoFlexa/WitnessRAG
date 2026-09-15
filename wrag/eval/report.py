@@ -276,6 +276,48 @@ def _firing_block(records, excluded, data):
                                       key=lambda item: (-item[1], item[0])):
                 lines.append(f"| {method} | {kind} | {count} |")
 
+    planning = {}
+    for method, rows in records.items():
+        kept = [r for r in rows if r["qid"] not in excluded
+                and isinstance(r.get("diagnosticos"), dict)
+                and isinstance(r["diagnosticos"].get("planejamento"), dict)
+                and r["diagnosticos"]["planejamento"].get("orcamento_planos", 1) > 1]
+        if not kept:
+            continue
+        replanned = selected = useful = 0
+        for row in kept:
+            diagnostics = row["diagnosticos"]
+            info = diagnostics["planejamento"]
+            replanned += bool(info.get("replanejamentos"))
+            chosen = diagnostics.get("plano_escolhido")
+            plans = diagnostics.get("planos_compilados") or []
+            creation_round = (plans[chosen].get("rodada_criacao", 0)
+                              if isinstance(chosen, int) and chosen < len(plans) else 0)
+            selected += creation_round > 0
+            useful += creation_round > 0 and "fallback" not in diagnostics
+        planning[method] = {
+            "n": len(kept),
+            "planos_medios": sum(r["diagnosticos"]["planejamento"].get(
+                "planos_distintos", 0) for r in kept) / len(kept),
+            "chamadas_medias": sum(r["diagnosticos"]["planejamento"].get(
+                "chamadas", 0) for r in kept) / len(kept),
+            "perguntas_replanejadas": replanned,
+            "plano_revisado_escolhido": selected,
+            "plano_revisado_com_prova": useful,
+        }
+    if planning:
+        lines += ["\n### Planejamento adaptativo\n",
+                  "O replanejador recebe somente a pergunta, vocabulário do grafo, lacunas, "
+                  "rejeições e fatos candidatos adquiridos; não recebe respostas ouro.\n",
+                  "| método | n | planos médios | chamadas médias | replanejadas | revisão escolhida | revisão com prova |",
+                  "|---|---|---|---|---|---|---|"]
+        for method, values in planning.items():
+            lines.append(f"| {method} | {values['n']} | {values['planos_medios']:.2f} | "
+                         f"{values['chamadas_medias']:.2f} | {values['perguntas_replanejadas']} | "
+                         f"{values['plano_revisado_escolhido']} | "
+                         f"{values['plano_revisado_com_prova']} |")
+        data["planejamento_adaptativo"] = planning
+
     # Conjunto de respostas: só aparece quando a opção está ligada.
     sets = {}
     for method, rows in records.items():

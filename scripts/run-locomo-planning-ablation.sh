@@ -42,8 +42,8 @@ echo "== planejamento simples =="
   --port "$SIMPLE_PORT" \
   --hours "$SIMPLE_HOURS" --output "$SIMPLE_OUT"
 
-echo "== múltiplos planos independentes =="
-.venv-bench/bin/python -m wrag.pilot "${common[@]}" --query-plans \
+echo "== planejamento adaptativo (até cinco planos) =="
+.venv-bench/bin/python -m wrag.pilot "${common[@]}" --query-plans --max-query-plans 5 \
   --port "$MULTI_PORT" \
   --hours "$MULTI_HOURS" --output "$MULTI_OUT"
 

@@ -270,7 +270,7 @@ def test_plan_compilation_returns_distinct_ordered_hypotheses():
 def test_plan_prompt_has_diverse_few_shot_structures_and_exact_output_contract():
     rendered = prompts.COMPILE_PLANS_TEMPLATE.format(
         max_plans=3, max_atoms=4, vocabulary="\nGRAPH VOCABULARY: orbit; discover",
-        question="Who discovered the comet?")
+        planning_feedback="", question="Who discovered the comet?")
     assert '"relation":"play"' in rendered                 # direct
     assert '"subject":"Omar","object":"?y"' in rendered  # chain
     assert rendered.count('"subject":"?x"') >= 3          # intersection/count
@@ -278,6 +278,7 @@ def test_plan_prompt_has_diverse_few_shot_structures_and_exact_output_contract()
     assert '"aggregation":"count"' in rendered
     assert "after(?x, conference)" in rendered              # explicit negative contrast
     assert "one JSON object with only the `plans` field" in rendered
+    assert "Melanie" not in rendered and "Caroline" not in rendered
     # The corpus vocabulary is closest to the real input, after synthetic examples.
     assert rendered.index("GRAPH VOCABULARY") > rendered.index("Example 6")
     assert rendered.index("GRAPH VOCABULARY") < rendered.index("### INPUT")
@@ -425,6 +426,7 @@ def test_cli_flags_reach_the_configuration(monkeypatch):
     assert cfg.witness.answer_set and cfg.qa.answer_set
     assert cfg.witness.vocabulary_aware_compile and cfg.witness.hybrid_fallback
     assert cfg.witness.query_plans
+    assert cfg.witness.max_query_plans == 5
     assert cfg.ie.dialogue_mode
     assert cfg.graph.merge_relation_inflections
 
@@ -537,6 +539,150 @@ def test_retriever_chooses_the_first_plan_that_closes(monkeypatch):
     assert result.diagnostics["plano_escolhido"] == 1
     assert [p["fechou"] for p in result.diagnostics["planos_compilados"]] == [False, True]
     assert "fallback" not in result.diagnostics
+
+
+def test_retriever_replans_after_observed_gap_without_using_gold(monkeypatch):
+    from wrag.methods.witnessrag import WitnessRAGRetriever
+
+    ctx = build_context(answer_set_on=True)
+    ctx.run.witness.query_plans = True
+    ctx.run.witness.max_query_plans = 3
+    ctx.run.witness.enable_acquisition = False
+    retriever = WitnessRAGRetriever(ctx)
+    retriever.index()
+    missing = ConjunctiveQuery(answer_var="x", atoms=[Atom("missing", "Ana", "?x")])
+    good = intersection_query()
+    feedback_seen = []
+
+    def compile_plans(*args, **kwargs):
+        feedback_seen.append(kwargs.get("feedback", ""))
+        return [good] if kwargs.get("feedback") else [missing]
+
+    monkeypatch.setattr("wrag.methods.witnessrag.compile_query_plans", compile_plans)
+    result = retriever.retrieve(
+        Question("q", "Quem trabalha na Atlas e pesquisa Óptica?", ["SECRET_GOLD"]), 5)
+    assert "fallback" not in result.diagnostics
+    assert result.diagnostics["plano_escolhido"] == 1
+    assert result.diagnostics["planejamento"]["planos_distintos"] == 2
+    assert result.diagnostics["planejamento"]["chamadas"] == 2
+    assert feedback_seen[1] and "missing" in feedback_seen[1]
+    assert "SECRET_GOLD" not in feedback_seen[1]
+
+
+def test_acquired_candidate_facts_are_visible_to_replanning(monkeypatch):
+    from wrag.methods.witnessrag import AcquisitionAction, WitnessRAGRetriever
+
+    ctx = build_context(answer_set_on=True)
+    ctx.run.witness.query_plans = True
+    ctx.run.witness.max_query_plans = 3
+    ctx.run.witness.enable_acquisition = True
+    ctx.run.witness.acquisition_rounds = 1
+    retriever = WitnessRAGRetriever(ctx)
+    retriever.index()
+    missing = ConjunctiveQuery(answer_var="x", atoms=[Atom("missing", "Ana", "?x")])
+    good = intersection_query()
+    feedback_seen = []
+
+    def compile_plans(*args, **kwargs):
+        feedback_seen.append(kwargs.get("feedback", ""))
+        return [good] if kwargs.get("feedback") else [missing]
+
+    def acquire(_actions, _question):
+        retriever._last_acquired_facts = [
+            Fact("new", "Ana", "pesquisa", "Optica", "p2", acquired=True)]
+        return 1
+
+    monkeypatch.setattr("wrag.methods.witnessrag.compile_query_plans", compile_plans)
+    monkeypatch.setattr(retriever, "_plan_acquisition", lambda *_: [
+        AcquisitionAction("p2", "t2", "Ana pesquisa Optica.", "missing", "Ana", 1.0, 0.0)])
+    monkeypatch.setattr(retriever, "_acquire", acquire)
+    result = retriever.retrieve(
+        Question("q", "Quem trabalha na Atlas e pesquisa Óptica?", ["SECRET_GOLD"]), 5)
+    assert "fallback" not in result.diagnostics
+    assert '"candidate_facts_acquired"' in feedback_seen[1]
+    assert '"relation":"pesquisa"' in feedback_seen[1]
+    assert "SECRET_GOLD" not in feedback_seen[1]
+    assert result.diagnostics["planejamento"]["fatos_candidatos_adquiridos"] == 1
+
+
+def test_verifier_rejection_tries_next_complete_plan_with_global_budget(monkeypatch):
+    from wrag.methods.witnessrag import WitnessRAGRetriever
+
+    ctx = build_context(answer_set_on=True)
+    ctx.run.witness.query_plans = True
+    ctx.run.witness.max_query_plans = 2
+    ctx.run.witness.verify_witnesses = True
+    ctx.run.witness.verification_max_witnesses = 2
+    ctx.run.witness.enable_acquisition = False
+    first = ConjunctiveQuery(answer_var="x", atoms=[Atom("localizada em", "Atlas", "?x")])
+    second = intersection_query()
+    monkeypatch.setattr("wrag.methods.witnessrag.compile_query_plans",
+                        lambda *args, **kwargs: [first, second])
+
+    class PlanJudge:
+        name = "judge"
+        usage = type("U", (), {"snapshot": staticmethod(lambda: {})})()
+
+        def chat(self, prompt, **kwargs):
+            if '"answer": "Recife"' in prompt:
+                return LLMResult(text='{"supported":false,"answers_question":false,'
+                                      '"evidence":[],"failure_type":"wrong_answer_type",'
+                                      '"reason":"wrong plan"}')
+            who = "Ana" if '"answer": "Ana"' in prompt else "Bruno"
+            p_work, p_research = (("p0", "p2") if who == "Ana" else ("p3", "p4"))
+            return LLMResult(text=(
+                '{"supported":true,"answers_question":true,"failure_type":"supported",'
+                '"reason":"supported","evidence":['
+                f'{{"atom":0,"pid":"{p_work}","quote":"{who} trabalha em Atlas."}},'
+                f'{{"atom":1,"pid":"{p_research}","quote":"{who} pesquisa Optica."}}]}}'))
+
+    ctx.llm = PlanJudge()
+    retriever = WitnessRAGRetriever(ctx)
+    retriever.index()
+    result = retriever.retrieve(
+        Question("q", "Quem trabalha na Atlas e pesquisa Óptica?", ["Ana"]), 5)
+    assert "fallback" not in result.diagnostics
+    assert result.diagnostics["plano_escolhido"] == 1
+    assert result.diagnostics["verificacao"]["avaliadas"] == 2
+    assert result.diagnostics["verificacao"]["aceitas"] == 1
+    assert [d["plano"] for d in result.diagnostics["verificacao"]["decisoes"]] == [0, 1]
+
+
+def test_verification_budget_is_reserved_for_a_future_replan(monkeypatch):
+    from wrag.methods.witnessrag import WitnessRAGRetriever
+
+    ctx = build_context(answer_set_on=True)
+    ctx.run.witness.query_plans = True
+    ctx.run.witness.max_query_plans = 2
+    ctx.run.witness.verify_witnesses = True
+    ctx.run.witness.verification_max_witnesses = 2
+    ctx.run.witness.enable_acquisition = False
+    first = ConjunctiveQuery(answer_var="x", atoms=[Atom("localizada em", "Atlas", "?x")])
+    second = intersection_query()
+
+    def compile_plans(*args, **kwargs):
+        return [second] if kwargs.get("feedback") else [first]
+
+    def verify(_llm, _corpus, _memory, _question, query, witnesses, limit, _dataset):
+        evaluated = min(limit, len(witnesses))
+        accepted = witnesses[:evaluated] if len(query.atoms) == 2 else []
+        return accepted, {
+            "avaliadas": evaluated, "aceitas": len(accepted), "nao_avaliadas": 0,
+            "rejeicoes_por_tipo": {} if accepted else {"wrong_answer_type": evaluated},
+            "decisoes": [{"supported": bool(accepted)} for _ in range(evaluated)],
+        }
+
+    monkeypatch.setattr("wrag.methods.witnessrag.compile_query_plans", compile_plans)
+    monkeypatch.setattr("wrag.witness.verification.verify_witnesses", verify)
+    retriever = WitnessRAGRetriever(ctx)
+    retriever.index()
+    result = retriever.retrieve(
+        Question("q", "Quem trabalha na Atlas e pesquisa Óptica?", ["Ana"]), 5)
+
+    assert "fallback" not in result.diagnostics
+    assert result.diagnostics["plano_escolhido"] == 1
+    assert result.diagnostics["planejamento"]["chamadas"] == 2
+    assert result.diagnostics["verificacao"]["avaliadas"] == 2
 
 
 def test_acquisition_survives_a_fallback_with_another_score_scale():

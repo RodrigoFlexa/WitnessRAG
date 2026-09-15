@@ -58,11 +58,12 @@ def test_reader_budget_and_witness_candidate_pool_are_independent(tmp_path):
     from wrag.pilot import _run_config
     args = parser().parse_args(["--gpu", "3", "--dataset", "locomo", "--top-k", "5",
                                 "--witness-candidate-pool", "20",
-                                "--locomo-ie-window-tokens", "512"])
+                                "--locomo-ie-window-tokens", "512", "--max-query-plans", "5"])
     plan = make_plan(args, tmp_path)
     cfg = _run_config(plan["settings"], 10)
     assert cfg.top_k == 5 and cfg.qa.top_k == 5
     assert cfg.witness.candidate_pool_k == 20
+    assert cfg.witness.max_query_plans == 5
     assert cfg.ie.window_tokens == 512 and cfg.ie.window_tokenizer == args.model
 
 

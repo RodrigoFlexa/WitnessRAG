@@ -129,8 +129,8 @@ def table(simple_rows: dict[str, dict[str, Any]], multi_rows: dict[str, dict[str
           qids: set[str], category: str | None = None) -> None:
     if category is not None:
         qids = {qid for qid in qids
-                if simple_rows[qid].get("categoria_locomo") == category
-                and multi_rows[qid].get("categoria_locomo") == category}
+                if simple_rows[qid].get("tipo") == category
+                and multi_rows[qid].get("tipo") == category}
     if not qids:
         return
     label = "todas" if category is None else category

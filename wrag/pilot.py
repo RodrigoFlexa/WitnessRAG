@@ -64,7 +64,9 @@ def parser():
     p.add_argument("--vocab-compile", action="store_true",
                    help="compilação ancorada nas relações e entidades do grafo")
     p.add_argument("--query-plans", action="store_true",
-                   help="gera até três consultas e escolhe usando a busca no grafo")
+                   help="gera e revisa planos usando o retorno da busca no grafo")
+    p.add_argument("--max-query-plans", type=int, default=5,
+                   help="orçamento global de planos distintos por pergunta (padrão: 5)")
     p.add_argument("--hybrid-fallback", action="store_true",
                    help="fallback por fusão recíproca de postos (denso + BM25)")
     p.add_argument("--witness-candidate-pool", type=int, default=20,
@@ -86,6 +88,8 @@ def parser():
 
 
 def make_plan(args, output):
+    if args.max_query_plans < 1:
+        raise ValueError("--max-query-plans deve ser >= 1")
     if args.questions is None and args.dataset != "locomo":
         args.questions = 100
     if args.methods is None:
@@ -281,6 +285,7 @@ def _run_config(settings, n_questions):
     cfg.qa.answer_set = settings.get("answer_set", False)
     cfg.witness.vocabulary_aware_compile = settings.get("vocab_compile", False)
     cfg.witness.query_plans = settings.get("query_plans", False)
+    cfg.witness.max_query_plans = settings.get("max_query_plans", 5)
     cfg.witness.hybrid_fallback = settings.get("hybrid_fallback", False)
     cfg.witness.candidate_pool_k = settings.get("witness_candidate_pool", 20)
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
@@ -516,7 +521,8 @@ def _validate_resume(old, new):
     fields = ("model", "model_revision", "embed_model", "dataset", "questions",
               "locomo_conversation", "locomo_turns_per_passage", "locomo_chunk_tokens",
               "locomo_ie_window_tokens", "seed", "top_k", "witness_candidate_pool",
-              "answer_set", "vocab_compile", "query_plans", "hybrid_fallback", "dialogue_ie",
+              "answer_set", "vocab_compile", "query_plans", "max_query_plans",
+              "hybrid_fallback", "dialogue_ie",
               "no_relation_family_merge",
               "binding_aware_grounding", "verify_witnesses", "no_acquisition")
     differences = [name for name in fields

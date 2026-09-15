@@ -212,7 +212,7 @@ def compile_with_llm(llm: LLM, question: Question, max_atoms: int = 4,
 def compile_plans_with_llm(llm: LLM, question: Question, max_atoms: int = 4,
                            max_plans: int = 3, temperature: float = 0.0,
                            dataset: str = "", method: str = "witnessrag",
-                           vocabulary: str = "") -> list[ConjunctiveQuery]:
+                           vocabulary: str = "", feedback: str = "") -> list[ConjunctiveQuery]:
     """Compila interpretações alternativas em uma chamada de LLM.
 
     Os planos são hipóteses ordenadas, não programas confiáveis. O retriever os
@@ -221,10 +221,11 @@ def compile_plans_with_llm(llm: LLM, question: Question, max_atoms: int = 4,
     result = llm.chat(
         prompts.COMPILE_PLANS_TEMPLATE.format(
             question=question.question, max_atoms=max_atoms,
-            max_plans=max(1, max_plans), vocabulary=vocabulary),
+            max_plans=max(1, max_plans), vocabulary=vocabulary,
+            planning_feedback=feedback),
         system=prompts.COMPILE_SYSTEM,
         params=GenParams(temperature=temperature, max_tokens=2200, json_mode=True),
-        stage="witness.compile",
+        stage="witness.replan" if feedback else "witness.compile",
     )
     if result.filtered:
         LEDGER.add("compile", dataset, method, question.qid,
@@ -236,7 +237,10 @@ def compile_plans_with_llm(llm: LLM, question: Question, max_atoms: int = 4,
     if not isinstance(raw_plans, list):
         return [ConjunctiveQuery(fallback=question.question,
                                  validation_error="planos_invalidos", source="llm-plan")]
-    source = "llm-plan-vocabulario" if vocabulary else "llm-plan"
+    if feedback:
+        source = "llm-replan-vocabulario" if vocabulary else "llm-replan"
+    else:
+        source = "llm-plan-vocabulario" if vocabulary else "llm-plan"
     plans, seen = [], set()
     for raw in raw_plans[:max(1, max_plans)]:
         if not isinstance(raw, dict):
@@ -454,11 +458,13 @@ def compile_query(llm: LLM, question: Question, mode: str = "llm",
 def compile_query_plans(llm: LLM, question: Question, mode: str = "llm",
                         max_atoms: int = 4, max_plans: int = 3,
                         temperature: float = 0.0, dataset: str = "",
-                        method: str = "witnessrag", vocabulary: str = "") -> list[ConjunctiveQuery]:
+                        method: str = "witnessrag", vocabulary: str = "",
+                        feedback: str = "") -> list[ConjunctiveQuery]:
     if mode != "llm":
         return [compile_query(llm, question, mode=mode, max_atoms=max_atoms,
                               temperature=temperature, dataset=dataset,
                               method=method, vocabulary=vocabulary)]
     return compile_plans_with_llm(llm, question, max_atoms=max_atoms,
                                   max_plans=max_plans, temperature=temperature,
-                                  dataset=dataset, method=method, vocabulary=vocabulary)
+                                  dataset=dataset, method=method, vocabulary=vocabulary,
+                                  feedback=feedback)
