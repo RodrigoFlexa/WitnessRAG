@@ -393,6 +393,29 @@ def wait_ready(server, port, model, deadline):
     raise TimeoutError("servidor não ficou pronto dentro do prazo; consulte vllm.log")
 
 
+def wait_port_free(port, timeout_s=45):
+    """Aguarda a porta liberar para reduzir falhas transitórias entre rodadas.
+
+    Em execuções sequenciais, o processo anterior pode levar alguns segundos para
+    soltar o socket. Se outra aplicação estiver ocupando a porta de forma estável,
+    o erro permanece explícito após o prazo.
+    """
+    end = time.monotonic() + timeout_s
+    last_error = None
+    while time.monotonic() < end:
+        try:
+            with socket.socket() as check:
+                check.bind(("127.0.0.1", port))
+            return
+        except OSError as exc:
+            last_error = exc
+            time.sleep(1)
+    if last_error is not None:
+        raise OSError(last_error.errno,
+                      f"porta {port} permaneceu ocupada por {timeout_s}s ({last_error})")
+    raise OSError(f"porta {port} permaneceu ocupada por {timeout_s}s")
+
+
 def launch(args):
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
     output = (args.output or ROOT / "runs" / f"local-pilot-{stamp}").resolve()
@@ -431,8 +454,7 @@ def launch(args):
         except (OSError, subprocess.SubprocessError):
             pass
         if not args.existing_server:
-            with socket.socket() as check:
-                check.bind(("127.0.0.1", args.port))
+            wait_port_free(args.port)
             with (output / "vllm.log").open("w", encoding="utf-8") as log:
                 server = subprocess.Popen(plan["server_command"], env=env, cwd=ROOT,
                                           stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
