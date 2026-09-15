@@ -48,6 +48,7 @@ class Fact:
     pid: str
     confidence: float = 0.9
     acquired: bool = False
+    time: str = ""        # escopo temporal declarado no texto; "" quando não há
     subj_id: int = -1     # id canônico de entidade, preenchido na resolução
     obj_id: int = -1
     rel_id: int = -1      # id canônico de relação
@@ -57,11 +58,18 @@ class Fact:
         return (self.subject, self.relation, self.object)
 
     def verbalize(self) -> str:
-        return f"{self.subject} {self.relation} {self.object}"
+        # O tempo entra na verbalização porque é o que distingue dois fatos com a
+        # mesma tripla em sessões diferentes; a tripla em si continua com três
+        # elementos, e as métricas de cobertura seguem comparando triplas.
+        base = f"{self.subject} {self.relation} {self.object}"
+        return f"{base} ({self.time})" if self.time else base
 
     def to_dict(self) -> dict[str, Any]:
-        return {"fid": self.fid, "s": self.subject, "r": self.relation, "o": self.object,
-                "pid": self.pid, "conf": self.confidence, "acq": self.acquired}
+        out = {"fid": self.fid, "s": self.subject, "r": self.relation, "o": self.object,
+               "pid": self.pid, "conf": self.confidence, "acq": self.acquired}
+        if self.time:
+            out["t"] = self.time
+        return out
 
 
 @dataclass
@@ -72,27 +80,53 @@ class ExtractionResult:
     empty_pids: list[str] = field(default_factory=list)
 
     def stats(self) -> dict[str, Any]:
-        relations = {normalize(f.relation) for f in self.facts}
+        """Contagens da extração, incluindo a fragmentação do vocabulário.
+
+        `relacoes_por_fato` perto de 1 e `relacoes_unicas` alto significam que o
+        predicado virou uma frase diferente a cada fato. Um vocabulário assim não
+        sustenta junção: cada átomo alcança um ou dois fatos e a variável
+        compartilhada nunca casa. É a forma mais barata de ver um prompt de
+        extração degenerar, e custa uma passada sobre os fatos já extraídos.
+        """
+        counts: dict[str, int] = {}
+        for fact in self.facts:
+            key = normalize(fact.relation)
+            counts[key] = counts.get(key, 0) + 1
         entities = {normalize(f.subject) for f in self.facts} | {normalize(f.object) for f in self.facts}
+        total = len(self.facts) or 1
         return {
             "n_fatos": len(self.facts),
-            "n_relacoes_distintas": len(relations),
+            "n_relacoes_distintas": len(counts),
             "n_entidades_distintas": len(entities),
+            "n_objetos_distintos": len({normalize(f.object) for f in self.facts}),
+            "relacoes_por_fato": round(len(counts) / total, 3),
+            "relacoes_unicas": sum(1 for c in counts.values() if c == 1),
+            "palavras_por_relacao": round(sum(len(normalize(f.relation).split())
+                                              for f in self.facts) / total, 2),
             "passagens_bloqueadas": len(self.blocked_pids),
             "passagens_sem_fato": len(self.empty_pids),
         }
 
 
 def _cache_path(corpus: Corpus, llm: LLM, cfg: C.IEConfig) -> Path:
+    # O modo diálogo só entra na chave quando está ligado: acrescentar um campo
+    # novo à chave invalidaria as extrações já pagas de todos os corpora, e uma
+    # extração cara não pode ser descartada por uma opção que não foi usada.
+    config = asdict(cfg)
+    templates = [prompts.NER_SYSTEM, prompts.NER_TEMPLATE,
+                 prompts.OPENIE_SYSTEM, prompts.OPENIE_TEMPLATE]
+    if cfg.dialogue_mode:
+        templates += [prompts.OPENIE_DIALOGUE_SYSTEM, prompts.OPENIE_DIALOGUE_TEMPLATE]
+    else:
+        config.pop("dialogue_mode", None)
     key = sha({
         "dataset": corpus.name,
         "passages": [(p.pid, p.title, p.text) for p in corpus.passages],
         "backend": llm.name,
         "deployment": getattr(llm, "deployment", ""),
         "provider_identity": llm.cache_identity() if hasattr(llm, "cache_identity") else "",
-        "config": asdict(cfg),
-        "prompts": [prompts.NER_SYSTEM, prompts.NER_TEMPLATE,
-                    prompts.OPENIE_SYSTEM, prompts.OPENIE_TEMPLATE],
+        "config": config,
+        "prompts": templates,
         "prompt_version": 3,
     })
     return C.CACHE_DIR / "openie" / f"{corpus.name}-{key[:16]}.json"
@@ -112,7 +146,8 @@ def extract_corpus(
         if cached:
             result = ExtractionResult(
                 facts=[Fact(fid=r["fid"], subject=r["s"], relation=r["r"], object=r["o"],
-                            pid=r["pid"], confidence=r.get("conf", 0.9)) for r in cached["facts"]],
+                            pid=r["pid"], confidence=r.get("conf", 0.9), time=r.get("t", ""))
+                       for r in cached["facts"]],
                 entities_by_passage=cached.get("entities", {}),
                 blocked_pids=cached.get("blocked", []),
                 empty_pids=cached.get("empty", []),
@@ -145,15 +180,17 @@ def extract_corpus(
 
     # -- passo 2: OpenIE condicionado às entidades
     targets = [p for p in passages if p.pid not in blocked]
+    template, system = ((prompts.OPENIE_DIALOGUE_TEMPLATE, prompts.OPENIE_DIALOGUE_SYSTEM)
+                        if cfg.dialogue_mode else (prompts.OPENIE_TEMPLATE, prompts.OPENIE_SYSTEM))
     ie_prompts = [
-        prompts.OPENIE_TEMPLATE.format(
+        template.format(
             text=p.full,
             entities=prompts.jdump(entities_by_passage.get(p.pid, [])),
             max_triples=cfg.max_triples_per_passage,
         )
         for p in targets
     ]
-    ie_results = llm.chat_many(ie_prompts, system=prompts.OPENIE_SYSTEM, params=params,
+    ie_results = llm.chat_many(ie_prompts, system=system, params=params,
                                stage="index.openie", desc="OpenIE das passagens")
 
     facts: list[Fact] = []
@@ -183,35 +220,44 @@ def extract_corpus(
     return out
 
 
-def _parse_triples(data: Any, limit: int) -> list[tuple[str, str, str]]:
+def _parse_triples(data: Any, limit: int) -> list[tuple[str, str, str, str]]:
+    """Triplas com um quarto elemento opcional: o tempo, vazio quando não há.
+
+    O modo diálogo pede quatro elementos; o prompt geral pede três. Aceitar os
+    dois formatos aqui evita perder uma extração inteira por causa do formato.
+    """
     if not isinstance(data, dict):
         return []
     raw = data.get("triples") or data.get("fact") or []
-    out: list[tuple[str, str, str]] = []
+    out: list[tuple[str, str, str, str]] = []
     for item in raw:
         if isinstance(item, dict):
-            item = [item.get("subject"), item.get("relation"), item.get("object")]
-        if not isinstance(item, (list, tuple)) or len(item) != 3:
+            item = [item.get("subject"), item.get("relation"), item.get("object"),
+                    item.get("time")]
+        if not isinstance(item, (list, tuple)) or not 3 <= len(item) <= 4:
             continue
-        s, r, o = (str(x or "").strip() for x in item)
+        s, r, o = (str(x or "").strip() for x in item[:3])
+        when = str(item[3] or "").strip()[:80] if len(item) == 4 else ""
         # Um fato sem sujeito, relação ou objeto não é um fato incompleto: é
         # ruído de extração que envenenaria a junção mais tarde.
         if not s or not r or not o or len(s) > 200 or len(o) > 200:
             continue
-        out.append((s, r, o))
+        out.append((s, r, o, when))
         if len(out) >= limit:
             break
     return out
 
 
-def _facts_from_triples(triples: Iterable[tuple[str, str, str]], pid: str,
+def _facts_from_triples(triples: Iterable[Sequence[str]], pid: str,
                         acquired: bool = False, confidence: float | None = None) -> list[Fact]:
     facts = []
-    for s, r, o in triples:
+    for triple in triples:
+        s, r, o = triple[0], triple[1], triple[2]
+        when = triple[3] if len(triple) > 3 else ""
         fid = sha(normalize(s), normalize(r), normalize(o), pid)[:16]
         facts.append(Fact(fid=fid, subject=s, relation=r, object=o, pid=pid,
                           confidence=confidence if confidence is not None else 0.9,
-                          acquired=acquired))
+                          acquired=acquired, time=when))
     return facts
 
 

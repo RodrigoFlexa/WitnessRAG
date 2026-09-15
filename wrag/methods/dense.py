@@ -71,3 +71,45 @@ class BM25Retriever(Retriever):
     def _retrieve(self, question: Question, k: int) -> RetrievalResult:
         pids, scores = self.search(question.question, k)
         return RetrievalResult(pids=pids, scores=scores)
+
+
+class HybridRetriever(Retriever):
+    """Fusão recíproca de postos entre o denso e o BM25.
+
+    Existe para o fallback dos métodos com grafo em corpora conversacionais: a
+    resposta costuma depender de um nome próprio raro ("Becoming Nicole") que o
+    vetor de um bloco longo de diálogo dilui, e que o léxico acha de imediato.
+    RRF não precisa de calibração entre as duas escalas de score, que é o motivo
+    de ser preferível a uma soma ponderada aqui.
+    """
+
+    name = "hybrid"
+
+    def __init__(self, ctx: IndexContext, rrf_k: int = 60) -> None:
+        super().__init__(ctx)
+        self._dense = DenseRetriever(ctx)
+        self._bm25 = BM25Retriever(ctx)
+        self.rrf_k = rrf_k
+
+    def index(self) -> None:
+        self._dense.index()
+        self._bm25.index()
+        self.indexed = True
+
+    def search(self, text: str, k: int) -> tuple[list[str], list[float]]:
+        depth = max(k, 20)
+        fused: dict[str, float] = {}
+        for retriever in (self._dense, self._bm25):
+            pids, _scores = retriever.search(text, depth)
+            for rank, pid in enumerate(pids):
+                fused[pid] = fused.get(pid, 0.0) + 1.0 / (self.rrf_k + rank + 1)
+        order = sorted(fused, key=lambda pid: (-fused[pid], pid))[:k]
+        return order, [fused[pid] for pid in order]
+
+    def _retrieve(self, question: Question, k: int) -> RetrievalResult:
+        pids, scores = self.search(question.question, k)
+        return RetrievalResult(pids=pids, scores=scores,
+                               diagnostics={"fusao": "rrf", "rrf_k": self.rrf_k})
+
+    def index_report(self) -> dict:
+        return {"fusao": "rrf", "rrf_k": self.rrf_k}

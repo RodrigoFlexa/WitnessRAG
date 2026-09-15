@@ -112,10 +112,69 @@ def _union_bound(witnesses: Sequence[Witness], kg: KnowledgeGraph, cfg: C.Witnes
     ))
 
 
+@dataclass
+class AnswerSet:
+    """O conjunto de respostas certas de uma consulta, com proveniência por item.
+
+    Uma testemunha certifica UMA atribuição da variável de resposta. A resposta
+    de uma consulta conjuntiva é o conjunto das atribuições certas, e perguntas
+    que pedem "tudo que X fez" só são respondidas por esse conjunto. Cada item
+    carrega a sua própria demonstração, então a lista é auditável item a item.
+
+    O que NÃO está certificado aqui é a completude: o conjunto contém o que a
+    memória prova, e nada limita o que ficou de fora por falha de extração, de
+    compilação ou de corte. `risco` é o pior item, não um limite sobre o conjunto.
+    """
+
+    items: list[AnswerCandidate] = field(default_factory=list)
+    truncated: int = 0
+
+    @property
+    def text(self) -> str:
+        return ", ".join(c.answer for c in self.items)
+
+    @property
+    def count(self) -> str:
+        return str(len(self.items))
+
+    @property
+    def risk(self) -> float:
+        return max((c.risk for c in self.items), default=1.0)
+
+    def to_dict(self, kg: KnowledgeGraph) -> dict[str, Any]:
+        return {
+            "resposta": self.text,
+            "n_itens": len(self.items),
+            "itens_descartados_por_limite": self.truncated,
+            "completude_certificada": False,
+            "risco_do_pior_item": round(self.risk, 4),
+            "itens": [{"resposta": c.answer,
+                       "score": round(c.score, 4),
+                       "risco": round(c.risk, 4),
+                       "n_testemunhas": len(c.witnesses),
+                       "passagens": sorted({pid for w in c.witnesses for pid in w.pids}),
+                       "fatos": [list(kg.facts[i].triple) for i in (c.best.facts if c.best else ())]}
+                      for c in self.items],
+        }
+
+
+def answer_set(candidates: Sequence[AnswerCandidate], max_items: int = 10) -> AnswerSet:
+    """Monta o conjunto a partir das candidatas já agrupadas por resposta.
+
+    Respostas que só diferem por grafia já foram agrupadas em `score_answers`,
+    que usa o símbolo canônico. O que sobra aqui é o corte por quantidade, que
+    fica registrado: um conjunto truncado não pode parecer completo.
+    """
+    items = [c for c in candidates if c.answer.strip()]
+    kept = items[:max_items] if max_items else items
+    return AnswerSet(items=list(kept), truncated=len(items) - len(kept))
+
+
 def rank_passages(
     candidates: Sequence[AnswerCandidate],
     k: int,
     max_per_witness: int | None = None,
+    cover_answers_first: bool = False,
 ) -> tuple[list[str], list[float]]:
     """Passagens do contexto final: a proveniência das melhores demonstrações.
 
@@ -124,22 +183,37 @@ def rank_passages(
     diferente de ranquear passagens por relevância: uma passagem que sozinha não
     é relevante entra alta se for o segundo elo da demonstração — que é o caso
     que o multi-hop denso costuma perder.
+
+    Com `cover_answers_first`, a primeira passada leva UMA demonstração de cada
+    resposta antes de gastar o orçamento com provas extras da mesma. Sem isso, a
+    melhor resposta pode consumir as k passagens com três provas dela mesma e o
+    leitor nunca vê as outras respostas certas — que é justamente o conjunto.
     """
     order: list[str] = []
     scores: list[float] = []
     have: set[str] = set()
-    for rank, candidate in enumerate(candidates):
+
+    def take(witness) -> None:
+        pids = tuple(dict.fromkeys(witness.pids))
+        if max_per_witness is not None and len(pids) > max_per_witness:
+            return
+        missing = [pid for pid in pids if pid not in have]
+        if len(order) + len(missing) > k:
+            return
+        for pid in missing:
+            order.append(pid)
+            have.add(pid)
+            scores.append(1.0 / len(order))
+
+    if cover_answers_first:
+        for candidate in candidates:
+            if candidate.best is not None:
+                take(candidate.best)
+    for candidate in candidates:
         for witness in candidate.witnesses:
-            pids = tuple(dict.fromkeys(witness.pids))
-            if max_per_witness is not None and len(pids) > max_per_witness:
+            if cover_answers_first and witness is candidate.best:
                 continue
-            missing = [pid for pid in pids if pid not in have]
-            if len(order) + len(missing) > k:
-                continue
-            for pid in missing:
-                order.append(pid)
-                have.add(pid)
-                scores.append(1.0 / len(order))
+            take(witness)
     return order, scores
 
 

@@ -151,21 +151,10 @@ def _dataset_block(dataset: str, records: dict[str, list[dict]], excluded: set[s
 
     lines += _paired_block(compared, excluded, data)
     if dataset == "locomo":
-        lines += ["\n### LoCoMo: categorias oficiais\n",
-                  "Adaptação textual de uma conversa. F1/EM são do harness, não do avaliador oficial LoCoMo. "
-                  "Recall é sobre blocos de diálogo. O número de blocos de apoio não define a categoria de hops.\n",
-                  "| método | categoria | n | F1 | R@5 | AR@5 |", "|---|---|---|---|---|---|"]
-        data["por_categoria"] = {}
-        for method, rows in compared.items():
-            data["por_categoria"][method] = {}
-            for category in ("single-hop", "multi-hop"):
-                subset = [r for r in rows if r["qid"] not in excluded and r.get("tipo") == category]
-                values = {k: M.aggregate(r[k] for r in subset) for k in ("f1", "recall@5", "all_recall@5")}
-                data["por_categoria"][method][category] = {"n": len(subset), **values}
-                lines.append(f"| {method} | {category} | {len(subset)} | "
-                             + " | ".join(_pct(values[k]) for k in values) + " |")
+        lines += _locomo_block(compared, excluded, data)
     lines += _by_shape(compared, excluded, data)
     lines += _structural_block(compared, excluded, data)
+    lines += _firing_block(compared, excluded, data)
     lines += _witness_block(compared, excluded, data)
     lines += _risk_block(compared, excluded, data)
     lines += _cost_block(summary, data)
@@ -210,6 +199,122 @@ def _structural_block(records, excluded, data):
         lines.append(f"| {method} | {len(kept)} | {_pct(em)} | {_pct(coverage)} |")
     data["resposta_estrutural"] = block
     return lines if block else []
+
+
+def _firing_block(records, excluded, data):
+    """Onde cada pergunta parou, antes de qualquer métrica de qualidade.
+
+    É o número que decide se uma rodada mediu o WITNESS-RAG ou mediu o fallback:
+    quando a taxa de disparo é baixa, o F1 da tabela principal é quase inteiro do
+    recuperador de reserva, e comparar métodos ali compara outra coisa. As
+    colunas seguem o caminho real do código: compilar, juntar, verificar, usar.
+    """
+    reasons = {
+        "(sem fallback: testemunha usada)": "testemunha usada",
+        "consulta ausente, inválida ou fora do escopo": "sem consulta",
+        "denso (compilação bloqueada)": "compilação bloqueada",
+        "denso (sem testemunha completa)": "junção não fechou",
+        "denso (nenhuma testemunha aprovada)": "verificação rejeitou",
+    }
+    block = {}
+    for method, rows in records.items():
+        kept = [r for r in rows if r["qid"] not in excluded and "forma_consulta" in r]
+        kept = [r for r in kept if isinstance(r.get("diagnosticos"), dict)]
+        if not kept:
+            continue
+        counts: dict[str, int] = {label: 0 for label in reasons.values()}
+        counts["outro"] = 0
+        evaluated = accepted = 0
+        for row in kept:
+            diagnostics = row["diagnosticos"]
+            label = reasons.get(diagnostics.get("fallback", "(sem fallback: testemunha usada)"))
+            counts[label if label else "outro"] += 1
+            verification = diagnostics.get("verificacao") or {}
+            evaluated += int(verification.get("avaliadas", 0) or 0)
+            accepted += int(verification.get("aceitas", 0) or 0)
+        used = counts["testemunha usada"]
+        block[method] = {"n": len(kept), "taxa_de_disparo": used / len(kept),
+                         "por_parada": counts, "testemunhas_avaliadas": evaluated,
+                         "testemunhas_aceitas": accepted,
+                         "taxa_de_aprovacao": (accepted / evaluated) if evaluated else float("nan")}
+    if not block:
+        return []
+    labels = list(dict.fromkeys(list(reasons.values()) + ["outro"]))
+    lines = ["\n### Onde a pergunta parou (taxa de disparo da testemunha)\n",
+             "Uma taxa de disparo baixa significa que a maior parte das respostas veio do "
+             "fallback, não do executor: nesse regime a tabela principal mede o recuperador "
+             "de reserva. Aprovação é sobre as testemunhas efetivamente verificadas.\n",
+             "| método | n | disparo | " + " | ".join(labels) + " | verificadas | aprovadas |",
+             "|" + "---|" * (len(labels) + 5)]
+    for method, values in block.items():
+        cells = " | ".join(str(values["por_parada"][label]) for label in labels)
+        approval = values["taxa_de_aprovacao"]
+        approval_cell = "—" if approval != approval else f"{_pct(approval)}"
+        lines.append(f"| {method} | {values['n']} | {_pct(values['taxa_de_disparo'])} | {cells} | "
+                     f"{values['testemunhas_avaliadas']} | {approval_cell} |")
+    data["onde_parou"] = block
+
+    # Conjunto de respostas: só aparece quando a opção está ligada.
+    sets = {}
+    for method, rows in records.items():
+        kept = [r for r in rows if r["qid"] not in excluded
+                and isinstance(r.get("diagnosticos"), dict)
+                and isinstance(r["diagnosticos"].get("conjunto_resposta"), dict)]
+        if kept:
+            sizes = [len(r["diagnosticos"]["conjunto_resposta"].get("itens", [])) for r in kept]
+            sets[method] = {"n": len(kept), "itens_medios": sum(sizes) / len(sizes),
+                            "com_mais_de_um_item": sum(1 for x in sizes if x > 1) / len(sizes)}
+    if sets:
+        lines += ["\n### Conjunto de respostas certas\n",
+                  "Itens por pergunta em que o executor provou alguma atribuição. A completude "
+                  "do conjunto NÃO é certificada: nada limita o que ficou de fora por falha de "
+                  "extração, compilação ou corte.\n",
+                  "| método | n | itens por pergunta | com mais de um item |", "|---|---|---|---|"]
+        for method, values in sets.items():
+            lines.append(f"| {method} | {values['n']} | {values['itens_medios']:.2f} | "
+                         f"{_pct(values['com_mais_de_um_item'])} |")
+        data["conjunto_resposta"] = sets
+    return lines
+
+
+def _locomo_block(records, excluded, data):
+    """Categorias oficiais, com as duas colunas de qualidade lado a lado.
+
+    `F1 ofic.` e `EM ofic.` reproduzem `task_eval/evaluation.py` do LoCoMo; o F1
+    do harness é o mesmo de MuSiQue e 2Wiki. Na categoria 1 o oficial compara
+    sub-respostas separadas por vírgula e não penaliza itens previstos a mais,
+    então uma resposta mais completa nunca perde pontos — leia a diferença entre
+    as duas colunas como isso, não como ganho de recuperação.
+    """
+    from wrag.eval import locomo_official as LO
+
+    official = LO.available()
+    note = ("Adaptação textual de uma conversa. Recall é sobre blocos de diálogo. "
+            "O número de blocos de apoio não define a categoria de hops.")
+    if not official:
+        note += " Coluna oficial ausente: instale `nltk` (o avaliador usa PorterStemmer)."
+    columns = ["F1", "EM"] + (["F1 ofic.", "EM ofic."] if official else []) + ["R@5", "AR@5"]
+    lines = ["\n### LoCoMo: categorias oficiais\n", note + "\n",
+             "| método | categoria | n | " + " | ".join(columns) + " |",
+             "|" + "---|" * (len(columns) + 3)]
+    data["por_categoria"] = {}
+    for method, rows in records.items():
+        data["por_categoria"][method] = {}
+        for category in ("single-hop", "multi-hop"):
+            subset = [r for r in rows if r["qid"] not in excluded and r.get("tipo") == category]
+            values = {k: M.aggregate(r[k] for r in subset)
+                      for k in ("f1", "em", "recall@5", "all_recall@5")}
+            if official:
+                scored = [r if "f1_locomo" in r else {**r, **LO.score_record(r)} for r in subset]
+                values["f1_locomo"] = M.aggregate(r["f1_locomo"] for r in scored)
+                values["em_locomo"] = M.aggregate(r["em_locomo"] for r in scored)
+            data["por_categoria"][method][category] = {"n": len(subset), **values}
+            order = ["f1", "em"] + (["f1_locomo", "em_locomo"] if official else []) + ["recall@5", "all_recall@5"]
+            lines.append(f"| {method} | {category} | {len(subset)} | "
+                         + " | ".join(_pct(values[k]) for k in order) + " |")
+    if official:
+        lines.append(f"\nAvaliador oficial: `{LO.SOURCE}`.\n")
+    return lines
 
 
 def _by_shape(records: dict[str, list[dict]], excluded: set[str], data: dict) -> list[str]:

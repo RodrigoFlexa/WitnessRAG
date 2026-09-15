@@ -23,13 +23,15 @@ from wrag.embed import cosine_topk
 from wrag.ie import Fact, extract_targeted
 from wrag.llm.filters import LEDGER
 from wrag.methods.base import IndexContext, RetrievalResult, Retriever, pad_with_dense
-from wrag.methods.dense import DenseRetriever
+from wrag.methods.dense import DenseRetriever, HybridRetriever
 from wrag.util import get_logger, canonical_symbol
 from wrag.witness import budget as budget_mod
 from wrag.witness.memory import MemoryView
-from wrag.witness.provenance import AnswerCandidate, rank_passages, score_answers
+from wrag.witness.provenance import (AnswerCandidate, answer_set, rank_passages,
+                                     score_answers)
 from wrag.witness.query import ConjunctiveQuery, compile_query
-from wrag.witness.search import Gap, SearchResult, WitnessSearcher
+from wrag.witness.search import (Gap, SearchResult, WitnessSearcher, cover_answers,
+                                 executable_aggregations)
 
 log = get_logger("wrag.methods.witnessrag")
 
@@ -62,7 +64,11 @@ class WitnessRAGRetriever(Retriever):
     def __init__(self, ctx: IndexContext, compile_mode: str = "llm") -> None:
         super().__init__(ctx)
         self.compile_mode = compile_mode
-        self._dense = DenseRetriever(ctx)
+        # O fallback é parte do método, não um comparador: quando a prova falha,
+        # é ele que entrega o contexto. Trocá-lo por RRF muda o WITNESS-RAG, e
+        # por isso a opção fica registrada no relatório.
+        self._dense = (HybridRetriever(ctx, ctx.run.witness.hybrid_rrf_k)
+                       if ctx.run.witness.hybrid_fallback else DenseRetriever(ctx))
         self.memory: MemoryView | None = None
         self.searcher: WitnessSearcher | None = None
         self.selection: budget_mod.SelectionResult | None = None
@@ -139,13 +145,23 @@ class WitnessRAGRetriever(Retriever):
             return []
 
         pids, scores = self._dense.search(probe, cfg.acquisition_passages * 3)
+        # O ganho é normalizado pelo topo da própria consulta. Sem isso a escala
+        # do recuperador decide se há aquisição: o cosseno do denso fica na casa
+        # de 0,6 e passa por λ=0,05, mas a fusão recíproca de postos devolve
+        # ~1/(60+posto) ≈ 0,016 e reprova TODA ação — foi o que desligou a
+        # aquisição em silêncio (240 chamadas viraram 0) ao ligar o híbrido.
+        # O preço é explícito: o ganho passa a ser relativo dentro da consulta, e
+        # λ só corta a cauda. Continua sendo heurística, não valor da informação.
+        raw = [max(0.0, float(s)) for s in scores]
+        top = max(raw, default=0.0)
         actions: list[AcquisitionAction] = []
-        for pid, score in zip(pids, scores):
+        for pid, score in zip(pids, raw):
             passage = self.corpus.get(pid)
             actions.append(AcquisitionAction(
                 pid=pid, title=passage.title, text=passage.text,
                 relation=gap.atom.relation, anchor=gap.anchor(),
-                expected_gain=float(max(0.0, score)), cost=cfg.acquisition_lambda,
+                expected_gain=(score / top) if top > 0 else 0.0,
+                cost=cfg.acquisition_lambda,
             ))
         actions = [a for a in actions if a.voi > 0]
         actions.sort(key=lambda a: -a.voi)
@@ -179,6 +195,33 @@ class WitnessRAGRetriever(Retriever):
         self._acquired_facts += len(added) + len(reactivated)
         return len(added) + len(reactivated)
 
+    # -- vocabulário da compilação -----------------------------------------
+
+    def _vocabulary(self, question: Question) -> str:
+        """Relações e entidades do grafo mais próximas da pergunta.
+
+        Sugestão, não esquema: o compilador continua livre para emitir outra
+        relação. O que isto corrige é o caso medido em que ele inventa um
+        predicado ("identity", "destress method") que nenhum fato instancia, e o
+        átomo morre no aterramento sem nunca ter tido chance.
+        """
+        from wrag import prompts
+
+        memory = self.memory
+        cfg = self.ctx.run.witness
+        if memory is None or not cfg.vocabulary_aware_compile:
+            return ""
+        vector = self.ctx.embedder.encode([question.question])[0]
+        relations: list[str] = []
+        if memory.relation_vectors.size and cfg.vocabulary_relations:
+            idx, _ = cosine_topk(vector, memory.relation_vectors, cfg.vocabulary_relations)
+            relations = [memory.relations[int(i)] for i in idx]
+        entities: list[str] = []
+        if memory.entity_vectors.size and cfg.vocabulary_entities:
+            idx, _ = cosine_topk(vector, memory.entity_vectors, cfg.vocabulary_entities)
+            entities = [memory.entities[int(i)] for i in idx]
+        return prompts.format_vocabulary(relations, entities)
+
     # -- recuperação --------------------------------------------------------
 
     def _retrieve(self, question: Question, k: int) -> RetrievalResult:
@@ -210,18 +253,21 @@ class WitnessRAGRetriever(Retriever):
         assert self.memory is not None and self.searcher is not None
         cfg = self.ctx.run.witness
 
+        vocabulary = self._vocabulary(question) if self.compile_mode == "llm" else ""
         query = compile_query(self.ctx.llm, question, mode=self.compile_mode,
                               max_atoms=cfg.max_atoms, temperature=cfg.compile_temperature,
-                              dataset=self.ctx.dataset, method=self.name)
+                              dataset=self.ctx.dataset, method=self.name,
+                              vocabulary=vocabulary)
         if query.filtered:
             return RetrievalResult(pids=dense_pids[:k] if cfg.dense_fallback else [],
                                    scores=dense_scores[:k] if cfg.dense_fallback else [], filtered=True,
                                    diagnostics={"fallback": "denso (compilação bloqueada)"})
-        if not query.atoms or query.aggregation != "none":
+        if not query.atoms or query.aggregation not in executable_aggregations(cfg.answer_set):
             return RetrievalResult(pids=dense_pids[:k] if cfg.dense_fallback else [],
                                    scores=dense_scores[:k] if cfg.dense_fallback else [],
                                    diagnostics={"fallback": "consulta ausente, inválida ou fora do escopo",
                                                 "suportada": False,
+                                                "agregacao": query.aggregation,
                                                 "consulta": query.to_dict()})
 
         result = self.searcher.join(query)
@@ -277,10 +323,18 @@ class WitnessRAGRetriever(Retriever):
             from wrag.witness.verification import verify_witnesses
             proposed = result.witnesses
             fitting = [w for w in proposed if len(set(w.pids)) <= k]
+            out_of_context = len(proposed) - len(fitting)
+            if cfg.answer_set:
+                # Verificar as cinco mais baratas costuma verificar cinco provas
+                # da MESMA resposta e deixar o conjunto sem as outras. O rodízio
+                # gasta o mesmo orçamento cobrindo respostas distintas.
+                fitting = cover_answers(fitting, cfg.verification_max_witnesses)
             result.witnesses, verification = verify_witnesses(
                 self.ctx.llm, self.corpus, self.memory, question, query, fitting,
                 cfg.verification_max_witnesses, self.ctx.dataset)
-            verification["fora_do_orcamento_contexto"] = len(proposed) - len(fitting)
+            # Descartada por não caber no contexto é diferente de descartada pelo
+            # teto de verificação; `nao_avaliadas` já conta a segunda.
+            verification["fora_do_orcamento_contexto"] = out_of_context
             diagnostics["verificacao"] = verification
             diagnostics["n_testemunhas_propostas"] = len(proposed)
             if not result.complete:
@@ -290,7 +344,7 @@ class WitnessRAGRetriever(Retriever):
                                        diagnostics=diagnostics)
 
         candidates = score_answers(result.witnesses, self.memory, cfg)
-        pids, scores = rank_passages(candidates, k)
+        pids, scores = rank_passages(candidates, k, cover_answers_first=cfg.answer_set)
         if cfg.dense_fallback:
             pids, scores = pad_with_dense(pids, scores, dense_pids, dense_scores, k)
         # O leitor só recebe estas passagens: não certificar uma prova truncada.
@@ -308,6 +362,17 @@ class WitnessRAGRetriever(Retriever):
             "risco_bruto": round(best.risk_raw, 4) if best else 99.0,
             "score_estrutural": round(best.score, 4) if best else 0.0,
         })
+        if cfg.answer_set:
+            # A resposta da consulta é o conjunto das atribuições certas, não a
+            # testemunha mais barata. `count` é |conjunto|; note que contar exige
+            # completude, e o conjunto não a certifica — o número é o que a
+            # memória prova, e o diagnóstico registra isso.
+            answers = answer_set(candidates, cfg.answer_set_max_items)
+            diagnostics["conjunto_resposta"] = answers.to_dict(self.memory)
+            diagnostics["resposta_estrutural"] = (answers.count if query.aggregation == "count"
+                                                  else answers.text)
+            diagnostics["risco"] = round(answers.risk, 4) if answers.items else 1.0
+            diagnostics["agregacao_executada"] = query.aggregation
         return RetrievalResult(pids=pids, scores=scores, diagnostics=diagnostics)
 
     def _partial_passages(self, query: ConjunctiveQuery, k: int) -> tuple[list[str], list[float]]:

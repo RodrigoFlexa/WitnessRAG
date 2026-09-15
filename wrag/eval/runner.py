@@ -283,7 +283,7 @@ def _answer_one(name: str, retriever, corpus: Corpus, question: Question,
     if respostas and respostas[0].get("testemunhas"):
         witness_facts = respostas[0]["testemunhas"][0].get("fatos", [])
 
-    return {
+    record = {
         "qid": question.qid,
         "dataset": corpus.name,
         "metodo": name,
@@ -319,6 +319,14 @@ def _answer_one(name: str, retriever, corpus: Corpus, question: Question,
         "diagnosticos": _trim(diagnostics),
         "uso_llm": usage_delta(retriever.ctx.llm.usage.snapshot(), before),
     }
+    # O LoCoMo tem avaliador próprio: stemming, remoção de "and" e F1 por
+    # sub-resposta na categoria 1. Fica ao lado do EM/F1 do harness, que continua
+    # sendo o número comparável entre datasets. Sem NLTK, a coluna não existe.
+    if corpus.name == "locomo":
+        from wrag.eval import locomo_official as LO
+        if LO.available():
+            record.update(LO.score_record(record))
+    return record
 
 
 def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
@@ -333,6 +341,7 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
     keep = {k: diagnostics[k] for k in
             ("consulta", "forma", "lacuna", "fallback", "rodadas_aquisicao",
              "profundidade_alcancada", "risco", "risco_bruto", "score_estrutural", "n_testemunhas",
+             "n_testemunhas_propostas", "agregacao_executada",
              "resposta_estrutural", "testemunha_no_contexto", "grounding_mode", "exhaustive",
              "truncations", "aterramento", "exaustiva", "truncamentos",
              "modo_aterramento", "busca_exaustiva", "feixe_exaustivo", "cortes", "risco_calibrado")
@@ -340,6 +349,19 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
     respostas = diagnostics.get("respostas")
     if respostas:
         keep["respostas"] = respostas[:1]
+    # As decisões da verificação e as provas por item do conjunto são o que
+    # estoura o limite. As CONTAGENS não podem sumir junto: são elas que dizem
+    # onde o método parou, e o relatório agrega exatamente esses campos.
+    verification = diagnostics.get("verificacao")
+    if isinstance(verification, dict):
+        keep["verificacao"] = {k: v for k, v in verification.items() if k != "decisoes"}
+    answers = diagnostics.get("conjunto_resposta")
+    if isinstance(answers, dict):
+        keep["conjunto_resposta"] = {
+            **{k: v for k, v in answers.items() if k != "itens"},
+            "itens": [{"resposta": i.get("resposta"), "passagens": i.get("passagens")}
+                      for i in answers.get("itens", [])],
+        }
     keep["_truncado"] = True
     return keep
 

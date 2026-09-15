@@ -1,0 +1,959 @@
+{
+  "run": "runs/locomo-first-witness/benchmark/20260914-215203-028336-qwen-pilot",
+  "manifesto": {
+    "iniciado_em": "2026-09-14T21:52:03.008759+00:00",
+    "datasets": [
+      "locomo"
+    ],
+    "metodos": [
+      "witnessrag"
+    ],
+    "config": {
+      "dataset": "locomo",
+      "n_questions": 102,
+      "top_k": 5,
+      "seed": 42,
+      "subset_corpus": false,
+      "train_questions_path": "",
+      "interleave_methods": true,
+      "corpus_scope": "locomo_full_selected_conversation",
+      "methods": [
+        "witnessrag"
+      ],
+      "ie": {
+        "max_tokens": 1600,
+        "temperature": 0.0,
+        "two_step": true,
+        "max_triples_per_passage": 40
+      },
+      "graph": {
+        "merge_similar_entities": false,
+        "merge_identity_variants": true,
+        "identity_merge_threshold": 0.8,
+        "synonym_threshold": 0.8,
+        "synonym_max_neighbors": 20,
+        "ppr_damping": 0.5,
+        "ppr_tol": 1e-08,
+        "ppr_max_iter": 100
+      },
+      "hippo2": {
+        "n_triples_retrieved": 20,
+        "n_triples_kept": 5,
+        "n_passages_seed": 10,
+        "passage_node_weight": 0.05,
+        "use_recognition_memory": true
+      },
+      "graphrag": {
+        "community_levels": 2,
+        "min_community_size": 3,
+        "build_community_reports": true,
+        "max_communities_reported": 400,
+        "text_units_per_entity": 8
+      },
+      "witness": {
+        "max_atoms": 4,
+        "compile_temperature": 0.0,
+        "grounding_mode": "semantic",
+        "relation_match_threshold": 0.65,
+        "candidates_per_atom": 60,
+        "entity_match_threshold": 0.55,
+        "entity_top_k": 5,
+        "relation_weight": 0.45,
+        "argument_weight": 0.35,
+        "verbalization_weight": 0.2,
+        "max_witnesses": 20,
+        "beam_width": 400,
+        "passage_penalty": 0.15,
+        "binding_aware_grounding": true,
+        "verify_witnesses": true,
+        "verification_max_witnesses": 5,
+        "fact_confidence": 0.9,
+        "delta_interpretation": 0.1,
+        "delta_verbalization": 0.05,
+        "acquisition_rounds": 2,
+        "acquisition_passages": 3,
+        "acquisition_lambda": 0.05,
+        "enable_acquisition": true,
+        "dense_fallback": true,
+        "budget_fraction": 1.0,
+        "ilp_time_limit_s": 120,
+        "ilp_max_facts": 20000
+      },
+      "qa": {
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "top_k": 5
+      }
+    },
+    "llm": {
+      "backend": "openai",
+      "deployment": "Qwen/Qwen2.5-14B-Instruct",
+      "provider_identity": "14d71cdcd76f86f14c43a3847684b225741f3fd3e8e243e090c7a554c5d80e16"
+    },
+    "embedder": {
+      "backend": "st",
+      "chave": "st-BAAI_bge-base-en-v1.5"
+    },
+    "ambiente": {
+      "python": "3.10.12",
+      "plataforma": "Linux-5.15.0-177-generic-x86_64-with-glibc2.35"
+    },
+    "protocolo_versao": 2,
+    "codigo_hash": "cac501765996856f4745fd6ae4559785a66f820a6f11826199d1d203f4f0bfcc",
+    "terminado_em": "2026-09-14T22:04:48.337267+00:00",
+    "resumos": {
+      "locomo": {
+        "dataset": "locomo",
+        "corpus": {
+          "dataset": "locomo",
+          "n_passages": 61,
+          "n_questions": 102,
+          "hops_medio": 1.4,
+          "com_evidencia_anotada": 0,
+          "com_decomposicao": 0,
+          "question_ids": [
+            "locomo:conv-26:qa3",
+            "locomo:conv-26:qa4",
+            "locomo:conv-26:qa7",
+            "locomo:conv-26:qa11",
+            "locomo:conv-26:qa13",
+            "locomo:conv-26:qa15",
+            "locomo:conv-26:qa18",
+            "locomo:conv-26:qa19",
+            "locomo:conv-26:qa23",
+            "locomo:conv-26:qa24",
+            "locomo:conv-26:qa32",
+            "locomo:conv-26:qa34",
+            "locomo:conv-26:qa37",
+            "locomo:conv-26:qa38",
+            "locomo:conv-26:qa39",
+            "locomo:conv-26:qa40",
+            "locomo:conv-26:qa43",
+            "locomo:conv-26:qa47",
+            "locomo:conv-26:qa48",
+            "locomo:conv-26:qa51",
+            "locomo:conv-26:qa52",
+            "locomo:conv-26:qa55",
+            "locomo:conv-26:qa56",
+            "locomo:conv-26:qa60",
+            "locomo:conv-26:qa61",
+            "locomo:conv-26:qa65",
+            "locomo:conv-26:qa66",
+            "locomo:conv-26:qa70",
+            "locomo:conv-26:qa71",
+            "locomo:conv-26:qa75",
+            "locomo:conv-26:qa76",
+            "locomo:conv-26:qa78",
+            "locomo:conv-26:qa82",
+            "locomo:conv-26:qa83",
+            "locomo:conv-26:qa84",
+            "locomo:conv-26:qa85",
+            "locomo:conv-26:qa86",
+            "locomo:conv-26:qa87",
+            "locomo:conv-26:qa88",
+            "locomo:conv-26:qa89",
+            "locomo:conv-26:qa90",
+            "locomo:conv-26:qa91",
+            "locomo:conv-26:qa92",
+            "locomo:conv-26:qa93",
+            "locomo:conv-26:qa94",
+            "locomo:conv-26:qa95",
+            "locomo:conv-26:qa96",
+            "locomo:conv-26:qa97",
+            "locomo:conv-26:qa98",
+            "locomo:conv-26:qa99",
+            "locomo:conv-26:qa100",
+            "locomo:conv-26:qa101",
+            "locomo:conv-26:qa102",
+            "locomo:conv-26:qa103",
+            "locomo:conv-26:qa104",
+            "locomo:conv-26:qa105",
+            "locomo:conv-26:qa106",
+            "locomo:conv-26:qa107",
+            "locomo:conv-26:qa108",
+            "locomo:conv-26:qa109",
+            "locomo:conv-26:qa110",
+            "locomo:conv-26:qa111",
+            "locomo:conv-26:qa112",
+            "locomo:conv-26:qa113",
+            "locomo:conv-26:qa114",
+            "locomo:conv-26:qa115",
+            "locomo:conv-26:qa116",
+            "locomo:conv-26:qa117",
+            "locomo:conv-26:qa118",
+            "locomo:conv-26:qa119",
+            "locomo:conv-26:qa120",
+            "locomo:conv-26:qa121",
+            "locomo:conv-26:qa122",
+            "locomo:conv-26:qa123",
+            "locomo:conv-26:qa124",
+            "locomo:conv-26:qa125",
+            "locomo:conv-26:qa126",
+            "locomo:conv-26:qa127",
+            "locomo:conv-26:qa128",
+            "locomo:conv-26:qa129",
+            "locomo:conv-26:qa130",
+            "locomo:conv-26:qa131",
+            "locomo:conv-26:qa132",
+            "locomo:conv-26:qa133",
+            "locomo:conv-26:qa134",
+            "locomo:conv-26:qa135",
+            "locomo:conv-26:qa136",
+            "locomo:conv-26:qa137",
+            "locomo:conv-26:qa138",
+            "locomo:conv-26:qa139",
+            "locomo:conv-26:qa140",
+            "locomo:conv-26:qa141",
+            "locomo:conv-26:qa142",
+            "locomo:conv-26:qa143",
+            "locomo:conv-26:qa144",
+            "locomo:conv-26:qa145",
+            "locomo:conv-26:qa146",
+            "locomo:conv-26:qa147",
+            "locomo:conv-26:qa148",
+            "locomo:conv-26:qa149",
+            "locomo:conv-26:qa150",
+            "locomo:conv-26:qa151"
+          ],
+          "corpus_hash": "9bd5f76b5c25620926a0c3641f5f61c6d3f5f05aeddd9871ebd5d376ec2106f4",
+          "questions_hash": "06af5c3d4a0fe128ae3b710aa32e4221c9dbba82c07d6315e739a41d69f9db6f"
+        },
+        "indexacao_s": 99.9,
+        "uso_indexacao": {
+          "por_estagio": {
+            "index.ner": {
+              "chamadas": 61,
+              "em_cache": 0,
+              "filtradas": 0,
+              "tokens_prompt": 27973,
+              "tokens_resposta": 3077,
+              "tokens_prompt_sem_cache": 27973,
+              "tokens_resposta_sem_cache": 3077,
+              "latencia_s": 87.21
+            },
+            "index.openie": {
+              "chamadas": 61,
+              "em_cache": 0,
+              "filtradas": 0,
+              "tokens_prompt": 35320,
+              "tokens_resposta": 24058,
+              "tokens_prompt_sem_cache": 35320,
+              "tokens_resposta_sem_cache": 24058,
+              "latencia_s": 529.93
+            }
+          },
+          "total": {
+            "chamadas": 122,
+            "tokens_prompt": 63293,
+            "tokens_resposta": 27135,
+            "filtradas": 0,
+            "em_cache": 0,
+            "tokens_prompt_sem_cache": 63293,
+            "tokens_resposta_sem_cache": 27135
+          }
+        },
+        "indexacao_compartilhada": {
+          "seconds": 99.86082432046533,
+          "usage": {
+            "total": {
+              "tokens_resposta": 27135,
+              "filtradas": 0,
+              "em_cache": 0,
+              "tokens_resposta_sem_cache": 27135,
+              "tokens_prompt_sem_cache": 63293,
+              "chamadas": 122,
+              "tokens_prompt": 63293
+            },
+            "por_estagio": {
+              "index.ner": {
+                "em_cache": 0,
+                "tokens_prompt_sem_cache": 27973,
+                "chamadas": 61,
+                "filtradas": 0,
+                "latencia_s": 87.21,
+                "tokens_resposta_sem_cache": 3077,
+                "tokens_resposta": 3077,
+                "tokens_prompt": 27973
+              },
+              "index.openie": {
+                "em_cache": 0,
+                "tokens_prompt_sem_cache": 35320,
+                "chamadas": 61,
+                "filtradas": 0,
+                "latencia_s": 529.93,
+                "tokens_resposta_sem_cache": 24058,
+                "tokens_resposta": 24058,
+                "tokens_prompt": 35320
+              }
+            }
+          }
+        },
+        "tentativas_indexacao": [
+          {
+            "seconds": 99.86338244751096,
+            "usage": {
+              "por_estagio": {
+                "index.ner": {
+                  "chamadas": 61,
+                  "em_cache": 0,
+                  "filtradas": 0,
+                  "tokens_prompt": 27973,
+                  "tokens_resposta": 3077,
+                  "tokens_prompt_sem_cache": 27973,
+                  "tokens_resposta_sem_cache": 3077,
+                  "latencia_s": 87.21
+                },
+                "index.openie": {
+                  "chamadas": 61,
+                  "em_cache": 0,
+                  "filtradas": 0,
+                  "tokens_prompt": 35320,
+                  "tokens_resposta": 24058,
+                  "tokens_prompt_sem_cache": 35320,
+                  "tokens_resposta_sem_cache": 24058,
+                  "latencia_s": 529.93
+                }
+              },
+              "total": {
+                "chamadas": 122,
+                "tokens_prompt": 63293,
+                "tokens_resposta": 27135,
+                "filtradas": 0,
+                "em_cache": 0,
+                "tokens_prompt_sem_cache": 63293,
+                "tokens_resposta_sem_cache": 27135
+              }
+            },
+            "shared": {
+              "seconds": 99.86082432046533,
+              "usage": {
+                "total": {
+                  "tokens_resposta": 27135,
+                  "filtradas": 0,
+                  "em_cache": 0,
+                  "tokens_resposta_sem_cache": 27135,
+                  "tokens_prompt_sem_cache": 63293,
+                  "chamadas": 122,
+                  "tokens_prompt": 63293
+                },
+                "por_estagio": {
+                  "index.ner": {
+                    "em_cache": 0,
+                    "tokens_prompt_sem_cache": 27973,
+                    "chamadas": 61,
+                    "filtradas": 0,
+                    "latencia_s": 87.21,
+                    "tokens_resposta_sem_cache": 3077,
+                    "tokens_resposta": 3077,
+                    "tokens_prompt": 27973
+                  },
+                  "index.openie": {
+                    "em_cache": 0,
+                    "tokens_prompt_sem_cache": 35320,
+                    "chamadas": 61,
+                    "filtradas": 0,
+                    "latencia_s": 529.93,
+                    "tokens_resposta_sem_cache": 24058,
+                    "tokens_resposta": 24058,
+                    "tokens_prompt": 35320
+                  }
+                }
+              }
+            },
+            "methods": {
+              "witnessrag": {
+                "indexacao": {
+                  "seconds": 0.0019244402647018433,
+                  "usage": {
+                    "total": {
+                      "tokens_resposta": 0,
+                      "filtradas": 0,
+                      "em_cache": 0,
+                      "tokens_resposta_sem_cache": 0,
+                      "tokens_prompt_sem_cache": 0,
+                      "chamadas": 0,
+                      "tokens_prompt": 0
+                    },
+                    "por_estagio": {
+                      "index.ner": {
+                        "em_cache": 0,
+                        "tokens_prompt_sem_cache": 0,
+                        "chamadas": 0,
+                        "filtradas": 0,
+                        "latencia_s": 0.0,
+                        "tokens_resposta_sem_cache": 0,
+                        "tokens_resposta": 0,
+                        "tokens_prompt": 0
+                      },
+                      "index.openie": {
+                        "em_cache": 0,
+                        "tokens_prompt_sem_cache": 0,
+                        "chamadas": 0,
+                        "filtradas": 0,
+                        "latencia_s": 0.0,
+                        "tokens_resposta_sem_cache": 0,
+                        "tokens_resposta": 0,
+                        "tokens_prompt": 0
+                      }
+                    }
+                  }
+                },
+                "selecao": {}
+              }
+            }
+          }
+        ],
+        "embedder": {
+          "backend": "st",
+          "chave": "st-BAAI_bge-base-en-v1.5"
+        },
+        "subset_corpus": false,
+        "corpus_scope": "locomo_full_selected_conversation",
+        "extracao": {
+          "n_fatos": 1257,
+          "n_relacoes_distintas": 657,
+          "n_entidades_distintas": 963,
+          "passagens_bloqueadas": 0,
+          "passagens_sem_fato": 1
+        },
+        "grafo": {
+          "n_nos_frase": 963,
+          "n_clusters_canonicos": 784,
+          "n_fatos": 1257,
+          "n_relacoes_canonicas": 657,
+          "n_arestas_sinonimia": 1570,
+          "n_nos_passagem": 61
+        },
+        "metodos": {
+          "witnessrag": {
+            "n_perguntas": 102,
+            "n_concluidas": 102,
+            "tempo_consulta_s": 657.204,
+            "uso_consulta": {
+              "total": {
+                "tokens_resposta": 29409,
+                "filtradas": 0,
+                "em_cache": 51,
+                "tokens_resposta_sem_cache": 28738,
+                "tokens_prompt_sem_cache": 479985,
+                "chamadas": 598,
+                "tokens_prompt": 504571
+              },
+              "por_estagio": {
+                "index.ner": {
+                  "em_cache": 0,
+                  "tokens_prompt_sem_cache": 0,
+                  "chamadas": 0,
+                  "filtradas": 0,
+                  "latencia_s": 0.0,
+                  "tokens_resposta_sem_cache": 0,
+                  "tokens_resposta": 0,
+                  "tokens_prompt": 0
+                },
+                "index.openie": {
+                  "em_cache": 0,
+                  "tokens_prompt_sem_cache": 0,
+                  "chamadas": 0,
+                  "filtradas": 0,
+                  "latencia_s": 0.0,
+                  "tokens_resposta_sem_cache": 0,
+                  "tokens_resposta": 0,
+                  "tokens_prompt": 0
+                },
+                "qa": {
+                  "em_cache": 0,
+                  "tokens_prompt_sem_cache": 188054,
+                  "chamadas": 102,
+                  "filtradas": 0,
+                  "latencia_s": 46.14,
+                  "tokens_resposta_sem_cache": 1182,
+                  "tokens_resposta": 1182,
+                  "tokens_prompt": 188054
+                },
+                "witness.acquire": {
+                  "em_cache": 51,
+                  "tokens_prompt_sem_cache": 88931,
+                  "chamadas": 240,
+                  "filtradas": 0,
+                  "latencia_s": 97.4,
+                  "tokens_resposta_sem_cache": 2127,
+                  "tokens_resposta": 2798,
+                  "tokens_prompt": 113517
+                },
+                "witness.compile": {
+                  "em_cache": 0,
+                  "tokens_prompt_sem_cache": 56502,
+                  "chamadas": 102,
+                  "filtradas": 0,
+                  "latencia_s": 199.77,
+                  "tokens_resposta_sem_cache": 9569,
+                  "tokens_resposta": 9569,
+                  "tokens_prompt": 56502
+                },
+                "witness.verify": {
+                  "em_cache": 0,
+                  "tokens_prompt_sem_cache": 146498,
+                  "chamadas": 154,
+                  "filtradas": 0,
+                  "latencia_s": 339.31,
+                  "tokens_resposta_sem_cache": 15860,
+                  "tokens_resposta": 15860,
+                  "tokens_prompt": 146498
+                }
+              }
+            },
+            "custo_completo": true,
+            "indice": {
+              "grafo": {
+                "n_nos_frase": 963,
+                "n_clusters_canonicos": 784,
+                "n_fatos": 1257,
+                "n_relacoes_canonicas": 657,
+                "n_arestas_sinonimia": 1570,
+                "n_nos_passagem": 61
+              },
+              "modo_compilacao": "llm",
+              "chamadas_aquisicao": 240,
+              "fatos_adquiridos": 59,
+              "fontes_demandas": {}
+            },
+            "indexacao": {
+              "seconds": 0.0019244402647018433,
+              "usage": {
+                "total": {
+                  "tokens_resposta": 0,
+                  "filtradas": 0,
+                  "em_cache": 0,
+                  "tokens_resposta_sem_cache": 0,
+                  "tokens_prompt_sem_cache": 0,
+                  "chamadas": 0,
+                  "tokens_prompt": 0
+                },
+                "por_estagio": {
+                  "index.ner": {
+                    "em_cache": 0,
+                    "tokens_prompt_sem_cache": 0,
+                    "chamadas": 0,
+                    "filtradas": 0,
+                    "latencia_s": 0.0,
+                    "tokens_resposta_sem_cache": 0,
+                    "tokens_resposta": 0,
+                    "tokens_prompt": 0
+                  },
+                  "index.openie": {
+                    "em_cache": 0,
+                    "tokens_prompt_sem_cache": 0,
+                    "chamadas": 0,
+                    "filtradas": 0,
+                    "latencia_s": 0.0,
+                    "tokens_resposta_sem_cache": 0,
+                    "tokens_resposta": 0,
+                    "tokens_prompt": 0
+                  }
+                }
+              }
+            },
+            "selecao": {}
+          }
+        }
+      }
+    },
+    "filtro_conteudo": {
+      "total": 0,
+      "por_estagio": {},
+      "por_metodo": {}
+    }
+  },
+  "datasets": {
+    "locomo": {
+      "corpus": {
+        "dataset": "locomo",
+        "n_passages": 61,
+        "n_questions": 102,
+        "hops_medio": 1.4,
+        "com_evidencia_anotada": 0,
+        "com_decomposicao": 0,
+        "question_ids": [
+          "locomo:conv-26:qa3",
+          "locomo:conv-26:qa4",
+          "locomo:conv-26:qa7",
+          "locomo:conv-26:qa11",
+          "locomo:conv-26:qa13",
+          "locomo:conv-26:qa15",
+          "locomo:conv-26:qa18",
+          "locomo:conv-26:qa19",
+          "locomo:conv-26:qa23",
+          "locomo:conv-26:qa24",
+          "locomo:conv-26:qa32",
+          "locomo:conv-26:qa34",
+          "locomo:conv-26:qa37",
+          "locomo:conv-26:qa38",
+          "locomo:conv-26:qa39",
+          "locomo:conv-26:qa40",
+          "locomo:conv-26:qa43",
+          "locomo:conv-26:qa47",
+          "locomo:conv-26:qa48",
+          "locomo:conv-26:qa51",
+          "locomo:conv-26:qa52",
+          "locomo:conv-26:qa55",
+          "locomo:conv-26:qa56",
+          "locomo:conv-26:qa60",
+          "locomo:conv-26:qa61",
+          "locomo:conv-26:qa65",
+          "locomo:conv-26:qa66",
+          "locomo:conv-26:qa70",
+          "locomo:conv-26:qa71",
+          "locomo:conv-26:qa75",
+          "locomo:conv-26:qa76",
+          "locomo:conv-26:qa78",
+          "locomo:conv-26:qa82",
+          "locomo:conv-26:qa83",
+          "locomo:conv-26:qa84",
+          "locomo:conv-26:qa85",
+          "locomo:conv-26:qa86",
+          "locomo:conv-26:qa87",
+          "locomo:conv-26:qa88",
+          "locomo:conv-26:qa89",
+          "locomo:conv-26:qa90",
+          "locomo:conv-26:qa91",
+          "locomo:conv-26:qa92",
+          "locomo:conv-26:qa93",
+          "locomo:conv-26:qa94",
+          "locomo:conv-26:qa95",
+          "locomo:conv-26:qa96",
+          "locomo:conv-26:qa97",
+          "locomo:conv-26:qa98",
+          "locomo:conv-26:qa99",
+          "locomo:conv-26:qa100",
+          "locomo:conv-26:qa101",
+          "locomo:conv-26:qa102",
+          "locomo:conv-26:qa103",
+          "locomo:conv-26:qa104",
+          "locomo:conv-26:qa105",
+          "locomo:conv-26:qa106",
+          "locomo:conv-26:qa107",
+          "locomo:conv-26:qa108",
+          "locomo:conv-26:qa109",
+          "locomo:conv-26:qa110",
+          "locomo:conv-26:qa111",
+          "locomo:conv-26:qa112",
+          "locomo:conv-26:qa113",
+          "locomo:conv-26:qa114",
+          "locomo:conv-26:qa115",
+          "locomo:conv-26:qa116",
+          "locomo:conv-26:qa117",
+          "locomo:conv-26:qa118",
+          "locomo:conv-26:qa119",
+          "locomo:conv-26:qa120",
+          "locomo:conv-26:qa121",
+          "locomo:conv-26:qa122",
+          "locomo:conv-26:qa123",
+          "locomo:conv-26:qa124",
+          "locomo:conv-26:qa125",
+          "locomo:conv-26:qa126",
+          "locomo:conv-26:qa127",
+          "locomo:conv-26:qa128",
+          "locomo:conv-26:qa129",
+          "locomo:conv-26:qa130",
+          "locomo:conv-26:qa131",
+          "locomo:conv-26:qa132",
+          "locomo:conv-26:qa133",
+          "locomo:conv-26:qa134",
+          "locomo:conv-26:qa135",
+          "locomo:conv-26:qa136",
+          "locomo:conv-26:qa137",
+          "locomo:conv-26:qa138",
+          "locomo:conv-26:qa139",
+          "locomo:conv-26:qa140",
+          "locomo:conv-26:qa141",
+          "locomo:conv-26:qa142",
+          "locomo:conv-26:qa143",
+          "locomo:conv-26:qa144",
+          "locomo:conv-26:qa145",
+          "locomo:conv-26:qa146",
+          "locomo:conv-26:qa147",
+          "locomo:conv-26:qa148",
+          "locomo:conv-26:qa149",
+          "locomo:conv-26:qa150",
+          "locomo:conv-26:qa151"
+        ],
+        "corpus_hash": "9bd5f76b5c25620926a0c3641f5f61c6d3f5f05aeddd9871ebd5d376ec2106f4",
+        "questions_hash": "06af5c3d4a0fe128ae3b710aa32e4221c9dbba82c07d6315e739a41d69f9db6f"
+      },
+      "excluidas": [],
+      "metodos": {
+        "witnessrag": {
+          "n_avaliadas": 102,
+          "n_filtradas": 0,
+          "metricas": {
+            "recall@2": 0.6053921568627452,
+            "recall@5": 0.6944444444444445,
+            "all_recall@5": 0.6176470588235294,
+            "em": 0.22549019607843138,
+            "f1": 0.4672808958504815
+          },
+          "ic95": {
+            "recall@2": [
+              0.5179738562091504,
+              0.6977124183006538
+            ],
+            "recall@5": [
+              0.6143790849673204,
+              0.7761437908496732
+            ],
+            "all_recall@5": [
+              0.5294117647058824,
+              0.7156862745098039
+            ],
+            "em": [
+              0.14705882352941177,
+              0.3137254901960784
+            ],
+            "f1": [
+              0.39112653240251655,
+              0.5449576593134016
+            ]
+          },
+          "abstencao": 0.12745098039215685,
+          "latencia_s": 5.990833333333335
+        }
+      },
+      "ausentes_por_metodo": {
+        "witnessrag": []
+      },
+      "ids_comparados": [
+        "locomo:conv-26:qa100",
+        "locomo:conv-26:qa101",
+        "locomo:conv-26:qa102",
+        "locomo:conv-26:qa103",
+        "locomo:conv-26:qa104",
+        "locomo:conv-26:qa105",
+        "locomo:conv-26:qa106",
+        "locomo:conv-26:qa107",
+        "locomo:conv-26:qa108",
+        "locomo:conv-26:qa109",
+        "locomo:conv-26:qa11",
+        "locomo:conv-26:qa110",
+        "locomo:conv-26:qa111",
+        "locomo:conv-26:qa112",
+        "locomo:conv-26:qa113",
+        "locomo:conv-26:qa114",
+        "locomo:conv-26:qa115",
+        "locomo:conv-26:qa116",
+        "locomo:conv-26:qa117",
+        "locomo:conv-26:qa118",
+        "locomo:conv-26:qa119",
+        "locomo:conv-26:qa120",
+        "locomo:conv-26:qa121",
+        "locomo:conv-26:qa122",
+        "locomo:conv-26:qa123",
+        "locomo:conv-26:qa124",
+        "locomo:conv-26:qa125",
+        "locomo:conv-26:qa126",
+        "locomo:conv-26:qa127",
+        "locomo:conv-26:qa128",
+        "locomo:conv-26:qa129",
+        "locomo:conv-26:qa13",
+        "locomo:conv-26:qa130",
+        "locomo:conv-26:qa131",
+        "locomo:conv-26:qa132",
+        "locomo:conv-26:qa133",
+        "locomo:conv-26:qa134",
+        "locomo:conv-26:qa135",
+        "locomo:conv-26:qa136",
+        "locomo:conv-26:qa137",
+        "locomo:conv-26:qa138",
+        "locomo:conv-26:qa139",
+        "locomo:conv-26:qa140",
+        "locomo:conv-26:qa141",
+        "locomo:conv-26:qa142",
+        "locomo:conv-26:qa143",
+        "locomo:conv-26:qa144",
+        "locomo:conv-26:qa145",
+        "locomo:conv-26:qa146",
+        "locomo:conv-26:qa147",
+        "locomo:conv-26:qa148",
+        "locomo:conv-26:qa149",
+        "locomo:conv-26:qa15",
+        "locomo:conv-26:qa150",
+        "locomo:conv-26:qa151",
+        "locomo:conv-26:qa18",
+        "locomo:conv-26:qa19",
+        "locomo:conv-26:qa23",
+        "locomo:conv-26:qa24",
+        "locomo:conv-26:qa3",
+        "locomo:conv-26:qa32",
+        "locomo:conv-26:qa34",
+        "locomo:conv-26:qa37",
+        "locomo:conv-26:qa38",
+        "locomo:conv-26:qa39",
+        "locomo:conv-26:qa4",
+        "locomo:conv-26:qa40",
+        "locomo:conv-26:qa43",
+        "locomo:conv-26:qa47",
+        "locomo:conv-26:qa48",
+        "locomo:conv-26:qa51",
+        "locomo:conv-26:qa52",
+        "locomo:conv-26:qa55",
+        "locomo:conv-26:qa56",
+        "locomo:conv-26:qa60",
+        "locomo:conv-26:qa61",
+        "locomo:conv-26:qa65",
+        "locomo:conv-26:qa66",
+        "locomo:conv-26:qa7",
+        "locomo:conv-26:qa70",
+        "locomo:conv-26:qa71",
+        "locomo:conv-26:qa75",
+        "locomo:conv-26:qa76",
+        "locomo:conv-26:qa78",
+        "locomo:conv-26:qa82",
+        "locomo:conv-26:qa83",
+        "locomo:conv-26:qa84",
+        "locomo:conv-26:qa85",
+        "locomo:conv-26:qa86",
+        "locomo:conv-26:qa87",
+        "locomo:conv-26:qa88",
+        "locomo:conv-26:qa89",
+        "locomo:conv-26:qa90",
+        "locomo:conv-26:qa91",
+        "locomo:conv-26:qa92",
+        "locomo:conv-26:qa93",
+        "locomo:conv-26:qa94",
+        "locomo:conv-26:qa95",
+        "locomo:conv-26:qa96",
+        "locomo:conv-26:qa97",
+        "locomo:conv-26:qa98",
+        "locomo:conv-26:qa99"
+      ],
+      "diferencas_pareadas_ic95": {},
+      "por_categoria": {
+        "witnessrag": {
+          "single-hop": {
+            "n": 70,
+            "f1": 0.5370553672567635,
+            "em": 0.3,
+            "recall@5": 0.8285714285714286,
+            "all_recall@5": 0.8285714285714286,
+            "f1_locomo": 0.5399803300455664,
+            "em_locomo": 0.3
+          },
+          "multi-hop": {
+            "n": 32,
+            "f1": 0.31464923964923963,
+            "em": 0.0625,
+            "recall@5": 0.40104166666666663,
+            "all_recall@5": 0.15625,
+            "f1_locomo": 0.3040769993894994,
+            "em_locomo": 0.125
+          }
+        }
+      },
+      "por_hops": {
+        "witnessrag": {
+          "1": {
+            "n": 74,
+            "f1": 0.52153886091856,
+            "all_recall@5": 0.8108108108108109
+          },
+          "2": {
+            "n": 20,
+            "f1": 0.34354700854700854,
+            "all_recall@5": 0.15
+          },
+          "3": {
+            "n": 4,
+            "f1": 0.24188311688311692,
+            "all_recall@5": 0.0
+          },
+          "4": {
+            "n": 3,
+            "f1": 0.35454545454545455,
+            "all_recall@5": 0.0
+          },
+          "5": {
+            "n": 1,
+            "f1": 0.16666666666666666,
+            "all_recall@5": 0.0
+          }
+        }
+      },
+      "por_forma": {
+        "witnessrag": {
+          "branching": {
+            "n": 9,
+            "f1": 0.37535612535612534
+          },
+          "chain": {
+            "n": 29,
+            "f1": 0.5057179914257954
+          },
+          "cyclic": {
+            "n": 2,
+            "f1": 0.5
+          },
+          "disconnected": {
+            "n": 5,
+            "f1": 0.35333333333333333
+          },
+          "intersection": {
+            "n": 27,
+            "f1": 0.552527670252538
+          },
+          "single-hop": {
+            "n": 18,
+            "f1": 0.41254301254301257
+          }
+        }
+      },
+      "resposta_estrutural": {
+        "witnessrag": {
+          "n": 102,
+          "em": 0.0196078431372549,
+          "cobertura": 0.13725490196078433
+        }
+      },
+      "onde_parou": {
+        "witnessrag": {
+          "n": 102,
+          "taxa_de_disparo": 0.13725490196078433,
+          "por_parada": {
+            "testemunha usada": 14,
+            "sem consulta": 12,
+            "compilação bloqueada": 0,
+            "junção não fechou": 49,
+            "verificação rejeitou": 27,
+            "outro": 0
+          },
+          "testemunhas_avaliadas": 154,
+          "testemunhas_aceitas": 25,
+          "taxa_de_aprovacao": 0.16233766233766234
+        }
+      },
+      "risco_cobertura": {
+        "witnessrag": [
+          {
+            "cobertura": 0.08823529411764706,
+            "em_estrutural": 0.1111111111111111,
+            "limiar": 0.4197
+          },
+          {
+            "cobertura": 1.0,
+            "em_estrutural": 0.0196078431372549,
+            "limiar": 99.0
+          }
+        ]
+      },
+      "custo": {
+        "witnessrag": {
+          "tokens_resposta": 29409,
+          "filtradas": 0,
+          "em_cache": 51,
+          "tokens_resposta_sem_cache": 28738,
+          "tokens_prompt_sem_cache": 479985,
+          "chamadas": 598,
+          "tokens_prompt": 504571
+        }
+      }
+    }
+  }
+}

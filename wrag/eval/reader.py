@@ -53,9 +53,10 @@ def read(
             continue
         passages.append((passage.title, passage.text))
 
+    template = prompts.QA_SET_TEMPLATE if cfg.answer_set else prompts.QA_TEMPLATE
     result = llm.chat(
-        prompts.QA_TEMPLATE.format(passages=prompts.format_passages(passages),
-                                   question=question.question),
+        template.format(passages=prompts.format_passages(passages),
+                        question=question.question),
         system=prompts.QA_SYSTEM,
         params=GenParams(temperature=cfg.temperature, max_tokens=cfg.max_tokens, json_mode=True),
         stage="qa",

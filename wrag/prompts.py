@@ -66,6 +66,65 @@ Named entities found in this passage: {entities}
 {text}"""
 
 
+# Extração de diálogo. Num corpus conversacional a maior parte das asserções
+# está em primeira pessoa ("I moved from Sweden", "my kids love dinosaurs"): sem
+# resolver o falante, o sujeito do fato é um pronome e nenhuma junção fecha.
+# A data da sessão entra como escopo temporal do fato, não como entidade solta.
+OPENIE_DIALOGUE_SYSTEM = (
+    "You are an open information extraction system for conversation transcripts. "
+    "You convert dialogue turns into subject-relation-object triples with the speaker "
+    "resolved. You always answer with a single JSON object and nothing else."
+)
+
+OPENIE_DIALOGUE_TEMPLATE = """Convert the conversation block below into open knowledge-graph triples.
+
+Each line is "[dialog id] Speaker: text". The block starts with the session date.
+
+Rules:
+- Resolve the speaker: "I", "me", "my", "mine" refer to the speaker of THAT line.
+  Write the speaker's name as the subject, never a pronoun.
+- Resolve "you"/"your" to the other participant of the conversation.
+- Resolve "he", "she", "they", "it" and possessives to the entity named earlier in
+  this block. If the referent is not in this block, keep the noun phrase as written
+  and do not guess a name.
+- Name relatives and belongings through their owner: "my son Theo" is
+  ("Theo", "child of", "<speaker>"), not ("my son", ...).
+- The relation is SHORT: one to four words, a predicate and nothing else. It never
+  contains the object, a whole sentence, or the name of the person being addressed.
+- For reported speech, the fact is about the CONTENT, not about the listener.
+  "Mel: running is a great way to destress" is ("Mel", "destresses by", "running"),
+  never ("Mel", "said running is a great way to destress", "<listener>").
+- The object is a thing, person, place, date or value taken from the text. Never
+  "true", "false" or "yes": if a statement has no object, write the relation so
+  that it has one, or leave the statement out.
+- Every triple must be supported by the block on its own. Do not infer.
+- Add the time as a fourth element when the triple describes something that
+  happened, changed or was stated at a moment: use the session date for what the
+  speaker reports in that session, or the explicit date/period the text gives
+  ("last year", "in October"). Use "" when the fact is not tied to a time.
+- Keep dates, numbers and titles as they are written.
+- At most {max_triples} triples.
+
+Answer with JSON exactly in this shape:
+{{"triples": [["subject", "relation", "object", "time"]]}}
+
+Example. For the block
+
+  Session date: 8 May, 2023
+  [D1:1] Mel: I finally finished Charlotte's Web with my son Theo last week!
+  [D1:2] Caroline: Nice! I painted a sunset yesterday.
+
+the triples are
+{{"triples": [["Mel", "read", "Charlotte's Web", "last week"],
+             ["Theo", "child of", "Mel", ""],
+             ["Caroline", "painted", "a sunset", "7 May, 2023"]]}}
+
+Named entities found in this block: {entities}
+
+### INPUT
+{text}"""
+
+
 # Extração dirigida, usada pela aquisição adaptativa do WITNESS-RAG. A diferença
 # em relação ao OpenIE geral é o alvo: aqui já sabemos qual buraco da testemunha
 # queremos fechar, então pedimos exatamente aquela relação.
@@ -176,7 +235,7 @@ Guidance:
 - At most {max_atoms} atoms. If the question needs comparison, counting or
   negation, still emit the atoms that fetch the facts to be compared, and set
   "aggregation" to describe what is done with them.
-
+{vocabulary}
 Answer with JSON exactly in this shape:
 {{"answer_var": "x",
   "atoms": [{{"relation": "...", "subject": "...", "object": "?x"}}],
@@ -217,6 +276,52 @@ Answer with JSON exactly in this shape:
 {passages}
 
 PERGUNTA: {question}"""
+
+
+# Variante ciente de conjunto. A diferença é só a regra de completude: quando a
+# pergunta pede um conjunto, a resposta curta de um item está ERRADA por omissão,
+# e o leitor precisa poder dizer isso. O resto do prompt é idêntico, e a variante
+# vale para todos os métodos da rodada — a comparação entre métodos não muda.
+QA_SET_TEMPLATE = """Answer the question using only the passages below.
+
+Give the shortest answer that is complete: a name, a date, a number or a short noun
+phrase. Do not write a sentence.
+
+Some questions ask for a SET: everything a person did, made, visited, read, owns,
+was given, or took part in, possibly mentioned on different days. For those, list
+EVERY item the passages support, separated by commas, and nothing else. Answering
+with one item is complete only when the passages support exactly one. Never add an
+item the passages do not state, and never repeat the same item twice.
+
+If the passages do not contain the answer, answer with "insufficient information".
+
+Answer with JSON exactly in this shape:
+{{"answer": "..."}}
+
+### INPUT
+{passages}
+
+PERGUNTA: {question}"""
+
+
+def format_vocabulary(relations: Sequence[str], entities: Sequence[str]) -> str:
+    """Bloco de vocabulário para a compilação. Vazio quando a ablação está desligada.
+
+    São sugestões extraídas do grafo, não um esquema fechado: o compilador pode
+    emitir outra relação, e o texto diz isso. Fechar o vocabulário transformaria
+    um erro de extração em impossibilidade de compilar.
+    """
+    if not relations and not entities:
+        return ""
+    parts = ["\nThe graph was built from the corpus and already contains these relations."
+             " Prefer one of them, with its exact spelling, whenever it expresses what the"
+             " question asks. Invent a new relation only when none of them fits:"]
+    if relations:
+        parts.append("  " + "; ".join(relations))
+    if entities:
+        parts.append("Entity names that exist in the graph, useful as constants:")
+        parts.append("  " + "; ".join(entities))
+    return "\n".join(parts) + "\n"
 
 
 def format_passages(passages: Sequence[tuple[str, str]], max_chars: int | None = None) -> str:

@@ -11,7 +11,7 @@ from wrag.embed import Embedder, TfidfEmbedder, get_embedder
 from wrag.llm import LLM, get_llm
 from wrag.llm.base import usage_delta
 from wrag.methods.base import IndexContext, RetrievalResult, Retriever
-from wrag.methods.dense import BM25Retriever, DenseRetriever
+from wrag.methods.dense import BM25Retriever, DenseRetriever, HybridRetriever
 from wrag.methods.graphrag import GraphRAGRetriever
 from wrag.methods.hipporag import HippoRAGRetriever, ensure_graph
 from wrag.methods.hipporag2 import HippoRAG2Retriever
@@ -24,6 +24,7 @@ log = get_logger("wrag.methods")
 REGISTRY: dict[str, Callable[[IndexContext], Retriever]] = {
     "dense": DenseRetriever,
     "bm25": BM25Retriever,
+    "hybrid": HybridRetriever,
     "graphrag": GraphRAGRetriever,
     "hipporag": HippoRAGRetriever,
     "hipporag2": HippoRAG2Retriever,

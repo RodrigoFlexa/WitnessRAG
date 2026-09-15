@@ -147,7 +147,8 @@ class ConjunctiveQuery:
                 "expected_type": self.expected_type, "aggregation": self.aggregation,
                 "shape": self.shape(), "source": self.source, "fallback": self.fallback,
                 "validation_error": self.validation_error,
-                "uses_annotations": self.source != "llm"}
+                # O vocabulário vem do grafo extraído, não de anotação do dataset.
+                "uses_annotations": self.source not in ("llm", "llm-vocabulario")}
 
 
 # ---------------------------------------------------------------------------
@@ -156,9 +157,10 @@ class ConjunctiveQuery:
 
 def compile_with_llm(llm: LLM, question: Question, max_atoms: int = 4,
                      temperature: float = 0.0, dataset: str = "", method: str = "witnessrag",
-                     ) -> ConjunctiveQuery:
+                     vocabulary: str = "") -> ConjunctiveQuery:
     result = llm.chat(
-        prompts.COMPILE_TEMPLATE.format(question=question.question, max_atoms=max_atoms),
+        prompts.COMPILE_TEMPLATE.format(question=question.question, max_atoms=max_atoms,
+                                        vocabulary=vocabulary),
         system=prompts.COMPILE_SYSTEM,
         params=GenParams(temperature=temperature, max_tokens=900, json_mode=True),
         stage="witness.compile",
@@ -184,7 +186,7 @@ def compile_with_llm(llm: LLM, question: Question, max_atoms: int = 4,
         expected_type=str(data.get("expected_type") or "other"),
         aggregation=str(data.get("aggregation") or "none"),
         fallback=str(data.get("fallback") or question.question),
-        source="llm",
+        source="llm-vocabulario" if vocabulary else "llm",
     )
     return _repair(query, question)
 
@@ -315,7 +317,8 @@ def from_evidences(question: Question) -> ConjunctiveQuery:
 
 def compile_query(llm: LLM, question: Question, mode: str = "llm",
                   max_atoms: int = 4, temperature: float = 0.0,
-                  dataset: str = "", method: str = "witnessrag") -> ConjunctiveQuery:
+                  dataset: str = "", method: str = "witnessrag",
+                  vocabulary: str = "") -> ConjunctiveQuery:
     if mode in {"oracle", "annotated"}:
         if question.evidences:
             query = from_evidences(question)
@@ -325,4 +328,4 @@ def compile_query(llm: LLM, question: Question, mode: str = "llm",
             query = ConjunctiveQuery(fallback=question.question, source="oracle-indisponivel")
         return query  # nunca misturar silenciosamente anotação e compilação por LLM
     return compile_with_llm(llm, question, max_atoms=max_atoms, temperature=temperature,
-                            dataset=dataset, method=method)
+                            dataset=dataset, method=method, vocabulary=vocabulary)

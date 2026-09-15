@@ -22,6 +22,7 @@ from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_METHODS = "dense,bm25,graphrag,hipporag,hipporag2,relational,witnessrag"
+LOCOMO_CONVERSATIONS = 10   # locomo10.json; `--locomo-conversation all` roda as dez
 
 
 def parser():
@@ -42,7 +43,8 @@ def parser():
     p.add_argument("--dataset", choices=["2wikimultihopqa", "musique", "hotpotqa", "sample", "locomo"], default="2wikimultihopqa")
     p.add_argument("-n", "--questions", type=int, default=None,
                    help="padrão: 100; LoCoMo: todas as perguntas das categorias 1 e 4")
-    p.add_argument("--locomo-conversation", type=int, default=0, help="índice da conversa, começando em zero")
+    p.add_argument("--locomo-conversation", default="0",
+                   help="índice da conversa, começando em zero, ou 'all' para as dez em sequência")
     p.add_argument("--locomo-turns-per-passage", type=int, default=8)
     p.add_argument("--locomo-file", type=Path, help="opcional: locomo10.json local, sem download")
     p.add_argument("--distractors", type=int, default=300, help="passagens aleatórias adicionais ao corpus candidato")
@@ -51,6 +53,15 @@ def parser():
     p.add_argument("--no-acquisition", action="store_true", help="ablação sem aquisição dirigida")
     p.add_argument("--binding-aware-grounding", action="store_true")
     p.add_argument("--verify-witnesses", action="store_true")
+    p.add_argument("--top-k", type=int, default=5, help="passagens entregues ao leitor")
+    p.add_argument("--answer-set", action="store_true",
+                   help="resposta como conjunto de atribuições certas, com prova por item")
+    p.add_argument("--vocab-compile", action="store_true",
+                   help="compilação ancorada nas relações e entidades do grafo")
+    p.add_argument("--hybrid-fallback", action="store_true",
+                   help="fallback por fusão recíproca de postos (denso + BM25)")
+    p.add_argument("--dialogue-ie", action="store_true",
+                   help="extração adaptada a diálogo: falante como sujeito e tempo do fato")
     p.add_argument("--hours", type=float, default=6.5, help="janela total; reserva 2 min para finalização")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--output", type=Path)
@@ -68,8 +79,18 @@ def make_plan(args, output):
         args.methods = "witnessrag" if args.dataset == "locomo" else DEFAULT_METHODS
     if args.locomo_file:
         args.locomo_file = args.locomo_file.resolve()
-    if args.locomo_conversation < 0 or args.locomo_turns_per_passage < 1:
-        raise ValueError("índice LoCoMo deve ser >= 0 e tamanho da passagem >= 1")
+    if str(args.locomo_conversation).strip().lower() == "all":
+        # Cada conversa é uma memória própria: as perguntas de uma nunca devem ser
+        # respondidas com o diálogo de outra. São dez corpora e dez rodadas, e não
+        # um corpus único — juntar tudo criaria distratores que o protocolo
+        # publicado não tem, e "John" aparece em três conversas diferentes.
+        args.locomo_conversation = "all"
+    else:
+        args.locomo_conversation = int(args.locomo_conversation)
+        if args.locomo_conversation < 0:
+            raise ValueError("índice LoCoMo deve ser >= 0 ou 'all'")
+    if args.locomo_turns_per_passage < 1:
+        raise ValueError("tamanho da passagem deve ser >= 1")
     if not args.gpu.strip() or "," in args.gpu:
         raise ValueError("selecione uma GPU; este piloto usa tensor-parallel-size=1")
     if args.hours <= 2 / 60 or (args.questions is not None and args.questions < 1) or args.max_passages < 1 or args.distractors < 0:
@@ -78,11 +99,13 @@ def make_plan(args, output):
         raise ValueError("memória, concorrência ou porta inválidas")
     if args.max_model_len < 4096:
         raise ValueError("use contexto >= 4096; o leitor recebe passagens completas")
+    if args.top_k < 1:
+        raise ValueError("top-k deve ser >= 1")
     if args.embed_device not in {"cpu", "cuda", "cuda:0"}:
         raise ValueError("embed-device deve ser cpu ou cuda:0 na GPU remapeada")
     methods = [x.strip() for x in args.methods.split(",") if x.strip()]
-    available = {"dense", "bm25", "graphrag", "hipporag", "hipporag2", "relational", "witnessrag",
-                 "witnessrag-annotated", "witnessrag-oracle"}
+    available = {"dense", "bm25", "hybrid", "graphrag", "hipporag", "hipporag2", "relational",
+                 "witnessrag", "witnessrag-annotated", "witnessrag-oracle"}
     if not methods or len(set(methods)) != len(methods) or set(methods) - available:
         raise ValueError("lista de métodos inválida ou duplicada")
     env = {
@@ -116,6 +139,24 @@ def make_plan(args, output):
             "scope": ("LoCoMo: conversa completa, QA single-hop/multi-hop, adaptação textual"
                       if args.dataset == "locomo" else
                       "piloto com corpus candidato reduzido e distratores; adaptações locais dos artigos")}
+
+
+def locomo_conversations(plan):
+    """Índices a rodar: um só, ou as dez conversas do arquivo oficial."""
+    settings = plan["settings"]
+    if settings.get("locomo_conversation") != "all":
+        return [int(settings.get("locomo_conversation", 0))]
+    return list(range(LOCOMO_CONVERSATIONS))
+
+
+def prepare_conversation(plan, index, output):
+    """Prepara UMA conversa num diretório próprio, reusando o snapshot baixado."""
+    from wrag.locomo import prepare
+    settings = plan["settings"]
+    shared = Path(plan["output"]) / "source-data" / "locomo10.json"
+    source = settings.get("locomo_file") or (str(shared) if shared.exists() else None)
+    return prepare(output, source, index, settings.get("locomo_turns_per_passage", 8),
+                   settings.get("questions"), settings["seed"], settings["max_passages"])
 
 
 def prepare_data(plan):
@@ -176,7 +217,10 @@ def worker(plan_path):
     setup_logging()
     settings = plan["settings"]
     print("Preparando corpus do piloto...", flush=True)
-    metadata = prepare_data(plan)
+    every = settings["dataset"] == "locomo" and settings.get("locomo_conversation") == "all"
+    # No modo "all" esta chamada serve para baixar e registrar o snapshot uma vez
+    # (origem e SHA-256); cada conversa é preparada depois no seu diretório.
+    metadata = prepare_conversation(plan, 0, Path(plan["output"])) if every else prepare_data(plan)
     print(json.dumps({k: v for k, v in metadata.items() if k not in {"question_ids", "question_mapping"}}, ensure_ascii=False), flush=True)
     import importlib.metadata
     versions = {}
@@ -191,15 +235,68 @@ def worker(plan_path):
                      stage="pilot.preflight")
     if not isinstance(probe.json(), dict) or probe.json().get("ok") is not True:
         raise RuntimeError("preflight não retornou o JSON esperado; confira modelo/endpoint")
-    cfg = C.RunConfig(n_questions=settings["questions"] or metadata["questions"], seed=settings["seed"], top_k=5,
+    # Mantém os demais hiperparâmetros consolidados: sem corte oculto de tokens/fatos.
+    if settings["dataset"] == "locomo" and settings.get("locomo_conversation") == "all":
+        roots = _run_every_conversation(plan, settings)
+    else:
+        roots = [str(run([settings["dataset"]], plan["methods"],
+                         _run_config(settings, metadata["questions"]), tag="qwen-pilot"))]
+    write_json(Path(plan["output"]) / "completed.json",
+               {"run_dir": roots[0], "run_dirs": roots})
+
+
+def _run_config(settings, n_questions):
+    from wrag import config as C
+    cfg = C.RunConfig(n_questions=settings["questions"] or n_questions, seed=settings["seed"],
+                      top_k=settings.get("top_k", 5),
                       interleave_methods=True, corpus_scope=("locomo_full_selected_conversation"
                       if settings["dataset"] == "locomo" else "pilot_candidates_plus_random_distractors"))
     cfg.witness.enable_acquisition = not settings["no_acquisition"]
     cfg.witness.binding_aware_grounding = settings.get("binding_aware_grounding", False)
     cfg.witness.verify_witnesses = settings.get("verify_witnesses", False)
-    # Mantém os demais hiperparâmetros consolidados: sem corte oculto de tokens/fatos.
-    root = run([settings["dataset"]], plan["methods"], cfg, tag="qwen-pilot")
-    write_json(Path(plan["output"]) / "completed.json", {"run_dir": str(root)})
+    cfg.witness.answer_set = settings.get("answer_set", False)
+    cfg.qa.answer_set = settings.get("answer_set", False)
+    cfg.witness.vocabulary_aware_compile = settings.get("vocab_compile", False)
+    cfg.witness.hybrid_fallback = settings.get("hybrid_fallback", False)
+    cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
+    return cfg
+
+
+def _run_every_conversation(plan, settings):
+    """Uma rodada por conversa, no mesmo servidor e no mesmo cache de extração.
+
+    Dez corpora separados, não um corpus único: cada conversa é a memória das
+    suas próprias perguntas, e é assim que o LoCoMo é avaliado. O cache de
+    OpenIE é chaveado pelo conteúdo do corpus, então as dez convivem sem colisão.
+
+    O prazo é checado ENTRE conversas: interromper no meio de uma deixaria uma
+    rodada parcial cujo denominador não é comparável com as outras.
+    """
+    from wrag import config as C
+    from wrag.eval.runner import run
+    from wrag.util import write_json
+
+    output = Path(plan["output"])
+    deadline = plan.get("deadline_epoch")
+    roots, done = [], []
+    for index in locomo_conversations(plan):
+        if deadline is not None and time.time() >= deadline:
+            print(f"Prazo atingido; conversas restantes não foram executadas.", flush=True)
+            break
+        conversation = output / "conversations" / f"conv{index:02d}"
+        metadata = prepare_conversation(plan, index, conversation)
+        print(f"\n=== conversa {index} ({metadata['sample_id']}): "
+              f"{metadata['questions']} perguntas, {metadata['selected_passages']} blocos ===", flush=True)
+        C.DATA_DIR = conversation / "data"
+        C.RUNS_DIR = conversation / "benchmark"
+        C.RUNS_DIR.mkdir(parents=True, exist_ok=True)
+        root = run([settings["dataset"]], plan["methods"],
+                   _run_config(settings, metadata["questions"]), tag=f"conv{index:02d}")
+        roots.append(str(root))
+        done.append({"conversa": index, "sample_id": metadata["sample_id"],
+                     "perguntas": metadata["questions"], "run_dir": str(root)})
+        write_json(output / "conversations.json", {"conversas": done})
+    return roots
 
 
 def stop_owned(process):
@@ -255,6 +352,9 @@ def launch(args):
         raise ValueError("--output deve ser novo ou vazio; resultados existentes não serão sobrescritos")
     output.mkdir(parents=True, exist_ok=True)
     plan_path = output / "pilot.json"
+    # O worker precisa do MESMO prazo para não começar uma conversa que não cabe:
+    # ser morto no meio deixaria uma rodada parcial com denominador incomparável.
+    plan["deadline_epoch"] = time.time() + args.hours * 3600 - 180
     plan_path.write_text(json.dumps(plan, ensure_ascii=False, indent=2), encoding="utf-8")
     env = {**os.environ, **plan["env"]}
     # 120s reservados para encerrar processos e gerar relatórios/gráficos.
@@ -309,7 +409,8 @@ def launch(args):
         stop_owned(job)
         stop_owned(server)
         (output / "status.json").write_text(json.dumps({"status": status}), encoding="utf-8")
-        manifests = sorted((output / "benchmark").glob("*/run.json"))
+        manifests = sorted((output / "benchmark").glob("*/run.json")) + \
+            sorted((output / "conversations").glob("*/benchmark/*/run.json"))
         for manifest in manifests:
             try:
                 subprocess.run([sys.executable, "-m", "wrag.eval.plots", str(manifest.parent)],
@@ -324,11 +425,70 @@ def launch(args):
     return 0 if status == "complete" else 2
 
 
+def print_locomo_aggregate(output, status, run_dirs):
+    """Tabela única das conversas rodadas, por método, com o detalhe por conversa.
+
+    A média é micro: toda pergunta pesa igual, conversas maiores pesam mais. As
+    conversas continuam sendo corpora separados — isto é uma agregação de dez
+    experimentos, não um experimento sobre um índice único.
+    """
+    from wrag.eval.locomo_official import aggregate_runs
+    from wrag.util import write_json
+
+    summary = aggregate_runs(run_dirs)
+    write_json(Path(output) / "locomo_agregado.json", summary)
+    official = summary.get("oficial_disponivel")
+    keys = (("f1_locomo", "em_locomo") if official else ()) + ("f1", "em", "recall@5", "all_recall@5")
+    labels = (("F1ofic", "EMofic") if official else ()) + ("F1", "EM", "R@5", "AR@5")
+
+    def pct(value):
+        return f"{100 * value:.2f}" if isinstance(value, (int, float)) and math.isfinite(value) else "—"
+
+    total = sum(v["n"] for v in next(iter(summary["metodos"].values()), {"por_conversa": {}})["por_conversa"].values()) \
+        if summary["metodos"] else 0
+    print(f"\nResultados ({'concluído' if status == 'complete' else 'PARCIAIS — ' + status}): "
+          f"{summary['conversas']} conversa(s), {total} perguntas, média micro\n")
+    print(f"{'método / categoria':<35} {'n':>5} " + " ".join(f"{x:>8}" for x in labels) + f" {'disparo':>8}")
+    for method, values in summary["metodos"].items():
+        for label, block in [(method, values)] + [(f"  {k}", v) for k, v in values["por_categoria"].items()]:
+            fire = pct(block["taxa_de_disparo"]) if "taxa_de_disparo" in block else "—"
+            print(f"{label:<35} {block['n']:>5} "
+                  + " ".join(f"{pct(block.get(k)):>8}" for k in keys) + f" {fire:>8}")
+    first = next(iter(summary["metodos"]), None)
+    if first and len(summary["metodos"][first]["por_conversa"]) > 1:
+        column = "f1_locomo" if official else "f1"
+        print(f"\nPor conversa ({'F1 oficial' if official else 'F1 harness'}):")
+        print(f"{'conversa':<12} {'n':>5} " + " ".join(f"{m:>14}" for m in summary["metodos"]))
+        for conversation in summary["metodos"][first]["por_conversa"]:
+            row = summary["metodos"][first]["por_conversa"][conversation]
+            cells = " ".join(f"{pct(summary['metodos'][m]['por_conversa'].get(conversation, {}).get(column)):>14}"
+                             for m in summary["metodos"])
+            print(f"{conversation:<12} {row['n']:>5} {cells}")
+    if official:
+        print("\nF1ofic/EMofic reproduzem task_eval/evaluation.py do LoCoMo; F1/EM são do harness.")
+    print(f"Agregado: {Path(output) / 'locomo_agregado.json'}", flush=True)
+
+
+def _weighted(categories, keys):
+    """Média das categorias ponderada por n. Cada pergunta está em exatamente uma."""
+    out = {}
+    for key in keys:
+        pairs = [(v.get(key), v.get("n", 0)) for v in categories.values()
+                 if isinstance(v.get(key), (int, float)) and math.isfinite(v[key])]
+        total = sum(n for _v, n in pairs)
+        out[key] = sum(v * n for v, n in pairs) / total if total else float("nan")
+    return out
+
+
 def print_results(output, status):
     """Resumo do mesmo report.json usado no relatório; sem recalcular métricas."""
     def pct(value):
         return f"{100 * value:.2f}" if isinstance(value, (int, float)) and math.isfinite(value) else "—"
 
+    conversations = sorted((Path(output) / "conversations").glob("*/benchmark/*/report.json"))
+    if conversations:
+        print_locomo_aggregate(output, status, [path.parent for path in conversations])
+        return
     reports = sorted((Path(output) / "benchmark").glob("*/report.json"))
     if not reports:
         print("Resumo indisponível: nenhum report.json foi gerado.", flush=True)
@@ -338,20 +498,37 @@ def print_results(output, status):
             print(f"\nResultados ({'concluído' if status == 'complete' else 'PARCIAIS — ' + status}):")
             for dataset, data in report.get("datasets", {}).items():
                 total = data.get("corpus", {}).get("n_questions", "?")
+                categories = data.get("por_categoria", {})
+                # No LoCoMo a coluna que conta é a do avaliador oficial: na
+                # categoria 1 ele compara sub-respostas separadas por vírgula, e o
+                # F1 por token do harness castiga cada item a mais de um conjunto
+                # correto. Imprimir só o harness esconde exatamente o multi-hop.
+                official = dataset == "locomo" and any(
+                    "f1_locomo" in v for m in categories.values() for v in m.values())
+                keys = (("f1_locomo", "em_locomo") if official else ()) + ("f1", "em", "recall@5", "all_recall@5")
+                labels = (("F1ofic", "EMofic") if official else ()) + ("F1", "EM", "R@5", "AR@5")
                 print(f"\n{dataset} — métricas em %, perguntas previstas: {total}")
-                print(f"{'método / categoria':<35} {'n':>5} {'F1':>8} {'EM':>8} {'R@5':>8} {'AR@5':>8}")
+                print(f"{'método / categoria':<35} {'n':>5} " + " ".join(f"{x:>8}" for x in labels))
                 for method, result in data.get("metodos", {}).items():
-                    values = result.get("metricas", {})
+                    values = dict(result.get("metricas", {}))
+                    if official:
+                        values.update(_weighted(categories.get(method, {}), ("f1_locomo", "em_locomo")))
                     print(f"{method:<35} {result.get('n_avaliadas', 0):>5} "
-                          + " ".join(f"{pct(values.get(k)):>8}" for k in ("f1", "em", "recall@5", "all_recall@5")))
-                    for category, values in data.get("por_categoria", {}).get(method, {}).items():
+                          + " ".join(f"{pct(values.get(k)):>8}" for k in keys))
+                    for category, values in categories.get(method, {}).items():
                         label = f"  {category}"
                         print(f"{label:<35} {values.get('n', 0):>5} "
-                              + " ".join(f"{pct(values.get(k)):>8}" for k in ("f1", "em", "recall@5", "all_recall@5")))
+                              + " ".join(f"{pct(values.get(k)):>8}" for k in keys))
+                    stop = data.get("onde_parou", {}).get(method)
+                    if stop:
+                        print(f"{'  testemunha disparou em':<35} {pct(stop.get('taxa_de_disparo')):>8}% "
+                              f"das perguntas; o resto veio do fallback")
                 if data.get("excluidas"):
                     print(f"Excluídas por filtro de conteúdo: {len(data['excluidas'])}")
                 if dataset == "locomo":
-                    print("F1/EM do harness; não são as métricas do avaliador oficial LoCoMo.")
+                    print("F1ofic/EMofic reproduzem task_eval/evaluation.py do LoCoMo; F1/EM são do harness."
+                          if official else
+                          "F1/EM do harness; não são as métricas do avaliador oficial LoCoMo.")
             print(f"Relatório: {path.with_suffix('.md')}", flush=True)
         except (OSError, ValueError, TypeError, AttributeError) as exc:
             print(f"Não foi possível imprimir {path}: {exc}", flush=True)

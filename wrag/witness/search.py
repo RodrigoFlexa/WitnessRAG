@@ -373,7 +373,11 @@ class WitnessSearcher:
              groundings: Sequence[Sequence[Grounding]] | None = None) -> SearchResult:
         cfg = self.cfg
         kg = self.kg
-        if not query.atoms or query.answer_var not in query.variables() or query.aggregation != "none":
+        if not query.atoms or query.answer_var not in query.variables():
+            return SearchResult()
+        if query.aggregation not in executable_aggregations(cfg.answer_set):
+            # `count` só é executável com o conjunto de respostas: contar exige
+            # enumerar as atribuições certas, não escolher a mais barata.
             return SearchResult()
 
         external_groundings = groundings is not None
@@ -463,7 +467,11 @@ class WitnessSearcher:
 
         witnesses = self._to_witnesses(query, states)
         if cfg.max_witnesses and len(witnesses) > cfg.max_witnesses:
-            witnesses = witnesses[:cfg.max_witnesses]
+            # Com conjunto de respostas, cortar pelas mais baratas costuma manter
+            # várias provas da MESMA resposta e jogar fora as outras respostas
+            # certas — exatamente o que o corte não deve decidir.
+            witnesses = (cover_answers(witnesses, cfg.max_witnesses) if cfg.answer_set
+                         else witnesses[:cfg.max_witnesses])
             exhaustive = False
             truncations.append("testemunhas")
         return SearchResult(witnesses=witnesses, gap=None, n_candidates=n_candidates,
@@ -554,6 +562,42 @@ def _minimal_only(witnesses: list[Witness]) -> list[Witness]:
             continue                              # existe demonstração menor
         group[:] = [o for o in group if not facts < set(o.facts)] + [witness]
     kept = [w for group in by_answer.values() for w in group]
+    kept.sort(key=lambda w: w.cost)
+    return kept
+
+
+def executable_aggregations(answer_set: bool) -> frozenset[str]:
+    """Agregações que o executor sabe provar.
+
+    `count` é |conjunto de respostas certas|, então depende de enumerar o
+    conjunto. `max`, `min` e `compare` exigem ordenar valores extraídos como
+    texto, o que este fragmento não faz — continuam fora, e a pergunta cai no
+    fallback declarado, em vez de receber uma resposta sem prova.
+    """
+    return frozenset({"none", "count"} if answer_set else {"none"})
+
+
+def cover_answers(witnesses: Sequence[Witness], limit: int) -> list[Witness]:
+    """Prioriza cobrir respostas distintas antes de acumular provas da mesma.
+
+    Rodízio pela resposta normalizada, preservando a ordem de custo dentro de
+    cada uma. Devolve no máximo `limit` testemunhas, na ordem de custo global.
+    """
+    if limit <= 0:
+        return list(witnesses)
+    by_answer: dict[str, list[Witness]] = {}
+    for witness in witnesses:                     # já ordenadas por custo
+        by_answer.setdefault(normalize(witness.answer), []).append(witness)
+    kept: list[Witness] = []
+    queues = list(by_answer.values())
+    while queues and len(kept) < limit:
+        for queue in list(queues):
+            if not queue:
+                queues.remove(queue)
+                continue
+            kept.append(queue.pop(0))
+            if len(kept) >= limit:
+                break
     kept.sort(key=lambda w: w.cost)
     return kept
 

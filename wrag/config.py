@@ -141,6 +141,12 @@ class IEConfig:
     temperature: float = 0.0
     two_step: bool = True          # NER e depois OpenIE, como no HippoRAG
     max_triples_per_passage: int = 40
+    # Extração adaptada a diálogo: o sujeito de uma fala em primeira pessoa é o
+    # falante, e a data da sessão vira o escopo temporal do fato. Sem isso, num
+    # corpus conversacional a maior parte dos fatos fica sem sujeito resolvível
+    # ("I", "my kids") e nenhuma junção fecha. Muda a base F compartilhada por
+    # todos os métodos com grafo, e por isso é uma condição do experimento.
+    dialogue_mode: bool = False
 
 
 @dataclass
@@ -187,6 +193,14 @@ class WitnessConfig:
     # -- compilação da consulta
     max_atoms: int = 4
     compile_temperature: float = 0.0
+    # Compilação ancorada no vocabulário existente: as relações e entidades mais
+    # próximas da pergunta entram no prompt para que o compilador emita
+    # predicados que EXISTEM na base. Sem isso o compilador inventa relações
+    # ("identity", "destress method") que nenhum fato instancia, e o átomo morre
+    # no aterramento. É sugestão, não restrição: o prompt continua livre.
+    vocabulary_aware_compile: bool = False
+    vocabulary_relations: int = 40
+    vocabulary_entities: int = 20
 
     # -- aterramento (grounding) dos átomos em fatos
     grounding_mode: str = "semantic"  # semantic: aproximação; exact: controle simbólico
@@ -208,6 +222,22 @@ class WitnessConfig:
     binding_aware_grounding: bool = False  # ablação: expandir vizinhos após ligar variáveis
     verify_witnesses: bool = False         # ablação: verificar no texto antes de promover
     verification_max_witnesses: int = 5    # teto de chamadas por pergunta
+
+    # -- conjunto de respostas
+    # Uma testemunha certifica UMA atribuição. A resposta de uma consulta
+    # conjuntiva é o conjunto de atribuições certas, cada uma com a sua
+    # proveniência. Com `answer_set`, a resposta estrutural é esse conjunto,
+    # `aggregation="count"` passa a ser executável como |conjunto| e a
+    # verificação cobre uma testemunha por resposta distinta, em vez das mais
+    # baratas (que costumam ser todas da mesma resposta).
+    answer_set: bool = False
+    answer_set_max_items: int = 10
+
+    # -- fallback de recuperação
+    # Fusão recíproca de postos entre denso e BM25. Respostas conversacionais
+    # dependem de nomes próprios raros que um vetor de bloco longo dilui.
+    hybrid_fallback: bool = False
+    hybrid_rrf_k: int = 60
 
     # -- proveniência e risco
     fact_confidence: float = 0.90      # p_e default de um fato extraído uma vez
@@ -232,6 +262,11 @@ class QAConfig:
     max_tokens: int = 512
     temperature: float = 0.0
     top_k: int = TOP_K
+    # Leitor ciente de conjunto: perguntas que pedem um conjunto ("o que", "quais",
+    # "onde já") são respondidas com todos os itens que as passagens sustentam.
+    # É o MESMO leitor para todos os métodos, então a comparação entre métodos
+    # continua válida; o que muda é a comparação com rodadas anteriores.
+    answer_set: bool = False
 
 
 @dataclass

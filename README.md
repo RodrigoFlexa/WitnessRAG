@@ -2,7 +2,7 @@
 
 Protótipo de memória orientada à preservação de **testemunhas de consultas conjuntivas**. A implementação distingue provas sobre uma base formal de fatos de aproximações semânticas produzidas por LLM e embeddings.
 
-A proposta original está em [docs/proposta.md](docs/proposta.md). O estado efetivo do código, as correções da revisão e as limitações estão em [docs/revisao-implementacao.md](docs/revisao-implementacao.md).
+A proposta original está em [docs/proposta.md](docs/proposta.md). Como o método funciona hoje, etapa por etapa, com o que cada uma garante e o que não garante, está em [docs/witness-atual.md](docs/witness-atual.md). O estado efetivo do código, as correções da revisão e as limitações estão em [docs/revisao-implementacao.md](docs/revisao-implementacao.md).
 
 A [auditoria do piloto de 14/09/2026](docs/revisao-resultados-2026-09-14.md) revisa os resultados salvos e apresenta as ablações experimentais `--binding-aware-grounding` e `--verify-witnesses`, disponíveis na CLI e no piloto. Ambas são desligadas por padrão; ainda não têm ganho medido com modelo real.
 
@@ -16,6 +16,27 @@ A [auditoria do piloto de 14/09/2026](docs/revisao-resultados-2026-09-14.md) rev
 - Aquisição dirigida reversível por pergunta. A política atual é uma heurística de similaridade menos custo, não uma estimativa calibrada de valor da informação.
 - Resposta estrutural e resposta do leitor avaliadas separadamente. Scores de suporte e risco são **não calibrados**.
 
+## Opções experimentais
+
+Todas desligadas por padrão: uma rodada sem elas reproduz o comportamento
+anterior, e por isso as rodadas já medidas continuam comparáveis.
+
+| opção (`cli run` e `wrag.pilot`) | efeito |
+|---|---|
+| `--answer-set` | a resposta é o **conjunto** de atribuições certas, com prova por item, em vez da testemunha mais barata; habilita `aggregation="count"`; o leitor passa a enumerar os itens sustentados pelas passagens |
+| `--vocab-compile` | a compilação recebe as relações e entidades do grafo mais próximas da pergunta, para não inventar predicados que nenhum fato instancia |
+| `--hybrid-fallback` | o fallback do WITNESS-RAG passa a ser fusão recíproca de postos entre denso e BM25 |
+| `--dialogue-ie` | extração adaptada a diálogo: falante como sujeito, correferência dentro do bloco e escopo temporal no fato. Muda a base de fatos compartilhada e exige nova extração |
+| `--top-k N` | blocos entregues ao leitor |
+
+A completude do conjunto de respostas **não é certificada**: ele contém o que a
+memória prova, e nada limita o que ficou de fora por falha de extração, de
+compilação ou de corte. `count` herda essa limitação.
+
+O relatório traz a tabela **onde a pergunta parou**, com a taxa de disparo da
+testemunha. Ela vem antes de qualquer leitura de F1: com disparo baixo, a tabela
+principal mede o recuperador de reserva, não o executor.
+
 ## Métodos
 
 Para executar somente WitnessRAG na primeira conversa do LoCoMo, com perguntas
@@ -28,6 +49,7 @@ single-hop e multi-hop, consulte [o piloto LoCoMo](docs/locomo-pilot.md).
 | `graphrag` | Adaptação local com comunidades e ranking de passagens |
 | `hipporag` | Adaptação com entidades e difusão PPR |
 | `hipporag2` | Adaptação com triplas, filtro e nós de passagem |
+| `hybrid` | Fusão recíproca de postos entre denso e BM25 |
 | `relational` | SQL exato, mesmo compilador/leitor, sem aquisição nem cortes de testemunhas |
 | `witnessrag` | Busca de testemunhas, limites configuráveis e aquisição opcional |
 | `witnessrag-annotated` | Diagnóstico com tradução heurística de anotações privilegiadas |
