@@ -130,6 +130,11 @@ def cmd_run(args: argparse.Namespace) -> int:
     cfg.witness.vocabulary_aware_compile = args.vocab_compile
     cfg.witness.query_plans = args.query_plans
     cfg.witness.max_query_plans = args.max_query_plans
+    cfg.witness.active_frontier = args.active_frontier
+    cfg.witness.active_obligations = args.active_obligations
+    cfg.witness.active_context = args.active_context
+    cfg.witness.active_operators = args.active_operators
+    cfg.qa.operator_reader = args.active_operators
     cfg.witness.hybrid_fallback = args.hybrid_fallback
     cfg.ie.dialogue_mode = args.dialogue_ie
     cfg.graph.merge_relation_inflections = not args.no_relation_family_merge
@@ -229,6 +234,10 @@ def main(argv: list[str] | None = None) -> int:
                        help="gera e revisa planos usando o retorno da busca no grafo")
     p_run.add_argument("--max-query-plans", type=int, default=5,
                        help="orçamento global de planos distintos por pergunta (padrão: 5)")
+    p_run.add_argument("--active-frontier", action="store_true")
+    p_run.add_argument("--active-obligations", action="store_true")
+    p_run.add_argument("--active-context", action="store_true")
+    p_run.add_argument("--active-operators", action="store_true")
     p_run.add_argument("--hybrid-fallback", action="store_true",
                        help="fallback do WITNESS-RAG por fusão recíproca de postos (denso + BM25)")
     p_run.add_argument("--dialogue-ie", action="store_true",

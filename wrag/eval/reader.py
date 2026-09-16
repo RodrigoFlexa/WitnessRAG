@@ -15,6 +15,7 @@ principal é a do leitor comum, porque é a única comparável.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Any, Sequence
 
 from wrag import config as C
@@ -53,7 +54,11 @@ def read(
             continue
         passages.append((passage.title, passage.text))
 
-    template = prompts.QA_SET_TEMPLATE if cfg.answer_set else prompts.QA_TEMPLATE
+    operator_question = bool(re.search(
+        r"\b(how many|when|what date|what time|how long|before|after)\b",
+        question.question, re.I))
+    template = (prompts.QA_OPERATOR_TEMPLATE if cfg.operator_reader and operator_question
+                else prompts.QA_SET_TEMPLATE if cfg.answer_set else prompts.QA_TEMPLATE)
     result = llm.chat(
         template.format(passages=prompts.format_passages(passages),
                         question=question.question),

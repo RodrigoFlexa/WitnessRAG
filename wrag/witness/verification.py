@@ -56,11 +56,12 @@ def verify_witnesses(llm, corpus, memory, question, query, witnesses, limit, dat
             "facts": [list(memory.facts[i].triple) for i in witness.facts],
             "passages": sources,
         }
-        if query.aggregation == "set":
-            answer_rule = ("This is a SET query: answers_question means that the bound answer "
-                           "is one correct member of the requested set. Do not reject a correct "
-                           "member merely because this candidate alone does not enumerate every "
-                           "other member.")
+        if query.aggregation in {"set", "count"}:
+            answer_rule = ("This query enumerates members before aggregation: "
+                           "answers_question means that the bound answer is one correct member, "
+                           "distinct from other members, "
+                           "member of the requested set. Do not require this witness to establish "
+                           "that the set is exhaustive or to provide the final count.")
         else:
             answer_rule = ("The bound answer must answer the ORIGINAL question completely, "
                            "rather than merely being relevant or partially useful.")

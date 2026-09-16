@@ -421,6 +421,31 @@ Answer with JSON exactly in this shape:
 PERGUNTA: {question}"""
 
 
+QA_OPERATOR_TEMPLATE = """Answer the question using only the passages below.
+
+First identify every condition in the question, including the person, event,
+source, date and any words such as after, before, from, or during. Use only
+statements that satisfy all those conditions.
+
+For "how many", prefer an explicit count stated in a passage when it matches
+all conditions. Otherwise count DISTINCT people, objects or events; repeated
+mentions of the same event are one event. Do not count the number of retrieved
+passages, graph facts or candidate answers. If evidence is incomplete, answer
+"insufficient information" rather than treating a partial list as complete.
+
+For dates, resolve relative expressions such as "yesterday" using the date of
+the same session, and respect the order of events. For questions asking for a
+set, include every distinct item supported by the passages, separated by commas.
+
+Return the shortest complete answer, with no explanation, as JSON:
+{{"answer": "..."}}
+
+### INPUT
+{passages}
+
+PERGUNTA: {question}"""
+
+
 def format_vocabulary(relations: Sequence[str], entities: Sequence[str]) -> str:
     """Bloco de vocabulário para a compilação. Vazio quando a ablação está desligada.
 

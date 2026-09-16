@@ -346,8 +346,17 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
              "resposta_estrutural", "testemunha_no_contexto", "ordem_fallback_preservada",
              "contexto_alterado_pelo_witness", "grounding_mode", "exhaustive",
              "truncations", "aterramento", "exaustiva", "truncamentos",
-             "modo_aterramento", "busca_exaustiva", "feixe_exaustivo", "cortes", "risco_calibrado")
+             "modo_aterramento", "busca_exaustiva", "feixe_exaustivo", "cortes", "risco_calibrado",
+             "limite_inferior_contagem", "empacotamento")
             if k in diagnostics}
+    research = diagnostics.get("pesquisa_provas")
+    if isinstance(research, dict):
+        keep["pesquisa_provas"] = {
+            **{k: v for k, v in research.items() if k not in {"fronteira", "sondas", "acoes"}},
+            "fronteira": research.get("fronteira", [])[:10],
+            "sondas": research.get("sondas", [])[:5],
+            "acoes": research.get("acoes", [])[:3],
+        }
     respostas = diagnostics.get("respostas")
     if respostas:
         keep["respostas"] = respostas[:1]

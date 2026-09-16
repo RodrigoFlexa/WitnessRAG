@@ -217,6 +217,13 @@ class WitnessConfig:
     # observar lacunas, rejeições e fatos adquiridos. Nada vem do gabarito.
     query_plans: bool = False
     max_query_plans: int = 5
+    # Pesquisa de provas, cada componente independente para ablações pareadas.
+    active_frontier: bool = False
+    active_obligations: bool = False
+    active_context: bool = False
+    active_operators: bool = False
+    active_frontier_queries: int = 5
+    active_frontier_passages: int = 30
 
     # -- aterramento (grounding) dos átomos em fatos
     grounding_mode: str = "semantic"  # semantic: aproximação; exact: controle simbólico
@@ -286,6 +293,7 @@ class QAConfig:
     # É o MESMO leitor para todos os métodos, então a comparação entre métodos
     # continua válida; o que muda é a comparação com rodadas anteriores.
     answer_set: bool = False
+    operator_reader: bool = False
 
 
 @dataclass

@@ -67,6 +67,14 @@ def parser():
                    help="gera e revisa planos usando o retorno da busca no grafo")
     p.add_argument("--max-query-plans", type=int, default=5,
                    help="orçamento global de planos distintos por pergunta (padrão: 5)")
+    p.add_argument("--active-frontier", action="store_true",
+                   help="busca complementar e aquisição sobre lacunas da prova")
+    p.add_argument("--active-obligations", action="store_true",
+                   help="confere se cada plano cobre as condições da pergunta")
+    p.add_argument("--active-context", action="store_true",
+                   help="seleciona pacotes de evidência com provas completas")
+    p.add_argument("--active-operators", action="store_true",
+                   help="leitura especializada em tempo e contagem; contagem estrutural parcial")
     p.add_argument("--hybrid-fallback", action="store_true",
                    help="fallback por fusão recíproca de postos (denso + BM25)")
     p.add_argument("--witness-candidate-pool", type=int, default=20,
@@ -286,6 +294,11 @@ def _run_config(settings, n_questions):
     cfg.witness.vocabulary_aware_compile = settings.get("vocab_compile", False)
     cfg.witness.query_plans = settings.get("query_plans", False)
     cfg.witness.max_query_plans = settings.get("max_query_plans", 5)
+    cfg.witness.active_frontier = settings.get("active_frontier", False)
+    cfg.witness.active_obligations = settings.get("active_obligations", False)
+    cfg.witness.active_context = settings.get("active_context", False)
+    cfg.witness.active_operators = settings.get("active_operators", False)
+    cfg.qa.operator_reader = cfg.witness.active_operators
     cfg.witness.hybrid_fallback = settings.get("hybrid_fallback", False)
     cfg.witness.candidate_pool_k = settings.get("witness_candidate_pool", 20)
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
@@ -522,6 +535,7 @@ def _validate_resume(old, new):
               "locomo_conversation", "locomo_turns_per_passage", "locomo_chunk_tokens",
               "locomo_ie_window_tokens", "seed", "top_k", "witness_candidate_pool",
               "answer_set", "vocab_compile", "query_plans", "max_query_plans",
+              "active_frontier", "active_obligations", "active_context", "active_operators",
               "hybrid_fallback", "dialogue_ie",
               "no_relation_family_merge",
               "binding_aware_grounding", "verify_witnesses", "no_acquisition")

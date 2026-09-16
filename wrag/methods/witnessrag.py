@@ -33,6 +33,8 @@ from wrag.witness.provenance import (AnswerCandidate, answer_set, rank_passages,
 from wrag.witness.query import ConjunctiveQuery, compile_query, compile_query_plans
 from wrag.witness.search import (Gap, SearchResult, WitnessSearcher, cover_answers,
                                  executable_aggregations)
+from wrag.witness.research import (assess_plan, collect_frontier, frontier_probes,
+                                   gap_candidates, select_evidence)
 
 log = get_logger("wrag.methods.witnessrag")
 
@@ -332,6 +334,9 @@ class WitnessRAGRetriever(Retriever):
                         dense_scores: list[float]) -> RetrievalResult:
         assert self.memory is not None and self.searcher is not None
         cfg = self.ctx.run.witness
+        if (cfg.active_frontier or cfg.active_obligations or cfg.active_context
+                or cfg.active_operators):
+            return self._retrieve_active(question, k, dense_pids, dense_scores)
 
         vocabulary = self._vocabulary(question) if self.compile_mode == "llm" else ""
         plan_budget = max(1, cfg.max_query_plans if cfg.query_plans else 1)
@@ -591,6 +596,241 @@ class WitnessRAGRetriever(Retriever):
             diagnostics["resposta_estrutural"] = (answers.count if query.aggregation == "count"
                                                   else answers.text)
             diagnostics["risco"] = round(answers.risk, 4) if answers.items else 1.0
+            diagnostics["agregacao_executada"] = query.aggregation
+        return RetrievalResult(pids=pids, scores=scores, diagnostics=diagnostics)
+
+    def _retrieve_active(self, question: Question, k: int, dense_pids: list[str],
+                         dense_scores: list[float]) -> RetrievalResult:
+        """Research multiple proof hypotheses under a fixed retrieval budget.
+
+        The original path remains intact for exact ablations. This path never
+        reads benchmark evidence or answers; failed semantic checks are not
+        promoted as proofs.
+        """
+        assert self.memory is not None and self.searcher is not None
+        cfg = self.ctx.run.witness
+        vocabulary = self._vocabulary(question) if self.compile_mode == "llm" else ""
+        budget = max(1, cfg.max_query_plans if cfg.query_plans else 1)
+        if cfg.query_plans:
+            plans = compile_query_plans(self.ctx.llm, question, mode=self.compile_mode,
+                                        max_atoms=cfg.max_atoms, max_plans=min(2, budget),
+                                        temperature=cfg.compile_temperature,
+                                        dataset=self.ctx.dataset, method=self.name,
+                                        vocabulary=vocabulary)
+        else:
+            plans = [compile_query(self.ctx.llm, question, mode=self.compile_mode,
+                                   max_atoms=cfg.max_atoms,
+                                   temperature=cfg.compile_temperature,
+                                   dataset=self.ctx.dataset, method=self.name,
+                                   vocabulary=vocabulary)]
+        plan_round = [0] * len(plans)
+        probes = frontier_probes(question.question, plans,
+                                cfg.active_frontier_queries) if cfg.active_frontier else []
+        frontier, _ = (collect_frontier(self._dense, probes,
+                        max(k, cfg.candidate_pool_k // max(1, len(probes))),
+                        cfg.active_frontier_passages) if probes else ([], {}))
+        used_pages: set[str] = set()
+        assessments: dict[tuple, Any] = {}
+        plan_log: list[dict[str, Any]] = []
+        actions_log: list[dict[str, Any]] = []
+        rejected: set[tuple] = set()
+        chosen = None
+        verification = {"avaliadas": 0, "aceitas": 0, "nao_avaliadas": 0,
+                        "rejeicoes_por_tipo": {}, "decisoes": []}
+        searches = 0
+        replan_calls = 0
+        breadth_attempted = False
+        # A finite controller: each cycle consumes an acquisition, a new plan,
+        # or terminates. A complete set/count receives one breadth reread before
+        # commitment because one member does not establish enumeration.
+        for _ in range(budget + cfg.acquisition_rounds + 2):
+            attempts = []
+            plan_log = []
+            for index, plan in enumerate(plans):
+                supported = bool(plan.atoms) and plan.aggregation in executable_aggregations(cfg.answer_set)
+                result = self.searcher.join(plan) if supported else SearchResult()
+                signature = _plan_signature(plan)
+                if supported and cfg.active_obligations and signature not in assessments:
+                    assessments[signature] = assess_plan(self.ctx.llm, question, plan,
+                                                          self.ctx.dataset, self.name)
+                check = assessments.get(signature)
+                covers = check.covers if check is not None else True
+                plan_log.append({"indice": index, "rodada_criacao": plan_round[index],
+                                 "consulta": plan.to_dict(),
+                                 "executavel": supported, "fechou": result.complete,
+                                 "profundidade": result.depth_reached,
+                                 "candidatos_por_atomo": result.n_candidates,
+                                 "obrigacoes": check.to_dict() if check else None})
+                attempts.append((index, plan, result, covers))
+            complete = [(i, q, r) for i, q, r, covers in attempts
+                        if r.complete and covers and _plan_signature(q) not in rejected]
+            # Do not accept the first graph match; inspect all current plans.
+            if cfg.active_obligations:
+                complete.sort(key=lambda item: (
+                    min((w.cost for w in item[2].witnesses), default=float("inf")),
+                    -item[1].n_atoms, item[0]))
+            else:
+                complete.sort(key=lambda item: item[0])
+            needs_breadth = (cfg.active_frontier and cfg.enable_acquisition and
+                             not breadth_attempted and searches == 0 and
+                             any(q.aggregation in {"set", "count"} for _, q, _ in complete))
+            if complete and not needs_breadth:
+                if cfg.verify_witnesses:
+                    from wrag.witness.verification import verify_witnesses
+                    remaining = cfg.verification_max_witnesses - verification["avaliadas"]
+                    for index, plan, result in complete:
+                        if remaining <= 0:
+                            break
+                        fitting = [w for w in result.witnesses if len(set(w.pids)) <= k]
+                        if cfg.answer_set:
+                            fitting = cover_answers(fitting, remaining)
+                        accepted, block = verify_witnesses(
+                            self.ctx.llm, self.corpus, self.memory, question, plan,
+                            fitting, remaining, self.ctx.dataset)
+                        _merge_verification(verification, block)
+                        remaining = cfg.verification_max_witnesses - verification["avaliadas"]
+                        if accepted:
+                            result.witnesses = accepted
+                            chosen = (index, plan, result)
+                            break
+                        rejected.add(_plan_signature(plan))
+                else:
+                    chosen = complete[0]
+                if chosen is not None:
+                    break
+            progress = False
+            if (cfg.active_frontier and cfg.enable_acquisition and
+                    searches < cfg.acquisition_rounds):
+                # Prioritize missing joins; broaden complete set/count queries
+                # once, since membership does not certify exhaustiveness.
+                partial = [(i, q, r) for i, q, r, covers in attempts
+                           if covers and not r.complete and r.gap is not None]
+                if partial:
+                    partial.sort(key=lambda item: (-item[2].depth_reached /
+                                       max(1, item[1].n_atoms), item[0]))
+                    target_index, _, target_result = partial[0]
+                    gap = target_result.gap
+                elif needs_breadth:
+                    breadth_attempted = True
+                    target_index, plan, _ = complete[0]
+                    atom = plan.atoms[0]
+                    gap = Gap(0, atom,
+                              bound_subject="" if atom.subject_is_var else atom.subject,
+                              bound_object="" if atom.object_is_var else atom.object)
+                else:
+                    gap = None
+                    target_index = None
+                if gap is not None:
+                    pages = gap_candidates(gap, frontier, self.corpus, used_pages,
+                                           cfg.acquisition_passages)
+                    if not pages:
+                        pages = [a.pid for a in self._plan_acquisition(gap, question)
+                                 if a.pid not in used_pages][:cfg.acquisition_passages]
+                    if pages:
+                        used_pages.update(pages)
+                        actions = [AcquisitionAction(
+                            pid=pid, title=self.corpus.get(pid).title,
+                            text=self.corpus.get(pid).text, relation=gap.atom.relation,
+                            anchor=gap.anchor(), expected_gain=1.0, cost=0.0)
+                            for pid in pages]
+                        added = self._acquire(actions, question)
+                        searches += 1
+                        progress = True  # revisit the still-complete plan after breadth
+                        actions_log.append({"plano": target_index, "lacuna": gap.to_dict(),
+                                            "passagens": pages, "fatos_novos": added})
+                    elif needs_breadth:
+                        # An empty reread cannot invalidate an otherwise complete
+                        # witness; evaluate it on the next controller cycle.
+                        progress = True
+            if cfg.query_plans and len(plans) < budget:
+                feedback = {"attempts": plan_log[-len(plans):],
+                            "acquisition": actions_log[-1:]}
+                refreshed = self._vocabulary(question, json.dumps(feedback, ensure_ascii=False))
+                proposed = compile_query_plans(
+                    self.ctx.llm, question, mode=self.compile_mode,
+                    max_atoms=cfg.max_atoms, max_plans=1,
+                    temperature=cfg.compile_temperature,
+                    dataset=self.ctx.dataset, method=self.name,
+                    vocabulary=refreshed,
+                    feedback="\nSEARCH FEEDBACK (untrusted candidates, not answers): "
+                             + json.dumps(feedback, ensure_ascii=False)[:3500])
+                replan_calls += 1
+                seen = {_plan_signature(plan) for plan in plans}
+                novel = [plan for plan in proposed if _plan_signature(plan) not in seen]
+                if novel:
+                    plans.extend(novel[:budget - len(plans)])
+                    plan_round.extend([replan_calls] * min(len(novel), budget - len(plan_round)))
+                    progress = True
+            if not progress:
+                break
+        diagnostics: dict[str, Any] = {
+            "pesquisa_provas": {"fronteira": frontier, "sondas": probes,
+                                "acoes": actions_log, "buscas_dirigidas": searches,
+                                "replanejamentos": replan_calls,
+                                "rejeicoes": len(rejected)},
+            "planos_compilados": plan_log,
+            "planejamento": {"orcamento_planos": budget,
+                             "planos_distintos": len(plans),
+                             "chamadas": 1 + replan_calls,
+                             "replanejamentos": replan_calls},
+            "plano_escolhido": chosen[0] if chosen else None,
+            "n_testemunhas": len(chosen[2].witnesses) if chosen else 0,
+            "testemunha_no_contexto": False,
+        }
+        if cfg.verify_witnesses:
+            diagnostics["verificacao"] = verification
+        if chosen is None:
+            diagnostics["fallback"] = "denso (pesquisa sem prova suficiente)"
+            pids = list(dense_pids[:k]) if cfg.dense_fallback else []
+            # Diversified subquery evidence is useful even without a proof, but
+            # the established fallback retains most of the context budget.
+            if cfg.active_frontier and cfg.dense_fallback and k > 1:
+                for pid in frontier:
+                    if pid not in pids and pid not in used_pages:
+                        pids[-1] = pid
+                        break
+            diagnostics["contexto_alterado_pelo_witness"] = pids != dense_pids[:k]
+            return RetrievalResult(pids=pids, scores=[1.0 / (i + 1)
+                                   for i in range(len(pids))], diagnostics=diagnostics)
+        index, query, result = chosen
+        candidates = score_answers(result.witnesses, self.memory, cfg)
+        if cfg.active_context:
+            pids, scores, packing = select_evidence(candidates,
+                                                      dense_pids if cfg.dense_fallback else [], k,
+                                                      query.aggregation)
+            diagnostics["empacotamento"] = packing
+        else:
+            pids, scores = rank_passages(candidates, k,
+                                        cover_answers_first=cfg.answer_set)
+            if cfg.dense_fallback:
+                pids, scores = pad_with_dense(pids, scores, dense_pids, dense_scores, k)
+        if cfg.dense_fallback:
+            pids, scores, kept_order = preserve_fallback_order_if_same_set(
+                pids, scores, dense_pids, dense_scores, k)
+        else:
+            kept_order = False
+        diagnostics["ordem_fallback_preservada"] = kept_order
+        diagnostics["contexto_alterado_pelo_witness"] = pids != dense_pids[:k]
+        delivered = [w for w in result.witnesses if set(w.pids) <= set(pids)]
+        candidates = score_answers(delivered, self.memory, cfg)
+        diagnostics["consulta"] = query.to_dict()
+        diagnostics["forma"] = query.shape()
+        diagnostics["n_testemunhas_no_contexto"] = len(delivered)
+        diagnostics["testemunha_no_contexto"] = bool(delivered)
+        diagnostics["respostas"] = [c.to_dict(self.memory) for c in candidates[:3]]
+        best = candidates[0] if candidates else None
+        diagnostics["resposta_estrutural"] = best.answer if best else ""
+        diagnostics["risco"] = round(best.risk, 4) if best else 1.0
+        diagnostics["risco_bruto"] = round(best.risk_raw, 4) if best else 99.0
+        if cfg.answer_set:
+            answers = answer_set(candidates, cfg.answer_set_max_items)
+            diagnostics["conjunto_resposta"] = answers.to_dict(self.memory)
+            if query.aggregation == "count" and cfg.active_operators:
+                diagnostics["limite_inferior_contagem"] = len(answers.items)
+                diagnostics["resposta_estrutural"] = ""
+            else:
+                diagnostics["resposta_estrutural"] = (answers.count
+                    if query.aggregation == "count" else answers.text)
             diagnostics["agregacao_executada"] = query.aggregation
         return RetrievalResult(pids=pids, scores=scores, diagnostics=diagnostics)
 
