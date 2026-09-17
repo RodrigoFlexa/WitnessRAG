@@ -275,7 +275,8 @@ def _answer_one(name: str, retriever, corpus: Corpus, question: Question,
     before = retriever.ctx.llm.usage.snapshot()
     retrieval = retriever.retrieve(question, run_cfg.top_k)
     reading = read(retriever.ctx.llm, corpus, question, retrieval.pids,
-                   replace(run_cfg.qa, top_k=run_cfg.top_k), method=name)
+                   replace(run_cfg.qa, top_k=run_cfg.top_k), method=name,
+                   proof_context=retrieval.diagnostics.get("leitura_provas"))
 
     diagnostics = retrieval.diagnostics
     witness_facts = []
@@ -347,7 +348,8 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
              "contexto_alterado_pelo_witness", "grounding_mode", "exhaustive",
              "truncations", "aterramento", "exaustiva", "truncamentos",
              "modo_aterramento", "busca_exaustiva", "feixe_exaustivo", "cortes", "risco_calibrado",
-             "limite_inferior_contagem", "empacotamento")
+             "limite_inferior_contagem", "empacotamento", "classe_prova",
+             "prova_provisoria", "leitura_provas")
             if k in diagnostics}
     research = diagnostics.get("pesquisa_provas")
     if isinstance(research, dict):

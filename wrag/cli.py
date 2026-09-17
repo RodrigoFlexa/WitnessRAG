@@ -115,6 +115,8 @@ def cmd_run(args: argparse.Namespace) -> int:
 
     if args.max_query_plans < 1:
         raise ValueError("--max-query-plans deve ser >= 1")
+    if args.soft_obligations and not args.active_obligations:
+        raise ValueError("--soft-obligations exige --active-obligations")
     cfg = C.RunConfig()
     cfg.n_questions = args.n
     cfg.top_k = args.top_k
@@ -134,7 +136,10 @@ def cmd_run(args: argparse.Namespace) -> int:
     cfg.witness.active_obligations = args.active_obligations
     cfg.witness.active_context = args.active_context
     cfg.witness.active_operators = args.active_operators
+    cfg.witness.soft_obligations = args.soft_obligations
+    cfg.witness.proof_reader = args.proof_reader
     cfg.qa.operator_reader = args.active_operators
+    cfg.qa.proof_reader = args.proof_reader
     cfg.witness.hybrid_fallback = args.hybrid_fallback
     cfg.ie.dialogue_mode = args.dialogue_ie
     cfg.graph.merge_relation_inflections = not args.no_relation_family_merge
@@ -238,6 +243,8 @@ def main(argv: list[str] | None = None) -> int:
     p_run.add_argument("--active-obligations", action="store_true")
     p_run.add_argument("--active-context", action="store_true")
     p_run.add_argument("--active-operators", action="store_true")
+    p_run.add_argument("--soft-obligations", action="store_true")
+    p_run.add_argument("--proof-reader", action="store_true")
     p_run.add_argument("--hybrid-fallback", action="store_true",
                        help="fallback do WITNESS-RAG por fusão recíproca de postos (denso + BM25)")
     p_run.add_argument("--dialogue-ie", action="store_true",

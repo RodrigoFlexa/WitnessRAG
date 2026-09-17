@@ -18,7 +18,8 @@ VARIANTS = ("control", "frontier", "obligations", "frontier-obligations",
             "evidence", "operators", "verified", "no-acquisition", "one-plan")
 WITNESS_SWITCHES = ("active_frontier", "active_obligations", "active_context",
                     "active_operators", "verify_witnesses", "enable_acquisition",
-                    "query_plans", "max_query_plans")
+                    "query_plans", "max_query_plans", "soft_obligations",
+                    "proof_reader")
 WORDS = {"zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
          "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10}
 
@@ -37,7 +38,10 @@ def read_variant(path: Path) -> tuple[dict, dict[str, dict]]:
         raise ValueError(f"{path}: status {status.get('status')!r}; retome a rodada")
     rows: dict[str, dict] = {}
     identity = None
-    conversation_dirs = sorted(p for p in (path / "conversations").glob("conv*") if p.is_dir())
+    pilot = json.loads((path / "pilot.json").read_text(encoding="utf-8"))
+    requested = pilot.get("settings", {}).get("locomo_conversation")
+    conversation_dirs = (sorted(p for p in (path / "conversations").glob("conv*") if p.is_dir())
+                         if requested == "all" else [])
     conversations: list[Path] = []
     missing_benchmark: list[str] = []
     for conv_dir in conversation_dirs:
@@ -50,10 +54,12 @@ def read_variant(path: Path) -> tuple[dict, dict[str, dict]]:
         conversations.append(runs[-1])
     if missing_benchmark:
         raise ValueError(f"{path}: sem benchmark em {', '.join(missing_benchmark)}")
+    if requested != "all":
+        single_runs = sorted(p for p in (path / "benchmark").glob("*")
+                             if p.is_dir() and (p / "run.json").exists())
+        conversations = single_runs[-1:]
     if not conversations:
         raise ValueError(f"{path}: nenhuma conversa encontrada")
-    pilot = json.loads((path / "pilot.json").read_text(encoding="utf-8"))
-    requested = pilot.get("settings", {}).get("locomo_conversation")
     expected_conversations = 10 if requested == "all" else 1
     if len(conversations) != expected_conversations:
         raise ValueError(f"{path}: {len(conversations)}/{expected_conversations} conversas")
@@ -74,7 +80,9 @@ def read_variant(path: Path) -> tuple[dict, dict[str, dict]]:
         for name in WITNESS_SWITCHES:
             config["witness"].pop(name, None)
         config["qa"].pop("operator_reader", None)
-        record = {"conversation": run.parent.parent.name,
+        config["qa"].pop("proof_reader", None)
+        record = {"conversation": (run.parent.parent.name if requested == "all"
+                                   else f"conv{int(requested):02d}"),
                   "corpus_hash": corpus.get("corpus_hash"),
                   "questions_hash": corpus.get("questions_hash"),
                   "code": manifest.get("codigo_hash"),
@@ -112,6 +120,8 @@ def summarize(rows: list[dict]) -> dict:
                                "f1_locomo"),
             "disparo_multi": mean("fallback" not in r.get("diagnosticos", {})
                                   for r in multi) if multi else 0.0,
+            "provisorio_multi": mean(r.get("diagnosticos", {}).get("prova_provisoria", False)
+                                     for r in multi) if multi else 0.0,
             "contagens_n": len(counts),
             "f1_contagens": score(counts, "f1_locomo"),
             "acerto_numerico_avaliavel": sum(a == b for a, b in evaluable) / len(evaluable)
@@ -150,21 +160,18 @@ def markdown(report: dict) -> str:
     lines = ["# Ablação da pesquisa de provas", "",
              f"Rodadas: `{report['root']}`", "",
              "| Condição | n | F1 oficial | F1 multi | Δ multi | AR@5 multi | "
-             "F1 contagem | Acerto numérico¹ | Disparo multi | Busca multi (s) |",
-             "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
+             "F1 contagem | Acerto numérico¹ | Disparo multi | Prova provisória | Busca multi (s) |",
+             "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
     for name, item in report["variants"].items():
         paired = report["paired"].get(name, {})
         numeric = item["acerto_numerico_avaliavel"]
+        numeric_text = (f"{numeric:.4f} ({item['contagens_numericas_avaliaveis']})"
+                        if numeric is not None else "—")
         lines.append(f"| {name} | {item['n']} | {item['f1_oficial']:.4f} | "
                      f"{item['f1_multi']:.4f} | {paired.get('delta_f1_multi', 0):+.4f} | "
                      f"{item['ar5_multi']:.4f} | {item['f1_contagens']:.4f} | "
-                     f"{numeric:.4f} ({item['contagens_numericas_avaliaveis']}) | "
-                     f"{item['disparo_multi']:.4f} | "
-                     f"{item['latencia_recuperacao_multi_s']:.2f} |" if numeric is not None else
-                     f"| {name} | {item['n']} | {item['f1_oficial']:.4f} | "
-                     f"{item['f1_multi']:.4f} | {paired.get('delta_f1_multi', 0):+.4f} | "
-                     f"{item['ar5_multi']:.4f} | {item['f1_contagens']:.4f} | — | "
-                     f"{item['disparo_multi']:.4f} | "
+                     f"{numeric_text} | {item['disparo_multi']:.4f} | "
+                     f"{item['provisorio_multi']:.4f} | "
                      f"{item['latencia_recuperacao_multi_s']:.2f} |")
     lines.extend(["", "¹ Diagnóstico adicional: só conta respostas/gabaritos com um número "
                   "único reconhecível; não substitui a métrica oficial.", "",

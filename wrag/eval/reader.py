@@ -44,6 +44,7 @@ def read(
     pids: Sequence[str],
     cfg: C.QAConfig | None = None,
     method: str = "",
+    proof_context: dict[str, Any] | None = None,
 ) -> ReadResult:
     cfg = cfg or C.QAConfig()
     passages = []
@@ -57,11 +58,19 @@ def read(
     operator_question = bool(re.search(
         r"\b(how many|when|what date|what time|how long|before|after)\b",
         question.question, re.I))
-    template = (prompts.QA_OPERATOR_TEMPLATE if cfg.operator_reader and operator_question
+    use_proof = bool(cfg.proof_reader and proof_context and
+                     proof_context.get("hipoteses"))
+    template = (prompts.QA_PROOF_TEMPLATE if use_proof else
+                prompts.QA_OPERATOR_TEMPLATE if cfg.operator_reader and operator_question
                 else prompts.QA_SET_TEMPLATE if cfg.answer_set else prompts.QA_TEMPLATE)
+    pending = ", ".join(str(x) for x in proof_context.get("condicoes_pendentes", [])[:4]) \
+        if proof_context else ""
     result = llm.chat(
         template.format(passages=prompts.format_passages(passages),
-                        question=question.question),
+                        question=question.question,
+                        proof_status=proof_context.get("grau", "") if proof_context else "",
+                        pending=pending or "none",
+                        proof_hints=proof_context.get("hipoteses", "") if proof_context else ""),
         system=prompts.QA_SYSTEM,
         params=GenParams(temperature=cfg.temperature, max_tokens=cfg.max_tokens, json_mode=True),
         stage="qa",

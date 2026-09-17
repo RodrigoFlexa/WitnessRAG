@@ -11,8 +11,10 @@ from wrag.data import Question
 from wrag.llm.base import LLMResult
 from wrag.methods.base import IndexContext
 from wrag.methods.witnessrag import WitnessRAGRetriever
+from wrag.eval.reader import read
 from wrag.witness.query import Atom, ConjunctiveQuery
-from wrag.witness.research import assess_plan, frontier_probes, select_evidence
+from wrag.witness.research import (PlanAssessment, assess_plan, assess_plan_soft,
+                                   frontier_probes, proof_hints, select_evidence)
 
 
 def test_obligation_check_rejects_missing_qualifier():
@@ -137,3 +139,108 @@ def test_numeric_diagnostic_distinguishes_format_from_count_error():
     spec.loader.exec_module(module)
     assert module.numeric_value("two") == module.numeric_value("2") == 2
     assert module.numeric_value("two or three") is None
+
+
+def test_soft_assessment_explains_directed_atoms_and_preserves_partial():
+    class Judge:
+        def chat(self, prompt, **kwargs):
+            assert "(?x, supports, Calvin) asks who supports Calvin" in prompt
+            return LLMResult(text=json.dumps({"tier": "partial",
+                "missing": ["verify support in the passage"], "reason": "related plan"}))
+
+    query = ConjunctiveQuery(answer_var="x", atoms=[Atom("supports", "?x", "Calvin")])
+    result = assess_plan_soft(Judge(), Question("q", "Who supports Calvin?", []),
+                              query, "toy", "witnessrag")
+    assert result.tier == "partial" and not result.covers
+    assert result.to_dict()["grau"] == "partial"
+
+
+def test_provisional_plan_keeps_fallback_and_proof_hints(monkeypatch):
+    memory, searcher, embedder, cfg = build_toy()
+    cfg.active_obligations = True
+    cfg.active_context = True
+    cfg.soft_obligations = True
+    cfg.proof_reader = True
+    cfg.enable_acquisition = False
+    cfg.query_plans = False
+    run = C.RunConfig()
+    run.witness = cfg
+    retriever = WitnessRAGRetriever(IndexContext(memory.corpus, object(), embedder, run))
+    retriever.memory = memory
+    retriever.searcher = searcher
+    retriever._dense.search = lambda _q, n: (["p2", "p3", "p4"][:n], [1.0] * min(n, 3))
+    query = ConjunctiveQuery(answer_var="x", atoms=[
+        Atom("trabalha em", "Ana", "?y"), Atom("localizada em", "?y", "?x")])
+    monkeypatch.setattr("wrag.methods.witnessrag.compile_query", lambda *_a, **_k: query)
+    monkeypatch.setattr("wrag.methods.witnessrag.assess_plan_soft", lambda *_a, **_k:
+                        PlanAssessment(False, ["location"], "partial", tier="partial"))
+    result = retriever._retrieve_inner(Question("q", "Where is Ana's employer?", []),
+                                      3, ["p2", "p3", "p4"], [1.0, 0.5, 0.25])
+    assert result.diagnostics["classe_prova"] == "provisional"
+    assert result.diagnostics["prova_provisoria"]
+    assert result.pids[:2] == ["p0", "p1"]
+    assert result.pids[2] == "p2"
+    assert result.diagnostics["resposta_estrutural"] == ""
+    assert "[1]" in result.diagnostics["leitura_provas"]["hipoteses"]
+    assert "[2]" in result.diagnostics["leitura_provas"]["hipoteses"]
+
+
+def test_full_plan_precedes_cheaper_provisional_plan(monkeypatch):
+    memory, searcher, embedder, cfg = build_toy()
+    cfg.active_obligations = True
+    cfg.active_context = True
+    cfg.soft_obligations = True
+    cfg.proof_reader = True
+    cfg.enable_acquisition = False
+    cfg.query_plans = True
+    cfg.max_query_plans = 2
+    run = C.RunConfig()
+    run.witness = cfg
+    retriever = WitnessRAGRetriever(IndexContext(memory.corpus, object(), embedder, run))
+    retriever.memory = memory
+    retriever.searcher = searcher
+    retriever._dense.search = lambda _q, n: (["p2", "p3", "p4"][:n], [1.0] * min(n, 3))
+    weak = ConjunctiveQuery(answer_var="x", atoms=[Atom("trabalha em", "Ana", "?x")])
+    full = ConjunctiveQuery(answer_var="x", atoms=[
+        Atom("trabalha em", "Ana", "?y"), Atom("localizada em", "?y", "?x")])
+    monkeypatch.setattr("wrag.methods.witnessrag.compile_query_plans",
+                        lambda *_a, **_k: [weak, full])
+    monkeypatch.setattr("wrag.methods.witnessrag.assess_plan_soft", lambda _l, _q, p,
+                        *_a: PlanAssessment(p.n_atoms == 2, [], "checked",
+                                           tier="full" if p.n_atoms == 2 else "partial"))
+    result = retriever._retrieve_inner(Question("q", "Where is Ana's employer?", []),
+                                      3, ["p2", "p3", "p4"], [1.0, 0.5, 0.25])
+    assert result.diagnostics["plano_escolhido"] == 1
+    assert result.diagnostics["classe_prova"] == "full"
+    assert "fallback" not in result.diagnostics
+
+
+def test_proof_hints_exclude_incomplete_witnesses():
+    memory, searcher, _embedder, cfg = build_toy()
+    query = ConjunctiveQuery(answer_var="x", atoms=[
+        Atom("trabalha em", "Ana", "?y"), Atom("localizada em", "?y", "?x")])
+    from wrag.witness.provenance import score_answers
+    candidates = score_answers(searcher.join(query).witnesses, memory, cfg)
+    assert proof_hints(candidates, memory, ["p0"]) == ""
+    assert "Candidate 1" in proof_hints(candidates, memory, ["p0", "p1"])
+
+
+def test_reader_checks_proof_notes_against_source_passages():
+    memory, _searcher, _embedder, _cfg = build_toy()
+
+    class Judge:
+        def chat(self, prompt, **kwargs):
+            assert "EVIDENCE MAP" in prompt
+            assert "check the cited passage text" in prompt
+            assert "[1] Ana | trabalha em" in prompt
+            assert "SOURCE PASSAGES" in prompt
+            return LLMResult(text='{"answer": "Paris"}')
+
+    qa = C.QAConfig(proof_reader=True, answer_set=True)
+    answer = read(Judge(), memory.corpus,
+                  Question("q", "Where is Ana's employer?", []), ["p0", "p1"],
+                  qa, proof_context={"hipoteses": "Candidate 1: Paris\n"
+                                     "  [1] Ana | trabalha em | Acme",
+                                     "grau": "provisional",
+                                     "condicoes_pendentes": ["location"]})
+    assert answer.answer == "Paris"

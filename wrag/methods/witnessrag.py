@@ -33,8 +33,9 @@ from wrag.witness.provenance import (AnswerCandidate, answer_set, rank_passages,
 from wrag.witness.query import ConjunctiveQuery, compile_query, compile_query_plans
 from wrag.witness.search import (Gap, SearchResult, WitnessSearcher, cover_answers,
                                  executable_aggregations)
-from wrag.witness.research import (assess_plan, collect_frontier, frontier_probes,
-                                   gap_candidates, select_evidence)
+from wrag.witness.research import (assess_plan, assess_plan_soft, collect_frontier,
+                                   frontier_probes, gap_candidates, proof_hints,
+                                   select_evidence)
 
 log = get_logger("wrag.methods.witnessrag")
 
@@ -335,7 +336,7 @@ class WitnessRAGRetriever(Retriever):
         assert self.memory is not None and self.searcher is not None
         cfg = self.ctx.run.witness
         if (cfg.active_frontier or cfg.active_obligations or cfg.active_context
-                or cfg.active_operators):
+                or cfg.active_operators or cfg.soft_obligations or cfg.proof_reader):
             return self._retrieve_active(question, k, dense_pids, dense_scores)
 
         vocabulary = self._vocabulary(question) if self.compile_mode == "llm" else ""
@@ -640,6 +641,8 @@ class WitnessRAGRetriever(Retriever):
         searches = 0
         replan_calls = 0
         breadth_attempted = False
+        provisional: list[tuple[int, ConjunctiveQuery, SearchResult]] = []
+        proof_status = "full"
         # A finite controller: each cycle consumes an acquisition, a new plan,
         # or terminates. A complete set/count receives one breadth reread before
         # commitment because one member does not establish enumeration.
@@ -651,19 +654,26 @@ class WitnessRAGRetriever(Retriever):
                 result = self.searcher.join(plan) if supported else SearchResult()
                 signature = _plan_signature(plan)
                 if supported and cfg.active_obligations and signature not in assessments:
-                    assessments[signature] = assess_plan(self.ctx.llm, question, plan,
-                                                          self.ctx.dataset, self.name)
+                    checker = assess_plan_soft if cfg.soft_obligations else assess_plan
+                    assessments[signature] = checker(self.ctx.llm, question, plan,
+                                                     self.ctx.dataset, self.name)
                 check = assessments.get(signature)
-                covers = check.covers if check is not None else True
+                full_coverage = check.covers if check is not None else True
+                usable = (check.tier in {"full", "partial"} if cfg.soft_obligations and check
+                          else full_coverage)
                 plan_log.append({"indice": index, "rodada_criacao": plan_round[index],
                                  "consulta": plan.to_dict(),
                                  "executavel": supported, "fechou": result.complete,
                                  "profundidade": result.depth_reached,
                                  "candidatos_por_atomo": result.n_candidates,
                                  "obrigacoes": check.to_dict() if check else None})
-                attempts.append((index, plan, result, covers))
-            complete = [(i, q, r) for i, q, r, covers in attempts
-                        if r.complete and covers and _plan_signature(q) not in rejected]
+                attempts.append((index, plan, result, usable, full_coverage))
+            complete = [(i, q, r) for i, q, r, _, full in attempts
+                        if r.complete and full and _plan_signature(q) not in rejected]
+            provisional = ([(i, q, r) for i, q, r, _, _ in attempts if r.complete and
+                            (check := assessments.get(_plan_signature(q))) is not None and
+                            check.tier == "partial" and _plan_signature(q) not in rejected]
+                           if cfg.soft_obligations else [])
             # Do not accept the first graph match; inspect all current plans.
             if cfg.active_obligations:
                 complete.sort(key=lambda item: (
@@ -703,8 +713,8 @@ class WitnessRAGRetriever(Retriever):
                     searches < cfg.acquisition_rounds):
                 # Prioritize missing joins; broaden complete set/count queries
                 # once, since membership does not certify exhaustiveness.
-                partial = [(i, q, r) for i, q, r, covers in attempts
-                           if covers and not r.complete and r.gap is not None]
+                partial = [(i, q, r) for i, q, r, usable, _ in attempts
+                           if usable and not r.complete and r.gap is not None]
                 if partial:
                     partial.sort(key=lambda item: (-item[2].depth_reached /
                                        max(1, item[1].n_atoms), item[0]))
@@ -763,6 +773,25 @@ class WitnessRAGRetriever(Retriever):
                     progress = True
             if not progress:
                 break
+        if chosen is None and provisional:
+            # An underspecified logical plan may still point to useful text.
+            # Reserve one reader slot for the established hybrid fallback and
+            # never label this route as a certified proof.
+            fitting = []
+            for index, plan, result in provisional:
+                witnesses = [w for w in result.witnesses
+                             if len(set(w.pids)) <= max(1, k - 1)]
+                if witnesses:
+                    overlap = max(len(set(w.pids) & set(dense_pids[:k]))
+                                  for w in witnesses)
+                    fitting.append((-overlap, min(w.cost for w in witnesses), index,
+                                    plan, result, witnesses))
+            if fitting:
+                _, _, index, plan, result, witnesses = min(fitting,
+                                                           key=lambda item: item[:3])
+                result.witnesses = witnesses
+                chosen = (index, plan, result)
+                proof_status = "provisional"
         diagnostics: dict[str, Any] = {
             "pesquisa_provas": {"fronteira": frontier, "sondas": probes,
                                 "acoes": actions_log, "buscas_dirigidas": searches,
@@ -776,6 +805,7 @@ class WitnessRAGRetriever(Retriever):
             "plano_escolhido": chosen[0] if chosen else None,
             "n_testemunhas": len(chosen[2].witnesses) if chosen else 0,
             "testemunha_no_contexto": False,
+            "classe_prova": proof_status if chosen else "nenhuma",
         }
         if cfg.verify_witnesses:
             diagnostics["verificacao"] = verification
@@ -796,9 +826,12 @@ class WitnessRAGRetriever(Retriever):
         candidates = score_answers(result.witnesses, self.memory, cfg)
         if cfg.active_context:
             pids, scores, packing = select_evidence(candidates,
-                                                      dense_pids if cfg.dense_fallback else [], k,
+                                                      dense_pids if cfg.dense_fallback else [],
+                                                      max(1, k - 1) if proof_status == "provisional" else k,
                                                       query.aggregation)
             diagnostics["empacotamento"] = packing
+            if proof_status == "provisional" and cfg.dense_fallback:
+                pids, scores = pad_with_dense(pids, scores, dense_pids, dense_scores, k)
         else:
             pids, scores = rank_passages(candidates, k,
                                         cover_answers_first=cfg.answer_set)
@@ -813,19 +846,32 @@ class WitnessRAGRetriever(Retriever):
         diagnostics["contexto_alterado_pelo_witness"] = pids != dense_pids[:k]
         delivered = [w for w in result.witnesses if set(w.pids) <= set(pids)]
         candidates = score_answers(delivered, self.memory, cfg)
+        if proof_status == "provisional":
+            diagnostics["fallback"] = "hibrido_com_hipotese_nao_certificada"
+            diagnostics["prova_provisoria"] = True
         diagnostics["consulta"] = query.to_dict()
         diagnostics["forma"] = query.shape()
         diagnostics["n_testemunhas_no_contexto"] = len(delivered)
         diagnostics["testemunha_no_contexto"] = bool(delivered)
         diagnostics["respostas"] = [c.to_dict(self.memory) for c in candidates[:3]]
+        if cfg.proof_reader and candidates:
+            hints = proof_hints(candidates, self.memory, pids)
+            if hints:
+                check = assessments.get(_plan_signature(query))
+                diagnostics["leitura_provas"] = {
+                    "hipoteses": hints, "grau": proof_status,
+                    "condicoes_pendentes": check.missing[:4] if check else [],
+                }
         best = candidates[0] if candidates else None
-        diagnostics["resposta_estrutural"] = best.answer if best else ""
-        diagnostics["risco"] = round(best.risk, 4) if best else 1.0
-        diagnostics["risco_bruto"] = round(best.risk_raw, 4) if best else 99.0
+        diagnostics["resposta_estrutural"] = (best.answer if best else "") if proof_status == "full" else ""
+        diagnostics["risco"] = round(best.risk, 4) if best and proof_status == "full" else 1.0
+        diagnostics["risco_bruto"] = round(best.risk_raw, 4) if best and proof_status == "full" else 99.0
         if cfg.answer_set:
             answers = answer_set(candidates, cfg.answer_set_max_items)
             diagnostics["conjunto_resposta"] = answers.to_dict(self.memory)
-            if query.aggregation == "count" and cfg.active_operators:
+            if proof_status == "provisional":
+                diagnostics["resposta_estrutural"] = ""
+            elif query.aggregation == "count" and cfg.active_operators:
                 diagnostics["limite_inferior_contagem"] = len(answers.items)
                 diagnostics["resposta_estrutural"] = ""
             else:

@@ -421,6 +421,30 @@ Answer with JSON exactly in this shape:
 PERGUNTA: {question}"""
 
 
+QA_PROOF_TEMPLATE = """Answer the question using only the source passages below.
+
+The evidence map lists possible graph joins extracted from those passages. It
+is a navigation aid, not an answer key or a certificate. For each candidate,
+check the cited passage text, the direction of every relation, and EVERY
+condition in the question. Ignore any candidate that fails a condition or is
+not explicitly supported by its cited passage. The map can omit correct answers:
+also inspect the passages themselves. Never infer an exact count from a partial
+list of graph candidates.
+
+Give the shortest complete answer: a name, date, number or short noun phrase.
+For questions asking for a set, list every distinct supported item, separated
+by commas. If the passages do not contain the answer, say "insufficient
+information". Return JSON exactly: {{"answer": "..."}}
+
+EVIDENCE MAP ({proof_status}; conditions to verify: {pending}):
+{proof_hints}
+
+SOURCE PASSAGES:
+{passages}
+
+QUESTION: {question}"""
+
+
 QA_OPERATOR_TEMPLATE = """Answer the question using only the passages below.
 
 First identify every condition in the question, including the person, event,

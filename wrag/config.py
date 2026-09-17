@@ -222,6 +222,8 @@ class WitnessConfig:
     active_obligations: bool = False
     active_context: bool = False
     active_operators: bool = False
+    soft_obligations: bool = False
+    proof_reader: bool = False
     active_frontier_queries: int = 5
     active_frontier_passages: int = 30
 
@@ -294,6 +296,7 @@ class QAConfig:
     # continua válida; o que muda é a comparação com rodadas anteriores.
     answer_set: bool = False
     operator_reader: bool = False
+    proof_reader: bool = False
 
 
 @dataclass

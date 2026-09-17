@@ -75,6 +75,10 @@ def parser():
                    help="seleciona pacotes de evidência com provas completas")
     p.add_argument("--active-operators", action="store_true",
                    help="leitura especializada em tempo e contagem; contagem estrutural parcial")
+    p.add_argument("--soft-obligations", action="store_true",
+                   help="planos parciais podem oferecer contexto, sem serem certificados")
+    p.add_argument("--proof-reader", action="store_true",
+                   help="leitor confere hipóteses do grafo nas passagens selecionadas")
     p.add_argument("--hybrid-fallback", action="store_true",
                    help="fallback por fusão recíproca de postos (denso + BM25)")
     p.add_argument("--witness-candidate-pool", type=int, default=20,
@@ -98,6 +102,8 @@ def parser():
 def make_plan(args, output):
     if args.max_query_plans < 1:
         raise ValueError("--max-query-plans deve ser >= 1")
+    if args.soft_obligations and not args.active_obligations:
+        raise ValueError("--soft-obligations exige --active-obligations")
     if args.questions is None and args.dataset != "locomo":
         args.questions = 100
     if args.methods is None:
@@ -298,7 +304,10 @@ def _run_config(settings, n_questions):
     cfg.witness.active_obligations = settings.get("active_obligations", False)
     cfg.witness.active_context = settings.get("active_context", False)
     cfg.witness.active_operators = settings.get("active_operators", False)
+    cfg.witness.soft_obligations = settings.get("soft_obligations", False)
+    cfg.witness.proof_reader = settings.get("proof_reader", False)
     cfg.qa.operator_reader = cfg.witness.active_operators
+    cfg.qa.proof_reader = cfg.witness.proof_reader
     cfg.witness.hybrid_fallback = settings.get("hybrid_fallback", False)
     cfg.witness.candidate_pool_k = settings.get("witness_candidate_pool", 20)
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
@@ -536,6 +545,7 @@ def _validate_resume(old, new):
               "locomo_ie_window_tokens", "seed", "top_k", "witness_candidate_pool",
               "answer_set", "vocab_compile", "query_plans", "max_query_plans",
               "active_frontier", "active_obligations", "active_context", "active_operators",
+              "soft_obligations", "proof_reader",
               "hybrid_fallback", "dialogue_ie",
               "no_relation_family_merge",
               "binding_aware_grounding", "verify_witnesses", "no_acquisition")
