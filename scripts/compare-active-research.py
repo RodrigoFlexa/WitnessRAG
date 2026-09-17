@@ -37,7 +37,19 @@ def read_variant(path: Path) -> tuple[dict, dict[str, dict]]:
         raise ValueError(f"{path}: status {status.get('status')!r}; retome a rodada")
     rows: dict[str, dict] = {}
     identity = None
-    conversations = sorted((path / "conversations").glob("conv*/benchmark/*"))
+    conversation_dirs = sorted(p for p in (path / "conversations").glob("conv*") if p.is_dir())
+    conversations: list[Path] = []
+    missing_benchmark: list[str] = []
+    for conv_dir in conversation_dirs:
+        benchmark_dir = conv_dir / "benchmark"
+        runs = sorted(p for p in benchmark_dir.glob("*") if p.is_dir())
+        if not runs:
+            missing_benchmark.append(conv_dir.name)
+            continue
+        # Use only the most recent benchmark per conversation; older reruns are ignored.
+        conversations.append(runs[-1])
+    if missing_benchmark:
+        raise ValueError(f"{path}: sem benchmark em {', '.join(missing_benchmark)}")
     if not conversations:
         raise ValueError(f"{path}: nenhuma conversa encontrada")
     pilot = json.loads((path / "pilot.json").read_text(encoding="utf-8"))
