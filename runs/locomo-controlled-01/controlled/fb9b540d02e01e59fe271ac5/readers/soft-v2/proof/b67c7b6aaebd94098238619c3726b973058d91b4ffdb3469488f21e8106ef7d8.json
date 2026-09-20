@@ -1,0 +1,662 @@
+{
+  "qid": "locomo:conv-48:qa176",
+  "dataset": "locomo",
+  "metodo": "witnessrag",
+  "pergunta": "What was the main focus of the session that stood out to Jolene during the retreat?",
+  "respostas_ouro": [
+    "releasing expectations and judgments and savoring the present"
+  ],
+  "passagens_ouro": [
+    "p-3a1689a92db192f27fb39f0e"
+  ],
+  "n_hops": 1,
+  "n_hops_fonte": "support_count_proxy",
+  "tipo": "single-hop",
+  "recuperadas": [
+    "p-a81be1f839487c48bc261094",
+    "p-3a1689a92db192f27fb39f0e",
+    "p-28104389fd96fdcdcdb5d394",
+    "p-798ee270955a988bd4236e39",
+    "p-35876bd01fbb4836585327ec"
+  ],
+  "scores": [
+    0.032266,
+    0.031778,
+    0.030798,
+    0.030777,
+    0.030622
+  ],
+  "resposta": "releasing expectations and judgments and just savoring the present",
+  "em": 0.0,
+  "f1": 0.9333333333333333,
+  "recall@2": 1.0,
+  "recall@5": 1.0,
+  "all_recall@5": 1.0,
+  "cobertura_testemunha": NaN,
+  "cobertura_extremos_relaxada": NaN,
+  "em_estrutural": 0.0,
+  "testemunha_no_contexto": true,
+  "abstencao": false,
+  "risco": 1.0,
+  "risco_bruto": 99.0,
+  "forma_consulta": "single-hop",
+  "resposta_estrutural": "",
+  "filtrada": false,
+  "latencia_recuperacao_s": 12.609,
+  "latencia_leitura_s": 2.425,
+  "diagnosticos": {
+    "pesquisa_provas": {
+      "fronteira": [
+        "p-a81be1f839487c48bc261094",
+        "p-3a1689a92db192f27fb39f0e",
+        "p-35876bd01fbb4836585327ec",
+        "p-798ee270955a988bd4236e39",
+        "p-28104389fd96fdcdcdb5d394",
+        "p-e4bf8e7cc5579de18c9f7935",
+        "p-d4a773addf0d822326522ba8",
+        "p-9070fe4b02454ba806fe0adb"
+      ],
+      "sondas": [
+        "What was the main focus of the session that stood out to Jolene during the retreat?",
+        "Jolene stand out during retreat",
+        "Jolene session focus during retreat"
+      ],
+      "acoes": [
+        {
+          "plano": 0,
+          "lacuna": {
+            "atomo": {
+              "relation": "stand out during retreat",
+              "subject": "Jolene",
+              "object": "?x"
+            },
+            "sujeito_ligado": "Jolene",
+            "objeto_ligado": "",
+            "profundidade": 0
+          },
+          "passagens": [
+            "p-a81be1f839487c48bc261094",
+            "p-3a1689a92db192f27fb39f0e",
+            "p-798ee270955a988bd4236e39"
+          ],
+          "fatos_novos": 1
+        },
+        {
+          "plano": 1,
+          "lacuna": {
+            "atomo": {
+              "relation": "focus on",
+              "subject": "?y",
+              "object": "?x"
+            },
+            "sujeito_ligado": "releasing expectations and judgments and just savoring the present",
+            "objeto_ligado": "",
+            "profundidade": 1
+          },
+          "passagens": [
+            "p-35876bd01fbb4836585327ec",
+            "p-28104389fd96fdcdcdb5d394",
+            "p-d4a773addf0d822326522ba8"
+          ],
+          "fatos_novos": 0
+        }
+      ],
+      "buscas_dirigidas": 2,
+      "replanejamentos": 3,
+      "rejeicoes": 0
+    },
+    "planos_compilados": [
+      {
+        "indice": 0,
+        "rodada_criacao": 0,
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "stand out during retreat",
+              "subject": "Jolene",
+              "object": "?x"
+            }
+          ],
+          "expected_type": "other",
+          "aggregation": "none",
+          "shape": "single-hop",
+          "source": "llm-plan-vocabulario",
+          "fallback": "Jolene session focus during retreat",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false
+        },
+        "executavel": true,
+        "fechou": true,
+        "profundidade": 1,
+        "candidatos_por_atomo": [
+          1
+        ],
+        "obrigacoes": {
+          "cobre_pergunta": false,
+          "faltas": [
+            "main focus",
+            "session"
+          ],
+          "motivo": "The query captures that something stood out to Jolene during the retreat, but it does not specify that it was the main focus of a session.",
+          "checado": true,
+          "grau": "partial",
+          "contrato": "soft-v2",
+          "tentativas": [
+            {
+              "raw": "{\"tier\":\"partial\", \"missing\":[\"main focus\", \"session\"], \"reason\":\"The query captures that something stood out to Jolene during the retreat, but it does not specify that it was the main focus of a session.\"}",
+              "error": ""
+            }
+          ]
+        }
+      },
+      {
+        "indice": 1,
+        "rodada_criacao": 1,
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "stand out during retreat",
+              "subject": "Jolene",
+              "object": "?y"
+            },
+            {
+              "relation": "focus on",
+              "subject": "?y",
+              "object": "?x"
+            }
+          ],
+          "expected_type": "other",
+          "aggregation": "none",
+          "shape": "chain",
+          "source": "llm-replan-vocabulario",
+          "fallback": "Jolene session focus during retreat",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false
+        },
+        "executavel": true,
+        "fechou": false,
+        "profundidade": 1,
+        "candidatos_por_atomo": [
+          1,
+          60
+        ],
+        "obrigacoes": {
+          "cobre_pergunta": false,
+          "faltas": [
+            "main focus",
+            "session"
+          ],
+          "motivo": "The query captures that something stood out to Jolene during the retreat and that it was a focus, but it does not specify that it was the main focus of a session.",
+          "checado": true,
+          "grau": "partial",
+          "contrato": "soft-v2",
+          "tentativas": [
+            {
+              "raw": "{\"tier\":\"partial\", \"missing\":[\"main focus\", \"session\"], \"reason\":\"The query captures that something stood out to Jolene during the retreat and that it was a focus, but it does not specify that it was the main focus of a session.\"}",
+              "error": ""
+            }
+          ]
+        }
+      }
+    ],
+    "planejamento": {
+      "orcamento_planos": 5,
+      "planos_distintos": 2,
+      "chamadas": 4,
+      "replanejamentos": 3
+    },
+    "plano_escolhido": 0,
+    "n_testemunhas": 1,
+    "testemunha_no_contexto": true,
+    "classe_prova": "provisional",
+    "empacotamento": {
+      "provas_selecionadas": [
+        {
+          "resposta": "releasing expectations and judgments and just savoring the present",
+          "passagens": [
+            "p-3a1689a92db192f27fb39f0e"
+          ]
+        }
+      ],
+      "respostas_cobertas": 1,
+      "passagens_de_prova": 1
+    },
+    "ordem_fallback_preservada": true,
+    "contexto_alterado_pelo_witness": false,
+    "fallback": "hibrido_com_hipotese_nao_certificada",
+    "prova_provisoria": true,
+    "consulta": {
+      "answer_var": "x",
+      "atoms": [
+        {
+          "relation": "stand out during retreat",
+          "subject": "Jolene",
+          "object": "?x"
+        }
+      ],
+      "expected_type": "other",
+      "aggregation": "none",
+      "shape": "single-hop",
+      "source": "llm-plan-vocabulario",
+      "fallback": "Jolene session focus during retreat",
+      "validation_error": "",
+      "repairs": [],
+      "uses_annotations": false
+    },
+    "forma": "single-hop",
+    "n_testemunhas_no_contexto": 1,
+    "respostas": [
+      {
+        "resposta": "releasing expectations and judgments and just savoring the present",
+        "score": 0.7742,
+        "score_tipo": "melhor_testemunha_heuristico",
+        "risco_calibrado": false,
+        "risco": 0.3823,
+        "risco_bruto": 0.3823,
+        "n_testemunhas": 1,
+        "testemunhas": [
+          {
+            "resposta": "releasing expectations and judgments and just savoring the present",
+            "score": 0.9677,
+            "custo": 0.1828,
+            "passagens": [
+              "p-3a1689a92db192f27fb39f0e"
+            ],
+            "fatos": [
+              [
+                "Jolene",
+                "stand out during retreat",
+                "releasing expectations and judgments and just savoring the present"
+              ]
+            ]
+          }
+        ]
+      }
+    ],
+    "leitura_provas": {
+      "hipoteses": "Candidate 1: releasing expectations and judgments and just savoring the present\n  [2] Jolene | stand out during retreat | releasing expectations and judgments and just savoring the present",
+      "grau": "provisional",
+      "condicoes_pendentes": [
+        "main focus",
+        "session"
+      ]
+    },
+    "resposta_estrutural": "",
+    "risco": 1.0,
+    "risco_bruto": 99.0,
+    "conjunto_resposta": {
+      "resposta": "releasing expectations and judgments and just savoring the present",
+      "n_itens": 1,
+      "itens_descartados_por_limite": 0,
+      "completude_certificada": false,
+      "risco_do_pior_item": 0.3823,
+      "itens": [
+        {
+          "resposta": "releasing expectations and judgments and just savoring the present",
+          "score": 0.7742,
+          "risco": 0.3823,
+          "n_testemunhas": 1,
+          "passagens": [
+            "p-3a1689a92db192f27fb39f0e"
+          ],
+          "fatos": [
+            [
+              "Jolene",
+              "stand out during retreat",
+              "releasing expectations and judgments and just savoring the present"
+            ]
+          ]
+        }
+      ]
+    },
+    "agregacao_executada": "none",
+    "risco_calibrado": false,
+    "candidatos_explorados": 14,
+    "documentos_entregues": 5,
+    "orcamento_leitor": 5
+  },
+  "uso_llm": {
+    "total": {
+      "chamadas": 13,
+      "tokens_resposta": 529,
+      "em_cache": 1,
+      "tokens_prompt": 31957,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 29806,
+      "tokens_resposta_sem_cache": 439
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 1,
+        "tokens_resposta": 18,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 18,
+        "latencia_s": 2.430000000000007,
+        "filtradas": 0,
+        "tokens_prompt": 10495,
+        "tokens_prompt_sem_cache": 10495
+      },
+      "witness.acquire": {
+        "chamadas": 6,
+        "tokens_resposta": 66,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 66,
+        "latencia_s": 7.510000000000019,
+        "filtradas": 0,
+        "tokens_prompt": 13064,
+        "tokens_prompt_sem_cache": 13064
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 71,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 71,
+        "latencia_s": 1.8100000000000023,
+        "filtradas": 0,
+        "tokens_prompt": 1389,
+        "tokens_prompt_sem_cache": 1389
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 2,
+        "tokens_resposta": 104,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 104,
+        "latencia_s": 2.6300000000000026,
+        "filtradas": 0,
+        "tokens_prompt": 889,
+        "tokens_prompt_sem_cache": 889
+      },
+      "witness.replan": {
+        "chamadas": 3,
+        "tokens_resposta": 270,
+        "em_cache": 1,
+        "tokens_resposta_sem_cache": 180,
+        "latencia_s": 7.109999999999985,
+        "filtradas": 0,
+        "tokens_prompt": 6120,
+        "tokens_prompt_sem_cache": 3969
+      }
+    }
+  },
+  "f1_locomo": 0.9090909090909091,
+  "em_locomo": 0.0,
+  "categoria_locomo": 4,
+  "uso_leitor": {
+    "total": {
+      "chamadas": 1,
+      "tokens_resposta": 18,
+      "em_cache": 0,
+      "tokens_prompt": 10495,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 10495,
+      "tokens_resposta_sem_cache": 18
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 1,
+        "tokens_resposta": 18,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 18,
+        "latencia_s": 2.430000000000007,
+        "filtradas": 0,
+        "tokens_prompt": 10495,
+        "tokens_prompt_sem_cache": 10495
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      }
+    }
+  },
+  "uso_recuperacao": {
+    "total": {
+      "chamadas": 12,
+      "tokens_resposta": 511,
+      "em_cache": 1,
+      "tokens_prompt": 21462,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 19311,
+      "tokens_resposta_sem_cache": 421
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.acquire": {
+        "chamadas": 6,
+        "tokens_resposta": 66,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 66,
+        "latencia_s": 7.510000000000019,
+        "filtradas": 0,
+        "tokens_prompt": 13064,
+        "tokens_prompt_sem_cache": 13064
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 71,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 71,
+        "latencia_s": 1.8100000000000023,
+        "filtradas": 0,
+        "tokens_prompt": 1389,
+        "tokens_prompt_sem_cache": 1389
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 2,
+        "tokens_resposta": 104,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 104,
+        "latencia_s": 2.6300000000000026,
+        "filtradas": 0,
+        "tokens_prompt": 889,
+        "tokens_prompt_sem_cache": 889
+      },
+      "witness.replan": {
+        "chamadas": 3,
+        "tokens_resposta": 270,
+        "em_cache": 1,
+        "tokens_resposta_sem_cache": 180,
+        "latencia_s": 7.109999999999985,
+        "filtradas": 0,
+        "tokens_prompt": 6120,
+        "tokens_prompt_sem_cache": 3969
+      }
+    }
+  },
+  "reader_calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You answer questions using only the passages provided. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Answer the question using only the source passages below.\n\nThe evidence map lists possible graph joins extracted from those passages. It\nis a navigation aid, not an answer key or a certificate. For each candidate,\ncheck the cited passage text, the direction of every relation, and EVERY\ncondition in the question. Ignore any candidate that fails a condition or is\nnot explicitly supported by its cited passage. The map can omit correct answers:\nalso inspect the passages themselves. Never infer an exact count from a partial\nlist of graph candidates.\n\nGive the shortest complete answer: a name, date, number or short noun phrase.\nFor questions asking for a set, list every distinct supported item, separated\nby commas. If the passages do not contain the answer, say \"insufficient\ninformation\". Return JSON exactly: {\"answer\": \"...\"}\n\nEVIDENCE MAP (provisional; conditions to verify: main focus, session):\nCandidate 1: releasing expectations and judgments and just savoring the present\n  [2] Jolene | stand out during retreat | releasing expectations and judgments and just savoring the present\n\nSOURCE PASSAGES:\n[1] LoCoMo conv-48 history chunk 6\nSession date: 3:56 pm on 6 June, 2023\n[D13:1] Jolene: Hey Deborah! Long time no talk - I had lots of stuff going on. Remember the tough engineering project? I finally wrapped that up last month. Look at the result!\n[D13:1] Image caption (automatic): a photo of a solar powered vehicle with a solar panel on the back\n[D13:2] Deborah: Jolene! Congrats on wrapping up your with it! You really put in the work and it paid off. \n[D13:3] Jolene:  I'm really proud of myself for sticking it out despite the problems and finishing it. It's definitely a big milestone.\n[D13:4] Deborah: Now that you've reached this big milestone, what do you have planned next?\n[D13:5] Jolene:  I'm interning at a well-known engineering firm. It's been a great opportunity to test my skills and gain real-world experience. These are my new colleagues!\n[D13:5] Image caption (automatic): a photo of a group of construction workers posing for a picture\n[D13:6] Deborah: What's been the best part of it so far?\n[D13:7] Jolene: The best part so far has been being able to apply what I learned in school to real projects. It's so fulfilling to see my ideas come to life.\n[D13:8] Deborah: Mind if I ask how the internship has impacted you?\n[D13:9] Jolene: It has had a positive impact on my life. It has stoked my love of engineering and has encouraged me to keep striving for my dreams.\n[D13:10] Deborah:  How has it inspired you to keep striving for your dreams?\n[D13:11] Jolene: Hanging out with people who love what they do has really inspired me to stay focused and keep working towards my goals. It's shown me that with dedication and effort, anything is possible.\n[D13:12] Deborah: Have you been able to find a good work-life balance during your internship?\n[D13:13] Jolene: Honestly, finding that balance has been tough. I've been slogging away and it's been hard to make time for my hobbies and chilling out.\n[D13:14] Deborah:  Have you considered taking some breaks and finding activities like yoga to help you relax and unwind? That might make a difference.\n[D13:15] Jolene: Yeah, I`m trying to do it. Here's an example of how I spent yesterday morning, yoga on top of mount Talkeetna.\n[D13:15] Image caption (automatic): a photo of a man standing on a rock with his arms outstretched\n[D13:16] Deborah: Nice job, Jolene! How long have you been doing yoga and meditation? It looks like it's really helping you regroup and recharge.\n[D13:17] Jolene: I've been doing them sporadically for about 3 years now and they've had a real positive effect on me.\n[D13:18] Deborah: Has it benefited you in any way? Have you found it helpful in difficult moments?\n[D13:19] Jolene: It has helped me with stress and kept me centered.\n[D13:20] Deborah: Glad they've been helpful for you!\n[D13:21] Jolene: No idea how I would've survived without them!\n[D13:22] Deborah: This is my favorite studio and it's always so calming. \n[D13:22] Image caption (automatic): a photo of a room with a bench and a window\n[D13:23] Jolene:  I was wondering if you have any advice on calming the mind and breathing during yoga?\n[D13:24] Deborah: I'd recommend practicing mindful breathing for yoga. Set aside a few minutes each day to sit with your eyes closed, take deep breaths, and focus on how the air feels entering and leaving your body. \n[D13:25] Jolene: Thanks, Deborah! I'll definitely give it a try. Appreciate the advice!\n[D13:26] Deborah:  If you need more tips or help, just let me know. Take care!\n[D13:27] Jolene: See you!\nSession date: 9:17 am on 26 June, 2023\n[D14:1] Deborah: Hey Jolene! How's it going? We haven't talked in a while. I've been busy getting ready for a yoga retreat with some buddies. A chance to hang out with people who think like me and find peace and understanding. Sounds awesome!\n[D14:1] Image caption (automatic): a photo of a group of people doing yoga in a park\n[D14:2] Jolene: Hey Deb! Been super hectic with internship and stuff. That retreat sounds awesome, I could definitely use a break!\n[D14:3] Deborah: By the way, I tried a new pose - Dancer Pose (Natarajasana). Rate, did I succeed?\n[D14:3] Image caption (automatic): a photo of a woman doing a yoga pose on the beach\n[D14:4] Jolene: You are amazing as always! Here are new photos of Seraphim in the new aquarium that I bought the day before yesterday.\n[D14:4] Image caption (automatic): a photo of a snake curled up in a plant filled area\n[D14:5] Deborah: Where'd you get it? I'm always drawn to animals, they bring so much joy. What's its story?\n[D14:6] Jolene:  I got her last year, she's a great pet. She always cheers me up and brings a sense of peace. Spending time with her is so comforting.\n[D14:7] Deborah: Pets really do make life more enjoyable and bright. \n[D14:7] Image caption (automatic): a photo of a group of people doing yoga in a field\n[D14:8] Jolene:  I'm so thankful it's here. Plus, it's nice to have a calm creature around.\n[D14:9] Deborah: How have things been besides that?\n[D14:10] Jolene: Things have been intense lately. I'm really pushing myself to succeed, and sometimes it feels overwhelming. But I'm determined to overcome any obstacles and achieve my goals.\n[D14:11] Deborah: Keep up the hard work and remember to relax too.\n[D14:12] Jolene: Thanks, Deborah! I had a big breakthrough with this project - so exciting and rewarding!\n[D14:12] Image caption (automatic): a photo of a drawing of a house with a ruler and a ruler\n[D14:13] Deborah: Awesome, Jolene! I'm really glad your project worked out. \n[D14:14] Jolene: Stop talking about me, tell me more about your retreat.\n[D14:15] Deborah: I'd rather show you a photo. This is also a new yoga pose that we tried. It is a tree pose.\n[D14:15] Image caption (automatic): a photo of three people standing in front of a large statue\n[D14:16] Jolene: What's that statue in the picture?\n[D14:17] Deborah: It's a symbol of peace and enlightenment.\n[D14:18] Jolene: Wow, it looks gorgeous! I'd love to visit a retreat like that. It seems like the ideal spot to find peace and refreshment.\n[D14:19] Deborah: It's perfect for reflecting and getting centered.\n[D14:20] Jolene: I could really use some chill time like that. Sounds so peaceful.\n[D14:21] Deborah: Yeah, we all need some peaceful time to relax.\n[D14:22] Jolene: Gotta run, have a nice day!\n[D14:23] Deborah: See you!\n[D14:23] Image caption (automatic): a photo of a sunset reflecting in a lake with a boat\nSession date: 7:37 pm on 9 July, 2023\n[D15:1] Deborah: Hey Jolene! I started a running group with Anna - it's awesome connecting with people who care about fitness!\n[D15:1] Image caption (automatic): a photo of three men standing next to each other on a road\n[D15:2] Jolene: Cool, Deb! Glad you found some people to get fit with. I'm trying to add workouts into my studying schedule, which has been tough but fun. How about you? Any challenges with the running group?\n[D15:3] Deborah: Oh, I'm having a blast with it! We help and push each other during our runs, which makes it so much easier to stay motivated.  I have a lot of my photos from this activity.\n[D15:3] Image caption (automatic): a photo of a woman standing on a sidewalk with a skateboard\n\n[2] LoCoMo conv-48 history chunk 12\nSession date: 8:31 pm on 6 September, 2023\n[D25:5] Jolene: Yeah, same! It helps me stay balanced during my studies.\n[D25:6] Deborah: Glad to hear it, Jolene. How's the project going?\n[D25:7] Jolene:  It's tough but I'm chugging along. Thanks!\n[D25:8] Deborah: You're so strong for handling all the challenges. You've got this!\n[D25:9] Jolene: Thanks, Deb! Your support really means a lot. I'll keep pushing forward.\n[D25:10] Deborah: No worries, Jolene. I'm here if you need me. Take care of yourself and don't forget to rest up.\n[D25:11] Jolene: What have you been doing lately?\n[D25:12] Deborah: I recently saw this wonderful sunrise again.\n[D25:12] Image caption (automatic): a photo of a person walking on the beach with a surfboard\n[D25:13] Jolene: Glimpsing that calms me. Taking beach walks relaxes me. \n[D25:14] Deborah: Did my photo remind you of something?\n[D25:15] Jolene: That shot was like a reminder of my last beach getaway. So chill and nice. \n[D25:16] Deborah: Glad it brought back good memories. \n[D25:17] Jolene: Maybe one day we will be able to watch the sunrise together!\n[D25:18] Deborah: An offer I can't refuse!\n[D25:19] Jolene: Bye, Deb! See you later!\n[D25:20] Deborah: See ya! Stay safe and catch you later. Bye!\nSession date: 7:39 pm on 8 September, 2023\n[D26:1] Deborah: Hey Jolene, had a tough week. Storm forced us to cancel our yoga getaway.\n[D26:2] Jolene: Sorry to hear about it. How are you feeling now?\n[D26:3] Deborah: I was bummed about it, but I'm doing better now. It was just a setback, but I found comfort in my work and spending time at home. Reminds me to be grateful for the little things. And you? How's it going?\n[D26:4] Jolene: My partner and I plan a camping trip to connect with nature and practice yoga.\n[D26:5] Deborah: It can be both good and tough to plan activities with a busy schedule - what strategies do you use?\n[D26:6] Jolene: Having a routine helps me stay on top of everything I need to do. I have a schedule for classes, studying, and personal time. Self-care activities like yoga and meditation help me stay balanced and relax.\n[D26:7] Deborah: I'd love to learn more about how you do it.\n[D26:8] Jolene:  I can tell you about it if you're interested. It took a bit of experimenting, but it's really helped me.\n[D26:9] Deborah: Sounds great! Let's set up a coffee date and talk about it!\n[D26:10] Jolene: Wanna meet up at that cafe next Monday? Let's try fresh pastries.\n[D26:10] Image caption (automatic): a photo of a coffee shop with a bunch of coffee machines\n[D26:11] Deborah: Sounds good, Jolene! When did you have in mind? That cafe rocks.\n[D26:12] Jolene: How about Wednesday at 4? Can't wait to catch up over coffee!\n[D26:12] Image caption (automatic): a photo of a person holding a cup of coffee in front of a bunch of flowers\n[D26:13] Deborah: That pic looks so peaceful. Reminded me of a cool hidden coffee shop near me. Rate it!\n[D26:13] Image caption (automatic): a photo of a group of people sitting at tables in a room\n[D26:14] Jolene: Tell me more about it when we meet, maybe next time we’ll be there.\n[D26:15] Deborah: Sorry, I remembered that I already have plans for this day.\n[D26:16] Jolene: Now I'll see when it's more convenient for me.\n[D26:17] Deborah: Thank you for your understanding, I'm waiting.\n[D26:18] Jolene: How about Friday at 5? I will need to sort out the books from this bookcase and I will be free.\n[D26:18] Image caption (automatic): a photo of a room with a book shelf and a ceiling fan\n[D26:19] Deborah: Absolutely, let's do that! Can't wait for our coffee date next week. See you then. Stay safe!\n[D26:20] Jolene: See ya soon, Deb! Be safe and I'm excited for our coffee date!\n[D26:21] Deborah: Maybe just grab me some interesting books!\nSession date: 2:18 pm on 12 September, 2023\n[D27:1] Jolene: Hey Deb! So sorry for the late reply, been super busy. Last weekend my partner and I traveled to a meditation retreat for a few weeks in Phuket. Amazing experience! Nature, reflection and a break from engineering studies were awesome - it helped me find inner peace.\n[D27:1] Image caption (automatic): a photo of a woman doing a yoga pose on the beach\n[D27:2] Deborah:  I'd love to hear more about your reflections there and how they changed you.\n[D27:3] Jolene: At the retreat, I had time to reflect on what makes me happy. It made me realize the importance of incorporating relaxation, self-care, and balance in life alongside my engineering studies. The beauty of nature there was so inspiring and refreshing!\n[D27:4] Deborah:  Was there anything from the retreat that stood out to you?\n[D27:5] Jolene: The one session that really stood out was about releasing expectations and judgments and just savoring the present. It was a strong reminder to not just dwell on the finish line, but to appreciate the journey too. I usually get too consumed with hitting my goals that I forget to appreciate the ride.\n[D27:6] Deborah:  I've been thinking about this a lot, too. Life's full of small moments and being grateful for those can really boost our happiness.\n[D27:7] Jolene: Yup, totally agree! Sometimes we get too focused on the big stuff and don't appreciate all the tiny wins. Like the feeling of the sun or a great cup of coffee - can be small but they make life much better. Trying to be more mindful and grateful to take it all in now.\n[D27:8] Deborah: That's great, Jolene! Practicing mindfulness and gratitude can really change our day-to-day. Even just a different outlook can make the little things in life joyful. Glad you're getting into it!\n[D27:9] Jolene: I'm experiencing a new level of joy and happiness!\n[D27:10] Deborah:  It's wonderful to see your progress, and I'm excited to be on this journey with you!\n[D27:11] Jolene: Thanks, Deb! Appreciate your support. It's great that we can do this together.\n[D27:12] Deborah: Having a supportive community definitely helps. We can motivate and encourage each other! By the way, I recently played a game. I don't remember what it's called. This is a card game about cats, where you take cards one by one from a deck, and then you can attack your opponent with them. We'll definitely play it with you!\n[D27:12] Image caption (automatic): a photo of two children standing on yoga mats in a room\n[D27:13] Jolene: I look forward to meeting you and playing this game!\nSession date: 3:09 pm on 15 September, 2023\n[D28:1] Deborah: Since speaking last, I reconnected with my mom's old friends. Their stories made me tear up and reminded me how lucky I am to have had her.\n[D28:1] Image caption (automatic): a photo of a living room with a couch and a fire place\n[D28:2] Jolene:  It's great that you could reconnect with them. Hearing stories about our loved ones can be tough but also comforting.\n[D28:3] Deborah: Hearing stories about my mom was emotional. It was both happy and sad to hear things I hadn't heard before. It was a mix of emotions, but overall it was comforting to reconnect with her friends.\n[D28:4] Jolene: It can bring up a range of emotions, and it's okay to feel a mix of happiness and sadness. Those moments with her friends must've been meaningful to you.\n\n[3] LoCoMo conv-48 history chunk 11\nSession date: 11:46 am on 30 August, 2023\n[D23:3] Jolene: This country was awesome! It showed me different kinds of yoga and their backgrounds, which made me appreciate it even more. We visited a lot of delicious cafes! Have you ever been somewhere that was important to you?\n[D23:4] Deborah: Yep, last month I visited my mom`s house which holds a special place in my heart. My mom had good and bad times there, but it's still a symbol of her strength and the love she shared with me. This is my husband in front of this house.\n[D23:4] Image caption (automatic): a photo of a man standing in front of a house\n[D23:5] Jolene: What was it like?\n[D23:6] Deborah: It brought back fond memories as I relaxed outside.\n[D23:7] Jolene: Sounds great! So glad you have a place to relax and find peace.\n[D23:8] Deborah: Thanks, Jolene. It's special for me. How about you? Is there a place that helps you relax?\n[D23:9] Jolene: I go to this nearby place to meditate by a tranquil spot.\n[D23:9] Image caption (automatic): a photo of a pond with lily pads and a tree in the background\n[D23:10] Deborah: Looks chill. What's been the effect of that?\n[D23:11] Jolene: It helps me make sense of everything and relieves stress. It's like a restart.\n[D23:12] Deborah: Cool, glad you found a place to chill. We all need that occasionally. This is one of my favorite spots to ponder and let things go.\n\n[D23:12] Image caption (automatic): a photo of a lake with a few trees in the water\n[D23:13] Jolene: Looks great! What made you pick that spot?\n[D23:14] Deborah: The soothing vibes and nice views made it ideal for reflecting and letting go.\n[D23:15] Jolene: Here is one more photo from Rio de Janeiro. We went on many excursions there.\n[D23:15] Image caption (automatic): a photo of a group of people walking up a set of stairs\n[D23:16] Deborah: Wow, those stairs look cool! Where were they taken?\n[D23:17] Jolene: We had a great time visiting an old temple. The stairs were amazing!\n[D23:18] Deborah: Wow, exploring those temples must have been incredible! Three years ago I was also in Rio de Janeiro, I took a beautiful photo on one of the excursions.\n[D23:18] Image caption (automatic): a photo of a large stone structure with a mountain in the background\n[D23:19] Jolene: The architecture and history of it all were really interesting. I'm sure you also liked the places you visited there!\n[D23:20] Deborah: Exploring historical places and learning their stories is so fun. It was a great experience. I want to share this photo with you.\n[D23:20] Image caption (automatic): a photo of a hand holding a piece of paper with writing on it\n[D23:21] Jolene:  By the way, what did that paper have written on it in the photo?\n[D23:22] Deborah: This was written to me by a friend who, unfortunately, will never be able to support me. I miss him here. This quote says\"Let go of what no longer serves you.\"\n[D23:23] Jolene: I'm sorry! That's a good reminder to stay focused and let go of what no longer serves us. Remember the quote in my notebook? It also inspires me!\n[D23:23] Image caption (automatic): a photo of a notebook with a quote on it\n[D23:24] Deborah: What other quotes give you strength?\n[D23:25] Jolene: I came across this one while browsing and it really hit home with me. It's a great reminder to ditch the negative stuff and focus on growing and being positive.\n[D23:25] Image caption (automatic): a photo of a notebook with a pen and a plant on a table\n[D23:26] Deborah: Surrounding ourselves with good stuff and striving to improve is key.\n[D23:27] Jolene: Yep, Deborah! It's about creating a good atmosphere to help us grow and improve. By the way, I have a new plant.\n[D23:27] Image caption (automatic): a photo of a plant in a pot on a patio\n[D23:28] Deborah: What made you pick it?\n[D23:29] Jolene: I got this as a reminder to nurture myself and embrace fresh starts.\n[D23:30] Deborah: Nice job, Jolene! Take care of yourself and embrace new beginnings.\n[D23:31] Jolene: Thanks Deb! Will do. Good talking to you. Take care!\n[D23:32] Deborah: Have a great day!\nSession date: 2:14 pm on 3 September, 2023\n[D24:1] Deborah: Hey Jolene, just catching up. I went to a cool event last week with the aim to support each other - pretty inspiring. Have you been connecting with anyone lately?\n[D24:2] Jolene: Hey Deb, great to hear from you! I've been focusing on studying and my relationship with my partner. We're taking little trips to the beach, it's a great way to relax. How about you, anything new going on?\n[D24:3] Deborah: I was busy too - went to a community meetup last Friday. We shared stories and it was nice to feel how connected we are. It made me think about how important relationships are. How about you, how are things going in that area?\n[D24:4] Jolene: I'm really thankful for my significant other right now. It's great to have someone encouraging my goals! How are things with your friends and family? Any updates on that front?\n[D24:5] Deborah: Relationships with family and friends are so vital. My yoga pals have been my second family - we've held each other up through a lot. The other day I found this old photo. That was when I first started doing yoga. My mum was my biggest fan and source of motivation. She'd often come to my classes with me.\n[D24:5] Image caption (automatic): a photo of a woman sitting on a yoga mat with two children\n[D24:6] Jolene: Our loved ones sure are supportive! When I was 10, my parents got me that and it was the start of my passion for video games.\n[D24:6] Image caption (automatic): a photo of a nintendo game console and a game controller\n[D24:7] Deborah: Cool that they shared that with you. Did you learn on your own or did they teach you?\n[D24:8] Jolene: I taught myself, but my dad was always supportive and my mom would play games with me. \n[D24:8] Image caption (automatic): a photo of a nintendo wii game system with a game on the screen\n[D24:9] Deborah: That's awesome! Sounds like you had a lot of support from your parents. What was your favorite game to play with mom?\n[D24:10] Jolene: One of my favorites was \"Monster Hunter: World\". The immersive story and open-world gaming are amazing!\n[D24:11] Deborah:  It can be so freeing when you get immersed in a game like that. \n[D24:12] Jolene: Yeah! It's my way to de-stress and take a break from life.\n[D24:13] Deborah: What's up this month? Anything fun happening for you?\n[D24:14] Jolene: Got a lot of finals coming up this month, so I've been studying real hard. It's been quite stressful, but it'll be worth it in the end. Thinking about taking a trip somewhere to relax and recharge afterward.\n[D24:15] Deborah: Good luck with it! Let me know if there's anything I can do to assist you.\nSession date: 8:31 pm on 6 September, 2023\n[D25:1] Jolene: Woohoo! I signed up for a meditation course at a retreat near a lake. Can't wait to share this experience with my partner and learn some new techniques. Sooo excited!\n[D25:1] Image caption (automatic): a photo of a building with a curved roof on a hill\n[D25:2] Deborah: That`s awesome! It looks so calm in the pic - I hope you enjoy your experience and learn some new techniques!\n[D25:3] Jolene:  It's amazing how something so easy can make such a big difference to our health!\n[D25:4] Deborah: Yep, it's become part of my routine now. Can't imagine my life without it.\n\n[4] LoCoMo conv-48 history chunk 10\nSession date: 9:34 am on 24 August, 2023\n[D21:6] Jolene: My goal is to be successful in my field and make a positive impact. I've been studying, attending workshops, and networking to make it happen. Recently, I had the opportunity to present at a virtual conference and received positive feedback.  It was a great experience and confirmed that I'm on the right track.\n[D21:7] Deborah: You really put your heart and soul into it. Must have been amazing having it go so well. How did it feel when people gave you positive feedback? Any ideas for what comes next?\n[D21:8] Jolene: I was thrilled to receive such positive feedback! It felt so rewarding to know that my efforts were appreciated. Right now, I'm focusing on studying and gaining more experience. I'm even thinking about more internships to further enhance my skills. Exciting times! Hopefully, there will be more updates to share with you soon.\n[D21:9] Deborah: Wow, Jolene! Way to go! I'm super proud of all you've achieved. Let me know if you need any help. Onward!\n[D21:10] Jolene: Thanks, Deb! Your support means a lot to me. \n[D21:11] Deborah: No problem. You got this! \n[D21:12] Jolene:  I'm not giving up, just gonna keep pushing forward.\n[D21:13] Deborah: Reach for your goals and don't forget to enjoy the journey. \n[D21:14] Jolene: Thanks, Deb. Your support means a lot. I'll keep pushing forward and remember to enjoy every step of the way.\n[D21:15] Deborah: Come on! The journey's as important as the destination. Take time for yourself and find joy in it. We believe in you!\n[D21:15] Image caption (automatic): a photo of a field of sunflowers with a sunset in the background\n[D21:16] Jolene: Yeah, you're right! I'll take your advice and find joy on the way. Cheers for the support!\n[D21:16] Image caption (automatic): a photo of a city skyline at sunset with a body of water\n[D21:17] Deborah: Always by your side!\nSession date: 5:33 pm on 26 August, 2023\n[D22:1] Deborah: Hey Jolene, since we talked I've been thinking about my mom's influence. Remembering those we love is important.\n[D22:2] Jolene: I understand, Deb. Remembering and cherishing the memories of our loved ones is so important. It's comforting to know that their influence still guides us. Last Friday, my partner and I talked about how our loved ones have influenced us and what their values meant to us. It was an emotional chat, but it made us feel closer and showed us what really matters. \n[D22:3] Deborah: Those types of conversations really help build relationships. Can you tell me more about the values they have given you?\n[D22:4] Jolene: Definitely! Our loved ones have taught us to persevere and stay resilient, like my mom always said to never give up, and my partner's dad showed them to stay determined. Their values have influenced us to pursue our goals, such as me with engineering and my partner with their creative endeavors. Even though they're not here, we both feel their values encouraging us along our paths.\n[D22:5] Deborah: That's wonderful to hear, Jolene! It's amazing how their values continue to guide you, even in their absence. It sounds like you and your partner are honoring their memory by pursuing your respective passions. Have you ever considered incorporating those values into your work as well?\n[D22:6] Jolene: Yeah, Deborah! We've been figuring out how to add these values into our projects. As an engineering student, I want to use my talents to do good and help solve important problems. I'm keen on coming up with new ideas and making things more efficient to make the world a better place. Going further, my mom stressed the value of helping others and that's something I want to keep in mind for my engineering projects.\n[D22:7] Deborah: When our work ties into our values, it becomes more meaningful. What goals or ideas do you have for incorporating those values into your future projects?\n[D22:8] Jolene: In the future, I'm aiming to work on projects that make a real difference to communities. I'm interested in sustainable initiatives and developing innovative solutions for environmental issues. I also want to get involved with organizations that focus on social causes, using my skills to help out. It's about connecting my passion for engineering with my commitment to making a positive impact.\n[D22:9] Deborah: You've got a lot of amazing plans for the future. Which projects are you most interested in getting involved in?\n[D22:10] Jolene: I'm keen on two projects in particular. One is focused on developing renewable energy, like solar, to help communities and reduce dependence on non-renewables. \n[D22:11] Deborah: Wow Jolene, that's really inspiring!\n[D22:12] Jolene: The other is finding ways to supply clean water to those with limited access. Both align with my beliefs about sustainability and assisting those in need. I still have so much to figure out before beginning, but I'm up for the challenge.\n[D22:13] Deborah: Sounds great, Jolene! Research is key to success. Little steps and being up for challenges make you stronger. I'm here for you. Connecting to yourself helps tackle any issue. Here's a photo that reminds me of the beauty of nature during a yoga session.\n[D22:13] Image caption (automatic): a photo of a woman doing a yoga pose on the beach\n[D22:14] Jolene: It helps with challenges, giving balance and strength. Any tips for staying relaxed while studying?\n[D22:15] Deborah: Taking breaks, doing some stretching/yoga, or just going for a walk is really helpful. And don't forget to get enough sleep and take time for self-care. Finding a balance between work and taking care of yourself is important. What self-care activities have you been doing lately?\n[D22:16] Jolene: I've been into yoga and meditation lately. It helps me recharge. Doing different poses relieves tension and calms my mind. I've already shared my newfound love for yoga with my partner, and we're planning to go on a meditation retreat together to enhance our practice together.\n[D22:16] Image caption (automatic): a photo of a woman in a pink shirt doing a yoga pose\n[D22:17] Deborah: Glad to hear that yoga is helping you rest and recharge. It's great for reflection and self-care. Do your snakes also enjoy it?\n[D22:18] Jolene: My snakes just like watching me chill. But she's a great company and always brings a sense of calm.\n[D22:19] Deborah: Having a pet around is such a calming feeling. They sure can bring a great sense of comfort. I still have cats, Luna is sitting on the left.\n[D22:19] Image caption (automatic): a photo of two cats sitting on a window sill looking out\n[D22:20] Jolene: Aww, that's adorable! What's the second one's name?\n[D22:21] Deborah: Max! They bring lots of joy and peace to our home.\n[D22:21] Image caption (automatic): a photo of a brown leather chair and a black and white floor\n[D22:22] Jolene: How did you get them?\n[D22:23] Deborah: Max is my mother's cat, I took him when my mother passed away.\n[D22:23] Image caption (automatic): a photo of a car with a fan and a mesh bag\n[D22:24] Jolene: You're great for taming him. How did you get Luna?\n[D22:25] Deborah: I took Luna from the shelter.\n[D22:26] Jolene: It’s wonderful that you have become their loving owner!\n[D22:27] Deborah: Yes, I really love cats, and they also need a home, love, and care! Moreover, Max is already old, he is 8 years old.\n[D22:28] Jolene: How old is Luna?\n[D22:29] Deborah: She is younger, she is 5 years old.\n[D22:30] Jolene: I am proud of your action to tame these pets!\nSession date: 11:46 am on 30 August, 2023\n[D23:1] Jolene: Hey Deborah, how's it going? Guess what? Yesterday my partner and I got back from an awesome trip to Rio de Janeiro- we checked out some cool yoga classes.\n[D23:1] Image caption (automatic): a photo of a woman doing a yoga pose in a mirror\n[D23:2] Deborah: That yoga pose looks great. Must've been a cool experience for the two of you. What did the trip teach you?\n\n[5] LoCoMo conv-48 history chunk 8\nSession date: 9:26 am on 1 August, 2023\n[D16:10] Jolene: I'm trying to prioritize self-care, like yoga and meditation. It helps me stay balanced and grounded.\n[D16:11] Deborah:  If you're interested, I can suggest some routines for you to try.\n[D16:12] Jolene:  I'm always on the lookout for new routines to mix things up.\n[D16:13] Deborah: In the meantime, check out this great place for yoga.\n[D16:13] Image caption (automatic): a photo of a room with a lot of yoga mats on the floor\n[D16:14] Jolene: This room looks perfect for it. Do you have any favorite routines you can share?\n[D16:15] Deborah: One of my favorite yoga routines is a gentle flow that's all about breathing and grounding. It helps me find my chill. I'll send you a tutorial video with the poses. This is me in the process :)\n[D16:15] Image caption (automatic): a photo of a woman in a pink shirt doing a yoga pose\n[D16:16] Jolene: Wow! Does that help you find your chill or improve your concentration?\n[D16:17] Deborah: It's a great way to find balance in tough times. Try it out and let me know what you think!\n[D16:18] Jolene: Can't wait to try it out. Let's chat soon!\n[D16:19] Deborah: Let me know how it goes. Talk to you later!\n[D16:20] Jolene: Yep, I'll practice and update you. Bye!\nSession date: 8:50 pm on 12 August, 2023\n[D17:1] Deborah: Since we last spoke, I made a meditation guide for my yoga retreat. How about you?\n[D17:2] Jolene: I have been stressed since I lost my work files. I was so overwhelmed...but meditation kept me chill and I got my clarity back, thank goodness. Really appreciate the practice!\n[D17:3] Deborah: It's amazing how it can give you peace and calm in times like that. If you ever need any support, just let me know - we're in this together!\n[D17:4] Jolene:  Appreciate your support! BTW, I wanted to share this with you.\n[D17:4] Image caption (automatic): a photo of two notebooks with a blue cover and a white strip\n[D17:5] Deborah: Your creativity is amazing! \n[D17:6] Jolene: Thanks, Deb! I was inspired by my love for space and engines, so I designed these notebooks with elements like galaxies and circuitry. I think they turned out really cool!\n[D17:7] Deborah: You have such a knack for turning these into art. They make me feel excited just by looking at them. Your creativity is amazing! Does that usually inspire your engineering projects too?\n[D17:8] Jolene: Seeing art and design in various things gives me a unique perspective on problems.\n[D17:9] Deborah: Got any neat projects or ideas you're pumped about?\n[D17:10] Jolene:  Working on a cool project now - a prototype that could revolutionize aerial surveillance. Can't wait to see the results!\n[D17:11] Deborah: I admire your ambition to make a difference. Do you have any specific plans or goals for this project?\n[D17:12] Jolene: My aim is to devise a more productive and affordable aerial surveillance system. It'll help with responding to emergencies and monitoring the environment. It'll make the world a better, safer place.\n[D17:13] Deborah: I love your commitment. Keep going!\n[D17:14] Jolene: Thanks, Deb! Your support means a lot. I'll keep pushing and doing my best to make a difference.\n[D17:15] Deborah: You got this!\nSession date: 2:58 pm on 16 August, 2023\n[D18:1] Jolene: Been thinking a lot about my plans lately, especially after checking in with my bf. It's been up and down!  Some days it feels like I'm trying to juggle my engineering, relationship, and growing as a person, and I just don't know how to handle it all. How do you manage when it's too much?\n[D18:1] Image caption (automatic): a photo of a book with a checklist on it\n[D18:2] Deborah: Finding ways to restore balance is important. Taking time for yourself and recognizing your needs can make a difference. \n[D18:2] Image caption (automatic): a photo of a room with a moss wall and a floor cushion\n[D18:3] Jolene: Thanks, Deb! I've been trying out some time management strategies recently and started using a bullet journal. It's been really helpful for tracking my tasks and staying organized.\n[D18:4] Deborah:  It's great to hear that it's been helping you out!\n[D18:5] Jolene:  Not only does it help me stay on top of everything, but it's also so satisfying when I cross tasks off my list. Here's a pic of my newest spread with one of my favorite quotes.\n[D18:5] Image caption (automatic): a photo of a notebook with a quote on it\n[D18:6] Deborah: I love this quote. So uplifting. Does it motivate you when you see it?\n[D18:7] Jolene: Yeah, it's like a little reminder to stick to my goals and never give up.\n[D18:8] Deborah: Gotcha! Visual reminders like this photo can be super motivating. Keep focusing on your goals, Jolene, and don't give up! I led a meditation yoga sessionto the elderly at a local care home last week during sunset. Nature can be really helpful for finding peace. Have you tried mindfulness too? \n[D18:8] Image caption (automatic): a photo of a group of people doing yoga on a beach\n[D18:9] Jolene: Haven't tried it yet, but I'm keen to give it a shot. That sounds really peaceful. I could use some of that calm in my life right now.  I'm interested in destressing and trying mindfulness. \n[D18:10] Deborah: I started with workshops and books, and now mindfulness is a huge part of my life.\n[D18:11] Jolene:  I'll definitely look into some of it. Can't wait to get started!\n[D18:12] Deborah: That's great, Jolene! I'm so glad you're willing to try some mindfulness. It can be really helpful. Let me know if you need any help getting started - I'm happy to assist you with your journey!\n[D18:13] Jolene:  I really appreciate it.\n[D18:14] Deborah: We're in this together. Give me a shout if you need anything. Bye for now.\n[D18:15] Jolene: Thanks, I'll hit you up if I need anything. Bye for now.\nSession date: 12:52 am on 19 August, 2023\n[D19:1] Deborah: Hey Jolene! Hope you're having a good one. Last Friday I told Anna the story of my life and they were super kind about it. It was so nice to have a meaningful connection. How's the mindfulness workshops and reading going? Need any help?\n[D19:2] Jolene: Life's been hella busy since we last talked. I bought a console for my partner as a gift on the 17th and it's so much fun, he even managed to play it.! Engineering studies are still going strong too. Balance has been key for me lately. How about you? What's been up?\n[D19:2] Image caption (automatic): a photo of a black xbox console with a yoda yoda figure next to it\n[D19:3] Deborah:  Well done! As for me, I've been focusing on teaching yoga and spending time with the community. Organizing a yoga event last month was really cool.\n[D19:4] Jolene:  Was it rewarding seeing everyone come together? Can you tell me more about how you put it together? Also, any tips for maintaining a balance between hobbies and studies?\n[D19:5] Deborah:  I reached out to different nearby businesses and places to make it happen. We had yoga, food stalls, and even some live music - it was amazing! As for balancing hobbies and studies, I find it helpful to prioritize and manage my time effectively. Making a schedule and setting aside specific time for studying and pursuing hobbies can go a long way in maintaining balance.\n[D19:6] Jolene: Wow, that's awesome! Gonna make a plan to manage my studies and hobbies. Say, do you ever play video games?\n[D19:7] Deborah: I used to play some video games, but it's been a while. It's a good way to relax after a busy day. Do you have any game suggestions? What's your favorite game?\n\nQUESTION: What was the main focus of the session that stood out to Jolene during the retreat?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 512,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "qa",
+      "key": "88643d3a181558a8baea57020d25427da557580c2727c855937ffb35ff9abf6b",
+      "result": {
+        "text": "{\"answer\": \"releasing expectations and judgments and just savoring the present\"}",
+        "prompt_tokens": 10495,
+        "completion_tokens": 18,
+        "latency_s": 2.4247782258316875,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You answer questions using only the passages provided. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Answer the question using only the source passages below.\n\nThe evidence map lists possible graph joins extracted from those passages. It\nis a navigation aid, not an answer key or a certificate. For each candidate,\ncheck the cited passage text, the direction of every relation, and EVERY\ncondition in the question. Ignore any candidate that fails a condition or is\nnot explicitly supported by its cited passage. The map can omit correct answers:\nalso inspect the passages themselves. Never infer an exact count from a partial\nlist of graph candidates.\n\nGive the shortest complete answer: a name, date, number or short noun phrase.\nFor questions asking for a set, list every distinct supported item, separated\nby commas. If the passages do not contain the answer, say \"insufficient\ninformation\". Return JSON exactly: {\"answer\": \"...\"}\n\nEVIDENCE MAP (provisional; conditions to verify: main focus, session):\nCandidate 1: releasing expectations and judgments and just savoring the present\n  [2] Jolene | stand out during retreat | releasing expectations and judgments and just savoring the present\n\nSOURCE PASSAGES:\n[1] LoCoMo conv-48 history chunk 6\nSession date: 3:56 pm on 6 June, 2023\n[D13:1] Jolene: Hey Deborah! Long time no talk - I had lots of stuff going on. Remember the tough engineering project? I finally wrapped that up last month. Look at the result!\n[D13:1] Image caption (automatic): a photo of a solar powered vehicle with a solar panel on the back\n[D13:2] Deborah: Jolene! Congrats on wrapping up your with it! You really put in the work and it paid off. \n[D13:3] Jolene:  I'm really proud of myself for sticking it out despite the problems and finishing it. It's definitely a big milestone.\n[D13:4] Deborah: Now that you've reached this big milestone, what do you have planned next?\n[D13:5] Jolene:  I'm interning at a well-known engineering firm. It's been a great opportunity to test my skills and gain real-world experience. These are my new colleagues!\n[D13:5] Image caption (automatic): a photo of a group of construction workers posing for a picture\n[D13:6] Deborah: What's been the best part of it so far?\n[D13:7] Jolene: The best part so far has been being able to apply what I learned in school to real projects. It's so fulfilling to see my ideas come to life.\n[D13:8] Deborah: Mind if I ask how the internship has impacted you?\n[D13:9] Jolene: It has had a positive impact on my life. It has stoked my love of engineering and has encouraged me to keep striving for my dreams.\n[D13:10] Deborah:  How has it inspired you to keep striving for your dreams?\n[D13:11] Jolene: Hanging out with people who love what they do has really inspired me to stay focused and keep working towards my goals. It's shown me that with dedication and effort, anything is possible.\n[D13:12] Deborah: Have you been able to find a good work-life balance during your internship?\n[D13:13] Jolene: Honestly, finding that balance has been tough. I've been slogging away and it's been hard to make time for my hobbies and chilling out.\n[D13:14] Deborah:  Have you considered taking some breaks and finding activities like yoga to help you relax and unwind? That might make a difference.\n[D13:15] Jolene: Yeah, I`m trying to do it. Here's an example of how I spent yesterday morning, yoga on top of mount Talkeetna.\n[D13:15] Image caption (automatic): a photo of a man standing on a rock with his arms outstretched\n[D13:16] Deborah: Nice job, Jolene! How long have you been doing yoga and meditation? It looks like it's really helping you regroup and recharge.\n[D13:17] Jolene: I've been doing them sporadically for about 3 years now and they've had a real positive effect on me.\n[D13:18] Deborah: Has it benefited you in any way? Have you found it helpful in difficult moments?\n[D13:19] Jolene: It has helped me with stress and kept me centered.\n[D13:20] Deborah: Glad they've been helpful for you!\n[D13:21] Jolene: No idea how I would've survived without them!\n[D13:22] Deborah: This is my favorite studio and it's always so calming. \n[D13:22] Image caption (automatic): a photo of a room with a bench and a window\n[D13:23] Jolene:  I was wondering if you have any advice on calming the mind and breathing during yoga?\n[D13:24] Deborah: I'd recommend practicing mindful breathing for yoga. Set aside a few minutes each day to sit with your eyes closed, take deep breaths, and focus on how the air feels entering and leaving your body. \n[D13:25] Jolene: Thanks, Deborah! I'll definitely give it a try. Appreciate the advice!\n[D13:26] Deborah:  If you need more tips or help, just let me know. Take care!\n[D13:27] Jolene: See you!\nSession date: 9:17 am on 26 June, 2023\n[D14:1] Deborah: Hey Jolene! How's it going? We haven't talked in a while. I've been busy getting ready for a yoga retreat with some buddies. A chance to hang out with people who think like me and find peace and understanding. Sounds awesome!\n[D14:1] Image caption (automatic): a photo of a group of people doing yoga in a park\n[D14:2] Jolene: Hey Deb! Been super hectic with internship and stuff. That retreat sounds awesome, I could definitely use a break!\n[D14:3] Deborah: By the way, I tried a new pose - Dancer Pose (Natarajasana). Rate, did I succeed?\n[D14:3] Image caption (automatic): a photo of a woman doing a yoga pose on the beach\n[D14:4] Jolene: You are amazing as always! Here are new photos of Seraphim in the new aquarium that I bought the day before yesterday.\n[D14:4] Image caption (automatic): a photo of a snake curled up in a plant filled area\n[D14:5] Deborah: Where'd you get it? I'm always drawn to animals, they bring so much joy. What's its story?\n[D14:6] Jolene:  I got her last year, she's a great pet. She always cheers me up and brings a sense of peace. Spending time with her is so comforting.\n[D14:7] Deborah: Pets really do make life more enjoyable and bright. \n[D14:7] Image caption (automatic): a photo of a group of people doing yoga in a field\n[D14:8] Jolene:  I'm so thankful it's here. Plus, it's nice to have a calm creature around.\n[D14:9] Deborah: How have things been besides that?\n[D14:10] Jolene: Things have been intense lately. I'm really pushing myself to succeed, and sometimes it feels overwhelming. But I'm determined to overcome any obstacles and achieve my goals.\n[D14:11] Deborah: Keep up the hard work and remember to relax too.\n[D14:12] Jolene: Thanks, Deborah! I had a big breakthrough with this project - so exciting and rewarding!\n[D14:12] Image caption (automatic): a photo of a drawing of a house with a ruler and a ruler\n[D14:13] Deborah: Awesome, Jolene! I'm really glad your project worked out. \n[D14:14] Jolene: Stop talking about me, tell me more about your retreat.\n[D14:15] Deborah: I'd rather show you a photo. This is also a new yoga pose that we tried. It is a tree pose.\n[D14:15] Image caption (automatic): a photo of three people standing in front of a large statue\n[D14:16] Jolene: What's that statue in the picture?\n[D14:17] Deborah: It's a symbol of peace and enlightenment.\n[D14:18] Jolene: Wow, it looks gorgeous! I'd love to visit a retreat like that. It seems like the ideal spot to find peace and refreshment.\n[D14:19] Deborah: It's perfect for reflecting and getting centered.\n[D14:20] Jolene: I could really use some chill time like that. Sounds so peaceful.\n[D14:21] Deborah: Yeah, we all need some peaceful time to relax.\n[D14:22] Jolene: Gotta run, have a nice day!\n[D14:23] Deborah: See you!\n[D14:23] Image caption (automatic): a photo of a sunset reflecting in a lake with a boat\nSession date: 7:37 pm on 9 July, 2023\n[D15:1] Deborah: Hey Jolene! I started a running group with Anna - it's awesome connecting with people who care about fitness!\n[D15:1] Image caption (automatic): a photo of three men standing next to each other on a road\n[D15:2] Jolene: Cool, Deb! Glad you found some people to get fit with. I'm trying to add workouts into my studying schedule, which has been tough but fun. How about you? Any challenges with the running group?\n[D15:3] Deborah: Oh, I'm having a blast with it! We help and push each other during our runs, which makes it so much easier to stay motivated.  I have a lot of my photos from this activity.\n[D15:3] Image caption (automatic): a photo of a woman standing on a sidewalk with a skateboard\n\n[2] LoCoMo conv-48 history chunk 12\nSession date: 8:31 pm on 6 September, 2023\n[D25:5] Jolene: Yeah, same! It helps me stay balanced during my studies.\n[D25:6] Deborah: Glad to hear it, Jolene. How's the project going?\n[D25:7] Jolene:  It's tough but I'm chugging along. Thanks!\n[D25:8] Deborah: You're so strong for handling all the challenges. You've got this!\n[D25:9] Jolene: Thanks, Deb! Your support really means a lot. I'll keep pushing forward.\n[D25:10] Deborah: No worries, Jolene. I'm here if you need me. Take care of yourself and don't forget to rest up.\n[D25:11] Jolene: What have you been doing lately?\n[D25:12] Deborah: I recently saw this wonderful sunrise again.\n[D25:12] Image caption (automatic): a photo of a person walking on the beach with a surfboard\n[D25:13] Jolene: Glimpsing that calms me. Taking beach walks relaxes me. \n[D25:14] Deborah: Did my photo remind you of something?\n[D25:15] Jolene: That shot was like a reminder of my last beach getaway. So chill and nice. \n[D25:16] Deborah: Glad it brought back good memories. \n[D25:17] Jolene: Maybe one day we will be able to watch the sunrise together!\n[D25:18] Deborah: An offer I can't refuse!\n[D25:19] Jolene: Bye, Deb! See you later!\n[D25:20] Deborah: See ya! Stay safe and catch you later. Bye!\nSession date: 7:39 pm on 8 September, 2023\n[D26:1] Deborah: Hey Jolene, had a tough week. Storm forced us to cancel our yoga getaway.\n[D26:2] Jolene: Sorry to hear about it. How are you feeling now?\n[D26:3] Deborah: I was bummed about it, but I'm doing better now. It was just a setback, but I found comfort in my work and spending time at home. Reminds me to be grateful for the little things. And you? How's it going?\n[D26:4] Jolene: My partner and I plan a camping trip to connect with nature and practice yoga.\n[D26:5] Deborah: It can be both good and tough to plan activities with a busy schedule - what strategies do you use?\n[D26:6] Jolene: Having a routine helps me stay on top of everything I need to do. I have a schedule for classes, studying, and personal time. Self-care activities like yoga and meditation help me stay balanced and relax.\n[D26:7] Deborah: I'd love to learn more about how you do it.\n[D26:8] Jolene:  I can tell you about it if you're interested. It took a bit of experimenting, but it's really helped me.\n[D26:9] Deborah: Sounds great! Let's set up a coffee date and talk about it!\n[D26:10] Jolene: Wanna meet up at that cafe next Monday? Let's try fresh pastries.\n[D26:10] Image caption (automatic): a photo of a coffee shop with a bunch of coffee machines\n[D26:11] Deborah: Sounds good, Jolene! When did you have in mind? That cafe rocks.\n[D26:12] Jolene: How about Wednesday at 4? Can't wait to catch up over coffee!\n[D26:12] Image caption (automatic): a photo of a person holding a cup of coffee in front of a bunch of flowers\n[D26:13] Deborah: That pic looks so peaceful. Reminded me of a cool hidden coffee shop near me. Rate it!\n[D26:13] Image caption (automatic): a photo of a group of people sitting at tables in a room\n[D26:14] Jolene: Tell me more about it when we meet, maybe next time we’ll be there.\n[D26:15] Deborah: Sorry, I remembered that I already have plans for this day.\n[D26:16] Jolene: Now I'll see when it's more convenient for me.\n[D26:17] Deborah: Thank you for your understanding, I'm waiting.\n[D26:18] Jolene: How about Friday at 5? I will need to sort out the books from this bookcase and I will be free.\n[D26:18] Image caption (automatic): a photo of a room with a book shelf and a ceiling fan\n[D26:19] Deborah: Absolutely, let's do that! Can't wait for our coffee date next week. See you then. Stay safe!\n[D26:20] Jolene: See ya soon, Deb! Be safe and I'm excited for our coffee date!\n[D26:21] Deborah: Maybe just grab me some interesting books!\nSession date: 2:18 pm on 12 September, 2023\n[D27:1] Jolene: Hey Deb! So sorry for the late reply, been super busy. Last weekend my partner and I traveled to a meditation retreat for a few weeks in Phuket. Amazing experience! Nature, reflection and a break from engineering studies were awesome - it helped me find inner peace.\n[D27:1] Image caption (automatic): a photo of a woman doing a yoga pose on the beach\n[D27:2] Deborah:  I'd love to hear more about your reflections there and how they changed you.\n[D27:3] Jolene: At the retreat, I had time to reflect on what makes me happy. It made me realize the importance of incorporating relaxation, self-care, and balance in life alongside my engineering studies. The beauty of nature there was so inspiring and refreshing!\n[D27:4] Deborah:  Was there anything from the retreat that stood out to you?\n[D27:5] Jolene: The one session that really stood out was about releasing expectations and judgments and just savoring the present. It was a strong reminder to not just dwell on the finish line, but to appreciate the journey too. I usually get too consumed with hitting my goals that I forget to appreciate the ride.\n[D27:6] Deborah:  I've been thinking about this a lot, too. Life's full of small moments and being grateful for those can really boost our happiness.\n[D27:7] Jolene: Yup, totally agree! Sometimes we get too focused on the big stuff and don't appreciate all the tiny wins. Like the feeling of the sun or a great cup of coffee - can be small but they make life much better. Trying to be more mindful and grateful to take it all in now.\n[D27:8] Deborah: That's great, Jolene! Practicing mindfulness and gratitude can really change our day-to-day. Even just a different outlook can make the little things in life joyful. Glad you're getting into it!\n[D27:9] Jolene: I'm experiencing a new level of joy and happiness!\n[D27:10] Deborah:  It's wonderful to see your progress, and I'm excited to be on this journey with you!\n[D27:11] Jolene: Thanks, Deb! Appreciate your support. It's great that we can do this together.\n[D27:12] Deborah: Having a supportive community definitely helps. We can motivate and encourage each other! By the way, I recently played a game. I don't remember what it's called. This is a card game about cats, where you take cards one by one from a deck, and then you can attack your opponent with them. We'll definitely play it with you!\n[D27:12] Image caption (automatic): a photo of two children standing on yoga mats in a room\n[D27:13] Jolene: I look forward to meeting you and playing this game!\nSession date: 3:09 pm on 15 September, 2023\n[D28:1] Deborah: Since speaking last, I reconnected with my mom's old friends. Their stories made me tear up and reminded me how lucky I am to have had her.\n[D28:1] Image caption (automatic): a photo of a living room with a couch and a fire place\n[D28:2] Jolene:  It's great that you could reconnect with them. Hearing stories about our loved ones can be tough but also comforting.\n[D28:3] Deborah: Hearing stories about my mom was emotional. It was both happy and sad to hear things I hadn't heard before. It was a mix of emotions, but overall it was comforting to reconnect with her friends.\n[D28:4] Jolene: It can bring up a range of emotions, and it's okay to feel a mix of happiness and sadness. Those moments with her friends must've been meaningful to you.\n\n[3] LoCoMo conv-48 history chunk 11\nSession date: 11:46 am on 30 August, 2023\n[D23:3] Jolene: This country was awesome! It showed me different kinds of yoga and their backgrounds, which made me appreciate it even more. We visited a lot of delicious cafes! Have you ever been somewhere that was important to you?\n[D23:4] Deborah: Yep, last month I visited my mom`s house which holds a special place in my heart. My mom had good and bad times there, but it's still a symbol of her strength and the love she shared with me. This is my husband in front of this house.\n[D23:4] Image caption (automatic): a photo of a man standing in front of a house\n[D23:5] Jolene: What was it like?\n[D23:6] Deborah: It brought back fond memories as I relaxed outside.\n[D23:7] Jolene: Sounds great! So glad you have a place to relax and find peace.\n[D23:8] Deborah: Thanks, Jolene. It's special for me. How about you? Is there a place that helps you relax?\n[D23:9] Jolene: I go to this nearby place to meditate by a tranquil spot.\n[D23:9] Image caption (automatic): a photo of a pond with lily pads and a tree in the background\n[D23:10] Deborah: Looks chill. What's been the effect of that?\n[D23:11] Jolene: It helps me make sense of everything and relieves stress. It's like a restart.\n[D23:12] Deborah: Cool, glad you found a place to chill. We all need that occasionally. This is one of my favorite spots to ponder and let things go.\n\n[D23:12] Image caption (automatic): a photo of a lake with a few trees in the water\n[D23:13] Jolene: Looks great! What made you pick that spot?\n[D23:14] Deborah: The soothing vibes and nice views made it ideal for reflecting and letting go.\n[D23:15] Jolene: Here is one more photo from Rio de Janeiro. We went on many excursions there.\n[D23:15] Image caption (automatic): a photo of a group of people walking up a set of stairs\n[D23:16] Deborah: Wow, those stairs look cool! Where were they taken?\n[D23:17] Jolene: We had a great time visiting an old temple. The stairs were amazing!\n[D23:18] Deborah: Wow, exploring those temples must have been incredible! Three years ago I was also in Rio de Janeiro, I took a beautiful photo on one of the excursions.\n[D23:18] Image caption (automatic): a photo of a large stone structure with a mountain in the background\n[D23:19] Jolene: The architecture and history of it all were really interesting. I'm sure you also liked the places you visited there!\n[D23:20] Deborah: Exploring historical places and learning their stories is so fun. It was a great experience. I want to share this photo with you.\n[D23:20] Image caption (automatic): a photo of a hand holding a piece of paper with writing on it\n[D23:21] Jolene:  By the way, what did that paper have written on it in the photo?\n[D23:22] Deborah: This was written to me by a friend who, unfortunately, will never be able to support me. I miss him here. This quote says\"Let go of what no longer serves you.\"\n[D23:23] Jolene: I'm sorry! That's a good reminder to stay focused and let go of what no longer serves us. Remember the quote in my notebook? It also inspires me!\n[D23:23] Image caption (automatic): a photo of a notebook with a quote on it\n[D23:24] Deborah: What other quotes give you strength?\n[D23:25] Jolene: I came across this one while browsing and it really hit home with me. It's a great reminder to ditch the negative stuff and focus on growing and being positive.\n[D23:25] Image caption (automatic): a photo of a notebook with a pen and a plant on a table\n[D23:26] Deborah: Surrounding ourselves with good stuff and striving to improve is key.\n[D23:27] Jolene: Yep, Deborah! It's about creating a good atmosphere to help us grow and improve. By the way, I have a new plant.\n[D23:27] Image caption (automatic): a photo of a plant in a pot on a patio\n[D23:28] Deborah: What made you pick it?\n[D23:29] Jolene: I got this as a reminder to nurture myself and embrace fresh starts.\n[D23:30] Deborah: Nice job, Jolene! Take care of yourself and embrace new beginnings.\n[D23:31] Jolene: Thanks Deb! Will do. Good talking to you. Take care!\n[D23:32] Deborah: Have a great day!\nSession date: 2:14 pm on 3 September, 2023\n[D24:1] Deborah: Hey Jolene, just catching up. I went to a cool event last week with the aim to support each other - pretty inspiring. Have you been connecting with anyone lately?\n[D24:2] Jolene: Hey Deb, great to hear from you! I've been focusing on studying and my relationship with my partner. We're taking little trips to the beach, it's a great way to relax. How about you, anything new going on?\n[D24:3] Deborah: I was busy too - went to a community meetup last Friday. We shared stories and it was nice to feel how connected we are. It made me think about how important relationships are. How about you, how are things going in that area?\n[D24:4] Jolene: I'm really thankful for my significant other right now. It's great to have someone encouraging my goals! How are things with your friends and family? Any updates on that front?\n[D24:5] Deborah: Relationships with family and friends are so vital. My yoga pals have been my second family - we've held each other up through a lot. The other day I found this old photo. That was when I first started doing yoga. My mum was my biggest fan and source of motivation. She'd often come to my classes with me.\n[D24:5] Image caption (automatic): a photo of a woman sitting on a yoga mat with two children\n[D24:6] Jolene: Our loved ones sure are supportive! When I was 10, my parents got me that and it was the start of my passion for video games.\n[D24:6] Image caption (automatic): a photo of a nintendo game console and a game controller\n[D24:7] Deborah: Cool that they shared that with you. Did you learn on your own or did they teach you?\n[D24:8] Jolene: I taught myself, but my dad was always supportive and my mom would play games with me. \n[D24:8] Image caption (automatic): a photo of a nintendo wii game system with a game on the screen\n[D24:9] Deborah: That's awesome! Sounds like you had a lot of support from your parents. What was your favorite game to play with mom?\n[D24:10] Jolene: One of my favorites was \"Monster Hunter: World\". The immersive story and open-world gaming are amazing!\n[D24:11] Deborah:  It can be so freeing when you get immersed in a game like that. \n[D24:12] Jolene: Yeah! It's my way to de-stress and take a break from life.\n[D24:13] Deborah: What's up this month? Anything fun happening for you?\n[D24:14] Jolene: Got a lot of finals coming up this month, so I've been studying real hard. It's been quite stressful, but it'll be worth it in the end. Thinking about taking a trip somewhere to relax and recharge afterward.\n[D24:15] Deborah: Good luck with it! Let me know if there's anything I can do to assist you.\nSession date: 8:31 pm on 6 September, 2023\n[D25:1] Jolene: Woohoo! I signed up for a meditation course at a retreat near a lake. Can't wait to share this experience with my partner and learn some new techniques. Sooo excited!\n[D25:1] Image caption (automatic): a photo of a building with a curved roof on a hill\n[D25:2] Deborah: That`s awesome! It looks so calm in the pic - I hope you enjoy your experience and learn some new techniques!\n[D25:3] Jolene:  It's amazing how something so easy can make such a big difference to our health!\n[D25:4] Deborah: Yep, it's become part of my routine now. Can't imagine my life without it.\n\n[4] LoCoMo conv-48 history chunk 10\nSession date: 9:34 am on 24 August, 2023\n[D21:6] Jolene: My goal is to be successful in my field and make a positive impact. I've been studying, attending workshops, and networking to make it happen. Recently, I had the opportunity to present at a virtual conference and received positive feedback.  It was a great experience and confirmed that I'm on the right track.\n[D21:7] Deborah: You really put your heart and soul into it. Must have been amazing having it go so well. How did it feel when people gave you positive feedback? Any ideas for what comes next?\n[D21:8] Jolene: I was thrilled to receive such positive feedback! It felt so rewarding to know that my efforts were appreciated. Right now, I'm focusing on studying and gaining more experience. I'm even thinking about more internships to further enhance my skills. Exciting times! Hopefully, there will be more updates to share with you soon.\n[D21:9] Deborah: Wow, Jolene! Way to go! I'm super proud of all you've achieved. Let me know if you need any help. Onward!\n[D21:10] Jolene: Thanks, Deb! Your support means a lot to me. \n[D21:11] Deborah: No problem. You got this! \n[D21:12] Jolene:  I'm not giving up, just gonna keep pushing forward.\n[D21:13] Deborah: Reach for your goals and don't forget to enjoy the journey. \n[D21:14] Jolene: Thanks, Deb. Your support means a lot. I'll keep pushing forward and remember to enjoy every step of the way.\n[D21:15] Deborah: Come on! The journey's as important as the destination. Take time for yourself and find joy in it. We believe in you!\n[D21:15] Image caption (automatic): a photo of a field of sunflowers with a sunset in the background\n[D21:16] Jolene: Yeah, you're right! I'll take your advice and find joy on the way. Cheers for the support!\n[D21:16] Image caption (automatic): a photo of a city skyline at sunset with a body of water\n[D21:17] Deborah: Always by your side!\nSession date: 5:33 pm on 26 August, 2023\n[D22:1] Deborah: Hey Jolene, since we talked I've been thinking about my mom's influence. Remembering those we love is important.\n[D22:2] Jolene: I understand, Deb. Remembering and cherishing the memories of our loved ones is so important. It's comforting to know that their influence still guides us. Last Friday, my partner and I talked about how our loved ones have influenced us and what their values meant to us. It was an emotional chat, but it made us feel closer and showed us what really matters. \n[D22:3] Deborah: Those types of conversations really help build relationships. Can you tell me more about the values they have given you?\n[D22:4] Jolene: Definitely! Our loved ones have taught us to persevere and stay resilient, like my mom always said to never give up, and my partner's dad showed them to stay determined. Their values have influenced us to pursue our goals, such as me with engineering and my partner with their creative endeavors. Even though they're not here, we both feel their values encouraging us along our paths.\n[D22:5] Deborah: That's wonderful to hear, Jolene! It's amazing how their values continue to guide you, even in their absence. It sounds like you and your partner are honoring their memory by pursuing your respective passions. Have you ever considered incorporating those values into your work as well?\n[D22:6] Jolene: Yeah, Deborah! We've been figuring out how to add these values into our projects. As an engineering student, I want to use my talents to do good and help solve important problems. I'm keen on coming up with new ideas and making things more efficient to make the world a better place. Going further, my mom stressed the value of helping others and that's something I want to keep in mind for my engineering projects.\n[D22:7] Deborah: When our work ties into our values, it becomes more meaningful. What goals or ideas do you have for incorporating those values into your future projects?\n[D22:8] Jolene: In the future, I'm aiming to work on projects that make a real difference to communities. I'm interested in sustainable initiatives and developing innovative solutions for environmental issues. I also want to get involved with organizations that focus on social causes, using my skills to help out. It's about connecting my passion for engineering with my commitment to making a positive impact.\n[D22:9] Deborah: You've got a lot of amazing plans for the future. Which projects are you most interested in getting involved in?\n[D22:10] Jolene: I'm keen on two projects in particular. One is focused on developing renewable energy, like solar, to help communities and reduce dependence on non-renewables. \n[D22:11] Deborah: Wow Jolene, that's really inspiring!\n[D22:12] Jolene: The other is finding ways to supply clean water to those with limited access. Both align with my beliefs about sustainability and assisting those in need. I still have so much to figure out before beginning, but I'm up for the challenge.\n[D22:13] Deborah: Sounds great, Jolene! Research is key to success. Little steps and being up for challenges make you stronger. I'm here for you. Connecting to yourself helps tackle any issue. Here's a photo that reminds me of the beauty of nature during a yoga session.\n[D22:13] Image caption (automatic): a photo of a woman doing a yoga pose on the beach\n[D22:14] Jolene: It helps with challenges, giving balance and strength. Any tips for staying relaxed while studying?\n[D22:15] Deborah: Taking breaks, doing some stretching/yoga, or just going for a walk is really helpful. And don't forget to get enough sleep and take time for self-care. Finding a balance between work and taking care of yourself is important. What self-care activities have you been doing lately?\n[D22:16] Jolene: I've been into yoga and meditation lately. It helps me recharge. Doing different poses relieves tension and calms my mind. I've already shared my newfound love for yoga with my partner, and we're planning to go on a meditation retreat together to enhance our practice together.\n[D22:16] Image caption (automatic): a photo of a woman in a pink shirt doing a yoga pose\n[D22:17] Deborah: Glad to hear that yoga is helping you rest and recharge. It's great for reflection and self-care. Do your snakes also enjoy it?\n[D22:18] Jolene: My snakes just like watching me chill. But she's a great company and always brings a sense of calm.\n[D22:19] Deborah: Having a pet around is such a calming feeling. They sure can bring a great sense of comfort. I still have cats, Luna is sitting on the left.\n[D22:19] Image caption (automatic): a photo of two cats sitting on a window sill looking out\n[D22:20] Jolene: Aww, that's adorable! What's the second one's name?\n[D22:21] Deborah: Max! They bring lots of joy and peace to our home.\n[D22:21] Image caption (automatic): a photo of a brown leather chair and a black and white floor\n[D22:22] Jolene: How did you get them?\n[D22:23] Deborah: Max is my mother's cat, I took him when my mother passed away.\n[D22:23] Image caption (automatic): a photo of a car with a fan and a mesh bag\n[D22:24] Jolene: You're great for taming him. How did you get Luna?\n[D22:25] Deborah: I took Luna from the shelter.\n[D22:26] Jolene: It’s wonderful that you have become their loving owner!\n[D22:27] Deborah: Yes, I really love cats, and they also need a home, love, and care! Moreover, Max is already old, he is 8 years old.\n[D22:28] Jolene: How old is Luna?\n[D22:29] Deborah: She is younger, she is 5 years old.\n[D22:30] Jolene: I am proud of your action to tame these pets!\nSession date: 11:46 am on 30 August, 2023\n[D23:1] Jolene: Hey Deborah, how's it going? Guess what? Yesterday my partner and I got back from an awesome trip to Rio de Janeiro- we checked out some cool yoga classes.\n[D23:1] Image caption (automatic): a photo of a woman doing a yoga pose in a mirror\n[D23:2] Deborah: That yoga pose looks great. Must've been a cool experience for the two of you. What did the trip teach you?\n\n[5] LoCoMo conv-48 history chunk 8\nSession date: 9:26 am on 1 August, 2023\n[D16:10] Jolene: I'm trying to prioritize self-care, like yoga and meditation. It helps me stay balanced and grounded.\n[D16:11] Deborah:  If you're interested, I can suggest some routines for you to try.\n[D16:12] Jolene:  I'm always on the lookout for new routines to mix things up.\n[D16:13] Deborah: In the meantime, check out this great place for yoga.\n[D16:13] Image caption (automatic): a photo of a room with a lot of yoga mats on the floor\n[D16:14] Jolene: This room looks perfect for it. Do you have any favorite routines you can share?\n[D16:15] Deborah: One of my favorite yoga routines is a gentle flow that's all about breathing and grounding. It helps me find my chill. I'll send you a tutorial video with the poses. This is me in the process :)\n[D16:15] Image caption (automatic): a photo of a woman in a pink shirt doing a yoga pose\n[D16:16] Jolene: Wow! Does that help you find your chill or improve your concentration?\n[D16:17] Deborah: It's a great way to find balance in tough times. Try it out and let me know what you think!\n[D16:18] Jolene: Can't wait to try it out. Let's chat soon!\n[D16:19] Deborah: Let me know how it goes. Talk to you later!\n[D16:20] Jolene: Yep, I'll practice and update you. Bye!\nSession date: 8:50 pm on 12 August, 2023\n[D17:1] Deborah: Since we last spoke, I made a meditation guide for my yoga retreat. How about you?\n[D17:2] Jolene: I have been stressed since I lost my work files. I was so overwhelmed...but meditation kept me chill and I got my clarity back, thank goodness. Really appreciate the practice!\n[D17:3] Deborah: It's amazing how it can give you peace and calm in times like that. If you ever need any support, just let me know - we're in this together!\n[D17:4] Jolene:  Appreciate your support! BTW, I wanted to share this with you.\n[D17:4] Image caption (automatic): a photo of two notebooks with a blue cover and a white strip\n[D17:5] Deborah: Your creativity is amazing! \n[D17:6] Jolene: Thanks, Deb! I was inspired by my love for space and engines, so I designed these notebooks with elements like galaxies and circuitry. I think they turned out really cool!\n[D17:7] Deborah: You have such a knack for turning these into art. They make me feel excited just by looking at them. Your creativity is amazing! Does that usually inspire your engineering projects too?\n[D17:8] Jolene: Seeing art and design in various things gives me a unique perspective on problems.\n[D17:9] Deborah: Got any neat projects or ideas you're pumped about?\n[D17:10] Jolene:  Working on a cool project now - a prototype that could revolutionize aerial surveillance. Can't wait to see the results!\n[D17:11] Deborah: I admire your ambition to make a difference. Do you have any specific plans or goals for this project?\n[D17:12] Jolene: My aim is to devise a more productive and affordable aerial surveillance system. It'll help with responding to emergencies and monitoring the environment. It'll make the world a better, safer place.\n[D17:13] Deborah: I love your commitment. Keep going!\n[D17:14] Jolene: Thanks, Deb! Your support means a lot. I'll keep pushing and doing my best to make a difference.\n[D17:15] Deborah: You got this!\nSession date: 2:58 pm on 16 August, 2023\n[D18:1] Jolene: Been thinking a lot about my plans lately, especially after checking in with my bf. It's been up and down!  Some days it feels like I'm trying to juggle my engineering, relationship, and growing as a person, and I just don't know how to handle it all. How do you manage when it's too much?\n[D18:1] Image caption (automatic): a photo of a book with a checklist on it\n[D18:2] Deborah: Finding ways to restore balance is important. Taking time for yourself and recognizing your needs can make a difference. \n[D18:2] Image caption (automatic): a photo of a room with a moss wall and a floor cushion\n[D18:3] Jolene: Thanks, Deb! I've been trying out some time management strategies recently and started using a bullet journal. It's been really helpful for tracking my tasks and staying organized.\n[D18:4] Deborah:  It's great to hear that it's been helping you out!\n[D18:5] Jolene:  Not only does it help me stay on top of everything, but it's also so satisfying when I cross tasks off my list. Here's a pic of my newest spread with one of my favorite quotes.\n[D18:5] Image caption (automatic): a photo of a notebook with a quote on it\n[D18:6] Deborah: I love this quote. So uplifting. Does it motivate you when you see it?\n[D18:7] Jolene: Yeah, it's like a little reminder to stick to my goals and never give up.\n[D18:8] Deborah: Gotcha! Visual reminders like this photo can be super motivating. Keep focusing on your goals, Jolene, and don't give up! I led a meditation yoga sessionto the elderly at a local care home last week during sunset. Nature can be really helpful for finding peace. Have you tried mindfulness too? \n[D18:8] Image caption (automatic): a photo of a group of people doing yoga on a beach\n[D18:9] Jolene: Haven't tried it yet, but I'm keen to give it a shot. That sounds really peaceful. I could use some of that calm in my life right now.  I'm interested in destressing and trying mindfulness. \n[D18:10] Deborah: I started with workshops and books, and now mindfulness is a huge part of my life.\n[D18:11] Jolene:  I'll definitely look into some of it. Can't wait to get started!\n[D18:12] Deborah: That's great, Jolene! I'm so glad you're willing to try some mindfulness. It can be really helpful. Let me know if you need any help getting started - I'm happy to assist you with your journey!\n[D18:13] Jolene:  I really appreciate it.\n[D18:14] Deborah: We're in this together. Give me a shout if you need anything. Bye for now.\n[D18:15] Jolene: Thanks, I'll hit you up if I need anything. Bye for now.\nSession date: 12:52 am on 19 August, 2023\n[D19:1] Deborah: Hey Jolene! Hope you're having a good one. Last Friday I told Anna the story of my life and they were super kind about it. It was so nice to have a meaningful connection. How's the mindfulness workshops and reading going? Need any help?\n[D19:2] Jolene: Life's been hella busy since we last talked. I bought a console for my partner as a gift on the 17th and it's so much fun, he even managed to play it.! Engineering studies are still going strong too. Balance has been key for me lately. How about you? What's been up?\n[D19:2] Image caption (automatic): a photo of a black xbox console with a yoda yoda figure next to it\n[D19:3] Deborah:  Well done! As for me, I've been focusing on teaching yoga and spending time with the community. Organizing a yoga event last month was really cool.\n[D19:4] Jolene:  Was it rewarding seeing everyone come together? Can you tell me more about how you put it together? Also, any tips for maintaining a balance between hobbies and studies?\n[D19:5] Deborah:  I reached out to different nearby businesses and places to make it happen. We had yoga, food stalls, and even some live music - it was amazing! As for balancing hobbies and studies, I find it helpful to prioritize and manage my time effectively. Making a schedule and setting aside specific time for studying and pursuing hobbies can go a long way in maintaining balance.\n[D19:6] Jolene: Wow, that's awesome! Gonna make a plan to manage my studies and hobbies. Say, do you ever play video games?\n[D19:7] Deborah: I used to play some video games, but it's been a while. It's a good way to relax after a busy day. Do you have any game suggestions? What's your favorite game?\n\nQUESTION: What was the main focus of the session that stood out to Jolene during the retreat?"
+          }
+        ],
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/64b7d7c16e8081719fa7b7fe9ca1923a6054f50312e8d970ab40e3bbd7777041.json"
+    }
+  ],
+  "retrieval_hash": "e233f6abb32829f704d8e06b2bb0ec44bc139508aaf46d58bade64065c1d566c",
+  "memory_hash": "47f17036e12cd172a2b9cb14f1d6649b3f09d7ef7475f2db27580441c845a13b",
+  "condition": "soft-v2",
+  "reader": "proof"
+}

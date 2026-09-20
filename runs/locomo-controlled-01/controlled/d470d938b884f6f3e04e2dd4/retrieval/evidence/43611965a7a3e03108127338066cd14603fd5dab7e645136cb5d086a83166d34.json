@@ -1,0 +1,489 @@
+{
+  "identity": {
+    "qid": "locomo:conv-44:qa54",
+    "question": "What activity do Audrey's dogs like to do in the dog park?",
+    "memory": "2f0318b118400fe0354adcd16b1665aa14202641ac73e1da868afb7c84ef60d2",
+    "config": {
+      "dataset": "locomo",
+      "n_questions": 92,
+      "top_k": 5,
+      "seed": 42,
+      "subset_corpus": false,
+      "train_questions_path": "",
+      "interleave_methods": true,
+      "corpus_scope": "locomo_full_selected_conversation",
+      "methods": [
+        "witnessrag"
+      ],
+      "ie": {
+        "max_tokens": 1600,
+        "temperature": 0.0,
+        "two_step": true,
+        "max_triples_per_passage": 40,
+        "window_tokens": 512,
+        "window_overlap_tokens": 64,
+        "window_tokenizer": "Qwen/Qwen2.5-14B-Instruct",
+        "window_tokenizer_revision": "",
+        "dialogue_mode": true
+      },
+      "graph": {
+        "merge_similar_entities": false,
+        "merge_identity_variants": true,
+        "merge_relation_inflections": true,
+        "identity_merge_threshold": 0.8,
+        "synonym_threshold": 0.8,
+        "synonym_max_neighbors": 20,
+        "ppr_damping": 0.5,
+        "ppr_tol": 1e-08,
+        "ppr_max_iter": 100
+      },
+      "hippo2": {
+        "n_triples_retrieved": 20,
+        "n_triples_kept": 5,
+        "n_passages_seed": 10,
+        "passage_node_weight": 0.05,
+        "use_recognition_memory": true
+      },
+      "graphrag": {
+        "community_levels": 2,
+        "min_community_size": 3,
+        "build_community_reports": true,
+        "max_communities_reported": 400,
+        "text_units_per_entity": 8
+      },
+      "witness": {
+        "max_atoms": 4,
+        "compile_temperature": 0.0,
+        "vocabulary_aware_compile": true,
+        "vocabulary_relations": 40,
+        "vocabulary_entities": 20,
+        "query_plans": true,
+        "max_query_plans": 5,
+        "active_frontier": true,
+        "active_obligations": true,
+        "active_context": true,
+        "active_operators": false,
+        "soft_obligations": false,
+        "proof_reader": true,
+        "active_frontier_queries": 5,
+        "active_frontier_passages": 30,
+        "grounding_mode": "semantic",
+        "relation_match_threshold": 0.65,
+        "candidates_per_atom": 60,
+        "entity_match_threshold": 0.55,
+        "entity_top_k": 5,
+        "relation_weight": 0.45,
+        "argument_weight": 0.35,
+        "verbalization_weight": 0.2,
+        "max_witnesses": 20,
+        "beam_width": 400,
+        "passage_penalty": 0.15,
+        "binding_aware_grounding": true,
+        "verify_witnesses": false,
+        "verification_max_witnesses": 5,
+        "answer_set": true,
+        "answer_set_max_items": 10,
+        "hybrid_fallback": true,
+        "hybrid_rrf_k": 60,
+        "candidate_pool_k": 20,
+        "fact_confidence": 0.9,
+        "delta_interpretation": 0.1,
+        "delta_verbalization": 0.05,
+        "acquisition_rounds": 2,
+        "acquisition_passages": 3,
+        "acquisition_lambda": 0.05,
+        "enable_acquisition": true,
+        "dense_fallback": true,
+        "budget_fraction": 1.0,
+        "ilp_time_limit_s": 120,
+        "ilp_max_facts": 20000
+      },
+      "qa": {
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "top_k": 5,
+        "answer_set": true,
+        "operator_reader": false,
+        "proof_reader": true
+      }
+    },
+    "condition": "evidence"
+  },
+  "retrieval": {
+    "pids": [
+      "p-1daa3b68138db9e2e646e402",
+      "p-5b79b973363aa04e3f983313",
+      "p-e827a2216dcd28029c164483",
+      "p-2d8e7146471108a8e195a4eb",
+      "p-b9d8cd0ccc5c5e70288ba9da"
+    ],
+    "scores": [
+      1.0,
+      0.5,
+      0.3333333333333333,
+      0.25,
+      0.2
+    ],
+    "diagnostics": {
+      "pesquisa_provas": {
+        "fronteira": [
+          "p-1daa3b68138db9e2e646e402",
+          "p-e827a2216dcd28029c164483",
+          "p-5b79b973363aa04e3f983313",
+          "p-2d8e7146471108a8e195a4eb",
+          "p-ef446c6f67a90bdc62d56253",
+          "p-b9d8cd0ccc5c5e70288ba9da",
+          "p-6037f7cf5cf7a50153fb4d68"
+        ],
+        "sondas": [
+          "What activity do Audrey's dogs like to do in the dog park?",
+          "Audrey's dogs like to do in dog park",
+          "Audrey's dogs activity in dog park"
+        ],
+        "acoes": [],
+        "buscas_dirigidas": 0,
+        "replanejamentos": 1,
+        "rejeicoes": 0
+      },
+      "planos_compilados": [
+        {
+          "indice": 0,
+          "rodada_criacao": 0,
+          "consulta": {
+            "answer_var": "x",
+            "atoms": [
+              {
+                "relation": "like to do in dog park",
+                "subject": "Audrey's dogs",
+                "object": "?x"
+              }
+            ],
+            "expected_type": "other",
+            "aggregation": "set",
+            "shape": "single-hop",
+            "source": "llm-plan-vocabulario",
+            "fallback": "Audrey's dogs activity in dog park",
+            "validation_error": "",
+            "repairs": [],
+            "uses_annotations": false
+          },
+          "executavel": true,
+          "fechou": true,
+          "profundidade": 1,
+          "candidatos_por_atomo": [
+            32
+          ],
+          "obrigacoes": {
+            "cobre_pergunta": false,
+            "faltas": [
+              "activity"
+            ],
+            "motivo": "The query uses a broad relation 'like to do in dog park' without specifying that the answer should be an activity.",
+            "checado": true
+          }
+        }
+      ],
+      "planejamento": {
+        "orcamento_planos": 5,
+        "planos_distintos": 1,
+        "chamadas": 2,
+        "replanejamentos": 1
+      },
+      "plano_escolhido": null,
+      "n_testemunhas": 0,
+      "testemunha_no_contexto": false,
+      "classe_prova": "nenhuma",
+      "fallback": "denso (pesquisa sem prova suficiente)",
+      "contexto_alterado_pelo_witness": true,
+      "risco": 1.0,
+      "risco_bruto": 99.0,
+      "risco_calibrado": false,
+      "resposta_estrutural": "",
+      "candidatos_explorados": 15,
+      "documentos_entregues": 5,
+      "orcamento_leitor": 5
+    },
+    "filtered": false,
+    "latency_s": 5.0325634852051735,
+    "passages": [
+      {
+        "pid": "p-1daa3b68138db9e2e646e402",
+        "title": "LoCoMo conv-44 history chunk 14",
+        "text": "Session date: 2:36 pm on 28 October, 2023\n[D26:15] Audrey: Wow, that looks gorgeous! We hope to join you and the furry friends soon!\n[D26:16] Andrew: Yeah I really hope your pups can get better and join us soon!\n[D26:16] Image caption (automatic): a photography of a man walking a dog on a leash\n[D26:17] Audrey: Wow, that trail looks nice! Looks like its dog friendly?\n[D26:18] Andrew: Yup! It's close by and it's dog-friendly too, with killer views. Wanna plan a hike soon?\n[D26:19] Audrey: Hmmm sure! Let's pick a date and go hike. It should be good!\n[D26:20] Andrew: Yay! Does Saturday sound good? We can grab some snacks and have a blast exploring. Because on Sunday I am going on a picnic date with my girlfriend.\n[D26:21] Audrey: Saturday works for me! I'm going to bring some snack. Super excited!\n[D26:22] Andrew: Can't wait for our nature day with the fur babies! We're gonna have a good time!\n[D26:23] Audrey: Going hiking and seeing nature will be awesome. They'll be so happy!\n[D26:23] Image caption (automatic): a photo of a dog laying on the ground with a view of the ocean\n[D26:24] Andrew: I bet! Where do you guys plan to explore?\n[D26:25] Audrey: Let's check out the trail first. It's a peaceful spot to bring the fur babies for the day.\n[D26:26] Andrew: Sounds great! There's a lake near the trail too! It's gonna be awesome!\n[D26:27] Audrey: Oh nice! Can't wait to explore it and hang out with our furry friends. Should be a peaceful day! Here's a photo of the lake I found online.\n[D26:27] Image caption (automatic): a photo of a lake with a boat in it and a forest in the background\n[D26:28] Andrew: Wow, that looks awesome! Do you think the dogs will like it? Which trail do you have in mind?\n[D26:29] Audrey: Let's try that trail by the lake with great views, perfect for us and the pups. Should be fun!\n[D26:30] Andrew: Sounds great! They will love it by the lake. Can't wait!\n[D26:31] Audrey: Gonna be great - nature, furry pals - what more could we want? I'm so lucky to have a friend like you who loves exploring and being outside with our dogs.\n[D26:31] Image caption (automatic): a photo of a dog chasing a dog in a park\n[D26:32] Andrew: Same! I'm lucky to have a friend like you for these outdoor trips. It's awesome to be out in nature with our furry friends.\n[D26:32] Image caption (automatic): a photo of a dog eating out of a bowl on the ground\n[D26:33] Audrey: Yup! It's hard to find someone that has similar thoughts. \n[D26:34] Andrew: Exactly! Oh btw, here's another photo of a trail near the location. What do you think?\n[D26:34] Image caption (automatic): a photo of a forest with yellow trees and a blue sky\n[D26:35] Audrey: That looks pretty good! I'd love to take them there sometime.\n[D26:36] Andrew: How about going there the next trip? The autumn colors are so beautiful!\n[D26:37] Audrey: Sounds great! The autumn colors would look awesome for pictures.\n[D26:38] Andrew: Yeah, photos are gonna turn out great with the dogs!\n[D26:39] Audrey: Can't wait to capture some amazing moments with our furry friends!\n[D26:40] Andrew: It definitely will be a memorable day!\n[D26:41] Audrey: Yep, can't wait to make some awesome memories with our furry friends!\n[D26:42] Andrew: You bet! Can't wait to see their happy face! This was my dog and I when we were hiking last time, see how happy he was?\n[D26:42] Image caption (automatic): a photography of a man and his dog on a trail\n[D26:43] Audrey: Aww look at his happy face! I'm really looking forward to it! Can't wait to see my pups being happy and hiking.\n[D26:44] Andrew: Same here. Let's make it an epic and fun hike!\n[D26:45] Audrey: Yep! It's gonna be so much fun.\n[D26:46] Andrew: Let me get ready, gonna head out soon. Ttyl!\n[D26:47] Audrey: Yep ttyl!\nSession date: 7:59 pm on 4 November, 2023\n[D27:1] Andrew: Hey Audrey, had a great weekend! My girlfriend and I went on a bike ride and stumbled upon a cool park outside of town. It was awesome to get away from the city and be surrounded by nature.\n[D27:1] Image caption (automatic): a photo of two people riding bikes on a paved path\n[D27:2] Audrey: That's cool! I love checking out new parks with my four pups. Last weekend was so fun - our dogs were able to run around and get some fresh air. On top of that, I recently joined a dog owners group to learn how to better take care of them.\n[D27:2] Image caption (automatic): a photo of a group of people and dogs in a park\n[D27:3] Andrew: That sounds great! Your four pups must have a lot of fun. How often do you hang out with the dog owners group?\n[D27:4] Audrey: Yeah, they're having a lot of fun. I try to meet up with other dog owners once a week for tips from other parents and so they can all play together. How about you? Have you ever thought about joining one?\n[D27:4] Image caption (automatic): a photo of a group of people and dogs in a park\n[D27:5] Andrew: That looks fun! Seeing those adorable pups made me think about getting another dog, but I'm still not sure. Having two dogs is already a lot to take care of. Do you have any tips on being a multi-dog pet owner?\n[D27:6] Audrey: Maybe you want to take care of Toby and Buddy first. Having them happy and healthy would be a good first step before going all in for more dogs.\n[D27:7] Andrew: Thanks, I think that's what I need to hear. I'll take good care of my dogs first.\n[D27:8] Audrey: That's great! Let me know if you need any help, I'm here for you! See how happy they are? You don't need more dogs to make them happy! :)\n[D27:8] Image caption (automatic): a photo of two dogs playing with a frisbee in a park\n[D27:9] Andrew: Thanks Audrey! That's so nice of you. I think I've managed to make it work with dogs while still living in the city.\n[D27:10] Audrey: Yeah I feel you. Taking care of a pup in the city is tough but doable with the right approach. Keeping them active is key. Here's a pic of how I entertain them in my house with toys and games.\n[D27:10] Image caption (automatic): a photography of a basket full of stuffed animals on a wooden floor\n[D27:11] Andrew: Wow, it's great to know there are ways to keep them active in the city. I'll keep that in mind. Thank you so much!\n[D27:12] Audrey: You got it! There are lots of ways to keep them happy in the city. Make sure to socialize and exercise them daily. Get creative and add some mental stimulation too. Here's a pic of them playing fetch in the park - they love it!\n[D27:12] Image caption (automatic): a photography of a dog running with a tennis ball in its mouth\n[D27:13] Andrew: That's so cute! What sort of activities do you do to stay mentally stimulated?\n[D27:14] Audrey: We give them lots of activities to keep them busy - puzzles, training, hide-and-seek - they love it all!\n[D27:14] Image caption (automatic): a photography of a dog playing with a frisbee in a room\n[D27:15] Andrew: Cool ideas! I think I'll give those activities a try with my pups. Thanks!\n[D27:16] Audrey: No problem, glad I could help. Let me know how it goes.\n[D27:17] Andrew: Your advice and support really mean a lot to me! Thank you so much!\n[D27:18] Audrey: That's what friends are for - supporting each other. Your friendship means a lot to me. :)"
+      },
+      {
+        "pid": "p-5b79b973363aa04e3f983313",
+        "title": "LoCoMo conv-44 history chunk 10",
+        "text": "Session date: 5:53 pm on 24 September, 2023\n[D19:4] Audrey: I petted and hugged her, spoke calmly, and slowly walked her to relax. Our bond feels even stronger when moments like these show up.\n[D19:4] Image caption (automatic): a photo of a dog laying on a bed with its head on the pillow\n[D19:5] Andrew: She looks so adorable! That's the connection I'd like to have with Toby. Any advice on creating a strong relationship with dogs?\n[D19:5] Image caption (automatic): a photography of a dog running in a field with a frisbee\n[D19:6] Audrey: Building trust with them needs patience and regular training. Give them time and love, and praise their successes.\n[D19:6] Image caption (automatic): a photography of three dogs wearing birthday hats and sitting next to each other\n[D19:7] Andrew: Thanks for the tips! Patience and practice are important for establishing a bond with our pooches, just like any other meaningful relationship. I guess some dogs just need more time! It must be so satisfying to see those successes and progress. Oh, and your pup looks so sharp in that green hat! Is there anything specific you do with them to work on training?\n[D19:7] Image caption (automatic): a photo of a dog sitting on a sidewalk in a garden\n[D19:8] Audrey: Thanks! We work on obedience and teach them tricks like sit, stay, shake, and roll over. It's fun and rewarding for both of us.\n[D19:8] Image caption (automatic): a photo of a group of dogs sitting on a chair\n[D19:9] Andrew: Wow, teaching them tricks must be super fun! How often do you take them for walks?\n[D19:10] Audrey: Very often, multiple times a day even, it's a great exercise for them and great bonding time for us.\n[D19:10] Image caption (automatic): a photo of two dogs sitting next to each other on a beach\n[D19:11] Andrew: Hmm that does sound like a great way to bond! What breeds are they again? Their breeds might make a difference regarding how well they bond too.\n[D19:12] Audrey: They're all mutts. Two of them are Jack Russell mixes and the other two are Chihuahua mixes. And yea, I believe so! Some dog breeds do bond better than others.\n[D19:12] Image caption (automatic): a photography of a group of dogs tied to a leash on a brick walkway\n[D19:13] Andrew: Aww, they're all so cute! So much fluff and joy!\n[D19:14] Audrey: I love them for that. They really do bring so much joy into my life.\n[D19:14] Image caption (automatic): a photography of three small dogs sitting on a couch with a white fur\n[D19:15] Andrew: Yeah! They really do bring so much into our lives - it's amazing to watch them interact. Here's something I've been taking care of lately. Look at those flowers!\n[D19:15] Image caption (automatic): a photo of a balcony with a bunch of flowers on it\n[D19:16] Audrey: Nice! Taking care of something like this relaxes me and brings me peace too. I personally have a small garden as well ya know.\n[D19:17] Andrew: That's cool! How's it going?\n[D19:18] Audrey: It's going great! The flowers are looking great and my veggie patch is coming along. It's so fun to see them grow! Really feels accomplishing.\n[D19:18] Image caption (automatic): a photo of a cactus plant with two white flowers\n[D19:19] Andrew: Those flowers look great! What kind are they?\n[D19:20] Audrey: They're called Peruvian Lilies. They are so awesome - they have such bright colors and delicate petals.\n[D19:21] Andrew: They're beautiful! So vibrant and eye-catching. Are they difficult to care for?\n[D19:22] Audrey: Nope, they're easy to take care of, perfect for me! Just gotta water them and make sure they get enough sun.\n[D19:22] Image caption (automatic): a photography of a dog laying on a wooden dock in a pond\n[D19:23] Andrew: Awesome! Do they enjoy playing in the garden too?\n[D19:24] Audrey: Yeah, they do enjoy the garden! Always running around, exploring and having a great time. So adorable!\n\n\n[D19:24] Image caption (automatic): a photography of two dogs running in a grassy field\n[D19:25] Andrew: Wow! Looks like they're having a blast. Are there any other furry pals they play with, or just the ones you have?\n[D19:26] Audrey: Just my fur babies.\n[D19:26] Image caption (automatic): a photography of a dog and a teddy bear sleeping on a couch\n[D19:27] Andrew: Must be great having them around, the bond between you and them is awesome.\n[D19:28] Audrey: Yeah, they do! They make everything so much better. Can't imagine life without them. They mean everything to me.\n[D19:28] Image caption (automatic): a photography of three dogs sitting on a couch with a laptop in the background\n[D19:29] Andrew: That's such a lovely picture, Audrey! So cute to see them snuggled up, having fun together. They really bring so much joy to our lives.\n[D19:30] Audrey: They really do, bringing loads of love and happiness. They are everything to me.\nSession date: 7:09 pm on 1 October, 2023\n[D20:1] Andrew: Hey wassup? Got some great news - the gf and I are hitting the beach next month with Toby!\n[D20:1] Image caption (automatic): a photo of a sunset over the ocean with waves\n[D20:2] Audrey: Hey Andrew! Great to hear from you. Have fun at the beach trip! Bet you can't wait to get out to the nature. Can't wait for our hike with the dogs next month. They always put a smile on my face - life's just not the same without them!\n[D20:3] Andrew: Thanks, I will! Yea I can't wait for the hike. It's been a long time since we all be in nature together.\n[D20:4] Audrey: Being in a nature environment is always a great way to relax. For me, taking the doggos out for a walk in the park helps clear my mind and find some peace. It's been tough lately, but it definitely helps.\n[D20:4] Image caption (automatic): a photography of a group of dogs sitting on top of a lush green field\n[D20:5] Andrew: Aww, they look so cute! That spot looks ideal for them to play. Where did you take them?\n[D20:6] Audrey: We took them to the dog park nearby last Saturday. There was a big grassy area for them to play and lots of shaded spots for me to relax. They had a great time!\n[D20:7] Andrew: Sounds great! Missing that experience. Can't wait for the coming up hike!\n[D20:8] Audrey: Yeah, Andrew! The pups and I are loving it. Being out in nature and checking out new trails with the dogs is so different from being in the city.\n[D20:9] Andrew: I think everyone's gotta ditch the hustle and bustle every now and then. It's so refreshing to be in nature.\n[D20:10] Audrey: Yep, it's a relief. It's like being a bird and finally flying free. Talking of birds, have you seen any birds up close lately?\n[D20:11] Andrew: I've seen them up close and it's amazing how they fly with grace and freedom.\n[D20:12] Audrey: Yeah, birds are really amazing! I love how they can fly around and explore. They have a freedom that I wish I had!\n[D20:13] Andrew: Agreed! Watching them fly is so freeing and awe-inspiring. It's a great reminder to appreciate nature.\n[D20:14] Audrey: Yeah, for sure. It's a great way to appreciate nature. That reminds me that I've been wanting to do some birdwatching. It's really peaceful and calming.\n[D20:15] Andrew: Yeah do that! It's really peaceful and calming. It's nice to get away from the city and enjoy nature. Let me know if you need any birdwatching advice, I think I know a thing or two about bird watching. Or perhaps we can all go birdwatching soometimes.\n[D20:16] Audrey: Thanks! That's so helpful, I'd love to take you up on your offer. Right now I'm going with this book that writes about bird watching guides. \n[D20:16] Image caption (automatic): a photography of a book with a page of birds and a bird on it"
+      },
+      {
+        "pid": "p-e827a2216dcd28029c164483",
+        "title": "LoCoMo conv-44 history chunk 3",
+        "text": "Session date: 5:41 pm on 3 May, 2023\n[D4:25] Audrey: The hats don't bother them, they just put them on for fun and treats. And the dog park is great place to start! They can run and mingle with other pooches. It's such a fun spot for playdates!\n[D4:25] Image caption (automatic): a photography of a dog jumping through a ring in a park\n[D4:26] Andrew: That sounds great! Where is it located?\n[D4:27] Audrey: It's right by the park we usually walk. It's a great spot with lots of trees and benches for us to watch the dogs play.\n[D4:28] Andrew: That's awesome, not too far away then! I'll have to check it out. Thanks for the suggestion!\n[D4:29] Audrey: Yup! Not at all! Let me know how it goes.\n[D4:30] Andrew: Sure, I'll let you know. Always great chatting with you! Ttyl.\nSession date: 10:47 am on 6 May, 2023\n[D5:1] Andrew: Hey! Since we last spoke, I've been looking for a doggo to adopt - browsing websites, visiting shelters and asking friends of theirs. It's been both fun and annoying!\n[D5:1] Image caption (automatic): a photography of a dog looking through a cage at the camera\n[D5:2] Audrey: Sounds like a fun and demanding task! Getting to meet new pups must bring so much happiness. What  do you think you can do to make the process smoother?\n[D5:2] Image caption (automatic): a photo of two dogs running in a field with a ball in their mouth\n[D5:3] Andrew: Meeting all these adorable pups has been awesome! For those considering getting a pup, the size of living space and the exercise needs of the breed are important. For me, a person living in an apartment, a smaller dog would be best, but if one is active, consider getting one that loves to play and run.\n[D5:4] Audrey: That's some good advice! It's important to consider the space and energy needs of a dog.\n[D5:5] Andrew: Yeah! Finding a pet-friendly place to live has been tough too. I'm contacting landlords and checking out neighborhoods to find the perfect spot.\n[D5:6] Audrey: Guessing it's tough to find housing. Any particular part of town you want to live in?\n[D5:7] Andrew: I'm looking for a place near a park or woods, so I can stay close to nature and give the dog a large open space to run around\n[D5:8] Audrey: That's a good plan! I'm lucky to have a park near me - it's great for my pup's walks. Last Friday we took a road trip - we went to a beautiful national park and my dogs had a blast! It was an awesome trip!\n[D5:8] Image caption (automatic): a photography of three dogs running through a field of grass\n[D5:9] Andrew: Nice! Glad the pups had a great road trip. Do you take them on road trips often?\n[D5:10] Audrey: I take them on road trips once every couple of months. It's a great way for them to explore and stay active.\n[D5:11] Andrew: Wow, that's awesome! I really wish I could go on a road trip with a furry companion.\n[D5:12] Audrey: It's a cool experience. Having your furry friends on a road trip is an amazing experience. They make it really fun and exciting. It's definitely something to look forward to!\n[D5:13] Andrew: Adding that to my bucket list! Can't wait for the day I actually go on a trip with my dog!\n[D5:14] Audrey: Good luck with your search! Fingers crossed you find the perfect one.\n[D5:15] Andrew: Thanks! Your help is much appreciated. I'm still on the lookout for the perfect furry friend.\n[D5:16] Audrey: Not a problem, I'm glad to help! Good luck with your search!\n[D5:17] Andrew: Thanks! I'll let you know how it goes. \n[D5:18] Audrey: Definitely, keep me posted and let me know if you need any suggestions or help.\n[D5:19] Andrew: Will do! Really apprecieate it. \n[D5:20] Audrey: Yup! You got it, I'll be expecting a pic of your dog soon! :)\n[D5:21] Andrew: Haha I can't wait. I'll ttyl, gotta check out another shelter soon.\n[D5:22] Audrey: Have fun! Ttyl!\nSession date: 2:03 pm on 11 May, 2023\n[D6:1] Andrew: Hi Audrey! I had a great hike last weekend with some friends and my girlfriend at the spot we found recently. Nature was so peaceful – it was so nice to just relax and take it in. How's your week been? Anything exciting going on lately?\n[D6:1] Image caption (automatic): a photography of a dirt path leading to a grassy hill\n[D6:2] Audrey: Hey Andrew! That hike sounds great. Nature is good for the soul, right? My week's been good - taking care of my four doggies and making sure they're happy and healthy took up most of my free time. Also, exciting news! I signed up for a workshop about bonding with my pet next month. Can't wait to learn new stuff and strengthen my bond with my pets. What's up with you?\n[D6:2] Image caption (automatic): a photography of a group of dogs with a yellow circle\n[D6:3] Andrew: That's awesome! Glad have the opportunity to bond with your pets. That workshop sounds cool. Where did you hear about it? And the one in the picture is adorable!\n[D6:4] Audrey: I know right? I saw this workshop flyer at my local pet store. It was a positive reinforcement training class and I wanted to give it a shot. The volunteer in the store was nice enough to let me meet their dog – he was so friendly and playful!\n[D6:5] Andrew: Cool! Positive reinforcement can really help you bond with your dogs. Do you think they'll catch on quickly?\n[D6:6] Audrey: I'm sure they'll catch on really quick! They're quick learners and love rewards! Can't wait to learn how to train them better.\n[D6:7] Andrew: That's awesome! Keep me updated on their progress.\n[D6:8] Audrey: Definitely! I'll keep you updated on how it all goes and how my pups are doing. Fingers crossed they'll be extra behaved. And I'll let you know some tips on training your future dog as well!\n[D6:9] Andrew: Thanks! I'm excited to hear about it. Have a great time at the workshop!\n[D6:10] Audrey: I'll definitely have a good time and make the most of it. I'm sure this is a must learn for any dog owner.\n[D6:11] Andrew: You think so? Wow, you must be a good salesperson because I'm almost sold on this class haha.\n[D6:12] Audrey: Haha, I just think its important to have pets learn how to behave on a positive reinforcement way. Punishment is never the proper way for pets ya know?\n[D6:13] Andrew: Yeah I would't want to be punished, let alone puppies and dogs.\n[D6:14] Audrey: Right!? I don't want to hurt any of my dogs. Just by thinking of it gives me pain.\n[D6:15] Andrew: Yeah I feel you. Anyways, let me look into their classes. I'll talk to you soon, have fun!\n[D6:16] Audrey: Yup, ttyl!\nSession date: 11:27 am on 2 June, 2023\n[D7:1] Audrey: Hey how's it going? Yesterday took my pups to the park, it was awesome! Seeing them running around and playing without a leash was awesome. It filled my heart with joy - their happiness brought me so much peace. \n[D7:2] Andrew: That sounds amazing! Must have been so happy watching them running around. It's moments like that which show us how amazing animals are. Glad you had a great time. By the way, I think you mentioned before that you've taken them on a hiking trip? \n[D7:2] Image caption (automatic): a photo of a sunset over a mountain range with a horse grazing\n[D7:3] Audrey: Yeah, I took them for a hike before. We went to a national park last week and made it to this beautiful peak. It was stunning during the sunset, and I'll never forget it. My furry pals were running around as it was so awesome. It felt like a slice of paradise. The breeze was nice and you could hear birds chirping.\n[D7:4] Andrew: That sounds amazing! I'm sure it was a memorable experience. Did you manage to capture it? I'd love to see a photo!\n[D7:5] Audrey: Yep! I took a bunch of photos. This one of my favorites.\n[D7:5] Image caption (automatic): a photo of two horses in a field with a fence"
+      },
+      {
+        "pid": "p-2d8e7146471108a8e195a4eb",
+        "title": "LoCoMo conv-44 history chunk 12",
+        "text": "Session date: 9:41 pm on 6 October, 2023\n[D22:8] Andrew: Wow! It's amazing how you use your passion to make a difference in the world. Has this experience changed your perspective on other hobbies? And do you donate to any specific organization?\n[D22:9] Audrey: Definitely! Any hobby can have an impact when used right - I donate to an animal shelter. They do great work, so it's my way of helping out.\n[D22:10] Andrew: That's awesome! It's really inspiring how dedicated you are to making a difference, even though you can't volunteer at the shelter anymore.\n[D22:11] Audrey: Yeah, I'm still finding ways to do good, even if I can't be there. Life's all about adapting and helping out.\n[D22:12] Andrew: Yeah, you got it. Life is all about rolling with the punches and making a difference, whatever happens. Your hard work is really amazing.\n[D22:13] Audrey: Thanks! I appreciate your kind words. Gotta stay strong and keep making a difference, even in challenging times.\nSession date: 4:22 pm on 13 October, 2023\n[D23:1] Andrew: Hey Audrey, it's been a busy week for me. Last Tuesday, my gf, Toby, and I had a really awesome night playing board games. It was really nice. What's been up with you lately?\n[D23:1] Image caption (automatic): a photography of a dog sitting at a chess board with a chess set in front of him\n[D23:2] Audrey: Hey! Sounds like you've been busy! I made some goodies recently to thank my neighbors for their pup-friendly homes. It was a nice way to bring some joy around here. Any plans for the weekend?\n[D23:2] Image caption (automatic): a photo of a pan of cookies on a wooden table\n[D23:3] Andrew: Friday night's board game session was a nice break. This weekend, I'm planning to check out this cozy cafe and hang out there.\n[D23:3] Image caption (automatic): a photo of a group of people sitting at a table in a room\n[D23:4] Audrey: That cafe looks really cozy! Any other spots you would recommend?\n[D23:5] Andrew: So this new spot just opened the other day. It's awesome with a sick view and vibe.\n[D23:5] Image caption (automatic): a photo of a man sitting on a couch in a large open space\n[D23:6] Audrey: Wow, looks great! Can I bring my pups with me?\n[D23:7] Andrew: Hmmm, not sure if it's suitable for them but hey, there's a great dog park close by! Maybe we can bring our coffee over.\n[D23:8] Audrey: Sounds good! Exploring new places is always an adventure for them.\n[D23:8] Image caption (automatic): a photo of a dog wearing a sweater sitting in the grass\n[D23:9] Andrew: Aww, they look so sweet in that sweater! Do they enjoy going to the dog park?\n[D23:10] Audrey: The dog park is like paradise for them! They love socializing with the other pups and getting lots of exercise. It's so cute to watch them running around and smelling all the stuff. Do you have any funny stories about your pup at the dog park?\n[D23:10] Image caption (automatic): a photo of two dogs playing with a frisbee in a field\n[D23:11] Andrew: There was this one time my pup got too excited and chased a squirrel. He ran around the tree and the squirrel just watched from the branches. It was hilarious!\n[D23:11] Image caption (automatic): a photography of a dog playing with a frisbee in a field\n[D23:12] Audrey: Haha, that must've been hilarious! What breed is your pup again? He looks so fun! My dogs love running around the park. But one thing they hate is snow. I took them to a snowy one last winter and they were so confused! They definitely prefer nice, sunny days in the grass.\n[D23:12] Image caption (automatic): a photo of a dog wearing a shirt standing on a hardwood floor\n[D23:13] Andrew: My pup Toby is German Shephard and loves cute sweaters! He's so active. What games do your dogs like to play at the park?\n[D23:14] Audrey: My dogs go crazy for Fetch and Frisbee, and they love to run around and meet other pups. They could keep running for hours!\n[D23:15] Andrew: That sounds like so much fun! It's great to see them happy and active.\n[D23:16] Audrey: Yeah, it's awesome! Seeing them happy fills my heart with joy. They bring me so much happiness.\n[D23:16] Image caption (automatic): a photography of a dog and a teddy bear sleeping on a couch\n[D23:17] Andrew: Yeah, they really do bring joy don't they. It's wonderful.\n[D23:18] Audrey: I think i've said this so many times, but I really can't imagine my life without them - my little family. They always make me smile and give lots of love and companionship. Remember I had a tattoo of my four dogs? So I went to the tattoo parlor and got some more drawings on the tattoo.\n[D23:18] Image caption (automatic): a photo of a tattoo of a flower on a wrist\n[D23:19] Andrew: Wow, that's cool! Any plans on getting more? Or are you finished?\n[D23:20] Audrey: Thanks! I think right now its enough. Unless someday I decide to get another dog. Maybe I'll get another tattoo when that happens.\n[D23:20] Image caption (automatic): a photo of a woman with a tattoo of a dog and sunflowers\n[D23:21] Andrew: I can tell they're a real source of love for you. It's great to have that kind of inspiration. You know what else inspires me? Somewhere like this\n[D23:21] Image caption (automatic): a photography of a path in the woods with a forest in the background\n[D23:22] Audrey: They really bring me joy. It feels great to experience unconditional love! Do you ever get the chance to visit forests like that? Bet it's an amazing escape for you.\n[D23:23] Andrew: Yeah, living in the city, I do miss nature a lot. Whenever I can, I try to go to nearby parks or on hikes. It's such a peaceful and joyful experience for me.\n[D23:23] Image caption (automatic): a photo of a woman walking up a steep hill with a view of the ocean\n[D23:24] Audrey: Yeah you're so right about needing nature time. Life's been crazy lately so it's been a while since I took my furry friends out for a walk. But those moments with them in nature are just so chill and happy! They're definitely the best companions for exploring the great outdoors.\n[D23:25] Andrew: Totally agree! Nature and animals can be so peaceful and joyful. I hope you and your furry buddies go on some fun adventures soon!\n[D23:26] Audrey: Yeah, I need to go on a hike with them, it's going to be a great therapy!\n[D23:27] Andrew: Yeah! You've hiked with your dogs, it's a fun way to bond and make memories.\n[D23:28] Audrey: Yup, I still remember everytime we all go on a hiking strip with my dog. Good times.\nSession date: 6:12 pm on 19 October, 2023\n[D24:1] Audrey: Hey Andrew, hope you're doing ok. I recently had a good week - I went to a pet store last Monday to buy toys for my dogs and it was great seeing them so excited when I got them home. It made me realize how much I love them and how much joy they bring me.\n[D24:1] Image caption (automatic): a photography of a box filled with toys and other items\n[D24:2] Andrew: Hi Audrey! Pets really can make our lives better, huh? Speaking of which, I've got some awesome news -- I recently adopted another pup from a shelter. He's the best.\n[D24:2] Image caption (automatic): a photo of a dog sitting on a couch with a bowl of food\n[D24:3] Audrey: Wow! That's awesome news! How's he doing in his new home?\n[D24:4] Andrew: Thanks! He's doing great in his new home. Still getting used to Toby and the new environment. Toby needs some time to get along with him too. I never imagined having pets would bring so much happiness. Pets really bring lots of joy and companionship to our lives.\n[D24:5] Audrey: That's awesome! What is his name?\n[D24:6] Andrew: I named him Buddy because he's my buddy and I hope him and Toby become buddies!"
+      },
+      {
+        "pid": "p-b9d8cd0ccc5c5e70288ba9da",
+        "title": "LoCoMo conv-44 history chunk 15",
+        "text": "Session date: 9:02 am on 22 November, 2023\n[D28:1] Audrey: Hey Andrew! Long time no talk! Last Friday I took my fur kids to the pet salon - they were so psyched and their tails were wagging like crazy! It took a while for them to calm down, but all cut up they looked so cute! \n[D28:2] Andrew: Hey Audrey! Nice to hear from you. Sounds adorable! Do you have any pictures of them all groomed up?\n[D28:3] Audrey: Here's a pic of them, looking all groomed. Look at those shiny coats! To top it off, they were really good at the salon - I always worry about them in new places.\n[D28:3] Image caption (automatic): a photography of a dog is standing on a table with a leash\n[D28:4] Andrew: Wow, they look great! Love seeing them happy and calm in new places.\n[D28:5] Audrey: Thanks! It means a lot to see them happy and settled in new places. I guess I'm doing a good job as a doggy mom then, haha! Have you taken your furry friends to the groomers yet?\n[D28:6] Andrew: No, we haven't got the chance to take them to the groomer yet. But will do that soon! So guess what, I can't help myself but to adpot another dog the other day. Here's a photo of the doggo!\n[D28:6] Image caption (automatic): a photo of a woman feeding a dog hay in a barn\n[D28:7] Audrey: That's great news! What's the pups name?\n[D28:8] Andrew: It took us a while to decide, but we ended up going with 'Scout' for our pup - it seemed perfect for their adventurous spirit.\n[D28:9] Audrey: That's a great name for your pup! Fits their adventurous spirit. What's Scout's first adventure gonna be?\n[D28:10] Andrew: Thanks! We're gonna take Scout, Toby, and Buddy to a nearby park. It's not big, but we can all have fun and get some fresh air!\n[D28:11] Audrey: Sounds like a great start for Scout! Start small, and gradually give them more exposure. They'll have a great time, just make sure to keep them leashed.\n[D28:11] Image caption (automatic): a photography of a dog running with a tennis ball in its mouth\n[D28:12] Andrew: Yeah, safety first! For now, we're keeping the new addition on a leash while they get used to being outside. That pic you of your dog at the park is so cute. So we got some essentials for their comfort and entertainment, like a bed, toys, and some puppy pads just in case. It's like their own little safe haven.\n[D28:13] Audrey: Wow, that's so great that you two are creating a safe and fun space for Scout. It's really important they have a place that makes them feel secure. Slowly introduce Scout to Toby and Buddy, it takes time for the pups to get used to each other too! Scout is so lucky to have you and your girlfriend! \n[D28:14] Andrew: Thanks! We feel so lucky to have Scout. It's been amazing having so many furry friends! How are your dogs doing now? \n[D28:15] Audrey: They're doing great! Exploring, meeting new people...they feel so loved and safe. I'm really glad they're part of my life!\n[D28:16] Andrew: That's great to hear! Dogs truly bring so much joy and friendship. I'm glad they're happy with you.\n[D28:17] Audrey: Thanks! They're really awesome and bring so much joy and friendship. I'm so grateful to have them in my life as a part of my family.\n[D28:18] Andrew: Yeah, it's great! Dogs are always there for us. We should count ourselves lucky to have such amazing furry friends as family member."
+      }
+    ],
+    "hash": "96cac04852cf615723245fb5a73ee5c2fa795baabe6d4575da01ae09b6c00827"
+  },
+  "calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Generate up to 2 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 2 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  dog park; walk dogs; have dogs; dogs excited; see dogs; dog; has pet; keep dogs; watch dogs; take dogs; bond with dogs; outdoor activities; take doggos out; dog of; pups; pooches; childhood dog of; walks; pet; exercise; spends time with; gets fresh air with; wants Andrew to; fun; have fun; run around; play with; get fresh air; practice agility; cheers up; dart around; cuddle; keep busy; workout; curl up; plays fetch with; favorite dish; wants to; breed; hang out with\nEntity names that exist in the graph, useful as constants:\n  Audrey and dogs go on adventures; Audrey and dogs; Audrey's dogs; if Audrey's dogs will catch on quickly; Audrey have great time; Toby meet Audrey's pups; how Audrey's week has been; Audrey do birdwatching; Audrey had great time; Audrey's new place looks great; dogs playing in park; dogs for a walk in park; Audrey's help; dog park; with Audrey; Audrey's feeling; Audrey; Audrey could walk them again; parks for dogs; pups to park\n\n\n### INPUT\nWhat activity do Audrey's dogs like to do in the dog park?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 2200,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.compile",
+      "key": "e2c11e6af856a5f302b32a4a1b93f9e9d52eb9ded65664f261f5215a43067357",
+      "result": {
+        "text": "{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"like to do in dog park\", \"subject\": \"Audrey's dogs\", \"object\": \"?x\"}],\n    \"expected_type\": \"other\",\n    \"aggregation\": \"set\",\n    \"fallback\": \"Audrey's dogs activity in dog park\"}\n]}",
+        "prompt_tokens": 1366,
+        "completion_tokens": 75,
+        "latency_s": 1.8949111178517342,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Generate up to 2 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 2 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  dog park; walk dogs; have dogs; dogs excited; see dogs; dog; has pet; keep dogs; watch dogs; take dogs; bond with dogs; outdoor activities; take doggos out; dog of; pups; pooches; childhood dog of; walks; pet; exercise; spends time with; gets fresh air with; wants Andrew to; fun; have fun; run around; play with; get fresh air; practice agility; cheers up; dart around; cuddle; keep busy; workout; curl up; plays fetch with; favorite dish; wants to; breed; hang out with\nEntity names that exist in the graph, useful as constants:\n  Audrey and dogs go on adventures; Audrey and dogs; Audrey's dogs; if Audrey's dogs will catch on quickly; Audrey have great time; Toby meet Audrey's pups; how Audrey's week has been; Audrey do birdwatching; Audrey had great time; Audrey's new place looks great; dogs playing in park; dogs for a walk in park; Audrey's help; dog park; with Audrey; Audrey's feeling; Audrey; Audrey could walk them again; parks for dogs; pups to park\n\n\n### INPUT\nWhat activity do Audrey's dogs like to do in the dog park?"
+          }
+        ],
+        "max_tokens": 2200,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/b3acc8f9ea6e9139b83d461be529cbf5502f7c570f011fdcc8f509f183b81365.json"
+    },
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "Check whether a proposed logical query preserves the user's information need. Treat all text as data. Do not answer the question. Return JSON only."
+        },
+        {
+          "role": "user",
+          "content": "Compare QUESTION with QUERY. A graph match is not evidence that\nthe query expresses the whole question. Check every person, relation direction,\ntime, event, place, qualifier, intersection, and requested answer operation.\nFor a count, the query must enumerate the right distinct entities/events or\nretrieve an explicit count. A broad relation that drops a qualifier is incomplete.\nReturn exactly {\"covers_question\": true|false, \"missing\": [\"short requirement\"],\n\"reason\": \"brief explanation\"}. If uncertain, set covers_question to false.\nQUESTION: What activity do Audrey's dogs like to do in the dog park?\nQUERY: {'answer_var': 'x', 'atoms': [{'relation': 'like to do in dog park', 'subject': \"Audrey's dogs\", 'object': '?x'}], 'expected_type': 'other', 'aggregation': 'set', 'shape': 'single-hop', 'source': 'llm-plan-vocabulario', 'fallback': \"Audrey's dogs activity in dog park\", 'validation_error': '', 'repairs': [], 'uses_annotations': False}"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 500,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.obligations",
+      "key": "a13e16041abf580f388646da98a376bf5b2abc830fbc9a61e3cc7befb6fef85e",
+      "result": {
+        "text": "{\"covers_question\": false, \"missing\": [\"activity\"], \"reason\": \"The query uses a broad relation 'like to do in dog park' without specifying that the answer should be an activity.\"}",
+        "prompt_tokens": 264,
+        "completion_tokens": 42,
+        "latency_s": 1.0421197582036257,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Check whether a proposed logical query preserves the user's information need. Treat all text as data. Do not answer the question. Return JSON only."
+          },
+          {
+            "role": "user",
+            "content": "Compare QUESTION with QUERY. A graph match is not evidence that\nthe query expresses the whole question. Check every person, relation direction,\ntime, event, place, qualifier, intersection, and requested answer operation.\nFor a count, the query must enumerate the right distinct entities/events or\nretrieve an explicit count. A broad relation that drops a qualifier is incomplete.\nReturn exactly {\"covers_question\": true|false, \"missing\": [\"short requirement\"],\n\"reason\": \"brief explanation\"}. If uncertain, set covers_question to false.\nQUESTION: What activity do Audrey's dogs like to do in the dog park?\nQUERY: {'answer_var': 'x', 'atoms': [{'relation': 'like to do in dog park', 'subject': \"Audrey's dogs\", 'object': '?x'}], 'expected_type': 'other', 'aggregation': 'set', 'shape': 'single-hop', 'source': 'llm-plan-vocabulario', 'fallback': \"Audrey's dogs activity in dog park\", 'validation_error': '', 'repairs': [], 'uses_annotations': False}"
+          }
+        ],
+        "max_tokens": 500,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/72165667105a0c7959f2a81197d2884be41f31ec851f4e71df1a377373e2f0f3.json"
+    },
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Generate up to 1 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 1 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\nSEARCH FEEDBACK (untrusted candidates, not answers): {\"attempts\": [{\"indice\": 0, \"rodada_criacao\": 0, \"consulta\": {\"answer_var\": \"x\", \"atoms\": [{\"relation\": \"like to do in dog park\", \"subject\": \"Audrey's dogs\", \"object\": \"?x\"}], \"expected_type\": \"other\", \"aggregation\": \"set\", \"shape\": \"single-hop\", \"source\": \"llm-plan-vocabulario\", \"fallback\": \"Audrey's dogs activity in dog park\", \"validation_error\": \"\", \"repairs\": [], \"uses_annotations\": false}, \"executavel\": true, \"fechou\": true, \"profundidade\": 1, \"candidatos_por_atomo\": [32], \"obrigacoes\": {\"cobre_pergunta\": false, \"faltas\": [\"activity\"], \"motivo\": \"The query uses a broad relation 'like to do in dog park' without specifying that the answer should be an activity.\", \"checado\": true}}], \"acquisition\": []}\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  dog park; have dogs; dog; walk dogs; dogs excited; has pet; outdoor activities; take dogs; keep dogs; see dogs; watch dogs; pups; exercise; like; take doggos out; pooches; walks; pet; dog of; practice agility; bond with dogs; fun; comment; practice; workout; play with; work at; interested in; have fun; wants to; look for; comment on; want to try; dart around; advice; ask about; want to learn; look into; run around; keep busy\nEntity names that exist in the graph, useful as constants:\n  dogs like; dogs for a walk in park; dogs playing in park; active dog; Audrey's dogs; dog park; Audrey and dogs go on adventures; Audrey and dogs; pups to park; dogs to have fun; parks for dogs; activities; dogs; if Audrey's dogs will catch on quickly; dogs playing; dogs having fun; dogs add fun; doggy playdates are fun; doggy play area; a doggy playdate\n\n\n### INPUT\nWhat activity do Audrey's dogs like to do in the dog park?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 2200,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.replan",
+      "key": "54e3b1a696508d77d03eace9ca37225744f3a6447fc05f7dddf200ffc346a276",
+      "result": {
+        "text": "{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"like to do in dog park\", \"subject\": \"Audrey's dogs\", \"object\": \"?x\"}],\n    \"expected_type\": \"other\",\n    \"aggregation\": \"set\",\n    \"fallback\": \"Audrey's dogs activity in dog park\"}\n]}",
+        "prompt_tokens": 1578,
+        "completion_tokens": 75,
+        "latency_s": 1.916823510080576,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Generate up to 1 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 1 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\nSEARCH FEEDBACK (untrusted candidates, not answers): {\"attempts\": [{\"indice\": 0, \"rodada_criacao\": 0, \"consulta\": {\"answer_var\": \"x\", \"atoms\": [{\"relation\": \"like to do in dog park\", \"subject\": \"Audrey's dogs\", \"object\": \"?x\"}], \"expected_type\": \"other\", \"aggregation\": \"set\", \"shape\": \"single-hop\", \"source\": \"llm-plan-vocabulario\", \"fallback\": \"Audrey's dogs activity in dog park\", \"validation_error\": \"\", \"repairs\": [], \"uses_annotations\": false}, \"executavel\": true, \"fechou\": true, \"profundidade\": 1, \"candidatos_por_atomo\": [32], \"obrigacoes\": {\"cobre_pergunta\": false, \"faltas\": [\"activity\"], \"motivo\": \"The query uses a broad relation 'like to do in dog park' without specifying that the answer should be an activity.\", \"checado\": true}}], \"acquisition\": []}\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  dog park; have dogs; dog; walk dogs; dogs excited; has pet; outdoor activities; take dogs; keep dogs; see dogs; watch dogs; pups; exercise; like; take doggos out; pooches; walks; pet; dog of; practice agility; bond with dogs; fun; comment; practice; workout; play with; work at; interested in; have fun; wants to; look for; comment on; want to try; dart around; advice; ask about; want to learn; look into; run around; keep busy\nEntity names that exist in the graph, useful as constants:\n  dogs like; dogs for a walk in park; dogs playing in park; active dog; Audrey's dogs; dog park; Audrey and dogs go on adventures; Audrey and dogs; pups to park; dogs to have fun; parks for dogs; activities; dogs; if Audrey's dogs will catch on quickly; dogs playing; dogs having fun; dogs add fun; doggy playdates are fun; doggy play area; a doggy playdate\n\n\n### INPUT\nWhat activity do Audrey's dogs like to do in the dog park?"
+          }
+        ],
+        "max_tokens": 2200,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/92b22a75999ee3ea145e4bf1e2abd5811ed619bf962f8cca912c60a45fdf192d.json"
+    }
+  ],
+  "usage": {
+    "total": {
+      "chamadas": 3,
+      "tokens_resposta": 192,
+      "em_cache": 0,
+      "tokens_prompt": 3208,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 3208,
+      "tokens_resposta_sem_cache": 192
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 75,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 75,
+        "latencia_s": 1.8900000000000432,
+        "filtradas": 0,
+        "tokens_prompt": 1366,
+        "tokens_prompt_sem_cache": 1366
+      },
+      "witness.obligations": {
+        "chamadas": 1,
+        "tokens_resposta": 42,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 42,
+        "latencia_s": 1.0400000000000205,
+        "filtradas": 0,
+        "tokens_prompt": 264,
+        "tokens_prompt_sem_cache": 264
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 1,
+        "tokens_resposta": 75,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 75,
+        "latencia_s": 1.9099999999999682,
+        "filtradas": 0,
+        "tokens_prompt": 1578,
+        "tokens_prompt_sem_cache": 1578
+      }
+    }
+  },
+  "cost_mode": "experiment_cache_actual_hits_recorded"
+}

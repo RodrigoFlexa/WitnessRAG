@@ -1,0 +1,690 @@
+{
+  "identity": {
+    "qid": "locomo:conv-43:qa155",
+    "question": "How did John feel after being able to jog without pain?",
+    "memory": "294ce1e607a2a327f05f6f889a6c875a4f30b176cc54b29d57f5878de13ce749",
+    "config": {
+      "dataset": "locomo",
+      "n_questions": 138,
+      "top_k": 5,
+      "seed": 42,
+      "subset_corpus": false,
+      "train_questions_path": "",
+      "interleave_methods": true,
+      "corpus_scope": "locomo_full_selected_conversation",
+      "methods": [
+        "witnessrag"
+      ],
+      "ie": {
+        "max_tokens": 1600,
+        "temperature": 0.0,
+        "two_step": true,
+        "max_triples_per_passage": 40,
+        "window_tokens": 512,
+        "window_overlap_tokens": 64,
+        "window_tokenizer": "Qwen/Qwen2.5-14B-Instruct",
+        "window_tokenizer_revision": "",
+        "dialogue_mode": true
+      },
+      "graph": {
+        "merge_similar_entities": false,
+        "merge_identity_variants": true,
+        "merge_relation_inflections": true,
+        "identity_merge_threshold": 0.8,
+        "synonym_threshold": 0.8,
+        "synonym_max_neighbors": 20,
+        "ppr_damping": 0.5,
+        "ppr_tol": 1e-08,
+        "ppr_max_iter": 100
+      },
+      "hippo2": {
+        "n_triples_retrieved": 20,
+        "n_triples_kept": 5,
+        "n_passages_seed": 10,
+        "passage_node_weight": 0.05,
+        "use_recognition_memory": true
+      },
+      "graphrag": {
+        "community_levels": 2,
+        "min_community_size": 3,
+        "build_community_reports": true,
+        "max_communities_reported": 400,
+        "text_units_per_entity": 8
+      },
+      "witness": {
+        "max_atoms": 4,
+        "compile_temperature": 0.0,
+        "vocabulary_aware_compile": true,
+        "vocabulary_relations": 40,
+        "vocabulary_entities": 20,
+        "query_plans": true,
+        "max_query_plans": 5,
+        "active_frontier": true,
+        "active_obligations": true,
+        "active_context": true,
+        "active_operators": false,
+        "soft_obligations": false,
+        "proof_reader": true,
+        "active_frontier_queries": 5,
+        "active_frontier_passages": 30,
+        "grounding_mode": "semantic",
+        "relation_match_threshold": 0.65,
+        "candidates_per_atom": 60,
+        "entity_match_threshold": 0.55,
+        "entity_top_k": 5,
+        "relation_weight": 0.45,
+        "argument_weight": 0.35,
+        "verbalization_weight": 0.2,
+        "max_witnesses": 20,
+        "beam_width": 400,
+        "passage_penalty": 0.15,
+        "binding_aware_grounding": true,
+        "verify_witnesses": false,
+        "verification_max_witnesses": 5,
+        "answer_set": true,
+        "answer_set_max_items": 10,
+        "hybrid_fallback": true,
+        "hybrid_rrf_k": 60,
+        "candidate_pool_k": 20,
+        "fact_confidence": 0.9,
+        "delta_interpretation": 0.1,
+        "delta_verbalization": 0.05,
+        "acquisition_rounds": 2,
+        "acquisition_passages": 3,
+        "acquisition_lambda": 0.05,
+        "enable_acquisition": true,
+        "dense_fallback": true,
+        "budget_fraction": 1.0,
+        "ilp_time_limit_s": 120,
+        "ilp_max_facts": 20000
+      },
+      "qa": {
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "top_k": 5,
+        "answer_set": true,
+        "operator_reader": false,
+        "proof_reader": true
+      }
+    },
+    "condition": "soft-v2"
+  },
+  "retrieval": {
+    "pids": [
+      "p-af06cb431e090e4b21c47168",
+      "p-8f3fa6967310c5c4189fa461",
+      "p-5477a195195da44b7889fb68",
+      "p-3321cf2ea559f103ba9e0183",
+      "p-50f052643ae811f2359b2fbd"
+    ],
+    "scores": [
+      1.0,
+      0.5,
+      0.3333333333333333,
+      0.25,
+      -0.9999692307692307
+    ],
+    "diagnostics": {
+      "pesquisa_provas": {
+        "fronteira": [
+          "p-3321cf2ea559f103ba9e0183",
+          "p-af06cb431e090e4b21c47168",
+          "p-50f052643ae811f2359b2fbd",
+          "p-ff702d61d49cfd62e2ce4112",
+          "p-8f3fa6967310c5c4189fa461",
+          "p-4cf5db730b21e403f717a762",
+          "p-eb7a65e90ce8b8b3e38918f7",
+          "p-19e2eec910385c4df876686e",
+          "p-011482e856a93237c388a7f8"
+        ],
+        "sondas": [
+          "How did John feel after being able to jog without pain?",
+          "John feel after being able to jog without pain",
+          "John feel after jog without pain"
+        ],
+        "acoes": [],
+        "buscas_dirigidas": 0,
+        "replanejamentos": 1,
+        "rejeicoes": 0
+      },
+      "planos_compilados": [
+        {
+          "indice": 0,
+          "rodada_criacao": 0,
+          "consulta": {
+            "answer_var": "x",
+            "atoms": [
+              {
+                "relation": "feel after being able to jog without pain",
+                "subject": "John",
+                "object": "?x"
+              }
+            ],
+            "expected_type": "other",
+            "aggregation": "none",
+            "shape": "single-hop",
+            "source": "llm-plan-vocabulario",
+            "fallback": "John feel after jog without pain",
+            "validation_error": "",
+            "repairs": [],
+            "uses_annotations": false
+          },
+          "executavel": true,
+          "fechou": true,
+          "profundidade": 1,
+          "candidatos_por_atomo": [
+            3
+          ],
+          "obrigacoes": {
+            "cobre_pergunta": false,
+            "faltas": [
+              "How did John feel"
+            ],
+            "motivo": "The query captures John feeling after being able to jog without pain, but it does not specify the method or manner of feeling, which is part of the original question's information need.",
+            "checado": true,
+            "grau": "partial",
+            "contrato": "soft-v2",
+            "tentativas": [
+              {
+                "raw": "{\"tier\":\"partial\", \"missing\":[\"How did John feel\"], \"reason\":\"The query captures John feeling after being able to jog without pain, but it does not specify the method or manner of feeling, which is part of the original question's information need.\"}",
+                "error": ""
+              }
+            ]
+          }
+        }
+      ],
+      "planejamento": {
+        "orcamento_planos": 5,
+        "planos_distintos": 1,
+        "chamadas": 2,
+        "replanejamentos": 1
+      },
+      "plano_escolhido": 0,
+      "n_testemunhas": 3,
+      "testemunha_no_contexto": true,
+      "classe_prova": "provisional",
+      "empacotamento": {
+        "provas_selecionadas": [
+          {
+            "resposta": "pain",
+            "passagens": [
+              "p-af06cb431e090e4b21c47168"
+            ]
+          },
+          {
+            "resposta": "with teammates",
+            "passagens": [
+              "p-8f3fa6967310c5c4189fa461"
+            ]
+          },
+          {
+            "resposta": "making it through",
+            "passagens": [
+              "p-5477a195195da44b7889fb68"
+            ]
+          }
+        ],
+        "respostas_cobertas": 3,
+        "passagens_de_prova": 3
+      },
+      "ordem_fallback_preservada": false,
+      "contexto_alterado_pelo_witness": true,
+      "fallback": "hibrido_com_hipotese_nao_certificada",
+      "prova_provisoria": true,
+      "consulta": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "feel after being able to jog without pain",
+            "subject": "John",
+            "object": "?x"
+          }
+        ],
+        "expected_type": "other",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plan-vocabulario",
+        "fallback": "John feel after jog without pain",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false
+      },
+      "forma": "single-hop",
+      "n_testemunhas_no_contexto": 3,
+      "respostas": [
+        {
+          "resposta": "pain",
+          "score": 0.7717,
+          "score_tipo": "melhor_testemunha_heuristico",
+          "risco_calibrado": false,
+          "risco": 0.3926,
+          "risco_bruto": 0.3926,
+          "n_testemunhas": 1,
+          "testemunhas": [
+            {
+              "resposta": "pain",
+              "score": 0.8574,
+              "custo": 0.3038,
+              "passagens": [
+                "p-af06cb431e090e4b21c47168"
+              ],
+              "fatos": [
+                [
+                  "John",
+                  "jog without",
+                  "pain"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "resposta": "making it through",
+          "score": 0.7298,
+          "score_tipo": "melhor_testemunha_heuristico",
+          "risco_calibrado": false,
+          "risco": 0.4392,
+          "risco_bruto": 0.4392,
+          "n_testemunhas": 1,
+          "testemunhas": [
+            {
+              "resposta": "making it through",
+              "score": 0.8108,
+              "custo": 0.3597,
+              "passagens": [
+                "p-5477a195195da44b7889fb68"
+              ],
+              "fatos": [
+                [
+                  "John",
+                  "feel satisfying",
+                  "making it through"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "resposta": "with teammates",
+          "score": 0.6947,
+          "score_tipo": "melhor_testemunha_heuristico",
+          "risco_calibrado": false,
+          "risco": 0.4781,
+          "risco_bruto": 0.4781,
+          "n_testemunhas": 1,
+          "testemunhas": [
+            {
+              "resposta": "with teammates",
+              "score": 0.7719,
+              "custo": 0.4089,
+              "passagens": [
+                "p-8f3fa6967310c5c4189fa461"
+              ],
+              "fatos": [
+                [
+                  "John",
+                  "feel welcome",
+                  "with teammates"
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "leitura_provas": {
+        "hipoteses": "Candidate 1: pain\n  [1] John | jog without | pain\nCandidate 2: making it through\n  [3] John | feel satisfying | making it through\nCandidate 3: with teammates\n  [2] John | feel welcome | with teammates",
+        "grau": "provisional",
+        "condicoes_pendentes": [
+          "How did John feel"
+        ]
+      },
+      "resposta_estrutural": "",
+      "risco": 1.0,
+      "risco_bruto": 99.0,
+      "conjunto_resposta": {
+        "resposta": "pain, making it through, with teammates",
+        "n_itens": 3,
+        "itens_descartados_por_limite": 0,
+        "completude_certificada": false,
+        "risco_do_pior_item": 0.4781,
+        "itens": [
+          {
+            "resposta": "pain",
+            "score": 0.7717,
+            "risco": 0.3926,
+            "n_testemunhas": 1,
+            "passagens": [
+              "p-af06cb431e090e4b21c47168"
+            ],
+            "fatos": [
+              [
+                "John",
+                "jog without",
+                "pain"
+              ]
+            ]
+          },
+          {
+            "resposta": "making it through",
+            "score": 0.7298,
+            "risco": 0.4392,
+            "n_testemunhas": 1,
+            "passagens": [
+              "p-5477a195195da44b7889fb68"
+            ],
+            "fatos": [
+              [
+                "John",
+                "feel satisfying",
+                "making it through"
+              ]
+            ]
+          },
+          {
+            "resposta": "with teammates",
+            "score": 0.6947,
+            "risco": 0.4781,
+            "n_testemunhas": 1,
+            "passagens": [
+              "p-8f3fa6967310c5c4189fa461"
+            ],
+            "fatos": [
+              [
+                "John",
+                "feel welcome",
+                "with teammates"
+              ]
+            ]
+          }
+        ]
+      },
+      "agregacao_executada": "none",
+      "risco_calibrado": false,
+      "candidatos_explorados": 15,
+      "documentos_entregues": 5,
+      "orcamento_leitor": 5
+    },
+    "filtered": false,
+    "latency_s": 5.2257205648347735,
+    "passages": [
+      {
+        "pid": "p-af06cb431e090e4b21c47168",
+        "title": "LoCoMo conv-43 history chunk 12",
+        "text": "Session date: 7:42 pm on 8 December, 2023\n[D22:7] Tim: Wow, that's awesome! It's great to see how close you all have become. You must feel a great sense of unity. I'm reading this amazing series about the power of friendship and loyalty – really inspiring stuff. Anything special you do to keep that bond strong?\n[D22:7] Image caption (automatic): a photo of a stack of books sitting on top of a table\n[D22:8] John: Sounds awesome! What kind of stuff do they do in the series? I'm sure the importance of friendship is emphasized. Same with us - we have team dinners, outings, and basketball games. It's those moments away from practice that really build and strengthen our unity.\n[D22:8] Image caption (automatic): a photography of a group of people sitting around a table eating\n[D22:9] Tim: Awesome! Sounds like your team has something similar to the characters in the series. They rely on each other to push through challenges. By the way, what book are you currently reading? I'm always on the lookout for new reads!\n[D22:10] John: Thanks! I'm currently reading a book that I really enjoy. I highly recommend it!\n[D22:11] Tim: Sounds cool! Let me know the title so I can add it to my list!\n[D22:12] John: I'm reading \"Dune\" by Frank Herbert. It's a great story about religion and human control over ecology. What about you? What's the last book that moved you?\n[D22:13] Tim: I haven't read that yet but I've heard great things! Just finished \"A Dance with Dragons\" and it's a really good story. Highly recommend it!\n[D22:13] Image caption (automatic): a photography of a book shelf with a book and a book cover\n[D22:14] John: That's cool! I've heard it's such an inspiring book. Have you read all of George R. R. Martin's books?\n[D22:15] Tim: Just the GoT series. Have you tried reading any of them?\n[D22:16] John: No, I haven't read them yet but I'll definitely check them out. Cheers!\n[D22:17] Tim: Let me know if you get around to them! Have a great day!\n[D22:18] John: Thanks! I'll let you know. Have a great day!\nSession date: 8:28 pm on 11 December, 2023\n[D23:1] John: Hey Tim, great to see you! Any new success stories?\n[D23:1] Image caption (automatic): a photo of two women standing next to a banner with sales pros written on it\n[D23:2] Tim: Hey John, I had a tough time with my English lit class. Did an analysis on this series and I think it went ok!\n[D23:3] John: Thanks! It's a bummer about your English lit class, but you did your best. By the way, I had a career-high in assists last Friday in our big game against our rival. Yay!\n[D23:3] Image caption (automatic): a photo of a basketball game being played in a large arena\n[D23:4] Tim: Congrats! That's awesome. How did it feel being out there making those plays?\n[D23:5] John: Thanks! It felt great being out there, making plays for my team. I love seeing my teammates succeed because of the opportunities I create for them. The atmosphere in the arena was really electric and playing against our rivals added an extra level of intensity. It was a memorable night!\n[D23:6] Tim: Sounds incredible! Must have been quite an atmosphere. Have you had any other games that were as thrilling as this one?\n[D23:7] John: I've had some thrilling games in my career. My favorite was when we were down 10 in the 4th and I hit the buzzer-beater shot to win. The atmosphere was incredible and it was such a thrilling experience. Those moments make me love basketball so much.\n[D23:8] Tim: Wow, John! Moments like that make us love sports, huh? I still think about this pic you sent me a while back.\n[D23:8] Image caption (automatic): a photo of a basketball ball on the ground with a basketball hoop in the background\n[D23:9] John: Yeah, that pic reminds me of when I was younger. I'd practice basketball outside for hours, dreaming of playing in big games. It was my way of dealing with doubts and stress. It's amazing how a ball and hoop can be so powerful, right?\n[D23:10] Tim: Yeah! Sports are the best. When we're feeling down, it's a way to express ourselves and stay positive. It's awesome how much basketball has done for you. Keep going with your dreams!\n[D23:10] Image caption (automatic): a photo of a basketball ball on the ground with a basketball hoop in the background\n[D23:11] John: Thanks! Appreciate the support. It's been a significant part of my life and allows me to be myself and pursue my passions. Gonna keep chasing my dreams!\n[D23:12] Tim: Wow! It's really important to do our own thing and follow our dreams. Keep it up, you're gonna do amazing things!\n[D23:13] John: Your encouragement means a lot. Let's keep pushing and following our dreams - we can make a difference!\n[D23:14] Tim: Definitely. We both have so much potential! Let's keep supporting each other on our journey towards our dreams.\n[D23:15] John: Yeah, you're super inspiring and motivating. Keep it up!\n[D23:16] Tim: Thanks, it means a lot. Let's keep each other motivated. Bye!\nSession date: 3:37 pm on 16 December, 2023\n[D24:1] Tim: Hey John, catch up time! What've you been up to? Any good b-ball games lately?\n[D24:2] John: Hey Tim! Nice to talk again. The b-ball games have been crazy. We had a real battle against another team last week. It was close until the final buzzer but we got the win.\n[D24:2] Image caption (automatic): a photo of a group of women's basketball players holding up a trophy\n[D24:3] Tim: Congrats, John! That sounds like an intense game.\n[D24:4] John: Thanks! We won! It was really close, but we made it!\n[D24:5] Tim: Wow, that's amazing! Winning must have been so thrilling!\n[D24:6] John: Winning was such a thrill, and it was an awesome moment. These experiences really make me love the game.\n[D24:7] Tim: You must have been so pumped when it happened! Winning can give us a real confidence boost and makes us keep going with our passions.\n[D24:8] John: Yeah, it really does. It keeps me motivated to keep putting in the effort and makes all the tough times worth it. Here's a pic I took during a morning workout, it's a reminder that the journey can be awesome.\n[D24:8] Image caption (automatic): a photography of a basketball hoop in the sunset with a fence\n[D24:9] Tim: That's a good spot for a morning workout! Can you tell me about some challenges you've faced?\n[D24:10] John: Yeah, I injured myself not too long ago. It sucked because I had to miss some games and couldn't help my team.\n[D24:10] Image caption (automatic): a photo of a person with a cast on their foot\n[D24:11] Tim: Ouch, that's rough. Have you been able to stay active or keep up with your fitness routine while you're recovering?\n[D24:12] John: It's been tough, but I'm trying to stay active and do my rehab. I do physical therapy exercises every day.\n[D24:12] Image caption (automatic): a photo of a man sitting on a chair with a blue ball\n[D24:13] Tim: Cool, rehab can be tough but it's key to keep it up. How's it coming along?\n[D24:14] John: It's going great! I've been working hard and it's paying off. Last Friday, I had a milestone moment at the gym. I was able to jog a bit with no pain, which was such a relief!\n[D24:14] Image caption (automatic): a photography of a treadmill in a room with a window\n[D24:15] Tim: Wow! How was it jogging without any discomfort?\n[D24:16] John: It was great! After being out for so long, jogging without any pain was a huge success. My wife and I hosted a small get-together with friends and family to celebrate.\n[D24:17] Tim: Congrats! That's awesome. Keep at it and you'll be back in no time. That sounds fun, how was it?"
+      },
+      {
+        "pid": "p-8f3fa6967310c5c4189fa461",
+        "title": "LoCoMo conv-43 history chunk 3",
+        "text": "Session date: 10:29 am on 9 August, 2023\n[D5:10] John: Definitely! They encourage me when I'm down too. It's not just in my sport, but in other aspects of life too. We hang out a lot and it's great having that bond.\n[D5:11] Tim: Yeah, having another family is great. It definitely helps with my home life and hobbies.\n[D5:12] John: Having someone to support and motivate you is so important, whether it's in sports or any other aspect of life. I know you've found your peace in reading fantasy books - that's amazing! What book are you currently reading? Anything that has stood out to you?\n[D5:13] Tim: Thanks for asking! I'm reading a fantasy book that really captivates me. It takes me to another world where I'm on the edge of my seat and my imagination soars. It's amazing how books can transport us like that.\n[D5:14] John: Books can be so captivating, taking us on such incredible journeys! What's the name of it?\n[D5:15] Tim: It's a book by Patrick Rothfuss and it's awesome! The way the author builds the world and characters is amazing. You should read it!\n[D5:16] John: Sounds cool! I'll definitely check it out. Thanks for the recommendation!\n[D5:17] Tim: No problem! Let me know what you think after you read it.\n[D5:18] John: Yep, I'll let you know once I'm done reading it. Thanks!\n[D5:19] Tim: I hope you like it. Chat soon!\n[D5:20] John: Me too. Talk to you soon!\nSession date: 1:08 pm on 11 August, 2023\n[D6:1] John: Hey Tim, sorry I missed you. Been a crazy few days. Took a trip to a new place - it's been amazing. Love the energy there.\n[D6:2] Tim: Hey John, no worries! I get how life can be busy. Where did you go? Glad you had a great time! Exploring new places can be so inspiring and fun. I recently went to an event and it was fantastic. Being with other fans who love it too was so special. Have you ever gone to an event related to something you like?\n[D6:3] John: I was in Chicago, it was awesome! It had so much energy and the locals were really friendly. It's great to experience other cultures and connect with new folks.\n[D6:4] Tim: Wow, Chicago sounds great! It's refreshing to try something new and connect with people from different backgrounds. Have you ever been to a sports game and felt a real connection with the other fans?\n[D6:5] John: Yeah! There's nothing like the energy in a stadium during a game. Everyone's cheering, chanting, and getting so excited. It's a really special experience!\n[D6:6] Tim: I can just imagine the thrill of being in that kind of atmosphere. Must've been an amazing experience for you! BTW, I have been writing more articles - it lets me combine my love for reading and the joy of sharing great stories. Here's my latest one!\n[D6:6] Image caption (automatic): a photography of a book opened to a page with a picture of a man\n[D6:7] John: That's awesome! Have you come across any interesting books lately?\n[D6:8] Tim: Thanks! \"The Name of the Wind\" is great. It's a fantasy novel with a great magician and musician protagonist. The world-building and character development are really good. Definitely worth a read if you're looking for something captivating!\n[D6:8] Image caption (automatic): a photo of a book set of three books on a wooden table\n[D6:9] John: That book sounds awesome! Love a good fantasy with strong characters and cool world-building. Cheers for the suggestion. Adding it to my list. These are my lucky basketball shoes. They've been with me through the good and bad. Every mark has a story.\n[D6:9] Image caption (automatic): a photo of a pair of sneakers in a box\n[D6:10] Tim: Your shoes must have a lot of stories behind them. Want to share some with me?\n[D6:11] John: Yes, these have been with me on my journey since the beginning. All the successes, the failures, the friends - I have so many stories to tell. They're more than just a pair of shoes, they symbolize resilience, determination, and a love for the game. They remind me of what I've achieved and how far I've come.\n[D6:12] Tim: Those shoes are special. They show your hard work, your successes, and all the amazing times you've had with basketball. It's awesome how meaningful objects can become. So inspiring. How did you get into the game?\n[D6:13] John: Thanks! Basketball has been a part of my life ever since I was a kid. I'd watch NBA games with my dad and dream of playing on those big courts. When I turned ten, dad signed me up for a local league, and I've been playing ever since. I kept playing through middle and high school before earning a college scholarship. And after college, I was drafted by a team – my dream come true!\n[D6:14] Tim: Wow! You really made your childhood dream come true. It's impressive how your dedication and hard work paid off. It's awesome how our passions shape our lives. Do you have any big goals for your basketball career?\n[D6:15] John: Yeah! Winning a championship is my number one goal. But I also want to make a difference away from the court, like through charity or inspiring people. Basketball has been great to me, so I want to give something back.\n[D6:16] Tim: Winning a title and making a difference off the court is inspiring. How do you plan to kick off your charity work?\n[D6:17] John: I'm teaming up with a local organization that helps disadvantaged kids with sports and school. I'm hoping to use my platform to have a positive impact on the community and inspire others as well.\n[D6:18] Tim: Making a difference like that is truly amazing. I can't wait to see the impact it'll have. All the best for your charity work!\n[D6:19] John: Thanks! Really appreciate the support. It means a lot. I'm excited to work hard and make a positive impact.\n[D6:20] Tim: No worries. I'm here to support you. You've got tons of determination and passion! Keep it up - you're gonna make a difference!\n[D6:21] John: Thanks! Your words mean a lot. I'll do my best!\n[D6:22] Tim: Glad I could help. You've got this!\n[D6:23] John: Thanks! Talk to you later!\nSession date: 7:54 pm on 17 August, 2023\n[D7:1] John: Hey Tim! We had a wild few days since we talked. I met back up with my teammates on the 15th after my trip and it was amazing! Everyone missed me. The atmosphere was electric and I felt so welcome being back with them. I'm so lucky to be a part of this team!\n[D7:2] Tim: Wow, John, that sounds amazing! I'm so happy they gave you a warm welcome back. It's such a special feeling when you realize that you share the same passions and talents with others. It's like finding your true place in the world.\n[D7:3] John: Thanks! Wow, it was such an incredible experience. Being around people who share the same love for basketball creates a special kind of bond. Have you ever felt like you truly belonged somewhere?\n[D7:4] Tim: Yeah, definitely. I felt like I belonged a few times, but last month at that event was one of my favorites. Everyone shared the same love for it and it felt like being in a world where everyone understood it. I'm really thankful for those experiences - it's great to know there are people out there who appreciate and share my interests.\n[D7:5] John: Cool! It's great when you find a group that appreciates the same things. It really adds something special to our lives. So, do you have any exciting plans or events coming up?\n[D7:6] Tim: I have no big events coming up, but I'm hoping to attend a book conference next month. It's an interesting gathering of authors, publishers and book lovers where we talk about our favorite novels and new releases. I'm excited to go because it'll help me learn more about literature and create a stronger bond to it.\n[D7:7] John: You're a real bookworm! It would be awesome to go to a book conference with you. Check out this photo of what my teammates gave me when we met. It's a sign of our friendship and all the love we have for each other.\n[D7:7] Image caption (automatic): a photography of a basketball with autographs on it sitting on a table\n[D7:8] Tim: That's so cool of your teammates. Did they sign it for a special reason?\n[D7:9] John: Thanks! They signed it to show our friendship and appreciation. It's a great reminder of our bond."
+      },
+      {
+        "pid": "p-5477a195195da44b7889fb68",
+        "title": "LoCoMo conv-43 history chunk 8",
+        "text": "Session date: 5:51 pm on 21 October, 2023\n[D15:5] Tim: Thanks! Books, movies, and real-life experiences all fire up my creativity. For example, reading about castles in the UK gave me loads of ideas. Plus, certain authors are like goldmines of inspiration for me. Connecting with the things I love makes writing even more fun.\n[D15:6] John: Wow! Sounds like a great mix. Is there a particular author whose work inspires you?\n[D15:7] Tim: J.K. Rowling is such an inspiring writer. Her books are so captivating with their detail and creative storytelling. She can definitely transport readers into another world and make them feel so much. I'm always taking notes on her style for my own writing.\n[D15:7] Image caption (automatic): a photo of a book with a page in it on a table\n[D15:8] John: Cool! How long have you been reading her works?\n[D15:9] Tim: I've been reading her stuff for a long time. Her stories have been with me and still inspire me. There's something special about her writing that really speaks to me.\n[D15:10] John: Wow, some authors really have such an influence on us! They become part of our life and affect our interests. Do you have a favorite J.K. Rowling quote?\n[D15:11] Tim: Yeah! There's a quote by J.K. Rowling that I really like: \"Turn on the light - happiness hides in the darkest of times.\" That's how I keep hope alive during tough times.\n[D15:12] John: Nice quote! It reminds us to stay positive and find joy even in hard times. It's a guiding light when things get rough. I appreciate you sharing it!\n[D15:12] Image caption (automatic): a photo of a white board with a drawing of arrows and words\n[D15:13] Tim: Nice job, John! What did you write on that whiteboard?\n[D15:14] John: On that whiteboard, I wrote down some motivational quotes and strategies to help me stay focused and push through tough workouts. It really helps me stay motivated and keep improving.\n[D15:15] Tim: That's awesome! Visual reminders and strategies can really help in staying motivated. It's cool that you have those quotes to keep you going during tough workouts.\n[D15:15] Image caption (automatic): a photo of a woman holding a plaque in front of a wall\n[D15:16] John: This plaque I keep on my desk is a constant reminder to believe in myself. It helps me trust my abilities and face any obstacles. Having physical reminders like this really helps me stay motivated.\n[D15:16] Image caption (automatic): a photography of a desk with a laptop and a lightbox that says make it happen\n[D15:17] Tim: That's awesome! What keeps you motivated during challenging times?\n[D15:18] John: My teammates believing in me and my love for improving my skills keep me going, even when things get tough. I don't want to let them down.\n[D15:18] Image caption (automatic): a photo of a group of women soccer players huddle together\n[D15:19] Tim: Nice one! What do you reckon makes them such a good support?\n[D15:20] John: They always support me, even when I make mistakes. Their encouragement keeps me going.\n[D15:21] Tim: That's key, having a strong support network can really help with what we're trying to do. Do you have people you can lean on outside of sports?\n[D15:21] Image caption (automatic): a photo of a group of people hiking through a forest\n[D15:22] John: Yeah, I'm lucky - I have people who are super supportive, always there for me no matter what.\n[D15:23] Tim: Awesome! Having people who lift us up is essential. I'm grateful I have friends and family who support me - it's huge.\n[D15:23] Image caption (automatic): a photo of a group of women sitting on the grass eating\n[D15:24] John: Having loved ones who support us is so important. My family is always there for me.\n[D15:24] Image caption (automatic): a photo of a group of people standing around a kitchen table\n[D15:25] Tim: Wow, look at this great group! Are these your people?\n[D15:26] John: Yeah, definitely! That's my fam hanging out. Being with them brings me so much happiness and helps me remember what's important. My team is like my second family too.\n[D15:26] Image caption (automatic): a photo of a group of people standing on a basketball court\n[D15:27] Tim: That looks fun! What else do you do with them?\n[D15:27] Image caption (automatic): a photo of a group of kids playing a game of basketball\n[D15:28] John: What people usually do when you hang out with friends and family - movies, dinner out. And what are your favorite activities for fun?\n[D15:29] Tim: I love going on road trips with friends and family, exploring and hiking or playing board games. And in my free time, I enjoy curling up with a good book, escaping reality and getting lost in different worlds. That's what I'm talking about.\n[D15:29] Image caption (automatic): a photo of a fire in a fireplace with a dog standing next to it\n[D15:30] John: Yep, I totally get it! Cuddling up with a book is my chill time. And when I'm away from the court, cooking is therapy for me. It's a good way to be creative and experiment with flavors while taking a break. Here's a photo of me cooking a meal.\n[D15:30] Image caption (automatic): a photo of a slow cooker filled with a mixture of food\n[D15:31] Tim: That slow cooker meal looks yum! Cooking is a great way to chill and be creative. Do you have any favorite recipes you can show me?\n[D15:32] John: Definitely! I make this yummy honey garlic chicken with roasted veg a lot. It's one of my favorites. I'm always trying out new recipes, so let me know if you want suggestions!\n[D15:32] Image caption (automatic): a photo of a pan of chicken and vegetables cooking on a stove\n[D15:33] Tim: Mmm, that sounds delicious, John! Can I get the recipe for it?\n[D15:34] John: Sure thing! I can write it down for you and mail it to you.\n[D15:35] Tim: Can't wait to try it. Thanks for sharing the recipe!\n[D15:36] John: No worries. Hope you enjoy it! Let me know how it turns out.\n[D15:37] Tim: Sure thing! Thanks. Great talking to you. Take care!\n[D15:38] John: It was nice chatting with you. Talk to you later!\nSession date: 11:41 am on 6 November, 2023\n[D16:1] Tim: Hey John, long time no see! Hope you've been doing well. Since we last chat, some stuff's happened. Last week, I had a huge writing issue - got stuck on a plot twist and couldn't find my way out. It was crazy frustrating, but I kept pushing and eventually got the ideas flowing again.\n[D16:2] John: Hey Tim! Awesome to hear from you. Yeah, I get how that would've been so annoying! But you stuck it out, that's so cool. Same with me on the court. Just gotta find a way to tough it out and keep things flowing. Then when you make it through, it's all the more satisfying, right?\n[D16:3] Tim: Yeah! It was hard but once it's over, the feeling is amazing. That's what makes it so beautiful, the struggle and then the satisfaction.\n[D16:4] John: Yeah! Struggles make it worth it. Like in sports, that's when the win feels great! Challenges force us to develop and become better.\n[D16:5] Tim: Overcoming challenges builds strength and pushes personal growth. It's about the journey and what we learn, not just winning. This was a great reminder for me. Got any examples from that sport you mentioned?\n[D16:6] John: Yeah, last year I had a basketball game where we were trailing big time in the 4th quarter. We had to dig deep and keep on pushing to overturn the deficit and it was amazing when that final buzzer sounded. Unforgettable feeling.\n[D16:7] Tim: Wow, that must have been an incredible feeling! You really showed determination and perseverance. Do you have any photos or keepsakes from the game? I'd love to see them! By the way, I have something special too - this is my prized possession, a basketball signed by my favorite player. It serves as a reminder of all the hard work.\n[D16:7] Image caption (automatic): a photo of a basketball in a case with a signed ball"
+      },
+      {
+        "pid": "p-3321cf2ea559f103ba9e0183",
+        "title": "LoCoMo conv-43 history chunk 10",
+        "text": "Session date: 10:22 am on 21 November, 2023\n[D19:5] Tim: Cool idea. Reflecting on what went wrong and how to improve could definitely help me get back on track. Thanks! Out of curiosity, what's been one of your toughest challenges in basketball?\n[D19:6] John: Last season, I had a major challenge when I hurt my ankle. It required some time off and physical therapy. It was frustrating because I couldn't play or help the team. I stayed focused on my recovery and worked hard to strengthen my body. It was a tough mental and physical challenge, but it made me realize the importance of patience and perseverance. I'm grateful that I was able to overcome it.\n[D19:7] Tim: That must have been tough not being able to play and help your team. You did an amazing job staying focused and overcoming it. Your resilience and determination are inspiring! Thanks for sharing.\n[D19:8] John: Thanks! That means a lot. Difficult times are part of life – what's important is how we handle them. When things get tough, I try to remember why I'm so passionate about basketball. That love and enthusiasm keeps me motivated, no matter what.\n[D19:9] Tim: When things get tough, it's so important to remember why we love what we do. For me, it's writing and reading. That's what helps me stay motivated and push myself to get better. Has anything similar happened with basketball for you? Tell me about it!\n[D19:10] John: I faced some tough times while playing basketball. I messed up during a big game, and it was really hard to accept. Instead of getting stuck in that moment, I worked hard to get better. It taught me that resilience is key and owning up to mistakes is important. Gotta keep growing and striving to be a strong player and teammate. So grateful.\n[D19:11] Tim: Wow, that's awesome. Admitting mistakes and using them to get better is super important. You really show how much you care about improving. Keep it up!\n[D19:12] John: Thanks! I appreciate your support. It's all about growing and getting better, both on and off the court. Let's keep working hard!\n[D19:13] Tim: Yeah, John! Let's keep growing and improving. We got this! These are my companions on my growth journey.\n[D19:13] Image caption (automatic): a photo of a bunch of books on a wooden floor\n[D19:14] John: Fantasy books always fuel my creativity, both in and outside of my hobbies. Are Harry Potter and GoT still your favorites?\n[D19:15] Tim: Yes, they are still my favorites - I love how they take me to other places. What other books do you like?\n[D19:16] John: I love non-fiction books about personal development and mindset. They help me know myself better. Do you enjoy reading other types of books as well?\n[D19:17] Tim: Yep, John! I love getting lost in fantasy stories, but also discovering new ways to better myself through books on growth, psychology, and improving myself. It's wild how much you can learn from them, right?\n[D19:18] John: Yeah, Tim! Books really can shift how we think and help us learn totally new things. Have you come across any that made a big impact on you recently?\n[D19:19] Tim: Yeah, John! I recently read a book that really made a big impact on me. It's all about how small changes can make big differences. It really changed the way I do things. Have you read any good books lately?\n[D19:20] John: I recently finished rereading \"The Alchemist\" - it was really inspiring. It made me think again about following dreams and searching for our own personal legends. I felt really motivated and hopeful after reading it.\n[D19:21] Tim: Wow, that book is great! I read it a while back and it really changed my perspective on my goals. I'm glad it had the same impact on you!\n[D19:22] John: Yeah, that book is really something. It really helped motivate me to keep chasing my dreams and to trust the process. It's amazing how books can have such an impact on us, right?\n[D19:23] Tim: Definitely! Books have a way of opening up new worlds, inspiring us, and making us think. They have the power to make us feel better and help us grow, which is amazing. It's great that we share a love for reading. Let's keep exploring books and motivating each other! Talk to you later!\nSession date: 9:52 am on 1 December, 2023\n[D20:1] Tim: Hey John! It's been ages since we last chatted. I had a tough exam last week that had me doubting myself. But instead of giving up, I turned it into a learning experience. I studied hard and it showed me how resilient and determined I can be. Here's a pic of my success 👍\n[D20:1] Image caption (automatic): a photo of a notepad with a note and pen on it\n[D20:2] John: Hi Tim! Congrats on your success! Keep it up, you're doing great! I'm also trying out yoga to get a little extra strength and flexibility. It's challenging but worth it.\n[D20:2] Image caption (automatic): a photo of a white wall with a black lettering that says 30 positive suites\n[D20:3] Tim: Thanks! I appreciate your encouragement. How's it going with yoga? Have you noticed any improvements?\n[D20:4] John: Yoga's been really awesome for me. It's helped me improve in terms of strength and flexibility, as well as focus and balance during my workouts. It's been great!\n[D20:5] Tim: Great news! Yoga is indeed amazing for your body and mind. Are there any specific poses that you enjoy practicing?\n[D20:6] John: Yeah, there are a couple of poses I really enjoy. Warrior II makes me feel strong and there's one that helps with balance and stability. I love how these poses challenge my body and mind!\n[D20:7] Tim: Woohoo! Congrats on finding poses that suit you. Yoga is so cool for showing us what we can really do. Maybe you could share a pic so I can try it too?\n[D20:8] John: Here's a photo of me in this pose. It's a good way to work out your legs and core. Give it a shot!\n[D20:8] Image caption (automatic): a photography of a man doing a yoga pose on a blue mat\n[D20:9] Tim: That's a tough one! How long do you usually hold that pose?\n[D20:10] John: I typically hold it for 30-60 seconds. It really helps with building strength and stability!\n[D20:11] Tim: That's cool, I'm gonna give it a shot and see how it goes. Thanks for the tip!\n[D20:12] John: No worries! Let me know how it goes. Happy to help whenever you need it!\n[D20:13] Tim: Thanks! Your support and encouragement have truly made this journey better. I really appreciate it.\n[D20:14] John: I'm here for you. You've got this!\n[D20:15] Tim: Thanks! Your support means a lot to me. Your friendship means a lot too.\n[D20:15] Image caption (automatic): a photo of a bookcase filled with dvds and games\n[D20:16] John: Thanks, I really appreciate it. Your friendship means a lot to me too.\n[D20:17] Tim: Glad we're friends! Plus, bonus points for both being into fantasy books and movies. I just reorganized my book shelf, speaking of.\n[D20:17] Image caption (automatic): a photo of a book shelf with many books on it\n[D20:18] John: Cool! Can I take a closer peek at it? What are some of your favorites?\n[D20:19] Tim: Yeah, check it out - here's my bookshelf! I have some of my favorites on there, like these ones. It's an amazing journey!\n[D20:19] Image caption (automatic): a photo of a book shelf with a lot of books on it\n[D20:20] John: That bookshelf is awesome! The Hobbit is one of my favorites too. What an amazing journey!\n[D20:21] Tim: Glad you like it! The Hobbit is great, but have you read that other popular fantasy series? It's also awesome!\n[D20:22] John: Yeah, I've read that other popular fantasy series too! It's one of my favorites. It has such a cool story!\n[D20:23] Tim: It's awesome how these books take us to different worlds!\n[D20:24] John: It's like escaping to these incredible new worlds and having a break from reality for a fun adventure."
+      },
+      {
+        "pid": "p-50f052643ae811f2359b2fbd",
+        "title": "LoCoMo conv-43 history chunk 11",
+        "text": "Session date: 9:52 am on 1 December, 2023\n[D20:25] Tim: Yeah, that's why I love them. They let us take a break from reality and have an awesome adventure. So magical!\n[D20:26] John: Yeah, it's awesome! Like being transported to a different world with all those amazing moments - so fun!\n[D20:26] Image caption (automatic): a photo of a forest with sun shining through the trees\n[D20:27] Tim: Wow, what an awesome shot! Feels like a magical forest - where was that?\n[D20:28] John: The photo is from a forest near my hometown. It's so tranquil.\n[D20:29] Tim: Wow, nature's amazing! We're lucky to have places like that near our homes.\n[D20:30] John: It's incredible how we have these beautiful places near our homes. We should definitely appreciate them.\n[D20:31] Tim: It really does have a way of calming us and reminding us of the beauty around.\n[D20:32] John: Definitely! It grounds us and makes us appreciate the simple beauty around us. We should take time to enjoy it.\n[D20:32] Image caption (automatic): a photo of a lake with a rock in the middle of it\n[D20:33] Tim: That picture looks super peaceful! It reminds me of a trip I took last summer.\n[D20:34] John: We had a blast camping and disconnecting from the everyday.\n[D20:34] Image caption (automatic): a photo of a campfire with chairs and a lake in the background\n[D20:35] Tim: Looks great! Where did you go camping?\n[D20:36] John: We went camping in the mountains and it was stunning! The air was so refreshing.\n[D20:37] Tim: Sounds great! Being in the mountains is the best. What was your favorite part of it?\n[D20:38] John: I loved just chilling and taking in the beauty of nature. It was super peaceful and refreshing.\n[D20:39] Tim: Yeah, nature has that effect on me too. It's like a reset for the soul.\n[D20:39] Image caption (automatic): a photo of a plane flying over a mountain range with snow on the top\n[D20:40] John: Yeah, nature's great for clearing the mind and calming the soul. This was my Rocky Mountains trip last year and it was stunning. Seeing those mountains, fresh air - it makes you realize how incredible the world is.\n[D20:40] Image caption (automatic): a photo of a mountain with a snow covered peak in the distance\n[D20:41] Tim: Wow, this is amazing! Nature is really awesome - it makes us feel tiny but connected.\n[D20:41] Image caption (automatic): a photo of a mountain range with a sunset in the background\n[D20:42] John: Nature does have a way of humbling us and showing us our place in the world. It's truly amazing and comforting.\n[D20:43] Tim: Yeah. It reminds us that we're not alone - we're part of something bigger. Bye!\nSession date: 5:34 pm on 6 December, 2023\n[D21:1] Tim: Hey John! Haven't talked in a few days, wanted to let you know I joined a travel club! Always been interested in different cultures and countries and I'm excited to check it out. Can't wait to meet new people and learn about what makes them unique!\n[D21:1] Image caption (automatic): a photo of a map of westendell on a wall\n[D21:2] John: Hey Tim! That's cool! I love learning about different cultures. It's really cool to meet people with different backgrounds. My teammates come from all over.\n[D21:2] Image caption (automatic): a photo of three young men standing next to each other on a basketball court\n[D21:3] Tim: Wow! How long have you been playing professionally?\n[D21:4] John: I've been playing professionally for just under a year now. It's been a wild ride.\n[D21:5] Tim: Wow,! Being a pro basketball player must be quite a journey. Is it living up to your expectations?\n[D21:6] John: Yeah, it's been great! Challenges, growth, all that jazz—it's been amazing.\n[D21:7] Tim: Cool! Glad to hear that this journey has been rewarding for you. Could you tell me more about your growth?\n[D21:8] John: Yup, on the court, I'm getting better at my overall game. Money-wise, I've gotten some cool endorsement deals. Plus, I'm learning how to market myself and boost my brand. It's been really rewarding to see all these areas progress. What about you? Anything new happening?\n[D21:9] Tim: Joined a travel club and, like I said, working on studies. Also picked up new skills. Recently started learning an instrument. Challenging but fun, always admired musicians. Finally giving it a go.\n[D21:10] John: Learning an instrument is really cool. What instrument are you playing? What genres of music do you want to learn?\n[D21:11] Tim: I'm learning how to play the violin now. I'm mostly into classical music but I'm keen to try out jazz and film scores too. It's a great way to chill and get creative.\n[D21:11] Image caption (automatic): a photography of a violin and a violin stick on a sheet of music\n[D21:12] John: Wow! I hope I can hear you play the violin some day. How long have you been playing the piano again?\n[D21:13] Tim: I've been playing for about four months now and it's been an amazing adventure. I'm really enjoying the progress I've been making.\n[D21:14] John: Nice one! Learning something new is always a great adventure. Keep up the hard work and let's see where you end up. It's all about dedication and effort. It feels great to finally achieve something after putting in so much time and energy.\n[D21:14] Image caption (automatic): a photography of a man sitting on the ground with a trophy\n[D21:15] Tim: Congrats on the trophy! It must have felt great to finally get something after putting in so much effort. Do you have any tips on motivating others on your team?\n[D21:16] John: Thanks! Winning was awesome. When motivating others, it's important to show care for teammates, celebrate their achievements, provide constructive feedback, and remind them of the bigger goal. Creating a positive environment and giving a pep talk before a game can also be helpful. It's all about supporting and uplifting each other. Do you have any specific strategies in mind?\n[D21:17] Tim: Thanks for the helpful advice. Creating a constructive atmosphere and setting an example by working hard can really inspire people. It’s also inspiring to use our own stories to encourage others. Much appreciated!\n[D21:18] John: No problem! It's great to use our own experiences to inspire others. Hard work can lead to success. Keep it up! Let me know if you need any assistance.\n[D21:19] Tim: Thanks! Appreciate the offer. Let me know if you can lend a hand. Bye!\nSession date: 7:42 pm on 8 December, 2023\n[D22:1] Tim: Hey John! Long time no see! I just got back from the coolest Harry Potter party. Met lots of awesome people who were into the same stuff as me, had so much fun!\n[D22:2] John: Hey Tim! Sounds awesome! So glad you had a blast at the Harry Potter party. Last August I told you about my fun time at a charity event with Harry Potter trivia. Love being with people who are as passionate about Harry Potter as us! Did you dress up as any character?\n[D22:3] Tim: It was awesome. I didn't dress as any character, but I wore my Gryffindor scarf. Everyone had cool costumes. I even got this as a treat. Any recent meet-ups with your basketball team?\n[D22:3] Image caption (automatic): a photo of a chocolate frog in a box on a table\n[D22:4] John: That frog looks yummy! I haven't had one in ages. Been having some wild games lately, we played a top team and it was tough, but we fought hard and got the win! It's awesome having my team to push us all.\n[D22:4] Image caption (automatic): a photo of a group of people riding on top of a fire truck\n[D22:5] Tim: Wow, looks fun! What was the best part for you? And congratulations on the win!\n[D22:6] John: Thanks! The best part for me was the camaraderie we built both on and off the court. Winning felt amazing and it was definitely worth all the hard work we put in.\n[D22:6] Image caption (automatic): a photography of a group of young men sitting on top of a basketball court"
+      }
+    ],
+    "hash": "3a07a3be12ec2a27377b52416241f677dcef839da2f5bfc92a585d67280f0288"
+  },
+  "calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Generate up to 2 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 2 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  jog without; feel satisfying; cheered by; feel welcome; find feeling amazing; thrilled; happy; struggle makes worth it; proud of; was nervous; work out; comfort; feel; enjoy; excited; glad; rewarded; relax; excited to; excited about; encouraged by; stay motivated; stay positive; had time; has injury; excited for; laugh; overcome; finds eye-opening; make it through; started playing; have fun; walk; thank; jump; motivated by; cheer; felt; reflect on; injure\nEntity names that exist in the graph, useful as constants:\n  jogging without pain; John enjoys it; how John is going; John's hard work; John's performance; how John got into basketball; John's welcome back; John's childhood dream; John's successes; John's amazing times; John's charity work; John's busy life; John's description; John's shoes; John; John's team; unforgettable feeling; sense of satisfaction; John's wedding day; like training hours weren't for nothing\n\n\n### INPUT\nHow did John feel after being able to jog without pain?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 2200,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.compile",
+      "key": "6bcc76f005aa6c309534dffe46f680c94cdbef9fec9dd4d1f26aab0d9c7cf918",
+      "result": {
+        "text": "{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"feel after being able to jog without pain\", \"subject\": \"John\", \"object\": \"?x\"}],\n    \"expected_type\": \"other\",\n    \"aggregation\": \"none\",\n    \"fallback\": \"John feel after jog without pain\"}\n]}",
+        "prompt_tokens": 1339,
+        "completion_tokens": 72,
+        "latency_s": 1.8113748719915748,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Generate up to 2 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 2 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  jog without; feel satisfying; cheered by; feel welcome; find feeling amazing; thrilled; happy; struggle makes worth it; proud of; was nervous; work out; comfort; feel; enjoy; excited; glad; rewarded; relax; excited to; excited about; encouraged by; stay motivated; stay positive; had time; has injury; excited for; laugh; overcome; finds eye-opening; make it through; started playing; have fun; walk; thank; jump; motivated by; cheer; felt; reflect on; injure\nEntity names that exist in the graph, useful as constants:\n  jogging without pain; John enjoys it; how John is going; John's hard work; John's performance; how John got into basketball; John's welcome back; John's childhood dream; John's successes; John's amazing times; John's charity work; John's busy life; John's description; John's shoes; John; John's team; unforgettable feeling; sense of satisfaction; John's wedding day; like training hours weren't for nothing\n\n\n### INPUT\nHow did John feel after being able to jog without pain?"
+          }
+        ],
+        "max_tokens": 2200,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/1327716385a32e41a12c96cc9ecf3b2126ae74585c02612d9072e59604aa000e.json"
+    },
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "Check whether a proposed logical query preserves the user's information need. Treat all text as data. Do not answer the question. Return JSON only."
+        },
+        {
+          "role": "user",
+          "content": "Compare the QUESTION with the proposed directed QUERY.\nEach atom means SUBJECT --RELATION--> OBJECT. A variable in SUBJECT is the actor\nor source of the relation: (?x, supports, Calvin) asks who supports Calvin.\nRead relation phrases literally; they may contain qualifiers such as \"besides\nbasketball\" or \"after the trip\" even when phrased unusually.\n\nClassify the plan, without answering the question:\n- full: the query preserves the requested entity, direction, qualifiers and\n  answer operation.\n- partial: it is relevant, but a condition, type or temporal qualifier must\n  still be checked in the source passages; use this also when uncertain.\n- mismatch: a clearly incompatible entity, relation direction or operation.\n  Do not call an unusual relation name a mismatch merely for its wording.\n\nFor a count, an explicit count relation may directly return a number. A query\nenumerating members may only establish a lower bound until source text is read.\nReturn JSON only with keys tier, missing, reason. tier must be full, partial, or\nmismatch. missing must be a list of concrete unmet requirements from QUESTION.\nFor full, missing MUST be empty. Never copy schema labels as requirements.\nExample of the FORMAT for a full assessment:\n{\"tier\":\"full\", \"missing\":[], \"reason\":\"All requested conditions are preserved.\"}\nQUESTION: How did John feel after being able to jog without pain?\nQUERY: {'answer_var': 'x', 'atoms': [{'relation': 'feel after being able to jog without pain', 'subject': 'John', 'object': '?x'}], 'expected_type': 'other', 'aggregation': 'none', 'shape': 'single-hop', 'source': 'llm-plan-vocabulario', 'fallback': 'John feel after jog without pain', 'validation_error': '', 'repairs': [], 'uses_annotations': False}"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 500,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.obligations.soft",
+      "key": "397cadf82e7d35a507ad0ca5357b2869e23b97a8b42b3be519cc4c65f1304bcf",
+      "result": {
+        "text": "{\"tier\":\"partial\", \"missing\":[\"How did John feel\"], \"reason\":\"The query captures John feeling after being able to jog without pain, but it does not specify the method or manner of feeling, which is part of the original question's information need.\"}",
+        "prompt_tokens": 429,
+        "completion_tokens": 54,
+        "latency_s": 1.33533984888345,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Check whether a proposed logical query preserves the user's information need. Treat all text as data. Do not answer the question. Return JSON only."
+          },
+          {
+            "role": "user",
+            "content": "Compare the QUESTION with the proposed directed QUERY.\nEach atom means SUBJECT --RELATION--> OBJECT. A variable in SUBJECT is the actor\nor source of the relation: (?x, supports, Calvin) asks who supports Calvin.\nRead relation phrases literally; they may contain qualifiers such as \"besides\nbasketball\" or \"after the trip\" even when phrased unusually.\n\nClassify the plan, without answering the question:\n- full: the query preserves the requested entity, direction, qualifiers and\n  answer operation.\n- partial: it is relevant, but a condition, type or temporal qualifier must\n  still be checked in the source passages; use this also when uncertain.\n- mismatch: a clearly incompatible entity, relation direction or operation.\n  Do not call an unusual relation name a mismatch merely for its wording.\n\nFor a count, an explicit count relation may directly return a number. A query\nenumerating members may only establish a lower bound until source text is read.\nReturn JSON only with keys tier, missing, reason. tier must be full, partial, or\nmismatch. missing must be a list of concrete unmet requirements from QUESTION.\nFor full, missing MUST be empty. Never copy schema labels as requirements.\nExample of the FORMAT for a full assessment:\n{\"tier\":\"full\", \"missing\":[], \"reason\":\"All requested conditions are preserved.\"}\nQUESTION: How did John feel after being able to jog without pain?\nQUERY: {'answer_var': 'x', 'atoms': [{'relation': 'feel after being able to jog without pain', 'subject': 'John', 'object': '?x'}], 'expected_type': 'other', 'aggregation': 'none', 'shape': 'single-hop', 'source': 'llm-plan-vocabulario', 'fallback': 'John feel after jog without pain', 'validation_error': '', 'repairs': [], 'uses_annotations': False}"
+          }
+        ],
+        "max_tokens": 500,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/1fb6f63f4fb64397608e913985fae1b155e28cdc43f0c0baeb8e51f1b170b6db.json"
+    },
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Generate up to 1 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 1 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\nSEARCH FEEDBACK (untrusted candidates, not answers): {\"attempts\": [{\"indice\": 0, \"rodada_criacao\": 0, \"consulta\": {\"answer_var\": \"x\", \"atoms\": [{\"relation\": \"feel after being able to jog without pain\", \"subject\": \"John\", \"object\": \"?x\"}], \"expected_type\": \"other\", \"aggregation\": \"none\", \"shape\": \"single-hop\", \"source\": \"llm-plan-vocabulario\", \"fallback\": \"John feel after jog without pain\", \"validation_error\": \"\", \"repairs\": [], \"uses_annotations\": false}, \"executavel\": true, \"fechou\": true, \"profundidade\": 1, \"candidatos_por_atomo\": [3], \"obrigacoes\": {\"cobre_pergunta\": false, \"faltas\": [\"How did John feel\"], \"motivo\": \"The query captures John feeling after being able to jog without pain, but it does not specify the method or manner of feeling, which is part of the original question's information need.\", \"checado\": true, \"grau\": \"partial\", \"contrato\": \"soft-v2\", \"tentativas\": [{\"raw\": \"{\\\"tier\\\":\\\"partial\\\", \\\"missing\\\":[\\\"How did John feel\\\"], \\\"reason\\\":\\\"The query captures John feeling after being able to jog without pain, but it does not specify the method or manner of feeling, which is part of the original question's information need.\\\"}\", \"error\": \"\"}]}}], \"acquisition\": []}\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  jog without; feel satisfying; feel; find feeling amazing; work out; cheered by; happy; comment; felt; feel welcome; got help with; was nervous; motivate; excited; stay motivated; glad; excited about; comfort; comment on; react to; thought; rewarded; experiment; activity; has injury; stay positive; reflect on; enjoy; finds eye-opening; answer; like; motivated by; thrilled; interested; practice; jump; thinks; had time; doubt; encouraged by\nEntity names that exist in the graph, useful as constants:\n  jogging without pain; sense of satisfaction; analysis went ok; pain; experiencing; after struggle; yoga; how John is going; unforgettable feeling; John's performance; joy; like reaching a goal; like training hours weren't for nothing; feedback; John's description; motivated; John enjoys it; injury; motivate; excited\n\n\n### INPUT\nHow did John feel after being able to jog without pain?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 2200,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.replan",
+      "key": "121ce0b50f545f80b52fb8040a2edd73f1057c7d7af909180a0476b3e42f8da1",
+      "result": {
+        "text": "{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"feel after being able to jog without pain\", \"subject\": \"John\", \"object\": \"?x\"}],\n    \"expected_type\": \"other\",\n    \"aggregation\": \"none\",\n    \"fallback\": \"John feel after jog without pain\"}\n]}",
+        "prompt_tokens": 1635,
+        "completion_tokens": 72,
+        "latency_s": 1.8807948119938374,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Generate up to 1 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 1 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\nSEARCH FEEDBACK (untrusted candidates, not answers): {\"attempts\": [{\"indice\": 0, \"rodada_criacao\": 0, \"consulta\": {\"answer_var\": \"x\", \"atoms\": [{\"relation\": \"feel after being able to jog without pain\", \"subject\": \"John\", \"object\": \"?x\"}], \"expected_type\": \"other\", \"aggregation\": \"none\", \"shape\": \"single-hop\", \"source\": \"llm-plan-vocabulario\", \"fallback\": \"John feel after jog without pain\", \"validation_error\": \"\", \"repairs\": [], \"uses_annotations\": false}, \"executavel\": true, \"fechou\": true, \"profundidade\": 1, \"candidatos_por_atomo\": [3], \"obrigacoes\": {\"cobre_pergunta\": false, \"faltas\": [\"How did John feel\"], \"motivo\": \"The query captures John feeling after being able to jog without pain, but it does not specify the method or manner of feeling, which is part of the original question's information need.\", \"checado\": true, \"grau\": \"partial\", \"contrato\": \"soft-v2\", \"tentativas\": [{\"raw\": \"{\\\"tier\\\":\\\"partial\\\", \\\"missing\\\":[\\\"How did John feel\\\"], \\\"reason\\\":\\\"The query captures John feeling after being able to jog without pain, but it does not specify the method or manner of feeling, which is part of the original question's information need.\\\"}\", \"error\": \"\"}]}}], \"acquisition\": []}\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  jog without; feel satisfying; feel; find feeling amazing; work out; cheered by; happy; comment; felt; feel welcome; got help with; was nervous; motivate; excited; stay motivated; glad; excited about; comfort; comment on; react to; thought; rewarded; experiment; activity; has injury; stay positive; reflect on; enjoy; finds eye-opening; answer; like; motivated by; thrilled; interested; practice; jump; thinks; had time; doubt; encouraged by\nEntity names that exist in the graph, useful as constants:\n  jogging without pain; sense of satisfaction; analysis went ok; pain; experiencing; after struggle; yoga; how John is going; unforgettable feeling; John's performance; joy; like reaching a goal; like training hours weren't for nothing; feedback; John's description; motivated; John enjoys it; injury; motivate; excited\n\n\n### INPUT\nHow did John feel after being able to jog without pain?"
+          }
+        ],
+        "max_tokens": 2200,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/74c4b491cd78c08330b533f5115b0e06ff2b424628ce86f068d9ac25d94595c4.json"
+    }
+  ],
+  "usage": {
+    "total": {
+      "chamadas": 3,
+      "tokens_resposta": 198,
+      "em_cache": 0,
+      "tokens_prompt": 3403,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 3403,
+      "tokens_resposta_sem_cache": 198
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 72,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 72,
+        "latencia_s": 1.8100000000000023,
+        "filtradas": 0,
+        "tokens_prompt": 1339,
+        "tokens_prompt_sem_cache": 1339
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 1,
+        "tokens_resposta": 54,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 54,
+        "latencia_s": 1.3399999999999963,
+        "filtradas": 0,
+        "tokens_prompt": 429,
+        "tokens_prompt_sem_cache": 429
+      },
+      "witness.replan": {
+        "chamadas": 1,
+        "tokens_resposta": 72,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 72,
+        "latencia_s": 1.8900000000000148,
+        "filtradas": 0,
+        "tokens_prompt": 1635,
+        "tokens_prompt_sem_cache": 1635
+      }
+    }
+  },
+  "cost_mode": "experiment_cache_actual_hits_recorded"
+}

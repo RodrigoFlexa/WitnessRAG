@@ -1,0 +1,495 @@
+{
+  "identity": {
+    "qid": "locomo:conv-30:qa3",
+    "question": "What do Jon and Gina both have in common?",
+    "memory": "e9732b50c25472651475ef6f2083fc5703cc6dabad59514e4665eabaceea51a9",
+    "config": {
+      "dataset": "locomo",
+      "n_questions": 55,
+      "top_k": 5,
+      "seed": 42,
+      "subset_corpus": false,
+      "train_questions_path": "",
+      "interleave_methods": true,
+      "corpus_scope": "locomo_full_selected_conversation",
+      "methods": [
+        "witnessrag"
+      ],
+      "ie": {
+        "max_tokens": 1600,
+        "temperature": 0.0,
+        "two_step": true,
+        "max_triples_per_passage": 40,
+        "window_tokens": 512,
+        "window_overlap_tokens": 64,
+        "window_tokenizer": "Qwen/Qwen2.5-14B-Instruct",
+        "window_tokenizer_revision": "",
+        "dialogue_mode": true
+      },
+      "graph": {
+        "merge_similar_entities": false,
+        "merge_identity_variants": true,
+        "merge_relation_inflections": true,
+        "identity_merge_threshold": 0.8,
+        "synonym_threshold": 0.8,
+        "synonym_max_neighbors": 20,
+        "ppr_damping": 0.5,
+        "ppr_tol": 1e-08,
+        "ppr_max_iter": 100
+      },
+      "hippo2": {
+        "n_triples_retrieved": 20,
+        "n_triples_kept": 5,
+        "n_passages_seed": 10,
+        "passage_node_weight": 0.05,
+        "use_recognition_memory": true
+      },
+      "graphrag": {
+        "community_levels": 2,
+        "min_community_size": 3,
+        "build_community_reports": true,
+        "max_communities_reported": 400,
+        "text_units_per_entity": 8
+      },
+      "witness": {
+        "max_atoms": 4,
+        "compile_temperature": 0.0,
+        "vocabulary_aware_compile": true,
+        "vocabulary_relations": 40,
+        "vocabulary_entities": 20,
+        "query_plans": true,
+        "max_query_plans": 5,
+        "active_frontier": true,
+        "active_obligations": true,
+        "active_context": true,
+        "active_operators": false,
+        "soft_obligations": false,
+        "proof_reader": true,
+        "active_frontier_queries": 5,
+        "active_frontier_passages": 30,
+        "grounding_mode": "semantic",
+        "relation_match_threshold": 0.65,
+        "candidates_per_atom": 60,
+        "entity_match_threshold": 0.55,
+        "entity_top_k": 5,
+        "relation_weight": 0.45,
+        "argument_weight": 0.35,
+        "verbalization_weight": 0.2,
+        "max_witnesses": 20,
+        "beam_width": 400,
+        "passage_penalty": 0.15,
+        "binding_aware_grounding": true,
+        "verify_witnesses": false,
+        "verification_max_witnesses": 5,
+        "answer_set": true,
+        "answer_set_max_items": 10,
+        "hybrid_fallback": true,
+        "hybrid_rrf_k": 60,
+        "candidate_pool_k": 20,
+        "fact_confidence": 0.9,
+        "delta_interpretation": 0.1,
+        "delta_verbalization": 0.05,
+        "acquisition_rounds": 2,
+        "acquisition_passages": 3,
+        "acquisition_lambda": 0.05,
+        "enable_acquisition": true,
+        "dense_fallback": true,
+        "budget_fraction": 1.0,
+        "ilp_time_limit_s": 120,
+        "ilp_max_facts": 20000
+      },
+      "qa": {
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "top_k": 5,
+        "answer_set": true,
+        "operator_reader": false,
+        "proof_reader": true
+      }
+    },
+    "condition": "evidence"
+  },
+  "retrieval": {
+    "pids": [
+      "p-089df7675e4044e23e61982b",
+      "p-36ec2024ccc6acfb1cc501bd",
+      "p-f278ad77e06467906090ed5d",
+      "p-52b712bac6c12bc8f4d2b780",
+      "p-1247669c9a2850382f6052f1"
+    ],
+    "scores": [
+      1.0,
+      0.5,
+      0.3333333333333333,
+      0.25,
+      0.2
+    ],
+    "diagnostics": {
+      "pesquisa_provas": {
+        "fronteira": [
+          "p-089df7675e4044e23e61982b",
+          "p-52b712bac6c12bc8f4d2b780",
+          "p-36ec2024ccc6acfb1cc501bd",
+          "p-f278ad77e06467906090ed5d",
+          "p-1247669c9a2850382f6052f1",
+          "p-0f65ae42e045c909a7cba4d7"
+        ],
+        "sondas": [
+          "What do Jon and Gina both have in common?",
+          "Jon have in common",
+          "Gina have in common",
+          "Jon Gina common"
+        ],
+        "acoes": [],
+        "buscas_dirigidas": 0,
+        "replanejamentos": 1,
+        "rejeicoes": 0
+      },
+      "planos_compilados": [
+        {
+          "indice": 0,
+          "rodada_criacao": 0,
+          "consulta": {
+            "answer_var": "x",
+            "atoms": [
+              {
+                "relation": "have in common",
+                "subject": "Jon",
+                "object": "?x"
+              },
+              {
+                "relation": "have in common",
+                "subject": "Gina",
+                "object": "?x"
+              }
+            ],
+            "expected_type": "other",
+            "aggregation": "set",
+            "shape": "intersection",
+            "source": "llm-plan-vocabulario",
+            "fallback": "Jon Gina common",
+            "validation_error": "",
+            "repairs": [],
+            "uses_annotations": false
+          },
+          "executavel": true,
+          "fechou": true,
+          "profundidade": 2,
+          "candidatos_por_atomo": [
+            34,
+            40
+          ],
+          "obrigacoes": {
+            "cobre_pergunta": false,
+            "faltas": [
+              "both have in common"
+            ],
+            "motivo": "The query should express an intersection of what Jon and Gina have in common, but it incorrectly models the relationship using separate atoms instead of ensuring the intersection is computed correctly.",
+            "checado": true
+          }
+        }
+      ],
+      "planejamento": {
+        "orcamento_planos": 5,
+        "planos_distintos": 1,
+        "chamadas": 2,
+        "replanejamentos": 1
+      },
+      "plano_escolhido": null,
+      "n_testemunhas": 0,
+      "testemunha_no_contexto": false,
+      "classe_prova": "nenhuma",
+      "fallback": "denso (pesquisa sem prova suficiente)",
+      "contexto_alterado_pelo_witness": true,
+      "risco": 1.0,
+      "risco_bruto": 99.0,
+      "risco_calibrado": false,
+      "resposta_estrutural": "",
+      "candidatos_explorados": 8,
+      "documentos_entregues": 5,
+      "orcamento_leitor": 5
+    },
+    "filtered": false,
+    "latency_s": 3.6146091716364026,
+    "passages": [
+      {
+        "pid": "p-089df7675e4044e23e61982b",
+        "title": "LoCoMo conv-30 history chunk 3",
+        "text": "Session date: 9:32 am on 8 February, 2023\n[D5:18] Jon: Thanks, Gina! Your support means so much. I'm gonna keep chasing after those dreams. Dance is my passion, and I'm gonna keep working hard to make it a success!\n[D5:18] Image caption (automatic): a photo of a trophy with a glass globe on top\n[D5:19] Gina: This is the right attitude! How have you been juggling dance and business goals?\n[D5:20] Jon: Thanks! Juggling both my passions can be tricky, but so rewarding. Dancing and running my biz need hard work, plus they give me energy for each other. My dance moves get me pumped to tackle my business goals, and successes there boost my drive to keep dreaming on the dance floor. It's a balancing act, but fun.\n[D5:21] Gina: Wow, Jon! You're amazing at juggling both your passions. Finding that happy medium is key - keep going and don't stop dreaming, buddy!\n[D5:22] Jon: Thanks, Gina! Your pep-talk really meant a lot. I'm not gonna give up on my dreams - my dance studio and biz ventures need the hard work I'm putting in. Love having you in my corner, thanks for always being there!\n[D5:23] Gina: Yeah Jon, I'm here for you! Chasing our dreams and helping each other out. Let's keep movin' forward!\nSession date: 2:35 pm on 16 March, 2023\n[D6:1] Jon: Hi Gina! Been hectic for me lately. Started hitting the gym last week to stay on track with the venture. Gotta figure out how to balance it all, but it's going well. How about you?\n[D6:2] Gina: Hey Jon! Great to hear from you. Been having some tough times lately.\n[D6:3] Jon: Oof, sorry to hear that. What's up? Is there anything I can do to help?\n[D6:4] Gina: Thanks, Jon! Appreciate your offer. Since I lost my job at Door Dash, things have been tough. But here's some good news - I've got something to share!\n[D6:5] Jon: Wow, that's awesome! Can't wait to hear it!\n[D6:6] Gina: Yay! My online clothes store is open! I've been dreaming of this for a while now - can't wait to see what happens!\n[D6:6] Image caption (automatic): a photo of a computer screen showing a book and a pair of shoes\n[D6:7] Jon: Congrats! That's awesome! What gave you the idea to start the online store?\n[D6:8] Gina: Thanks! I'm passionate about fashion trends and finding unique pieces. Plus, I wanted to blend my love for dance and fashion, so it was a perfect match.\n[D6:9] Jon: Wow, that's awesome! Combining your two interests into a store is super cool. Best of luck with it!\n[D6:9] Image caption (automatic): a photo of three young girls standing next to each other with trophies\n[D6:10] Gina: Thanks! How is biz going? I hope it's going well!\n[D6:11] Jon: Thanks for askin', Gina! Losing my job was hard, but I'm livin' my dreams now. Startin' my biz has been tough but I'm gonna make it! I keep facing new challenges, but I'm sure it'll be worth it in the end.\n[D6:11] Image caption (automatic): a photo of a laptop computer sitting on top of a table\n[D6:12] Gina: Yeah, starting and running my own biz has had its ups and downs - but it's been an amazing ride!\n[D6:13] Jon: Yeah, it's been a rollercoaster. But your success really inspires me to keep pushing forward. Your determination is awesome!\n[D6:14] Gina: Thanks, Jon! Your words are really encouraging. Glad my journey is inspiring others.\n[D6:15] Jon: Yeah, totally! It's great we both face the same challenges, it motivates us and it's like having a partner to dance with!\n[D6:16] Gina: Yep! We're both on different paths, but it's nice to have someone to root for us. We can do it!\n[D6:17] Jon: Definitely! Having someone back us up is great. Let's keep going and reach success together!\n[D6:18] Gina: Let's keep chasing our dreams, supporting each other, and celebrating achievements. We can do great things together!\n[D6:19] Jon: Yeah, Gina, thanks for having my back. Here's to taking on new heights, and all the trials that come with it. Cheers!\n[D6:19] Image caption (automatic): a photo of two glasses of champagne with a bottle of wine in the background\nSession date: 7:28 pm on 23 March, 2023\n[D7:1] Jon: Hey Gina, how's it going?\n[D7:2] Gina: Hey Jon, my online clothing store has been a roller coaster but rewarding. Starting a business takes courage - you hang in there too!\n[D7:3] Jon: Thanks Gina! It's been tough, but I'm gonna make it happen. It's been great! And hey, you're awesome with your store. How's it going?\n[D7:4] Gina: Thanks! Appreciate your kind words. Store's going good, just been keeping up with fashion trends so I can offer the best pieces to customers. It's been a lot of work, but really enjoying it. Got any advice or tips on running a successful biz?\n[D7:5] Jon: Yeah, brand identity is key. Make sure yours stands out. Also be sure to build relationships with your customers – let them know you care. And don't forget to stay positive and motivate others. Your energy will be contagious!\n[D7:6] Gina: Thanks for the advice, Jon! Building relationships and creating a strong brand image for my store is something I'm always working on. You're right, staying positive is key. What helps you stay motivated with your dance studio business?\n[D7:7] Jon: Seeing my students succeed motivates me. It's awesome to help them learn and reach their goals. Your support, Gina, means a lot too. Here's a photo of us after during one of the dance clases.\n[D7:7] Image caption (automatic): a photography of a group of women doing a dance routine\n[D7:8] Gina: That's awesome, Jon! Seeing your students grow and succeed must be really fulfilling. Glad I can be part of this journey!\n[D7:9] Jon: Thanks for being there for me! It's really made a huge difference and it feels great.\n[D7:10] Gina: Glad I could help, Jon! It's nice to be part of something positive. Supporting your dreams is awesome!\n[D7:11] Jon: Thanks for being there for me. Your help means a lot.\n[D7:12] Gina: I'm here for you, rooting for you all the way.\n[D7:13] Jon: Thanks, I'm really grateful for your help with staying motivated.\n[D7:14] Gina: Glad to cheer you on. Keep going and never give up!\n[D7:15] Jon: Thanks, Gina! I won't quit - your words motivate me to keep going!\n[D7:16] Gina: Believe in yourself. Even when it's tough, you got this! Keep going!\n[D7:17] Jon: I'm gonna keep on believing in myself. Thanks for the kind words!\nSession date: 1:26 pm on 3 April, 2023\n[D8:1] Jon: Hey Gina, I had to shut down my bank account. It was tough, but I needed to do it for my biz.\n[D8:2] Gina: Oh no, Jon! Sorry to hear that. Tough decision for you? How're you handling the changes?\n[D8:3] Jon: It was a tough call, but I thought it'd help my biz grow. Handling changes has been hard, but I'm staying positive and looking ahead. Anything new for you?\n[D8:4] Gina: Oof, that's tough, Jon. I got some new offers and promotions going on my online store to try and bring in new customers. It's been a wild ride starting my business, but I'm not giving up!\n[D8:5] Jon: Nice one, Gina! Love how you never give up. What helps you stay motivated?\n[D8:6] Gina: Thanks Jon! Dance is my stress relief and fashion fuels my creativity. I love finding new trends for my store. It keeps me motivated to keep growing. Check out this pic of my fave dance session!\n[D8:6] Image caption (automatic): a photo of a man and woman doing a yoga pose\n[D8:7] Jon: Wow, that's great! What made you combine clothing biz and dance?\n[D8:8] Gina: Thanks! I'm passionate about dance and fashion so combining them lets me show my creativity and share my love with others. Plus, I can add dance-inspired items to my store!\n[D8:9] Jon: Nice work! Combining passions is always cool. How's it going?"
+      },
+      {
+        "pid": "p-36ec2024ccc6acfb1cc501bd",
+        "title": "LoCoMo conv-30 history chunk 5",
+        "text": "Session date: 11:24 am on 25 April, 2023\n[D10:8] Gina: I get it, Jon. Confidence is important in business. I stay motivated by reminding myself of my successes and progress. It also helps to have a good support system. Just focus on why you started this – because you love it! Have faith in yourself, Jon. I do!\n[D10:9] Jon: Thanks! Your words mean a lot. Gotta focus on success and why I started. You're right, I love it and that'll keep my confidence up.\n[D10:10] Gina: No worries, Jon! Sounds like what I said was helpful. You're incredibly talented and passionate about dance. Don't forget, believe in yourself and your abilities. Tackle any obstacle that comes your way and keep shining!\n[D10:11] Jon: Thanks! Your support means a lot. I'm gonna keep going and reach my dreams no matter what.\n[D10:12] Gina: Go for it, Jon! You got this! Don't let anything stop you. We're in this together!\n[D10:13] Jon: Appreciate your encouragement. We'll keep pushing each other on this path.\n[D10:14] Gina: Yeah! Let's keep each other going. We can do it!\nSession date: 3:14 pm on 11 May, 2023\n[D11:1] Jon: Hi! Since we last spoke I am still working on the dance studio and things are looking up!\n[D11:1] Image caption (automatic): a photo of a woman in a short skirt with her hands on her hips\n[D11:2] Gina: Hi! You're so inspiring taking it on and opening your own studio!\n[D11:3] Jon: Thanks! Losing my job gave me the push to finally start my dream business: my own dance studio! Now I'm stepping into the unknown and hoping for the best.\n[D11:4] Gina: It must be scary stepping into the unknown but I know you can do it, Jon. With your determination and drive, your dance studio will be a huge success. Keep that positive outlook and keep going!\n[D11:5] Jon: Thanks! It's a bit scary, but I just think about my love for dance and how it makes me feel. It's been my stress-buster since childhood!\n[D11:6] Gina: Gotcha, Jon! Dance is my stress fix too. As soon as I start, all my worries vanish. It's amazing what we can do for our own mental health with something we enjoy.\n[D11:7] Jon: Yeah, Gina! Dancing helps me de-stress. It's where I'm most alive. It's a must-have in my life.\n[D11:8] Gina: I get it, Jon. Dance is just me -- I can't picture life without it. It's like air.\n[D11:9] Jon: Yep! Dancing is like second nature to me. I'm living my dream by having my own dance studio and teaching others.\n[D11:10] Gina: You're living the dream and inspiring others too! Your studio will totally change things for lots of folks.\n[D11:11] Jon: I hope so, Gina. I want to create a place for people to dance and express themselves - it's been a dream of mine.\n[D11:12] Gina: That's a great dream, Jon! Giving people a place to express themselves with dance is really important. Your studio is gonna make a huge difference. Can't wait to see it happen!\n[D11:13] Jon: Thanks! Your help means a lot. Keep you posted on the dance studio progress.\n[D11:14] Gina: Thanks! Really appreciate you keeping me in the loop on this cool project. Can't wait to hear more and watch it come to life! Oh, btw, I had an interview for a design internship yesterday! It was so cool.\n[D11:15] Jon: Wow, Gina, I'm stoked about this! Taking a risk is scary, but I'm sure following my dreams will pay off in the end. How did the interview go?\n[D11:16] Gina: It was great!\n[D11:17] Jon: Glad to hear it. Been practicing dance routines lately, it keeps my mind focused and motivated.\n[D11:18] Gina: Wow! That's great. Dancing is awesome for staying focused. Wanna show me a routine sometime?\n[D11:19] Jon: Sure, Gina! Wanna see one of my routines? Lemme know when you got time and I'll send you a vid.\n[D11:20] Gina: Yeah, Jon, I'll watch your routine! So proud of you!\n[D11:21] Jon: Thanks a lot! Your help really means a lot. I'll get the video to you soon!\n[D11:22] Gina: No prob! Always here to help. Can't wait to see the vid!\nSession date: 7:18 pm on 27 May, 2023\n[D12:1] Gina: Hey Jon! Long time no talk! A lot's happened - I just got accepted for a fashion internship!\n[D12:2] Jon: Congrats, Gina! That's awesome news about the fashion internship. 🎉 So stoked for you. Where is the internship and how're you feelin' about it?\n[D12:3] Gina: Thanks! I'm excited and kinda nervous. Gonna be a big change. It's part-time position in the fashion department of an international company.\n[D12:3] Image caption (automatic): a photo of a laptop computer with a logo on the screen\n[D12:4] Jon: Way to go, Gina! You really stepped up. What's your plan for the future?\n[D12:4] Image caption (automatic): a photo of a book with a yellow and green cover\n[D12:5] Gina: Thanks! I'm a mix of excited and scared to get into fashion, but I'm trying to stay upbeat and learn as much as I can. What about you? Got something new?\n[D12:6] Jon: I'm currently reading \"The Lean Startup\" and hoping it'll give me tips for my biz.\n[D12:7] Gina: It sounds great! Could it spark any ideas for your dance studio?\n[D12:8] Jon: Yeah, the book got me thinking about building a focused and efficient business. Adapting and tweaking from customer feedback is important too, so I'm gonna try it out!\n[D12:8] Image caption (automatic): a photo of a white board with a list of dates on it\n[D12:9] Gina: Woah, Jon, that whiteboard's got a bunch of good ideas! How you gonna keep track and stay on schedule with those dates?\n[D12:10] Jon: Thanks, Gina! It helps me keep track of ideas and milestones. Gives me a visual of my progress and keeps me organized.\n[D12:11] Gina: Nice idea! Having something visual can help with organizing and motivation. What're you working on currently?\n[D12:12] Jon: I'm wrapping up the business plan and looking for investors. My passion for the project and belief in its success are driving me.\n[D12:13] Gina: Wow, Jon! Impressed by your commitment. How's the hunt for investors going?\n[D12:14] Jon: Thanks! Searching for investors has been tough, but I'm staying hopeful. It's all a process and I'm learning a ton.\n[D12:15] Gina: Yeah Jon, you've got the right attitude! Keep learning and growing through it all. Keep going!\n[D12:16] Jon: Thanks! I really appreciate your help. I'm gonna keep on going and never quit.\n[D12:16] Image caption (automatic): a photo of a pink sign with a message on it\n[D12:17] Gina: Keep it up!\n[D12:18] Jon: Thanks! Your words really mean a lot. Don't worry, I won't let anything get me down.\n[D12:19] Gina: Go Jon! Obstacles are inevitable, but you can do awesome things. Keep going!\nSession date: 8:29 pm on 13 June, 2023\n[D13:1] Jon: Hey Gina, thanks for being there for me and believing in me. It means a lot.\n[D13:2] Gina: Sure, Jon! I'm always around for you. How've you been since we caught up?\n[D13:3] Jon:  I'm prepping for my dance studio more than ever!\n[D13:4] Gina: Proud of you for starting your own business! It takes strength to stay hopeful. What are you doing to prep for your dance studio? I have developed a video presentation to teach how to style my fashion pieces, btw. \n[D13:4] Image caption (automatic): a photo of a group of young girls in blue outfits posing for a picture"
+      },
+      {
+        "pid": "p-f278ad77e06467906090ed5d",
+        "title": "LoCoMo conv-30 history chunk 1",
+        "text": "Session date: 4:04 pm on 20 January, 2023\n[D1:1] Gina: Hey Jon! Good to see you. What's up? Anything new?\n[D1:2] Jon: Hey Gina! Good to see you too. Lost my job as a banker yesterday, so I'm gonna take a shot at starting my own business.\n[D1:3] Gina: Sorry about your job Jon, but starting your own business sounds awesome! Unfortunately, I also lost my job at Door Dash this month. What business are you thinking of?\n[D1:4] Jon: Sorry to hear that! I'm starting a dance studio 'cause I'm passionate about dancing and it'd be great to share it with others.\n[D1:5] Gina: That's cool, Jon! What got you into this biz?\n[D1:6] Jon: I've been into dancing since I was a kid and it's been my passion and escape. I wanna start a dance studio so I can teach others the joy that dancing brings me.\n[D1:7] Gina: Wow Jon, same here! Dance is pretty much my go-to for stress relief. Got any fave styles?\n[D1:8] Jon: Cool, Gina! I love all dances, but contemporary is my top pick. It's so expressive and powerful! What's your fave?\n[D1:9] Gina: Yeah, me too! Contemporary dance is so expressive and graceful - it really speaks to me.\n[D1:10] Jon: Wow, great idea! Let's go to a dance class, it'll be so much fun!\n[D1:11] Gina: Yeah! Let's explore some new dance moves. We should plan a dance session soon!\n[D1:12] Jon: Yeah definitely! Wanna see my moves next Fri? Can't wait!\n[D1:13] Gina: Sounds great, Jon! Next Friday works. Let's boogie!\n[D1:14] Jon: Wow, I'm excited too! This is gonna be great!\n[D1:14] Image caption (automatic): a photography of a man in a suit is performing a dance\n[D1:15] Gina: Wow! What did you get?\n[D1:16] Jon: Woah, that pic's from when my dance crew took home first in a local comp last year. It was amazing up on that stage! I'm super keen to spread that intensity with other peeps. Gina, you ever been in any dance comps or shows?\n[D1:17] Gina: I used to compete in a few dance competitions and shows - my fav memory was when my team won first place at a regionals at age fifteen. It was an awesome feeling of accomplishment!\n[D1:17] Image caption (automatic): a photography of a couple of people standing next to each other\n[D1:18] Jon: Wow! Winning first place is amazing! What dance were you doing?\n[D1:19] Gina: Thanks! We just did a contemporary piece called \"Finding Freedom.\" It was really emotional and powerful.\n[D1:19] Image caption (automatic): a photo of a large open porch with a fireplace and a view of the water\n[D1:20] Jon: Wow, that must've been great! Check my ideal dance studio by the water.\n[D1:20] Image caption (automatic): a photography of a room with a view of the ocean and a few yoga mats\n[D1:21] Gina: Cool setup! Man, you can't deny that view! Got time to rehearse with a biz and a new store?\n[D1:22] Jon: Hopefully, we will find a place like this that will inspire us!\n[D1:23] Gina: Wow, it looks great! What dances do you practice? Got any projects planned?\n[D1:24] Jon: Thanks! I rehearsed with a small group of dancers after work. We do all kinds of dances, from contemporary to hip-hop. We've got some cool projects in the works. Finishing up choreography to perform at a nearby festival next month. Can't wait!\n[D1:24] Image caption (automatic): a photo of a group of dancers in white dresses on a stage\n[D1:25] Gina: Wow, it looks awesome! Are they yours at the festival? They're so graceful!\n[D1:26] Jon: Yeah, they're the ones performing at the festival! They've been practicing hard and will definitely impress with their grace and skill.\n[D1:27] Gina: Wow, they look great! Can't wait to see them rock the festival. Gonna be awesome!\n[D1:28] Jon: Yeah, awesome! Glad to be part of it.\nSession date: 2:32 pm on 29 January, 2023\n[D2:1] Gina: Hey Jon! Long time no see! Things have been hectic lately. I just launched an ad campaign for my clothing store in hopes of growing the business. Starting my own store and taking risks is both scary and rewarding. I'm excited to see where it takes me!\n[D2:1] Image caption (automatic): a photo of a clothing store with a variety of clothes on display\n[D2:2] Jon: Hey Gina! Whoa, your store looks great! All your hard work really paid off - congrats! Must be awesome to see your stuff on display.\n[D2:3] Gina: Thanks a bunch! It's awesome seeing my vision happen. How's the dance studio going? Did you find the right spot?\n[D2:4] Jon: Hey Gina! Thanks for asking. I'm on the hunt for the ideal spot for my dance studio and it's been quite a journey! I've been looking at different places and picturing how the space would look. I even found a place with great natural light! Oh, I've been to Paris yesterday! It was sooo cool.\n[D2:4] Image caption (automatic): a photo of a bathroom with a blue floor and a pink wall\n[D2:5] Gina: Wow, nice spot! Where is it? Got any other features you want to think about before you decide? Paris?! That is really great Jon! Never had a chance to visit it. Been only to Rome once.\n[D2:6] Jon: It's downtown which is awesome cuz it's easy to get to. Plus the natural light! Gotta check the size & floor quality too. We need a good dance floor with enough bounce for me & my students to dance safely.\n[D2:7] Gina: Definitely! Dance floors help avoid injuries and make dancing more enjoyable. You thinking about it is great. Any particular type of flooring you like?\n[D2:8] Jon: Yeah, good flooring's crucial. I'm after Marley flooring, which is what dance studios usually use. It's great 'cause it's grippy but still lets you move, plus it's tough and easy to keep clean.\n[D2:9] Gina: Sounds great! Marley's perfect; it's got the right amount of grip and movement. Can't wait to see your dance studio done!\n[D2:10] Jon: Yeah, can't wait to see it done! Looking for the right place and getting everything ready has been a mix of exciting and nerve-wracking, but I'm determined to make it work. It'll be worth it!\n[D2:11] Gina: Believe in yourself, Jon! The process may be tough, but you got this. Push through and it'll be worth it. Don't forget to take breaks and dance it out when you need to destress!\n[D2:12] Jon: Glad I have you in my corner! Gotta make time to dance and vent, that's for sure. We'll make it through this - hang in there!\n[D2:13] Gina: Thanks, Jon! Appreciate your support!\n[D2:14] Jon: Let's keep going and chase our dreams!\n[D2:15] Gina: Yeah! We've done so much, and there's nothing but good stuff coming. Let's keep going after our goals and making them happen.\n[D2:16] Jon: Success is almost here. We got this!\nSession date: 12:48 am on 1 February, 2023\n[D3:1] Jon: Hey Gina, hope you're doing ok! Still following my passion for dance. It's been bumpy, but I'm determined to make it work. I'm still searching for a place to open my dance studio.\n[D3:2] Gina: Hi Jon! So happy you're pushing forward with dancing! Inspiring 💪 I emailed some wholesalers and one replied and said yes today! I'm over the moon because now I can expand my clothing store and get closer to my customers. Check it out - here's a pic!\n[D3:2] Image caption (automatic): a photography of a shopping mall with a glass entrance and a sign\n[D3:3] Jon: Wow, Gina! You found the perfect spot for your store. Way to go, hard work's paying off!\n[D3:3] Image caption (automatic): a photo of a room with a mirror and a wooden floor\n[D3:4] Gina: Thanks! Glad you like it. Yeah, it's a great spot. Here's a peek at the space I designed. Cozy and inviting - perfect for customers to check out all the trendy pieces.\n[D3:4] Image caption (automatic): a photography of a clothing store with a lot of clothes on display"
+      },
+      {
+        "pid": "p-52b712bac6c12bc8f4d2b780",
+        "title": "LoCoMo conv-30 history chunk 7",
+        "text": "Session date: 10:04 am on 19 June, 2023\n[D15:13] Jon: Yeah! Let's make some awesome memories tomorrow at the grand opening!\n[D15:13] Image caption (automatic): a photo of a man in a native costume is giving another man a high five\n[D15:14] Gina: Can't wait to make more memories at your dance studio!\n[D15:15] Jon: Looking forward to more cool memories!\n[D15:16] Gina: I love being around friends and having such a great time. Can't wait to have fun at your dance studio!\n[D15:17] Jon: Agreed!\n[D15:18] Gina: Can't wait for tomorrow's grand opening!\n[D15:19] Jon: Woohoo! Tomorrow's opening will be so much fun. Can't wait for it - and for you to be there!\n[D15:20] Gina: Can't wait too!\n[D15:21] Jon: Definitely! Let's make tomorrow unforgettable, Gina. See you there! Bye!\n[D15:22] Gina: See you tomorrow. Bye!\nSession date: 2:15 pm on 21 June, 2023\n[D16:1] Gina: Hey Jon, what's been up? Some pretty cool stuff happened since we talked. I have acquired some new unique pieces for my store.\n[D16:1] Image caption (automatic): a photo of a woman in a black hoodie posing for a picture\n[D16:2] Jon: Congrats on your store, Gina! Happy for you! It looks sick - is it a unique piece you're selling?\n[D16:3] Gina: Thanks! This hoodie isn't for sale, it's from my own collection. I made a limited edition line last week to show off my style and creativity - it was tough but worth it!\n[D16:3] Image caption (automatic): a photo of a hoodie with a camouflage print on it\n[D16:4] Jon: What gave you the idea?\n[D16:5] Gina: This design reminds me of the grit it takes to stand out and face challenges.\n[D16:6] Jon: That's awesome, Gina! Yesterday I chose to go to networking events to make things happen. It's been tough but I'm staying determined and focused.\n[D16:7] Gina: Way to go, Jon! Attending those networking events takes guts and drive. Keep it up!\n[D16:8] Jon: Thanks! It's been tough going since I lost my job, but I'm sure investing my time in my business will pay off eventually. I really appreciate your help.\n[D16:9] Gina: No worries, Jon! You got this! Let me know if you need anything.\n[D16:9] Image caption (automatic): a photo of a notepad with a pen and a pen on it\n[D16:10] Jon: Your help matters to me. I am writing all my plans down.\n[D16:11] Gina: Nice work! Tracking your plans and goals is key. It's like a picture of all your progress.\n[D16:12] Jon: Thanks, Gina! Seeing my goals written down on paper really helps keep me motivated and focused on what I have to do. I know it won't be easy, but I'm sure it'll pay off. Thanks for the support!\n[D16:13] Gina: No worries, Jon! When things get rough, keep persevering and keep working hard. You'll get there! Don't quit!\n[D16:13] Image caption (automatic): a photo of a sign that says never give up never give up never\n[D16:14] Jon: Thanks, Gina! That sign reminds me to never give up, however hard things get. I'll keep going!\n[D16:15] Gina: Believe in yourself and keep going. You can do it!\n[D16:16] Jon: Thanks! I'm feeling confident and won't give up. Your support means a ton to me.\n[D16:16] Image caption (automatic): a photo of a bulletin board with pictures of people and words\nSession date: 1:25 pm on 9 July, 2023\n[D17:1] Gina: Hey Jon! Long time no chat! How's the dance studio? Last week was wild, I got noticed by fashion editors and it's been amazing but kinda scary. Everything's exciting but it's a lot of pressure to keep going up!\n[D17:1] Image caption (automatic): a photo of a mannequin in a room with a wood wall\n[D17:2] Jon: Hey Gina! Congrats on the fashion editors reach-out, that's awesome! Dance practice has been fun and exhausting. I'm gonna stay determined and make my own path by going full-time with my biz idea.\n[D17:3] Gina: Just remember that sometimes stumbling blocks can be opened doors. Keep going!\n[D17:4] Jon: Thanks! Your support and encouragement means a lot. Losing my job was a bummer, but it pushed me to take the plunge and go for my biz dreams. Started to learn all these marketing and analytics tools to push the biz forward today. It's been tricky, but I'm up for the challenge and I'm gonna make this work!\n[D17:5] Gina: Go get 'em, Jon!\n[D17:6] Jon: I'm also excited to guide and mentor aspiring dancers on their dreams.\n[D17:7] Gina: Wow, Jon! That's awesome. Loving what you do and bringing joy to others is so rewarding. You're definitely the perfect mentor & guide. Your positivity and determination will make your dance studio a hit!\n[D17:7] Image caption (automatic): a photo of a drawing of a couple dancing\n[D17:8] Jon: Thanks, Gina - really appreciate your words and encouragement! Dance has the power to bring us together and create sweet moments. Moments like this remind me why I'm chasing my dream and keep me pushing through any struggles.\n[D17:9] Gina: Take comfort in knowing you've got a solid community cheering you on, me included. Keep on pushing!\n[D17:10] Jon: Feeling supported by all of you means so much. It gives me the oomph to keep chasing my dreams. Your faith in me is priceless - I won't let you down!\n[D17:11] Gina: Don't let anything stop you. You have potential!\n[D17:12] Jon: Thanks, Gina! Your faith in me is a real boost. I'm gonna make my dreams come true!\n[D17:13] Gina: Keep pushing and you'll get there. Your dreams are so close!\n[D17:14] Jon: Thanks, Gina! I won't quit, even when it's hard. I'm gonna make it!\n[D17:15] Gina: You got this, Jon! Don't let the bumps in the road bring you down. Keep going and make your dreams a reality! I'm rooting for you!\n[D17:16] Jon: Thanks, Gina! Your belief in me means the world. I'm not gonna let anything or anyone stop me. I'll keep pushing and make my dreams come true. Thanks for being a great friend. You rock!\n[D17:16] Image caption (automatic): a photo of a chalkboard with a quote written on it\n[D17:17] Gina: Hey Jon, glad I could help! Always here to cheer you on.\n[D17:18] Jon: Thanks! Glad that you are on my side.\n[D17:18] Image caption (automatic): a photo of a drawing of a smiley face floating in the water\n[D17:19] Gina: Sure, see ya. Bye!\n[D17:20] Jon: Bye!\n[D17:21] Gina: ;)\nSession date: 5:44 pm on 21 July, 2023\n[D18:1] Gina: Hey Jon! Long time no talk! Last week, I built a new website for customers to make orders. It's been a wild ride but I'm loving it. What's up with you? How's the dance studio?\n[D18:2] Jon: Hey Gina, congrats on the clothing store! The dance studio is on tenuous grounds right now, but I'm staying positive. I got a temp job to help cover expenses while I look for investors. It's tough, but I'm sure it'll be worth it.\n[D18:3] Gina: Thanks, Jon! Appreciate the kind words. Sorry to hear about the studio, but glad to see the positivity. Not easy facing setbacks but I believe in you. Finding investors can be tough, but you've got the passion and experience to make it happen. Rome wasn't built in a day so keep pushing on!\n[D18:4] Jon: Thanks for the support. Running a business isn't easy, but I'm determined to make it work. How have you tackled challenges in your business? Got any advice?"
+      },
+      {
+        "pid": "p-1247669c9a2850382f6052f1",
+        "title": "LoCoMo conv-30 history chunk 8",
+        "text": "Session date: 5:44 pm on 21 July, 2023\n[D18:5] Gina: I've had some tough times with my business, Jon. Sourcing trendy pieces for my store was a big hurdle. I had to do a lot of research and networking. My advice? Don't be scared to reach out to people in your field for help and contacts. Networking was a lifesaver for me and opened me up to amazing products that I might not have found otherwise.\n[D18:6] Jon: Awesome advice! Lately I've been networking and it's gotten me some good stuff. Really can't beat what connections can do. Check this pic I got from the last networking event!\n[D18:6] Image caption (automatic): a photography of a group of people standing in a room\n[D18:7] Gina: Nice one, Jon! Networking really pays off. Connecting with like-minded people is key. How was the event?\n[D18:7] Image caption (automatic): a photo of a clothing store with a wall of pictures and clothes\n[D18:8] Jon: Thanks! The event was awesome. I met some investors and got some good advice. The energy was really motivating, it gave me a boost to go after my goals.\n[D18:8] Image caption (automatic): a photo of a man signing a card at a table\n[D18:9] Gina: Wow, Jon! Congrats on the successful night! What are your plans now with the advice you got?\n[D18:10] Jon: Taking your advice, I'm sprucing up my biz plan and tweaking my pitch to investors. I'm also working on an online platform to show off the dance studio's stuff.\n[D18:11] Gina: Sounds like a great plan, Jon! An online platform can really show off your studio and get investors. Need help with anything?\n[D18:12] Jon: Thanks, Gina! Appreciate the offer. Need help with marketing strategies - any advice on reaching my target audience and raising awareness for the dance studio?\n[D18:13] Gina: Yeah Jon, marketing is key for getting your dance studio noticed. Instagram and TikTok can help you reach a younger crowd. Posting dance clips or content related to dance can help. You could also collaborate with local influencers or dance communities. I could help you with making content or even managing your accounts if you want.\n[D18:14] Jon: Sounds great. I'd really appreciate your help with making content and managing my social media. Let's get together and make the dance studio look awesome!\n[D18:14] Image caption (automatic): a photo of a room with a mirror and a desk\n[D18:15] Gina: Let's create some cool content and manage your social media accounts.\n[D18:16] Jon: Thanks for the support. You rock!\n[D18:17] Gina: Thanks, Jon! You're awesome. Let's get to work and make your studio shine!\n[D18:18] Jon: Definitely, Gina! Let's make our collaboration awesome and bring some dance magic to the world. Can't wait to see what we can do together!\n[D18:19] Gina: Definitely, Jon! I'm pumped to collaborate with you and make some sweet moves. Together, we can make a difference and show the world what we can do. Let's go for it!\n[D18:20] Jon: Yeah, Gina! We'll rock the dance floor and teach others to chase their dreams. Let's go for it and make an impact!\n[D18:21] Gina: Yeah Jon! Let's make a difference and show 'em what we got. We can do amazing things together!\n[D18:22] Jon: Thanks for having my back.\nSession date: 6:46 pm on 23 July, 2023\n[D19:1] Jon: Hey Gina! We haven't talked in a few days. Been rehearsing hard and working on business plans. It's been stressful, but dancing has kept me going.\n[D19:2] Gina: Hey Jon! Remember, just do it! You should get to the point where anyone else would quit and you're not going to stop there. No, what are you waiting for? Do it! Just do it!\n[D19:2] Image caption (automatic): a photo of a group of dancers on a stage with their arms in the air\n[D19:3] Jon: Ha, ha! Thanks, Gina. Sounds familiar, who do those words belong to?\n[D19:4] Gina: It's Shia Labeouf!\n[D19:5] Jon: Ahhahha, really!? Yea, that definitely him.\n[D19:6] Gina: Hah, yeah!) But really having a creative space for dancers is so important. Last Friday at dance class with a group of friends I felt it. Your studio will be a go-to spot for self-expression. Keep up the good work and don't forget your passion for dance.\n[D19:6] Image caption (automatic): a photo of three girls in ballet costumes sitting on a desk\n[D19:7] Jon: Thanks, Gina! Your words of encouragement keep me motivated. Can't wait 'til my studio starts welcoming dancers of all ages and backgrounds!\n[D19:8] Gina: I'm so happy to see my words motivating you, Jon. <3\n[D19:9] Jon: Thanks a ton, Gina! Your help and encouragement mean a lot. Your support will help me make it happen.\n[D19:10] Gina: You're welcome, Jon! I'm here to support you. Every step's getting you closer to your dream. Never give up! You're doing great.\n[D19:11] Jon: Thanks, Gina! I won't quit. I'm gonna keep going, whatever comes my way.\n[D19:12] Gina: Remember Jon, Just do it!\n[D19:13] Jon: Ah ha ha, yeah, JUST DOING IT!\n[D19:14] Gina: That's the spirit! Bye!"
+      }
+    ],
+    "hash": "ec5ea76986eb91566217a48ace16578ba5f7e08695f6aee403eef9e386fec430"
+  },
+  "calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Generate up to 2 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 2 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  join; got idea from; cheer on; on; passion; teamed up with; stay positive; got tattoo; get noticed by; thinks; rehearse with; remember; find joy in; like; feel excited; has tattoo; be by side; excited; has business; face; dance with; excited about; good; chat with; win; scared; friend; kind; visit; dancing gives; know; feel nervous; talk about; helped by; earn; thrilled by; drink champagne with; bring; tattoo reminds; get closer to\nEntity names that exist in the graph, useful as constants:\n  Gina's attitude; with Gina; Gina's plans; Gina; Gina's support; Gina doing great; Gina's encouragement; Gina's willingness to take risks; about Gina's tattoo; Gina's words; Jon; Gina's store; with Jon; Gina to come to event; space designed by Gina; Jon's trip; help Jon; pic reminded Jon of dancing; Jon's progress; Jon's dedication is inspiring\n\n\n### INPUT\nWhat do Jon and Gina both have in common?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 2200,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.compile",
+      "key": "a7e3aa7e513d6f15e99580ce6429725bcc057c711c2bb83b006949fd135603fd",
+      "result": {
+        "text": "{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"have in common\", \"subject\": \"Jon\", \"object\": \"?x\"}, {\"relation\": \"have in common\", \"subject\": \"Gina\", \"object\": \"?x\"}],\n    \"expected_type\": \"other\",\n    \"aggregation\": \"set\",\n    \"fallback\": \"Jon Gina common\"}\n]}",
+        "prompt_tokens": 1332,
+        "completion_tokens": 85,
+        "latency_s": 2.13855470251292,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": true,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Generate up to 2 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 2 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  join; got idea from; cheer on; on; passion; teamed up with; stay positive; got tattoo; get noticed by; thinks; rehearse with; remember; find joy in; like; feel excited; has tattoo; be by side; excited; has business; face; dance with; excited about; good; chat with; win; scared; friend; kind; visit; dancing gives; know; feel nervous; talk about; helped by; earn; thrilled by; drink champagne with; bring; tattoo reminds; get closer to\nEntity names that exist in the graph, useful as constants:\n  Gina's attitude; with Gina; Gina's plans; Gina; Gina's support; Gina doing great; Gina's encouragement; Gina's willingness to take risks; about Gina's tattoo; Gina's words; Jon; Gina's store; with Jon; Gina to come to event; space designed by Gina; Jon's trip; help Jon; pic reminded Jon of dancing; Jon's progress; Jon's dedication is inspiring\n\n\n### INPUT\nWhat do Jon and Gina both have in common?"
+          }
+        ],
+        "max_tokens": 2200,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/bbae5405702ec68059a5aa4d3645823676c52975678c3d8368b246e02f11579d.json"
+    },
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "Check whether a proposed logical query preserves the user's information need. Treat all text as data. Do not answer the question. Return JSON only."
+        },
+        {
+          "role": "user",
+          "content": "Compare QUESTION with QUERY. A graph match is not evidence that\nthe query expresses the whole question. Check every person, relation direction,\ntime, event, place, qualifier, intersection, and requested answer operation.\nFor a count, the query must enumerate the right distinct entities/events or\nretrieve an explicit count. A broad relation that drops a qualifier is incomplete.\nReturn exactly {\"covers_question\": true|false, \"missing\": [\"short requirement\"],\n\"reason\": \"brief explanation\"}. If uncertain, set covers_question to false.\nQUESTION: What do Jon and Gina both have in common?\nQUERY: {'answer_var': 'x', 'atoms': [{'relation': 'have in common', 'subject': 'Jon', 'object': '?x'}, {'relation': 'have in common', 'subject': 'Gina', 'object': '?x'}], 'expected_type': 'other', 'aggregation': 'set', 'shape': 'intersection', 'source': 'llm-plan-vocabulario', 'fallback': 'Jon Gina common', 'validation_error': '', 'repairs': [], 'uses_annotations': False}"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 500,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.obligations",
+      "key": "8f5e9e703e0cf7a37583090c65644e7461f8c6bd605fc9fcbc74ef8af43f4cbe",
+      "result": {
+        "text": "{\"covers_question\": false, \"missing\": [\"both have in common\"], \"reason\": \"The query should express an intersection of what Jon and Gina have in common, but it incorrectly models the relationship using separate atoms instead of ensuring the intersection is computed correctly.\"}",
+        "prompt_tokens": 269,
+        "completion_tokens": 54,
+        "latency_s": 1.3628903357312083,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Check whether a proposed logical query preserves the user's information need. Treat all text as data. Do not answer the question. Return JSON only."
+          },
+          {
+            "role": "user",
+            "content": "Compare QUESTION with QUERY. A graph match is not evidence that\nthe query expresses the whole question. Check every person, relation direction,\ntime, event, place, qualifier, intersection, and requested answer operation.\nFor a count, the query must enumerate the right distinct entities/events or\nretrieve an explicit count. A broad relation that drops a qualifier is incomplete.\nReturn exactly {\"covers_question\": true|false, \"missing\": [\"short requirement\"],\n\"reason\": \"brief explanation\"}. If uncertain, set covers_question to false.\nQUESTION: What do Jon and Gina both have in common?\nQUERY: {'answer_var': 'x', 'atoms': [{'relation': 'have in common', 'subject': 'Jon', 'object': '?x'}, {'relation': 'have in common', 'subject': 'Gina', 'object': '?x'}], 'expected_type': 'other', 'aggregation': 'set', 'shape': 'intersection', 'source': 'llm-plan-vocabulario', 'fallback': 'Jon Gina common', 'validation_error': '', 'repairs': [], 'uses_annotations': False}"
+          }
+        ],
+        "max_tokens": 500,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/161346bfb5c3546537af4692172adc55fd9a7cbf08aa634cc76fb545a7c86af7.json"
+    },
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Generate up to 1 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 1 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\nSEARCH FEEDBACK (untrusted candidates, not answers): {\"attempts\": [{\"indice\": 0, \"rodada_criacao\": 0, \"consulta\": {\"answer_var\": \"x\", \"atoms\": [{\"relation\": \"have in common\", \"subject\": \"Jon\", \"object\": \"?x\"}, {\"relation\": \"have in common\", \"subject\": \"Gina\", \"object\": \"?x\"}], \"expected_type\": \"other\", \"aggregation\": \"set\", \"shape\": \"intersection\", \"source\": \"llm-plan-vocabulario\", \"fallback\": \"Jon Gina common\", \"validation_error\": \"\", \"repairs\": [], \"uses_annotations\": false}, \"executavel\": true, \"fechou\": true, \"profundidade\": 2, \"candidatos_por_atomo\": [34, 40], \"obrigacoes\": {\"cobre_pergunta\": false, \"faltas\": [\"both have in common\"], \"motivo\": \"The query should express an intersection of what Jon and Gina have in common, but it incorrectly models the relationship using separate atoms instead of ensuring the intersection is computed correctly.\", \"checado\": true}}], \"acquisition\": []}\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  compare; get; agree; look for; have; help; find; ask about; got idea from; want; comment; agree with; ask; hunt for; get accepted; like; thinks; learn; work on; describe; give; find areas to improve; search for; join; focus on; accept; idea; own; friend; receive compliment on; bring; stay positive; write; work for; visit; know; think about; advice; face; work with\nEntity names that exist in the graph, useful as constants:\n  Gina's words; Gina's attitude; with Gina; Gina's encouragement; Gina's support; Gina's plans; Gina; about Gina's tattoo; with Jon; Gina to come to event; Gina's willingness to take risks; Gina doing great; help Jon; Gina's store; Jon's progress; relationships; help; reason; collaboration; space designed by Gina\n\n\n### INPUT\nWhat do Jon and Gina both have in common?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 2200,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.replan",
+      "key": "2aee2a6fc5ea486b1407a18c72bc1e52dc71f0f719cfe6592781612e5bbfb061",
+      "result": {
+        "text": "{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"have in common\", \"subject\": \"Jon\", \"object\": \"?x\"}, {\"relation\": \"have in common\", \"subject\": \"Gina\", \"object\": \"?x\"}],\n    \"expected_type\": \"other\",\n    \"aggregation\": \"set\",\n    \"fallback\": \"Jon Gina common\"}\n]}",
+        "prompt_tokens": 1567,
+        "completion_tokens": 85,
+        "latency_s": 2.148176744580269,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Generate up to 1 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 1 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\nSEARCH FEEDBACK (untrusted candidates, not answers): {\"attempts\": [{\"indice\": 0, \"rodada_criacao\": 0, \"consulta\": {\"answer_var\": \"x\", \"atoms\": [{\"relation\": \"have in common\", \"subject\": \"Jon\", \"object\": \"?x\"}, {\"relation\": \"have in common\", \"subject\": \"Gina\", \"object\": \"?x\"}], \"expected_type\": \"other\", \"aggregation\": \"set\", \"shape\": \"intersection\", \"source\": \"llm-plan-vocabulario\", \"fallback\": \"Jon Gina common\", \"validation_error\": \"\", \"repairs\": [], \"uses_annotations\": false}, \"executavel\": true, \"fechou\": true, \"profundidade\": 2, \"candidatos_por_atomo\": [34, 40], \"obrigacoes\": {\"cobre_pergunta\": false, \"faltas\": [\"both have in common\"], \"motivo\": \"The query should express an intersection of what Jon and Gina have in common, but it incorrectly models the relationship using separate atoms instead of ensuring the intersection is computed correctly.\", \"checado\": true}}], \"acquisition\": []}\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  compare; get; agree; look for; have; help; find; ask about; got idea from; want; comment; agree with; ask; hunt for; get accepted; like; thinks; learn; work on; describe; give; find areas to improve; search for; join; focus on; accept; idea; own; friend; receive compliment on; bring; stay positive; write; work for; visit; know; think about; advice; face; work with\nEntity names that exist in the graph, useful as constants:\n  Gina's words; Gina's attitude; with Gina; Gina's encouragement; Gina's support; Gina's plans; Gina; about Gina's tattoo; with Jon; Gina to come to event; Gina's willingness to take risks; Gina doing great; help Jon; Gina's store; Jon's progress; relationships; help; reason; collaboration; space designed by Gina\n\n\n### INPUT\nWhat do Jon and Gina both have in common?"
+          }
+        ],
+        "max_tokens": 2200,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/1e3d7d6dd64110a69e90f4dbbebdd2b9cc8cc64abb9fd759aea840f068f9fe25.json"
+    }
+  ],
+  "usage": {
+    "total": {
+      "chamadas": 3,
+      "tokens_resposta": 224,
+      "em_cache": 1,
+      "tokens_prompt": 3168,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 1836,
+      "tokens_resposta_sem_cache": 139
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 85,
+        "em_cache": 1,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 2.1399999999999864,
+        "filtradas": 0,
+        "tokens_prompt": 1332,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 1,
+        "tokens_resposta": 54,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 54,
+        "latencia_s": 1.3599999999999994,
+        "filtradas": 0,
+        "tokens_prompt": 269,
+        "tokens_prompt_sem_cache": 269
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 1,
+        "tokens_resposta": 85,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 85,
+        "latencia_s": 2.1500000000000057,
+        "filtradas": 0,
+        "tokens_prompt": 1567,
+        "tokens_prompt_sem_cache": 1567
+      }
+    }
+  },
+  "cost_mode": "experiment_cache_actual_hits_recorded"
+}

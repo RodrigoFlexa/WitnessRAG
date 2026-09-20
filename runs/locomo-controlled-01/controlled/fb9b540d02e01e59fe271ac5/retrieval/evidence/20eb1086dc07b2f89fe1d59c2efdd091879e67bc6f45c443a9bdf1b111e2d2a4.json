@@ -1,0 +1,499 @@
+{
+  "identity": {
+    "qid": "locomo:conv-48:qa110",
+    "question": "What idea did Jolene have to help underprivileged kids learn about STEM subjects on 9 February, 2023?",
+    "memory": "47f17036e12cd172a2b9cb14f1d6649b3f09d7ef7475f2db27580441c845a13b",
+    "config": {
+      "dataset": "locomo",
+      "n_questions": 139,
+      "top_k": 5,
+      "seed": 42,
+      "subset_corpus": false,
+      "train_questions_path": "",
+      "interleave_methods": true,
+      "corpus_scope": "locomo_full_selected_conversation",
+      "methods": [
+        "witnessrag"
+      ],
+      "ie": {
+        "max_tokens": 1600,
+        "temperature": 0.0,
+        "two_step": true,
+        "max_triples_per_passage": 40,
+        "window_tokens": 512,
+        "window_overlap_tokens": 64,
+        "window_tokenizer": "Qwen/Qwen2.5-14B-Instruct",
+        "window_tokenizer_revision": "",
+        "dialogue_mode": true
+      },
+      "graph": {
+        "merge_similar_entities": false,
+        "merge_identity_variants": true,
+        "merge_relation_inflections": true,
+        "identity_merge_threshold": 0.8,
+        "synonym_threshold": 0.8,
+        "synonym_max_neighbors": 20,
+        "ppr_damping": 0.5,
+        "ppr_tol": 1e-08,
+        "ppr_max_iter": 100
+      },
+      "hippo2": {
+        "n_triples_retrieved": 20,
+        "n_triples_kept": 5,
+        "n_passages_seed": 10,
+        "passage_node_weight": 0.05,
+        "use_recognition_memory": true
+      },
+      "graphrag": {
+        "community_levels": 2,
+        "min_community_size": 3,
+        "build_community_reports": true,
+        "max_communities_reported": 400,
+        "text_units_per_entity": 8
+      },
+      "witness": {
+        "max_atoms": 4,
+        "compile_temperature": 0.0,
+        "vocabulary_aware_compile": true,
+        "vocabulary_relations": 40,
+        "vocabulary_entities": 20,
+        "query_plans": true,
+        "max_query_plans": 5,
+        "active_frontier": true,
+        "active_obligations": true,
+        "active_context": true,
+        "active_operators": false,
+        "soft_obligations": false,
+        "proof_reader": true,
+        "active_frontier_queries": 5,
+        "active_frontier_passages": 30,
+        "grounding_mode": "semantic",
+        "relation_match_threshold": 0.65,
+        "candidates_per_atom": 60,
+        "entity_match_threshold": 0.55,
+        "entity_top_k": 5,
+        "relation_weight": 0.45,
+        "argument_weight": 0.35,
+        "verbalization_weight": 0.2,
+        "max_witnesses": 20,
+        "beam_width": 400,
+        "passage_penalty": 0.15,
+        "binding_aware_grounding": true,
+        "verify_witnesses": false,
+        "verification_max_witnesses": 5,
+        "answer_set": true,
+        "answer_set_max_items": 10,
+        "hybrid_fallback": true,
+        "hybrid_rrf_k": 60,
+        "candidate_pool_k": 20,
+        "fact_confidence": 0.9,
+        "delta_interpretation": 0.1,
+        "delta_verbalization": 0.05,
+        "acquisition_rounds": 2,
+        "acquisition_passages": 3,
+        "acquisition_lambda": 0.05,
+        "enable_acquisition": true,
+        "dense_fallback": true,
+        "budget_fraction": 1.0,
+        "ilp_time_limit_s": 120,
+        "ilp_max_facts": 20000
+      },
+      "qa": {
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "top_k": 5,
+        "answer_set": true,
+        "operator_reader": false,
+        "proof_reader": true
+      }
+    },
+    "condition": "evidence"
+  },
+  "retrieval": {
+    "pids": [
+      "p-e4bf8e7cc5579de18c9f7935",
+      "p-d4a773addf0d822326522ba8",
+      "p-fd1d966a73bb72a90585158c",
+      "p-a81be1f839487c48bc261094",
+      "p-798ee270955a988bd4236e39"
+    ],
+    "scores": [
+      1.0,
+      0.5,
+      0.3333333333333333,
+      0.25,
+      0.2
+    ],
+    "diagnostics": {
+      "pesquisa_provas": {
+        "fronteira": [
+          "p-e4bf8e7cc5579de18c9f7935",
+          "p-d4a773addf0d822326522ba8",
+          "p-fd1d966a73bb72a90585158c",
+          "p-a81be1f839487c48bc261094",
+          "p-798ee270955a988bd4236e39",
+          "p-3a1689a92db192f27fb39f0e",
+          "p-35876bd01fbb4836585327ec"
+        ],
+        "sondas": [
+          "What idea did Jolene have to help underprivileged kids learn about STEM subjects on 9 February, 2023?",
+          "Jolene have idea to help underprivileged kids learn about STEM subjects on 9 February 2023",
+          "Jolene idea help STEM 9 February 2023"
+        ],
+        "acoes": [],
+        "buscas_dirigidas": 0,
+        "replanejamentos": 1,
+        "rejeicoes": 0
+      },
+      "planos_compilados": [
+        {
+          "indice": 0,
+          "rodada_criacao": 0,
+          "consulta": {
+            "answer_var": "x",
+            "atoms": [
+              {
+                "relation": "have idea to help underprivileged kids learn about STEM subjects on 9 February 2023",
+                "subject": "Jolene",
+                "object": "?x"
+              }
+            ],
+            "expected_type": "other",
+            "aggregation": "none",
+            "shape": "single-hop",
+            "source": "llm-plan-vocabulario",
+            "fallback": "Jolene idea help STEM 9 February 2023",
+            "validation_error": "",
+            "repairs": [],
+            "uses_annotations": false
+          },
+          "executavel": true,
+          "fechou": false,
+          "profundidade": 0,
+          "candidatos_por_atomo": [
+            0
+          ],
+          "obrigacoes": {
+            "cobre_pergunta": false,
+            "faltas": [
+              "specific idea"
+            ],
+            "motivo": "The query does not specify that the idea is from Jolene on 9 February, 2023; it combines the idea of helping underprivileged kids learn about STEM into a single relation without distinguishing the specific idea proposed by Jolene on the giv",
+            "checado": true
+          }
+        }
+      ],
+      "planejamento": {
+        "orcamento_planos": 5,
+        "planos_distintos": 1,
+        "chamadas": 2,
+        "replanejamentos": 1
+      },
+      "plano_escolhido": null,
+      "n_testemunhas": 0,
+      "testemunha_no_contexto": false,
+      "classe_prova": "nenhuma",
+      "fallback": "denso (pesquisa sem prova suficiente)",
+      "contexto_alterado_pelo_witness": true,
+      "risco": 1.0,
+      "risco_bruto": 99.0,
+      "risco_calibrado": false,
+      "resposta_estrutural": "",
+      "candidatos_explorados": 14,
+      "documentos_entregues": 5,
+      "orcamento_leitor": 5
+    },
+    "filtered": false,
+    "latency_s": 6.779176406562328,
+    "passages": [
+      {
+        "pid": "p-e4bf8e7cc5579de18c9f7935",
+        "title": "LoCoMo conv-48 history chunk 3",
+        "text": "Session date: 9:48 am on 4 February, 2023\n[D4:42] Deborah: Life's tough but hang in there. Look to your sources of strength and you'll do great. Stay in touch, take care of yourself, and know I'm always here to cheer you on!\n[D4:43] Jolene: Thanks, Deb! Your encouragement means a lot to me. I'll definitely stay in touch. Bye, take care and keep shining!\n[D4:44] Deborah: Stay safe!  Bye!\nSession date: 9:03 pm on 9 February, 2023\n[D5:1] Jolene: Hey Deborah! Been a few days since we last talked so I wanted to fill you in on something cool. Last Wednesday I did a mini retreat to assess where I'm at in life. It was a dope experience that totally gave me a new outlook.\n[D5:2] Deborah: Hey Jolene! Sounds great. Taking time to reflect can be really awesome. Did you gain any new insights from it?\n[D5:3] Jolene: Yep! I achieved so much more than I imagined. It was a real confidence boost.\n[D5:4] Deborah: You deserve credit for stepping outside your comfort zone and believing in yourself. What cool stuff did you accomplish at the retreat?\n[D5:5] Jolene: I really accomplished something with my engineering project - I came up with some neat solutions and I'm really excited about it.\n[D5:6] Deborah: Let's go into more detail.\n[D5:7] Jolene:  Green tech could really make a difference in disadvantaged areas. I'd like to look into it and see how I can contribute. Hey, speaking of helping out, I had an idea: a volunteer program where engineers teach STEM to underprivileged kids. What do you think of that?\n[D5:8] Deborah: That sounds great, Jolene! It's a great way to help and inspire others. They would benefit a lot from your knowledge. Have you thought of a plan yet?\n[D5:9] Jolene: Haven't finished planning yet but I'm thinking of teaming up with local schools/centers to do workshops. We could even invite engineers as guest speakers to show kids their career options.\n[D5:10] Deborah: Having guest speakers, like them, would definitely give the kids a real-world view. Have you reached out to any schools or centers yet?\n[D5:11] Jolene: No, not yet. I want to solidify the plan first. Can't wait to start reaching out, though!\n[D5:12] Deborah: That makes sense. I'm excited to hear how you reach out and help those kids. Let me know how it goes!\n[D5:13] Jolene: I'll keep you posted! Appreciate the support! Here are my sketches in the planner.\n[D5:13] Image caption (automatic): a photo of a notebook with a pen and a notebook with a page of notes\n[D5:14] Deborah: Sounds like you're doing great. Let me know if you need more tips or information.\n[D5:15] Jolene: Thanks, Deb! If I need anything else, I'll let you know. You're awesome!\n[D5:16] Deborah: You're awesome too! Take care!\n[D5:17] Jolene: Stay safe!\nSession date: 4:12 pm on 22 February, 2023\n[D6:1] Jolene: Hey Deborah, totally buzzing! Had a great night out last night - dinner, and drinks with my friends. So glad I got to let my hair down. You?\n[D6:1] Image caption (automatic): a photo of a plate of food and a glass of wine\n[D6:2] Deborah: Sounds great, Jolene! I just visited this place and it was so calming. Nostalgic too.\n[D6:2] Image caption (automatic): a photo of a garden with a bunch of flowers in buckets\n[D6:3] Jolene: Wow, those flowers are beautiful! What type are they? It looks so peaceful there.\n[D6:4] Deborah: The roses and dahlias bring me peace. I lost a friend last week, so I've been spending time in the garden to find some comfort.\n[D6:5] Jolene: Sorry to hear about your friend, Deb. Losing someone can be really tough. How are you holding up?\n[D6:6] Deborah: Thanks for the kind words. It's been tough, but I'm comforted by remembering our time together. It reminds me of how special life is.\n[D6:7] Jolene: Memories can give us so much comfort and joy.\n[D6:8] Deborah: Memories keep our loved ones close. This is the last photo with Karlie which was taken last summer when we hiked. It was our last one. We had such a great time! Every time I see it, I can't help but smile.\n[D6:8] Image caption (automatic): a photo of two women are riding on a motorcycle on a dirt road\n[D6:9] Jolene: Wow, looks like a great trip! Where else have you traveled?\n[D6:10] Deborah: I've been blessed to travel to a few places and Bali last year was one of my favs. It was a gorgeous island that gave me peace, great for yoga.\n[D6:10] Image caption (automatic): a photo of a swing on a beach with a blue sky\n[D6:11] Jolene: Wow, that's great! Is yoga on the beach a thing? I've been wanting to try it.\n[D6:12] Deborah: The sound of the waves and the fresh air is wonderful!\n[D6:13] Jolene: I'll definitely give it a go! It sounds peaceful. Thanks!\n[D6:14] Deborah: Let me know how it goes. Enjoy it!\n[D6:15] Jolene: I'll keep you posted if I decide to go there.\n[D6:16] Deborah: Take care!\nSession date: 4:50 pm on 25 February, 2023\n[D7:1] Jolene: Hi Deborah, it's been a while! Since we last talked, so much has happened. Balancing engineering school with my partner's video games is quite a feat. But I'm also setting aside time for myself, doing yoga and meditation. It helps give me calm amidst the craziness.\n[D7:2] Deborah: Hey Jolene! Great to hear from you. Taking a break is key. How have those practices been helping with everything?\n[D7:3] Jolene: They seriously saved me. I chill out and gain perspective when I do yoga. Afterward, I'm more alert and motivated. Here is my last photo.\n[D7:3] Image caption (automatic): a photo of a woman sitting on a yoga mat doing a yoga pose\n[D7:4] Deborah: Wow, cool that yoga has been helping you out! Do they also do yoga with you? Does your partner do yoga with you?\n[D7:5] Jolene: He started joining me sometimes, which is nice for bonding and relaxing. It's brought us closer. This is just our random photo.\n[D7:5] Image caption (automatic): a photo of a man and a woman holding hands with rings on them\n[D7:6] Deborah: Aw, that's wonderful! How long have you been married?\n[D7:7] Jolene: We're not married yet but we've been together for three years. We're taking it slow and loving the ride. This ring on his hand is just a decoration, not a wedding ring.\n[D7:8] Deborah: Sounds nice, Jolene. Enjoying the journey is the main thing. So, how did you two meet?\n[D7:9] Jolene: We actually met in an engineering class in college and quickly became friends. It eventually blossomed into something more and it's been great!\n[D7:9] Image caption (automatic): a photo of a book and a calculator on a table\n[D7:10] Deborah: Wow, your relationship started from a strong friendship. Do you still enjoy working on engineering projects together?\n[D7:11] Jolene: Yep, teaming up for these projects feels great! We get each other's struggles and both love it.\n[D7:11] Image caption (automatic): a photo of a group of men standing in front of a building\n[D7:12] Deborah: Have yoga or meditation helped with any stress?\n[D7:13] Jolene: Whenever I'm overwhelmed, I just take a break and do some breathing or meditate. It really helps me feel calmer and clearer, so I'm able to handle challenges more easily.\n[D7:14] Deborah: It's been great to see your progress since we last chatted - keep it up!\n[D7:15] Jolene: Thanks, Deb! Your support really means a lot. I'm gonna keep pushing forward and continue taking time for myself."
+      },
+      {
+        "pid": "p-d4a773addf0d822326522ba8",
+        "title": "LoCoMo conv-48 history chunk 2",
+        "text": "Session date: 7:03 pm on 1 February, 2023\n[D3:4] Deborah: That's awesome, Jolene! You're enjoying the process. It must be really satisfying to see it come together. Keep up the good work! Oh, by the way, I met my new neighbor Anna yesterday!\n[D3:4] Image caption (automatic): a photo of a yellow sign with a picture of a family\n[D3:5] Jolene: How did you two meet?\n[D3:6] Deborah: It happened at yoga in the park.\n[D3:7] Jolene: Wow, that's awesome! It's great connecting with people who have similar interests. Did you two talk about it?\n[D3:8] Deborah: Yeah, we talked about how it has improved our lives and the sense of community it gives.\n[D3:9] Jolene: Sounds great!\n[D3:9] Image caption (automatic): a photo of a purse with a plant on a table\n[D3:10] Deborah: Have you ever thought about resuming yoga?\n[D3:11] Jolene: Well... we planned to play the console with my partner.\n[D3:12] Deborah: It's also good that you have something to do together.\n[D3:13] Jolene: Thanks for the kind words!\n[D3:14] Deborah: Gotta run bye!\n[D3:15] Jolene: See you soon!\nSession date: 9:48 am on 4 February, 2023\n[D4:1] Jolene: Hey Deborah! Good to hear from you. How've you been? I've been on an emotional rollercoaster lately, but I'm coping.\n[D4:2] Deborah: Hey Jolene! Good to hear from you. All good here - how about you? Anything new happening lately?\n[D4:3] Jolene: I had a major milestone last week and it went really well - I'm so relieved and proud. It was a huge accomplishment for me as an engineer.\n[D4:4] Deborah: That's awesome. You must have worked really hard for that. I'm so proud of you. Care to share more about it?\n[D4:5] Jolene: Thanks so much! I had to plan and research a lot to design and build a sustainable water purifier for a rural community in need. It was tough, but I loved the experience.\n[D4:6] Deborah: Your engineering skills really made a difference for people in a rural area. That's amazing! How did it feel when you saw it working?\n[D4:7] Jolene: It was such a surreal moment. Seeing it working and providing clean water to the community was incredibly satisfying. It reminded me of how engineering can make a difference in people's lives. It made me feel like I had a purpose and had done something good.\n[D4:8] Deborah: So, what are your career aspirations now?\n[D4:9] Jolene:  I want to keep working in engineering and continue to make a positive impact on communities in need by creating sustainable solutions. My goal is to contribute towards making the world a better place with my work.\n[D4:10] Deborah:  I'm sure great things will keep coming your way. Keep up the good work and follow your passions!\n[D4:11] Jolene: Your support means a lot. I'm determined to keep going and make a difference. Your encouragement really motivates me to pursue my passions.\n[D4:12] Deborah: When things get tough, just take a deep breath and remember why you're doing this. This is where I spend a lot of my time, teaching yoga. It's a great way to find balance and reconnect with ourselves. I bonded with Anna during yesterday's l yoga class.\n[D4:12] Image caption (automatic): a photo of two women in a dance studio doing a dance pose\n[D4:13] Jolene: Wow, that's awesome! What new poses did you try?\n[D4:14] Deborah: We were trying out different dance poses, like Warrior II, which builds strength and boosts focus.\n[D4:14] Image caption (automatic): a photo of a woman doing a yoga pose on a chair\n[D4:15] Jolene: Is it difficult to do?\n[D4:16] Deborah: Yes, but this brought us closer to Anna! We supported each other, that means a lot.\n[D4:17] Jolene: Can you explain how to do it?\n[D4:18] Deborah: Sure! To do this modified pose, sit on the edge of a chair with your feet planted. Twist your torso to one side and use your hand on your knee for support. You'll feel a stretch in your back and shoulders as you hold it for a few breaths, then switch sides. It's great for relaxing tense muscles.\n[D4:19] Jolene: Sounds really hard! Here's my bookshelf!\n[D4:19] Image caption (automatic): a photo of a book shelf with a lot of books on it\n[D4:20] Deborah: That's quite a collection! Have you had a favorite book lately? I'd love to hear your thoughts.\n[D4:21] Jolene: Thanks Deborah! I'm really into this book called \"Sapiens\" - it's a fascinating look at human history and how technology has affected us. It's giving me a lot to think about!\n[D4:22] Deborah: Great, this is interesting! Have you come across any recent ones that really struck you?\n[D4:23] Jolene: Two weeks ago I read \"Avalanche\" by Neal Stephenson in one sitting! \n[D4:24] Deborah: That sounds cool, Jolene. Stories can be so powerful - they can teach us, motivate us, and bring us together. \n[D4:25] Jolene: I also read a recent story about someone who became successful despite facing numerous challenges. It really showed me that anything is possible if you believe and work hard.\n[D4:26] Deborah: That's a really powerful message. It reminds me of someone special and their grace and strength when they faced hardships. Check out this creation!\n[D4:26] Image caption (automatic): a photo of a bouquet of flowers in a vase on a table\n[D4:27] Jolene: Wow, Deb! That's beautiful! Can you tell me the backstory of that bouquet?\n[D4:28] Deborah: My friend gave me this bouquet when I was struggling, and it gives me hope and courage. I'm filled with warmth and appreciation when I look at it.\n[D4:29] Jolene: That's really sweet. Such a small thing can make a real difference.\n[D4:30] Deborah: It's amazing how something as simple as flowers can make a real difference. Nature sure is beautiful.\n[D4:31] Jolene: Where are some of your favorite nature spots?\n[D4:32] Deborah: Oh, there's so many great places! My favorite is a park with a forest trail - it's so calming getting lost in nature. Then there's this beach nearby that I love - the sound of the waves and the sand under my feet make me feel all peaceful and happy. Do you have any favorite spots, Jolene?\n[D4:33] Jolene: Here's a picture I took on vacation last summer in Bogota. It was so beautiful and calming watching the sunset over the water. It definitely made me appreciate nature's calming power.\n[D4:33] Image caption (automatic): a photo of a person walking on the beach with a surfboard\n[D4:34] Deborah: That sounds great, Jolene. Nature's calming for sure. Guess it helps us forget the daily craziness and find inner peace. No wonder you're a fan! I like to come to this spot by the water near my mom's old house. It's where I reflect on her life and find some peace. Being surrounded by nature helps a lot.\n[D4:34] Image caption (automatic): a photo of a small island with a lone boat in the water\n[D4:35] Jolene: That's so touching! Do you have any little traditions that you do when you come to reflect on your mom?\n[D4:36] Deborah: Do you remember this amulet from her? Whenever I come here, I bring it with me. It's how I feel her love and stay close to her. Holding it brings me comfort.\n[D4:36] Image caption (automatic): a photo of a woman wearing a white shirt and a gold chain necklace\n[D4:37] Jolene: It's amazing how something so small can have such a big impact, huh?\n[D4:38] Deborah: Yeah, even small things like this can make a big difference. It's a reminder of all the love and strength we have inside, connecting us to people we've lost and comforting us.\n[D4:39] Jolene: It can keep them close in our hearts every day.\n[D4:40] Deborah: Anna also has a pendant that she wears in memory of her mother! This also brought us closer.\n[D4:41] Jolene: It's nice to have those reminders as a source of strength when we need it."
+      },
+      {
+        "pid": "p-fd1d966a73bb72a90585158c",
+        "title": "LoCoMo conv-48 history chunk 4",
+        "text": "Session date: 4:50 pm on 25 February, 2023\n[D7:16] Deborah:  Always rooting for you. Remember to listen to your heart and take good care. Here's a photo I took while reflecting outdoors. It's a reminder to find peace even in chaos.\n[D7:16] Image caption (automatic): a photo of a person sitting on a bench looking at the sunset\n[D7:17] Jolene:  I'm curious, what does your daily routine look like?\n[D7:18] Deborah: In the morning, I meditate, do yoga, and teach classes. And yesterday I went for a morning jog for the first time in a nearby park. I will now incorporate this into my daily routine. And in the evenings, I spend time with loved ones.\n[D7:19] Jolene: Why did you decide that?\n[D7:20] Deborah: Exercise is key for me - it makes me feel connected to my body. \n[D7:21] Jolene: This is a great healthy habit!\n[D7:22] Deborah: It's like they say - \"Can't pour from an empty cup.\" Looking out for ourselves gives us the energy to help others. And don't forget, you're worth it too!\n[D7:23] Jolene: Thanks, Deb. Your words really mean something to me. I'll keep remembering to prioritize self-care.\nSession date: 7:18 pm on 2 March, 2023\n[D8:1] Deborah: Hey Jolene, Anna got me a vegan stir-fry the other day - tofu and veg with ginger and soy sauce. It was really tasty! Food is such a wonderful source of pleasure and nourishment. What dishes are comforting to you?\n[D8:2] Jolene: One of my favorite dishes is lasagna! Comfort food can be a great pick-me-up. I've got a lot going on with my studies and exams.\n[D8:3] Deborah: Have you been able to find time for yourself lately?\n[D8:4] Jolene: I've been trying to squeeze in some me-time. Last Friday, I did yoga and meditation to relax. Did you find time for yourself too?\n[D8:4] Image caption (automatic): a photo of a room with a wooden floor and a window\n[D8:5] Deborah:  I also did the same, it helped me reset my mind. How does it make you feel?\n[D8:6] Jolene: It's amazing how a few quiet moments can work wonders for the soul.\n[D8:6] Image caption (automatic): a photo of a purse with a plant on a table\n[D8:7] Deborah: Have you been able to get outside lately?\n[D8:8] Jolene: I did take Seraphim to the park last Sunday. She loved it and here's a pic.\n[D8:8] Image caption (automatic): a photo of a lizard laying on the ground surrounded by leaves\n[D8:9] Deborah: Looks like you guys had fun!\n[D8:10] Jolene: We explored new places. People are surprised when they see a tamed snake. What do you like about being outdoors?\n[D8:11] Deborah: Hmm... The birds chirping and the breeze gently blowing! It reminds me of what really matters.\n[D8:12] Jolene: Yep, it's like a reminder to slow down and appreciate the little things.\n[D8:13] Deborah: Is there anything you want to be more mindful of right now?\n[D8:14] Jolene: I need to be more mindful of my stress levels and take care of my mental health. Sometimes I get too caught up in my studies and forget to prioritize self-care.\n[D8:15] Deborah:  Life can get hectic and it's easy to forget about ourselves. \n[D8:16] Jolene: Exams and deadlines got me feeling overwhelmed. Just look at my to-do list! It seems never-ending... Trying my best but it's been challenging.\n[D8:16] Image caption (automatic): a photo of a desk with a notebook and a computer monitor\n[D8:17] Deborah: Your efforts will bear fruit, don't give up!\n[D8:18] Jolene: Thanks, Deb. Any tips on studying or time management?\n[D8:19] Deborah: My tip is to break it into smaller pieces and set goals for yourself. For time management, planners or schedulers help you stay organized and give you time for yourself. Let me know if you need help with a study plan!\n[D8:20] Jolene: I appreciate your help with that.\n[D8:21] Deborah: Take care and good luck with your exams. I'll give you a mug just like this one! It encourages.\n[D8:21] Image caption (automatic): a photo of a yellow coffee cup with a handwritten message\n[D8:22] Jolene: Thanks, Deb! This really cheered me up. All the best with your classes. Bye!\n[D8:23] Deborah: Thanks, Jolene! Glad I could bring a smile to your face. Take care and make sure to give yourself some time to relax. Bye!\nSession date: 11:22 am on 13 March, 2023\n[D9:1] Deborah: Hi Jolene! We haven't corresponded for a long time!\n[D9:2] Jolene: Hey Deb, yeah life can get chaotic. How's it been going lately?\n[D9:3] Deborah: So much has been going on lately. I started this yoga class in the neighborhood - it's such a good feeling! Now I get to share the exercise with my neighbors and watch it really transform them.\n[D9:4] Jolene:  Congrats. How did you do this?\n[D9:5] Deborah: Thanks! My neighbors were interested in trying yoga, so I hosted a class for them on Friday. It was great to see everyone embrace and enjoy it. Here is our photo together.\n[D9:5] Image caption (automatic): a photo of a group of women posing for a picture\n[D9:6] Jolene: That's cool! What made you want to start teaching it?\n[D9:7] Deborah: I find it calming and wanted to share that with others. Giving people peace and awareness brings me so much happiness.\n[D9:8] Jolene: Wow, Deb! It's awesome when we can share something we love and make things better for others.\n[D9:9] Deborah: Teaching it is awesome because it can help others and I've made such great friends through it. It's really nice for building community connections.\n[D9:10] Jolene: That's really motivating. It's great to have support in tough times.\n[D9:11] Deborah: It's one of life's best parts, right?\n[D9:12] Jolene: Yeah, having someone to rely on is key in tough times. It really makes a difference in how we handle life. Plus, there's something I wanted to tell you.\n[D9:13] Deborah: What's up? I'm listening. We'll figure it out.\n[D9:14] Jolene: I'm having a hard time dealing with my Engineering assignments. It's a lot to manage and I'm struggling to keep up. Can we still talk about time management?\n[D9:15] Deborah: Sure, Jolene. Let's find a time that works for both of us.\n[D9:16] Jolene: Let's find a time to chat - I'll check my schedule and get back to you.\n[D9:17] Deborah: Take your time, Jolene. We'll work it out. Take care of yourself, OK?\n[D9:18] Jolene:  I'll make sure to take it. See you soon!\n[D9:19] Deborah:  I'm here for you if you need me. Let's catch up soon.\n[D9:20] Jolene: Have a great day!\nSession date: 5:35 pm on 22 March, 2023\n[D10:1] Deborah: Hey Jolene, it's been a while. Hope you're doing okay with all your exams and deadlines. I know it's difficult for you right now.\n[D10:2] Jolene: Hey Deb! Yeah, it can be tough. Trying to find time for everything is like playing catch-up - really stressful!\n[D10:3] Deborah:  How do you manage your time and stay organized with all the projects and deadlines?\n[D10:4] Jolene: I'm using the Pomodoro Technique - 25 minutes work, 5-minute break - to avoid burnout but I'm still struggling to prioritize. Do you have any other tips on time management?\n[D10:5] Deborah: I create a daily schedule or to-do list. Here's my example for today.\n[D10:5] Image caption (automatic): a photo of a notepad with a list of things to do\n[D10:6] Jolene: I tried making one but it's kinda overwhelming when it's a big stack of tasks. Here's an example from last Friday.\n[D10:6] Image caption (automatic): a photo of a notepad with notes on it on a counter"
+      },
+      {
+        "pid": "p-a81be1f839487c48bc261094",
+        "title": "LoCoMo conv-48 history chunk 6",
+        "text": "Session date: 3:56 pm on 6 June, 2023\n[D13:1] Jolene: Hey Deborah! Long time no talk - I had lots of stuff going on. Remember the tough engineering project? I finally wrapped that up last month. Look at the result!\n[D13:1] Image caption (automatic): a photo of a solar powered vehicle with a solar panel on the back\n[D13:2] Deborah: Jolene! Congrats on wrapping up your with it! You really put in the work and it paid off. \n[D13:3] Jolene:  I'm really proud of myself for sticking it out despite the problems and finishing it. It's definitely a big milestone.\n[D13:4] Deborah: Now that you've reached this big milestone, what do you have planned next?\n[D13:5] Jolene:  I'm interning at a well-known engineering firm. It's been a great opportunity to test my skills and gain real-world experience. These are my new colleagues!\n[D13:5] Image caption (automatic): a photo of a group of construction workers posing for a picture\n[D13:6] Deborah: What's been the best part of it so far?\n[D13:7] Jolene: The best part so far has been being able to apply what I learned in school to real projects. It's so fulfilling to see my ideas come to life.\n[D13:8] Deborah: Mind if I ask how the internship has impacted you?\n[D13:9] Jolene: It has had a positive impact on my life. It has stoked my love of engineering and has encouraged me to keep striving for my dreams.\n[D13:10] Deborah:  How has it inspired you to keep striving for your dreams?\n[D13:11] Jolene: Hanging out with people who love what they do has really inspired me to stay focused and keep working towards my goals. It's shown me that with dedication and effort, anything is possible.\n[D13:12] Deborah: Have you been able to find a good work-life balance during your internship?\n[D13:13] Jolene: Honestly, finding that balance has been tough. I've been slogging away and it's been hard to make time for my hobbies and chilling out.\n[D13:14] Deborah:  Have you considered taking some breaks and finding activities like yoga to help you relax and unwind? That might make a difference.\n[D13:15] Jolene: Yeah, I`m trying to do it. Here's an example of how I spent yesterday morning, yoga on top of mount Talkeetna.\n[D13:15] Image caption (automatic): a photo of a man standing on a rock with his arms outstretched\n[D13:16] Deborah: Nice job, Jolene! How long have you been doing yoga and meditation? It looks like it's really helping you regroup and recharge.\n[D13:17] Jolene: I've been doing them sporadically for about 3 years now and they've had a real positive effect on me.\n[D13:18] Deborah: Has it benefited you in any way? Have you found it helpful in difficult moments?\n[D13:19] Jolene: It has helped me with stress and kept me centered.\n[D13:20] Deborah: Glad they've been helpful for you!\n[D13:21] Jolene: No idea how I would've survived without them!\n[D13:22] Deborah: This is my favorite studio and it's always so calming. \n[D13:22] Image caption (automatic): a photo of a room with a bench and a window\n[D13:23] Jolene:  I was wondering if you have any advice on calming the mind and breathing during yoga?\n[D13:24] Deborah: I'd recommend practicing mindful breathing for yoga. Set aside a few minutes each day to sit with your eyes closed, take deep breaths, and focus on how the air feels entering and leaving your body. \n[D13:25] Jolene: Thanks, Deborah! I'll definitely give it a try. Appreciate the advice!\n[D13:26] Deborah:  If you need more tips or help, just let me know. Take care!\n[D13:27] Jolene: See you!\nSession date: 9:17 am on 26 June, 2023\n[D14:1] Deborah: Hey Jolene! How's it going? We haven't talked in a while. I've been busy getting ready for a yoga retreat with some buddies. A chance to hang out with people who think like me and find peace and understanding. Sounds awesome!\n[D14:1] Image caption (automatic): a photo of a group of people doing yoga in a park\n[D14:2] Jolene: Hey Deb! Been super hectic with internship and stuff. That retreat sounds awesome, I could definitely use a break!\n[D14:3] Deborah: By the way, I tried a new pose - Dancer Pose (Natarajasana). Rate, did I succeed?\n[D14:3] Image caption (automatic): a photo of a woman doing a yoga pose on the beach\n[D14:4] Jolene: You are amazing as always! Here are new photos of Seraphim in the new aquarium that I bought the day before yesterday.\n[D14:4] Image caption (automatic): a photo of a snake curled up in a plant filled area\n[D14:5] Deborah: Where'd you get it? I'm always drawn to animals, they bring so much joy. What's its story?\n[D14:6] Jolene:  I got her last year, she's a great pet. She always cheers me up and brings a sense of peace. Spending time with her is so comforting.\n[D14:7] Deborah: Pets really do make life more enjoyable and bright. \n[D14:7] Image caption (automatic): a photo of a group of people doing yoga in a field\n[D14:8] Jolene:  I'm so thankful it's here. Plus, it's nice to have a calm creature around.\n[D14:9] Deborah: How have things been besides that?\n[D14:10] Jolene: Things have been intense lately. I'm really pushing myself to succeed, and sometimes it feels overwhelming. But I'm determined to overcome any obstacles and achieve my goals.\n[D14:11] Deborah: Keep up the hard work and remember to relax too.\n[D14:12] Jolene: Thanks, Deborah! I had a big breakthrough with this project - so exciting and rewarding!\n[D14:12] Image caption (automatic): a photo of a drawing of a house with a ruler and a ruler\n[D14:13] Deborah: Awesome, Jolene! I'm really glad your project worked out. \n[D14:14] Jolene: Stop talking about me, tell me more about your retreat.\n[D14:15] Deborah: I'd rather show you a photo. This is also a new yoga pose that we tried. It is a tree pose.\n[D14:15] Image caption (automatic): a photo of three people standing in front of a large statue\n[D14:16] Jolene: What's that statue in the picture?\n[D14:17] Deborah: It's a symbol of peace and enlightenment.\n[D14:18] Jolene: Wow, it looks gorgeous! I'd love to visit a retreat like that. It seems like the ideal spot to find peace and refreshment.\n[D14:19] Deborah: It's perfect for reflecting and getting centered.\n[D14:20] Jolene: I could really use some chill time like that. Sounds so peaceful.\n[D14:21] Deborah: Yeah, we all need some peaceful time to relax.\n[D14:22] Jolene: Gotta run, have a nice day!\n[D14:23] Deborah: See you!\n[D14:23] Image caption (automatic): a photo of a sunset reflecting in a lake with a boat\nSession date: 7:37 pm on 9 July, 2023\n[D15:1] Deborah: Hey Jolene! I started a running group with Anna - it's awesome connecting with people who care about fitness!\n[D15:1] Image caption (automatic): a photo of three men standing next to each other on a road\n[D15:2] Jolene: Cool, Deb! Glad you found some people to get fit with. I'm trying to add workouts into my studying schedule, which has been tough but fun. How about you? Any challenges with the running group?\n[D15:3] Deborah: Oh, I'm having a blast with it! We help and push each other during our runs, which makes it so much easier to stay motivated.  I have a lot of my photos from this activity.\n[D15:3] Image caption (automatic): a photo of a woman standing on a sidewalk with a skateboard"
+      },
+      {
+        "pid": "p-798ee270955a988bd4236e39",
+        "title": "LoCoMo conv-48 history chunk 10",
+        "text": "Session date: 9:34 am on 24 August, 2023\n[D21:6] Jolene: My goal is to be successful in my field and make a positive impact. I've been studying, attending workshops, and networking to make it happen. Recently, I had the opportunity to present at a virtual conference and received positive feedback.  It was a great experience and confirmed that I'm on the right track.\n[D21:7] Deborah: You really put your heart and soul into it. Must have been amazing having it go so well. How did it feel when people gave you positive feedback? Any ideas for what comes next?\n[D21:8] Jolene: I was thrilled to receive such positive feedback! It felt so rewarding to know that my efforts were appreciated. Right now, I'm focusing on studying and gaining more experience. I'm even thinking about more internships to further enhance my skills. Exciting times! Hopefully, there will be more updates to share with you soon.\n[D21:9] Deborah: Wow, Jolene! Way to go! I'm super proud of all you've achieved. Let me know if you need any help. Onward!\n[D21:10] Jolene: Thanks, Deb! Your support means a lot to me. \n[D21:11] Deborah: No problem. You got this! \n[D21:12] Jolene:  I'm not giving up, just gonna keep pushing forward.\n[D21:13] Deborah: Reach for your goals and don't forget to enjoy the journey. \n[D21:14] Jolene: Thanks, Deb. Your support means a lot. I'll keep pushing forward and remember to enjoy every step of the way.\n[D21:15] Deborah: Come on! The journey's as important as the destination. Take time for yourself and find joy in it. We believe in you!\n[D21:15] Image caption (automatic): a photo of a field of sunflowers with a sunset in the background\n[D21:16] Jolene: Yeah, you're right! I'll take your advice and find joy on the way. Cheers for the support!\n[D21:16] Image caption (automatic): a photo of a city skyline at sunset with a body of water\n[D21:17] Deborah: Always by your side!\nSession date: 5:33 pm on 26 August, 2023\n[D22:1] Deborah: Hey Jolene, since we talked I've been thinking about my mom's influence. Remembering those we love is important.\n[D22:2] Jolene: I understand, Deb. Remembering and cherishing the memories of our loved ones is so important. It's comforting to know that their influence still guides us. Last Friday, my partner and I talked about how our loved ones have influenced us and what their values meant to us. It was an emotional chat, but it made us feel closer and showed us what really matters. \n[D22:3] Deborah: Those types of conversations really help build relationships. Can you tell me more about the values they have given you?\n[D22:4] Jolene: Definitely! Our loved ones have taught us to persevere and stay resilient, like my mom always said to never give up, and my partner's dad showed them to stay determined. Their values have influenced us to pursue our goals, such as me with engineering and my partner with their creative endeavors. Even though they're not here, we both feel their values encouraging us along our paths.\n[D22:5] Deborah: That's wonderful to hear, Jolene! It's amazing how their values continue to guide you, even in their absence. It sounds like you and your partner are honoring their memory by pursuing your respective passions. Have you ever considered incorporating those values into your work as well?\n[D22:6] Jolene: Yeah, Deborah! We've been figuring out how to add these values into our projects. As an engineering student, I want to use my talents to do good and help solve important problems. I'm keen on coming up with new ideas and making things more efficient to make the world a better place. Going further, my mom stressed the value of helping others and that's something I want to keep in mind for my engineering projects.\n[D22:7] Deborah: When our work ties into our values, it becomes more meaningful. What goals or ideas do you have for incorporating those values into your future projects?\n[D22:8] Jolene: In the future, I'm aiming to work on projects that make a real difference to communities. I'm interested in sustainable initiatives and developing innovative solutions for environmental issues. I also want to get involved with organizations that focus on social causes, using my skills to help out. It's about connecting my passion for engineering with my commitment to making a positive impact.\n[D22:9] Deborah: You've got a lot of amazing plans for the future. Which projects are you most interested in getting involved in?\n[D22:10] Jolene: I'm keen on two projects in particular. One is focused on developing renewable energy, like solar, to help communities and reduce dependence on non-renewables. \n[D22:11] Deborah: Wow Jolene, that's really inspiring!\n[D22:12] Jolene: The other is finding ways to supply clean water to those with limited access. Both align with my beliefs about sustainability and assisting those in need. I still have so much to figure out before beginning, but I'm up for the challenge.\n[D22:13] Deborah: Sounds great, Jolene! Research is key to success. Little steps and being up for challenges make you stronger. I'm here for you. Connecting to yourself helps tackle any issue. Here's a photo that reminds me of the beauty of nature during a yoga session.\n[D22:13] Image caption (automatic): a photo of a woman doing a yoga pose on the beach\n[D22:14] Jolene: It helps with challenges, giving balance and strength. Any tips for staying relaxed while studying?\n[D22:15] Deborah: Taking breaks, doing some stretching/yoga, or just going for a walk is really helpful. And don't forget to get enough sleep and take time for self-care. Finding a balance between work and taking care of yourself is important. What self-care activities have you been doing lately?\n[D22:16] Jolene: I've been into yoga and meditation lately. It helps me recharge. Doing different poses relieves tension and calms my mind. I've already shared my newfound love for yoga with my partner, and we're planning to go on a meditation retreat together to enhance our practice together.\n[D22:16] Image caption (automatic): a photo of a woman in a pink shirt doing a yoga pose\n[D22:17] Deborah: Glad to hear that yoga is helping you rest and recharge. It's great for reflection and self-care. Do your snakes also enjoy it?\n[D22:18] Jolene: My snakes just like watching me chill. But she's a great company and always brings a sense of calm.\n[D22:19] Deborah: Having a pet around is such a calming feeling. They sure can bring a great sense of comfort. I still have cats, Luna is sitting on the left.\n[D22:19] Image caption (automatic): a photo of two cats sitting on a window sill looking out\n[D22:20] Jolene: Aww, that's adorable! What's the second one's name?\n[D22:21] Deborah: Max! They bring lots of joy and peace to our home.\n[D22:21] Image caption (automatic): a photo of a brown leather chair and a black and white floor\n[D22:22] Jolene: How did you get them?\n[D22:23] Deborah: Max is my mother's cat, I took him when my mother passed away.\n[D22:23] Image caption (automatic): a photo of a car with a fan and a mesh bag\n[D22:24] Jolene: You're great for taming him. How did you get Luna?\n[D22:25] Deborah: I took Luna from the shelter.\n[D22:26] Jolene: It’s wonderful that you have become their loving owner!\n[D22:27] Deborah: Yes, I really love cats, and they also need a home, love, and care! Moreover, Max is already old, he is 8 years old.\n[D22:28] Jolene: How old is Luna?\n[D22:29] Deborah: She is younger, she is 5 years old.\n[D22:30] Jolene: I am proud of your action to tame these pets!\nSession date: 11:46 am on 30 August, 2023\n[D23:1] Jolene: Hey Deborah, how's it going? Guess what? Yesterday my partner and I got back from an awesome trip to Rio de Janeiro- we checked out some cool yoga classes.\n[D23:1] Image caption (automatic): a photo of a woman doing a yoga pose in a mirror\n[D23:2] Deborah: That yoga pose looks great. Must've been a cool experience for the two of you. What did the trip teach you?"
+      }
+    ],
+    "hash": "9beda5495f62183e19768007f7247d4bbdab20ec852e2105a374384f1cf44360"
+  },
+  "calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Generate up to 2 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 2 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  start learning; wants to learn; learn; teach; teaches responsibility; motivate; bring together; use talents; give out; cultivate self-awareness; boost confidence; promote mental health; receive support from; grow and learn; have idea; help; organize workshop; get involved with; workshop aims; hope; spend time; start; excited about; keep updated; get clarity; come up with; inspire; help with; excited for; love; wants to try; get to know; organize event; team up with; realize; work towards; light up; know; find supportive folks; gift\nEntity names that exist in the graph, useful as constants:\n  Jolene's plans; Jolene's project; Jolene; passion for video games of Jolene; Jolene about time management; parents of Jolene; a game with Jolene; Jolene's progress; mom of Jolene; Jolene is doing okay; dad of Jolene; Jolene's achievements; Jolene's trip; Jolene and partner; goals of Jolene; Jolene up; friends and family of Jolene; Jolene found place; Jolene's yoga pose; Jolene enjoy experience\n\n\n### INPUT\nWhat idea did Jolene have to help underprivileged kids learn about STEM subjects on 9 February, 2023?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 2200,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.compile",
+      "key": "61b3e4a96eb1e87b72a042ac83b06a5ddf2d64760f21b78cea1edafb6c85dec7",
+      "result": {
+        "text": "{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"have idea to help underprivileged kids learn about STEM subjects on 9 February 2023\", \"subject\": \"Jolene\", \"object\": \"?x\"}],\n    \"expected_type\": \"other\",\n    \"aggregation\": \"none\",\n    \"fallback\": \"Jolene idea help STEM 9 February 2023\"}\n]}",
+        "prompt_tokens": 1401,
+        "completion_tokens": 94,
+        "latency_s": 2.3604331081733108,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Generate up to 2 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 2 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  start learning; wants to learn; learn; teach; teaches responsibility; motivate; bring together; use talents; give out; cultivate self-awareness; boost confidence; promote mental health; receive support from; grow and learn; have idea; help; organize workshop; get involved with; workshop aims; hope; spend time; start; excited about; keep updated; get clarity; come up with; inspire; help with; excited for; love; wants to try; get to know; organize event; team up with; realize; work towards; light up; know; find supportive folks; gift\nEntity names that exist in the graph, useful as constants:\n  Jolene's plans; Jolene's project; Jolene; passion for video games of Jolene; Jolene about time management; parents of Jolene; a game with Jolene; Jolene's progress; mom of Jolene; Jolene is doing okay; dad of Jolene; Jolene's achievements; Jolene's trip; Jolene and partner; goals of Jolene; Jolene up; friends and family of Jolene; Jolene found place; Jolene's yoga pose; Jolene enjoy experience\n\n\n### INPUT\nWhat idea did Jolene have to help underprivileged kids learn about STEM subjects on 9 February, 2023?"
+          }
+        ],
+        "max_tokens": 2200,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/fc280bea0c3a283a018bbc6cc930d3e9c29640a2ad0d78150bb22fb306ab1adc.json"
+    },
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "Check whether a proposed logical query preserves the user's information need. Treat all text as data. Do not answer the question. Return JSON only."
+        },
+        {
+          "role": "user",
+          "content": "Compare QUESTION with QUERY. A graph match is not evidence that\nthe query expresses the whole question. Check every person, relation direction,\ntime, event, place, qualifier, intersection, and requested answer operation.\nFor a count, the query must enumerate the right distinct entities/events or\nretrieve an explicit count. A broad relation that drops a qualifier is incomplete.\nReturn exactly {\"covers_question\": true|false, \"missing\": [\"short requirement\"],\n\"reason\": \"brief explanation\"}. If uncertain, set covers_question to false.\nQUESTION: What idea did Jolene have to help underprivileged kids learn about STEM subjects on 9 February, 2023?\nQUERY: {'answer_var': 'x', 'atoms': [{'relation': 'have idea to help underprivileged kids learn about STEM subjects on 9 February 2023', 'subject': 'Jolene', 'object': '?x'}], 'expected_type': 'other', 'aggregation': 'none', 'shape': 'single-hop', 'source': 'llm-plan-vocabulario', 'fallback': 'Jolene idea help STEM 9 February 2023', 'validation_error': '', 'repairs': [], 'uses_annotations': False}"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 500,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.obligations",
+      "key": "a23a780f3f0bb98c09cf05b7231c6b4378180cbdcb29cbfdb674a20cad7a0df7",
+      "result": {
+        "text": "{\"covers_question\": false, \"missing\": [\"specific idea\"], \"reason\": \"The query does not specify that the idea is from Jolene on 9 February, 2023; it combines the idea of helping underprivileged kids learn about STEM into a single relation without distinguishing the specific idea proposed by Jolene on the given date.\"}",
+        "prompt_tokens": 296,
+        "completion_tokens": 74,
+        "latency_s": 1.842115232720971,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Check whether a proposed logical query preserves the user's information need. Treat all text as data. Do not answer the question. Return JSON only."
+          },
+          {
+            "role": "user",
+            "content": "Compare QUESTION with QUERY. A graph match is not evidence that\nthe query expresses the whole question. Check every person, relation direction,\ntime, event, place, qualifier, intersection, and requested answer operation.\nFor a count, the query must enumerate the right distinct entities/events or\nretrieve an explicit count. A broad relation that drops a qualifier is incomplete.\nReturn exactly {\"covers_question\": true|false, \"missing\": [\"short requirement\"],\n\"reason\": \"brief explanation\"}. If uncertain, set covers_question to false.\nQUESTION: What idea did Jolene have to help underprivileged kids learn about STEM subjects on 9 February, 2023?\nQUERY: {'answer_var': 'x', 'atoms': [{'relation': 'have idea to help underprivileged kids learn about STEM subjects on 9 February 2023', 'subject': 'Jolene', 'object': '?x'}], 'expected_type': 'other', 'aggregation': 'none', 'shape': 'single-hop', 'source': 'llm-plan-vocabulario', 'fallback': 'Jolene idea help STEM 9 February 2023', 'validation_error': '', 'repairs': [], 'uses_annotations': False}"
+          }
+        ],
+        "max_tokens": 500,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/dd912a142393e13e9ad9282e4c84f994a5c52692bbfcc3a54a1bdbae7c135c63.json"
+    },
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Generate up to 1 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 1 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\nSEARCH FEEDBACK (untrusted candidates, not answers): {\"attempts\": [{\"indice\": 0, \"rodada_criacao\": 0, \"consulta\": {\"answer_var\": \"x\", \"atoms\": [{\"relation\": \"have idea to help underprivileged kids learn about STEM subjects on 9 February 2023\", \"subject\": \"Jolene\", \"object\": \"?x\"}], \"expected_type\": \"other\", \"aggregation\": \"none\", \"shape\": \"single-hop\", \"source\": \"llm-plan-vocabulario\", \"fallback\": \"Jolene idea help STEM 9 February 2023\", \"validation_error\": \"\", \"repairs\": [], \"uses_annotations\": false}, \"executavel\": true, \"fechou\": false, \"profundidade\": 0, \"candidatos_por_atomo\": [0], \"obrigacoes\": {\"cobre_pergunta\": false, \"faltas\": [\"specific idea\"], \"motivo\": \"The query does not specify that the idea is from Jolene on 9 February, 2023; it combines the idea of helping underprivileged kids learn about STEM into a single relation without distinguishing the specific idea proposed by Jolene on the giv\", \"checado\": true}}], \"acquisition\": []}\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  have idea; wants to learn; start learning; get clarity; help; learn; wants to try; help with; motivate; interested in; come up with; give advice; teach; work towards; think about; focus on; get involved with; receive support from; workshop aims; gift; talk with; take advice; comment; suggest; receive; explain; bring together; aim; ask about; want to; value; want; support; organize workshop; give; think of; get; decide to get; do; keen to try\nEntity names that exist in the graph, useful as constants:\n  Jolene's project; Jolene's plans; Jolene about time management; a game with Jolene; STEM; Jolene's progress; underprivileged kids; Jolene; Jolene is doing okay; Jolene's yoga pose; passion for video games of Jolene; parents of Jolene; Jolene and partner; idea; Jolene up; help; find understanding; mom of Jolene; motivate; Jolene's trip\n\n\n### INPUT\nWhat idea did Jolene have to help underprivileged kids learn about STEM subjects on 9 February, 2023?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 2200,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.replan",
+      "key": "dd202d2454a029ce267196eda4bf94a916fd0f49637e8e695884b3efe2d0d971",
+      "result": {
+        "text": "{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"have idea to help underprivileged kids learn about STEM subjects on 9 February 2023\", \"subject\": \"Jolene\", \"object\": \"?x\"}],\n    \"expected_type\": \"other\",\n    \"aggregation\": \"none\",\n    \"fallback\": \"Jolene idea help STEM 9 February 2023\"}\n]}",
+        "prompt_tokens": 1650,
+        "completion_tokens": 94,
+        "latency_s": 2.4127908516675234,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Generate up to 1 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 1 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\nSEARCH FEEDBACK (untrusted candidates, not answers): {\"attempts\": [{\"indice\": 0, \"rodada_criacao\": 0, \"consulta\": {\"answer_var\": \"x\", \"atoms\": [{\"relation\": \"have idea to help underprivileged kids learn about STEM subjects on 9 February 2023\", \"subject\": \"Jolene\", \"object\": \"?x\"}], \"expected_type\": \"other\", \"aggregation\": \"none\", \"shape\": \"single-hop\", \"source\": \"llm-plan-vocabulario\", \"fallback\": \"Jolene idea help STEM 9 February 2023\", \"validation_error\": \"\", \"repairs\": [], \"uses_annotations\": false}, \"executavel\": true, \"fechou\": false, \"profundidade\": 0, \"candidatos_por_atomo\": [0], \"obrigacoes\": {\"cobre_pergunta\": false, \"faltas\": [\"specific idea\"], \"motivo\": \"The query does not specify that the idea is from Jolene on 9 February, 2023; it combines the idea of helping underprivileged kids learn about STEM into a single relation without distinguishing the specific idea proposed by Jolene on the giv\", \"checado\": true}}], \"acquisition\": []}\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  have idea; wants to learn; start learning; get clarity; help; learn; wants to try; help with; motivate; interested in; come up with; give advice; teach; work towards; think about; focus on; get involved with; receive support from; workshop aims; gift; talk with; take advice; comment; suggest; receive; explain; bring together; aim; ask about; want to; value; want; support; organize workshop; give; think of; get; decide to get; do; keen to try\nEntity names that exist in the graph, useful as constants:\n  Jolene's project; Jolene's plans; Jolene about time management; a game with Jolene; STEM; Jolene's progress; underprivileged kids; Jolene; Jolene is doing okay; Jolene's yoga pose; passion for video games of Jolene; parents of Jolene; Jolene and partner; idea; Jolene up; help; find understanding; mom of Jolene; motivate; Jolene's trip\n\n\n### INPUT\nWhat idea did Jolene have to help underprivileged kids learn about STEM subjects on 9 February, 2023?"
+          }
+        ],
+        "max_tokens": 2200,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/ee68e9645e31895589f78277002ea206e665bf7f1b62d41d56b2368fbc8daf30.json"
+    }
+  ],
+  "usage": {
+    "total": {
+      "chamadas": 3,
+      "tokens_resposta": 262,
+      "em_cache": 0,
+      "tokens_prompt": 3347,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 3347,
+      "tokens_resposta_sem_cache": 262
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 94,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 94,
+        "latencia_s": 2.359999999999957,
+        "filtradas": 0,
+        "tokens_prompt": 1401,
+        "tokens_prompt_sem_cache": 1401
+      },
+      "witness.obligations": {
+        "chamadas": 1,
+        "tokens_resposta": 74,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 74,
+        "latencia_s": 1.8400000000000034,
+        "filtradas": 0,
+        "tokens_prompt": 296,
+        "tokens_prompt_sem_cache": 296
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft.repair": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 1,
+        "tokens_resposta": 94,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 94,
+        "latencia_s": 2.409999999999968,
+        "filtradas": 0,
+        "tokens_prompt": 1650,
+        "tokens_prompt_sem_cache": 1650
+      }
+    }
+  },
+  "cost_mode": "experiment_cache_actual_hits_recorded"
+}

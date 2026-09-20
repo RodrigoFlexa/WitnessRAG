@@ -1,0 +1,660 @@
+{
+  "qid": "locomo:conv-44:qa85",
+  "dataset": "locomo",
+  "metodo": "witnessrag",
+  "pergunta": "What type of classes did Audrey start with her pups recently on 4 August, 2023?",
+  "respostas_ouro": [
+    "Agility classes"
+  ],
+  "passagens_ouro": [
+    "p-7ca1b0517281de0739480f00"
+  ],
+  "n_hops": 1,
+  "n_hops_fonte": "support_count_proxy",
+  "tipo": "single-hop",
+  "recuperadas": [
+    "p-7ca1b0517281de0739480f00",
+    "p-e827a2216dcd28029c164483",
+    "p-b9d8cd0ccc5c5e70288ba9da",
+    "p-aa646a69db20418851d476b0",
+    "p-ef446c6f67a90bdc62d56253"
+  ],
+  "scores": [
+    1.0,
+    0.5,
+    0.333333,
+    0.25,
+    -0.999969
+  ],
+  "resposta": "agility classes",
+  "em": 1.0,
+  "f1": 1.0,
+  "recall@2": 1.0,
+  "recall@5": 1.0,
+  "all_recall@5": 1.0,
+  "cobertura_testemunha": NaN,
+  "cobertura_extremos_relaxada": NaN,
+  "em_estrutural": 0.0,
+  "testemunha_no_contexto": true,
+  "abstencao": false,
+  "risco": 1.0,
+  "risco_bruto": 99.0,
+  "forma_consulta": "single-hop",
+  "resposta_estrutural": "",
+  "filtrada": false,
+  "latencia_recuperacao_s": 14.794,
+  "latencia_leitura_s": 1.948,
+  "diagnosticos": {
+    "pesquisa_provas": {
+      "fronteira": [
+        "p-b9d8cd0ccc5c5e70288ba9da",
+        "p-e827a2216dcd28029c164483",
+        "p-d84e92b467c568ce2bbc30ff",
+        "p-aa646a69db20418851d476b0",
+        "p-2e908515645a36506c49a072",
+        "p-ef446c6f67a90bdc62d56253",
+        "p-8f130464a4efb50451938b4e",
+        "p-5b79b973363aa04e3f983313",
+        "p-7ca1b0517281de0739480f00"
+      ],
+      "sondas": [
+        "What type of classes did Audrey start with her pups recently on 4 August, 2023?",
+        "Audrey start recently on 4 August 2023",
+        "Audrey classes start recently on 4 August 2023"
+      ],
+      "acoes": [
+        {
+          "plano": 0,
+          "lacuna": {
+            "atomo": {
+              "relation": "start recently on 4 August 2023",
+              "subject": "Audrey",
+              "object": "?x"
+            },
+            "sujeito_ligado": "Audrey",
+            "objeto_ligado": "",
+            "profundidade": 0
+          },
+          "passagens": [
+            "p-e827a2216dcd28029c164483",
+            "p-d84e92b467c568ce2bbc30ff",
+            "p-aa646a69db20418851d476b0"
+          ],
+          "fatos_novos": 0
+        },
+        {
+          "plano": 0,
+          "lacuna": {
+            "atomo": {
+              "relation": "start recently on 4 August 2023",
+              "subject": "Audrey",
+              "object": "?x"
+            },
+            "sujeito_ligado": "Audrey",
+            "objeto_ligado": "",
+            "profundidade": 0
+          },
+          "passagens": [
+            "p-7ca1b0517281de0739480f00",
+            "p-b9d8cd0ccc5c5e70288ba9da",
+            "p-ef446c6f67a90bdc62d56253"
+          ],
+          "fatos_novos": 1
+        }
+      ],
+      "buscas_dirigidas": 2,
+      "replanejamentos": 3,
+      "rejeicoes": 0
+    },
+    "planos_compilados": [
+      {
+        "indice": 0,
+        "rodada_criacao": 0,
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "start recently on 4 August 2023",
+              "subject": "Audrey",
+              "object": "?x"
+            }
+          ],
+          "expected_type": "other",
+          "aggregation": "none",
+          "shape": "single-hop",
+          "source": "llm-plan-vocabulario",
+          "fallback": "Audrey classes start recently on 4 August 2023",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false
+        },
+        "executavel": true,
+        "fechou": true,
+        "profundidade": 1,
+        "candidatos_por_atomo": [
+          1
+        ],
+        "obrigacoes": {
+          "cobre_pergunta": false,
+          "faltas": [
+            "type of classes"
+          ],
+          "motivo": "The query does not specify the type of classes Audrey started with her pups.",
+          "checado": true,
+          "grau": "partial",
+          "contrato": "soft-v2",
+          "tentativas": [
+            {
+              "raw": "{\"tier\":\"partial\", \"missing\":[\"type of classes\"], \"reason\":\"The query does not specify the type of classes Audrey started with her pups.\"}",
+              "error": ""
+            }
+          ]
+        }
+      },
+      {
+        "indice": 1,
+        "rodada_criacao": 1,
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "start recently on 4 August 2023",
+              "subject": "Audrey",
+              "object": "?y"
+            },
+            {
+              "relation": "type of classes",
+              "subject": "?y",
+              "object": "?x"
+            }
+          ],
+          "expected_type": "other",
+          "aggregation": "none",
+          "shape": "chain",
+          "source": "llm-replan-vocabulario",
+          "fallback": "Audrey classes type start recently on 4 August 2023",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false
+        },
+        "executavel": true,
+        "fechou": false,
+        "profundidade": 1,
+        "candidatos_por_atomo": [
+          1,
+          4
+        ],
+        "obrigacoes": {
+          "cobre_pergunta": false,
+          "faltas": [
+            "type of classes"
+          ],
+          "motivo": "The query captures Audrey starting classes recently on 4 August, 2023, but the relation 'type of classes' is not correctly directed. The query should ask what the type of classes are that Audrey started, not what Audrey started that are typ",
+          "checado": true,
+          "grau": "partial",
+          "contrato": "soft-v2",
+          "tentativas": [
+            {
+              "raw": "{\"tier\":\"partial\", \"missing\":[\"type of classes\"], \"reason\":\"The query captures Audrey starting classes recently on 4 August, 2023, but the relation 'type of classes' is not correctly directed. The query should ask what the type of classes are that Audrey started, not what Audrey started that are types of classes.\"}",
+              "error": ""
+            }
+          ]
+        }
+      }
+    ],
+    "planejamento": {
+      "orcamento_planos": 5,
+      "planos_distintos": 2,
+      "chamadas": 4,
+      "replanejamentos": 3
+    },
+    "plano_escolhido": 0,
+    "n_testemunhas": 1,
+    "testemunha_no_contexto": true,
+    "classe_prova": "provisional",
+    "empacotamento": {
+      "provas_selecionadas": [
+        {
+          "resposta": "agility classes with my pups at a dog park",
+          "passagens": [
+            "p-7ca1b0517281de0739480f00"
+          ]
+        }
+      ],
+      "respostas_cobertas": 1,
+      "passagens_de_prova": 1
+    },
+    "ordem_fallback_preservada": false,
+    "contexto_alterado_pelo_witness": true,
+    "fallback": "hibrido_com_hipotese_nao_certificada",
+    "prova_provisoria": true,
+    "consulta": {
+      "answer_var": "x",
+      "atoms": [
+        {
+          "relation": "start recently on 4 August 2023",
+          "subject": "Audrey",
+          "object": "?x"
+        }
+      ],
+      "expected_type": "other",
+      "aggregation": "none",
+      "shape": "single-hop",
+      "source": "llm-plan-vocabulario",
+      "fallback": "Audrey classes start recently on 4 August 2023",
+      "validation_error": "",
+      "repairs": [],
+      "uses_annotations": false
+    },
+    "forma": "single-hop",
+    "n_testemunhas_no_contexto": 1,
+    "respostas": [
+      {
+        "resposta": "agility classes with my pups at a dog park",
+        "score": 0.762,
+        "score_tipo": "melhor_testemunha_heuristico",
+        "risco_calibrado": false,
+        "risco": 0.3975,
+        "risco_bruto": 0.3975,
+        "n_testemunhas": 1,
+        "testemunhas": [
+          {
+            "resposta": "agility classes with my pups at a dog park",
+            "score": 0.9525,
+            "custo": 0.1986,
+            "passagens": [
+              "p-7ca1b0517281de0739480f00"
+            ],
+            "fatos": [
+              [
+                "Audrey",
+                "start recently on 4 August 2023",
+                "agility classes with my pups at a dog park"
+              ]
+            ]
+          }
+        ]
+      }
+    ],
+    "leitura_provas": {
+      "hipoteses": "Candidate 1: agility classes with my pups at a dog park\n  [1] Audrey | start recently on 4 August 2023 | agility classes with my pups at a dog park",
+      "grau": "provisional",
+      "condicoes_pendentes": [
+        "type of classes"
+      ]
+    },
+    "resposta_estrutural": "",
+    "risco": 1.0,
+    "risco_bruto": 99.0,
+    "conjunto_resposta": {
+      "resposta": "agility classes with my pups at a dog park",
+      "n_itens": 1,
+      "itens_descartados_por_limite": 0,
+      "completude_certificada": false,
+      "risco_do_pior_item": 0.3975,
+      "itens": [
+        {
+          "resposta": "agility classes with my pups at a dog park",
+          "score": 0.762,
+          "risco": 0.3975,
+          "n_testemunhas": 1,
+          "passagens": [
+            "p-7ca1b0517281de0739480f00"
+          ],
+          "fatos": [
+            [
+              "Audrey",
+              "start recently on 4 August 2023",
+              "agility classes with my pups at a dog park"
+            ]
+          ]
+        }
+      ]
+    },
+    "agregacao_executada": "none",
+    "risco_calibrado": false,
+    "candidatos_explorados": 15,
+    "documentos_entregues": 5,
+    "orcamento_leitor": 5
+  },
+  "uso_llm": {
+    "total": {
+      "chamadas": 13,
+      "tokens_resposta": 611,
+      "em_cache": 1,
+      "tokens_prompt": 29750,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 28386,
+      "tokens_resposta_sem_cache": 527
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 1,
+        "tokens_resposta": 9,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 9,
+        "latencia_s": 1.9499999999999886,
+        "filtradas": 0,
+        "tokens_prompt": 9350,
+        "tokens_prompt_sem_cache": 9350
+      },
+      "witness.acquire": {
+        "chamadas": 6,
+        "tokens_resposta": 70,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 70,
+        "latencia_s": 7.019999999999982,
+        "filtradas": 0,
+        "tokens_prompt": 11940,
+        "tokens_prompt_sem_cache": 11940
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 84,
+        "em_cache": 1,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 2.1299999999999955,
+        "filtradas": 0,
+        "tokens_prompt": 1364,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 2,
+        "tokens_resposta": 104,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 104,
+        "latencia_s": 2.6299999999999955,
+        "filtradas": 0,
+        "tokens_prompt": 923,
+        "tokens_prompt_sem_cache": 923
+      },
+      "witness.replan": {
+        "chamadas": 3,
+        "tokens_resposta": 344,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 344,
+        "latencia_s": 8.860000000000014,
+        "filtradas": 0,
+        "tokens_prompt": 6173,
+        "tokens_prompt_sem_cache": 6173
+      }
+    }
+  },
+  "f1_locomo": 1.0,
+  "em_locomo": 1.0,
+  "categoria_locomo": 4,
+  "uso_leitor": {
+    "total": {
+      "chamadas": 1,
+      "tokens_resposta": 9,
+      "em_cache": 0,
+      "tokens_prompt": 9350,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 9350,
+      "tokens_resposta_sem_cache": 9
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 1,
+        "tokens_resposta": 9,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 9,
+        "latencia_s": 1.9499999999999886,
+        "filtradas": 0,
+        "tokens_prompt": 9350,
+        "tokens_prompt_sem_cache": 9350
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      }
+    }
+  },
+  "uso_recuperacao": {
+    "total": {
+      "chamadas": 12,
+      "tokens_resposta": 602,
+      "em_cache": 1,
+      "tokens_prompt": 20400,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 19036,
+      "tokens_resposta_sem_cache": 518
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.acquire": {
+        "chamadas": 6,
+        "tokens_resposta": 70,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 70,
+        "latencia_s": 7.019999999999982,
+        "filtradas": 0,
+        "tokens_prompt": 11940,
+        "tokens_prompt_sem_cache": 11940
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 84,
+        "em_cache": 1,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 2.1299999999999955,
+        "filtradas": 0,
+        "tokens_prompt": 1364,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 2,
+        "tokens_resposta": 104,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 104,
+        "latencia_s": 2.6299999999999955,
+        "filtradas": 0,
+        "tokens_prompt": 923,
+        "tokens_prompt_sem_cache": 923
+      },
+      "witness.replan": {
+        "chamadas": 3,
+        "tokens_resposta": 344,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 344,
+        "latencia_s": 8.860000000000014,
+        "filtradas": 0,
+        "tokens_prompt": 6173,
+        "tokens_prompt_sem_cache": 6173
+      }
+    }
+  },
+  "reader_calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You answer questions using only the passages provided. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Answer the question using only the source passages below.\n\nThe evidence map lists possible graph joins extracted from those passages. It\nis a navigation aid, not an answer key or a certificate. For each candidate,\ncheck the cited passage text, the direction of every relation, and EVERY\ncondition in the question. Ignore any candidate that fails a condition or is\nnot explicitly supported by its cited passage. The map can omit correct answers:\nalso inspect the passages themselves. Never infer an exact count from a partial\nlist of graph candidates.\n\nGive the shortest complete answer: a name, date, number or short noun phrase.\nFor questions asking for a set, list every distinct supported item, separated\nby commas. If the passages do not contain the answer, say \"insufficient\ninformation\". Return JSON exactly: {\"answer\": \"...\"}\n\nEVIDENCE MAP (provisional; conditions to verify: type of classes):\nCandidate 1: agility classes with my pups at a dog park\n  [1] Audrey | start recently on 4 August 2023 | agility classes with my pups at a dog park\n\nSOURCE PASSAGES:\n[1] LoCoMo conv-44 history chunk 7\nSession date: 10:05 am on 11 July, 2023\n[D12:16] Audrey: Counting down the days 'til our hike! Gotta get them ready soon!\n[D12:17] Andrew: Same here! It's gonna be awesome. Let's talk later k?\nSession date: 3:52 pm on 27 July, 2023\n[D13:1] Andrew: Hey Audrey! How are you? My GF and I just had a great experience volunteering at a pet shelter on Monday - it was so rewarding! We loved spending time with those cute animals and it gave us so much joy. It was so rewarding, it reminded me just how much I love them!\n[D13:2] Audrey: Hi Andrew! I'm good, thanks. That's awesome about the pet shelter volunteering. Helping animals really is great and you can tell when they're happy! So happy for you getting to experience that! I should do that someday too!\n[D13:3] Andrew: Thanks! Seeing them so content makes me happy, it really makes me realize how special and full of love they are! Have you ever volunteered at an animal shelter? It can be so rewarding. \n[D13:4] Audrey: Never been to an animal shelter before, but it must be great! My four fur babies are more important to me than anything! Here's a pic of us from a fun day out at the park.\n[D13:4] Image caption (automatic): a photo of a woman kissing a dog in a park\n[D13:5] Andrew: Aww that's a cute photo! How are their personalities? Tell me more!\n[D13:6] Audrey: Well the oldest one is the most relaxed, like a wise old sage. The second one is always ready for a game. The third one can be naughty but loves a good cuddle. And the youngest one is full of life and always up for an adventure. They all have their own individual personalities and I adore them.\n[D13:7] Andrew: Wow, they sound amazing! They must remind you of your childhood pup. That photo of you with your dog is so cute, he looks like the most playful one ever! Pets really do bring so much joy in your life!\n[D13:7] Image caption (automatic): a photo of a dog is sitting on the floor with a tennis ball\n[D13:8] Audrey: Thanks! That one is Max, my childhood dog. He had lots of energy and loved a game of fetch. I have lots of great memories with him. Pets sure bring a lot of joy.\n[D13:9] Andrew: Yeah! Their love and energy can really brighten up a day. It's amazing how close we can get to them and the memories they create for us. Do you have any other special memories with Max that you remember fondly?\n[D13:10] Audrey: Max and I would take long walks in the neighborhood when I was a kid. We explored new paths, him sniffing and marking his territory. We grew really close, and I shared my worries and hopes with him. He was a great listener, always there for me. Those days are some of my favorite memories. \n[D13:11] Andrew: Pets are more than just pets - they become friends and confidantes. They always know how to listen and provide comfort when we need it. They can make us feel so loved and understood, leaving a lasting mark on our lives.\n[D13:12] Audrey: Pets truly make our lives so much better. They listen without judging and give us the best unconditional love. They always leave a mark in our hearts and remind us how it feels to be seen and understood. I'm thankful to have them around - they bring so much joy, comfort, and love.\n[D13:13] Andrew: You nailed it! That's why we went volunteering with animals. It has been one of the most rewarding things I've ever done. They really do lift our spirits with all their love, joy, and comfort.\n[D13:14] Audrey: I'm so glad you guys got to experience that! Animals really have a way of brightening our day and giving us lots of love and joy. I'm sure the pet shelter really appreciated your help too!\n[D13:15] Andrew: Yeah we had a blast volunteering. It's our way of giving back and making their lives better!\n[D13:16] Audrey: I'm sure your kindness and care will make them happier no doubt!\nSession date: 11:05 am on 4 August, 2023\n[D14:1] Andrew: Hey, Audrey! I can't wait for the weekend. My girlfriend, Toby and I are going camping. It's been forever since I've been in nature.\n[D14:1] Image caption (automatic): a photo of a woman setting up a tent on a rocky hill\n[D14:2] Audrey: That's awesome! That must be fun! I just started agility classes with my pups at a dog park. It's awesome to watch them learn and build relationships with other dogs. Seeing them face and conquer challenges really warms my heart.\n[D14:2] Image caption (automatic): a photo of a dog in a field of flowers and grass\n[D14:3] Andrew: Wow it's amazing to watch them grow together. They look so cool overcoming obstacles like that. Impressive stuff!\n[D14:3] Image caption (automatic): a photography of a dog jumping through a ring in the air\n[D14:4] Audrey: Thanks! They've come a long way. They have so much fun with it, it's a great physical and mental workout. I take them to the park twice a week for practice - it's been a great bonding experience.\n[D14:4] Image caption (automatic): a photography of a group of dogs sitting on a dirt road\n[D14:5] Andrew: Awesome! You're having fun with them and keeping them busy - how's that going? Btw look at the trail that I was just at. Cool right?\n[D14:5] Image caption (automatic): a photography of a dirt path in the woods with rocks and trees\n[D14:6] Audrey: It's been tough at times, but overall it's going great. We're all growing together. Check out this pic of us on a trail hike!\n[D14:6] Image caption (automatic): a photography of a woman walking her dogs down a path\n[D14:7] Andrew: Wow, nice hike! How long was the trail?\n[D14:8] Audrey: The hike took us two hours and it was stunning! We saw lots of amazing views and it was great to explore nature.\n[D14:9] Andrew: That sounds awesome! Being able to just be in nature and appreciate it is really cool. I wish I could do that more often.\n[D14:10] Audrey: Nature really refreshes you, right? It's nice to appreciate all the beauty around us. Are there any outdoor activities you enjoy lately?\n[D14:11] Andrew: Well for me hiking is the best. Being out in nature with all the trees and fresh air always refreshes me. Reaching the top of a challenging trail is amazing too - it feels like all worries just vanish when you get to the top.\n[D14:12] Audrey: Yeah, totally. It's like you've achieved something and all worries just fade away. Nature is pretty special, huh?\n[D14:13] Andrew: Yeah, nature really calms me down and relaxes my mind. It's like a break from the craziness of city living.\n[D14:14] Audrey: Yeah! It's a refuge from the busy city life and it's even better when you can share it with someone special. My pets have been my good ol' buddies during all the tough times! They make me so happy and I love them so much.\n[D14:15] Andrew: Agreed! Sharing something you enjoy with someone is great. Plus, those types of bonds bring loads of joy and love.\n[D14:16] Audrey: Yeah, humans and animals have a cool connection. They bring us so much joy and love. I'm blessed to have my furry friends in my life. They're my companions and always make my day better.\n[D14:16] Image caption (automatic): a photo of a dog laying in a dog bed in a living room\n[D14:17] Andrew: They're pretty lucky to have you as their owner. Hoping for the day I can have such a deep bond with Toby and experience that special bond too.\n[D14:17] Image caption (automatic): a photo of a stream running through a lush green forest\n[D14:18] Audrey: Yeah they really mean the world to me. Btw, I never really asked, what breed is Toby?\n[D14:18] Image caption (automatic): a photo of three dogs sitting on a wooden floor looking up\n[D14:19] Andrew: He's a German Shepherd - they're so smart and loyal! What do you think?\n[D14:20] Audrey: German Shepherds are indeed awesome! They are super loyal and smart. You'll have an amazing connection with one!\n\n[2] LoCoMo conv-44 history chunk 3\nSession date: 5:41 pm on 3 May, 2023\n[D4:25] Audrey: The hats don't bother them, they just put them on for fun and treats. And the dog park is great place to start! They can run and mingle with other pooches. It's such a fun spot for playdates!\n[D4:25] Image caption (automatic): a photography of a dog jumping through a ring in a park\n[D4:26] Andrew: That sounds great! Where is it located?\n[D4:27] Audrey: It's right by the park we usually walk. It's a great spot with lots of trees and benches for us to watch the dogs play.\n[D4:28] Andrew: That's awesome, not too far away then! I'll have to check it out. Thanks for the suggestion!\n[D4:29] Audrey: Yup! Not at all! Let me know how it goes.\n[D4:30] Andrew: Sure, I'll let you know. Always great chatting with you! Ttyl.\nSession date: 10:47 am on 6 May, 2023\n[D5:1] Andrew: Hey! Since we last spoke, I've been looking for a doggo to adopt - browsing websites, visiting shelters and asking friends of theirs. It's been both fun and annoying!\n[D5:1] Image caption (automatic): a photography of a dog looking through a cage at the camera\n[D5:2] Audrey: Sounds like a fun and demanding task! Getting to meet new pups must bring so much happiness. What  do you think you can do to make the process smoother?\n[D5:2] Image caption (automatic): a photo of two dogs running in a field with a ball in their mouth\n[D5:3] Andrew: Meeting all these adorable pups has been awesome! For those considering getting a pup, the size of living space and the exercise needs of the breed are important. For me, a person living in an apartment, a smaller dog would be best, but if one is active, consider getting one that loves to play and run.\n[D5:4] Audrey: That's some good advice! It's important to consider the space and energy needs of a dog.\n[D5:5] Andrew: Yeah! Finding a pet-friendly place to live has been tough too. I'm contacting landlords and checking out neighborhoods to find the perfect spot.\n[D5:6] Audrey: Guessing it's tough to find housing. Any particular part of town you want to live in?\n[D5:7] Andrew: I'm looking for a place near a park or woods, so I can stay close to nature and give the dog a large open space to run around\n[D5:8] Audrey: That's a good plan! I'm lucky to have a park near me - it's great for my pup's walks. Last Friday we took a road trip - we went to a beautiful national park and my dogs had a blast! It was an awesome trip!\n[D5:8] Image caption (automatic): a photography of three dogs running through a field of grass\n[D5:9] Andrew: Nice! Glad the pups had a great road trip. Do you take them on road trips often?\n[D5:10] Audrey: I take them on road trips once every couple of months. It's a great way for them to explore and stay active.\n[D5:11] Andrew: Wow, that's awesome! I really wish I could go on a road trip with a furry companion.\n[D5:12] Audrey: It's a cool experience. Having your furry friends on a road trip is an amazing experience. They make it really fun and exciting. It's definitely something to look forward to!\n[D5:13] Andrew: Adding that to my bucket list! Can't wait for the day I actually go on a trip with my dog!\n[D5:14] Audrey: Good luck with your search! Fingers crossed you find the perfect one.\n[D5:15] Andrew: Thanks! Your help is much appreciated. I'm still on the lookout for the perfect furry friend.\n[D5:16] Audrey: Not a problem, I'm glad to help! Good luck with your search!\n[D5:17] Andrew: Thanks! I'll let you know how it goes. \n[D5:18] Audrey: Definitely, keep me posted and let me know if you need any suggestions or help.\n[D5:19] Andrew: Will do! Really apprecieate it. \n[D5:20] Audrey: Yup! You got it, I'll be expecting a pic of your dog soon! :)\n[D5:21] Andrew: Haha I can't wait. I'll ttyl, gotta check out another shelter soon.\n[D5:22] Audrey: Have fun! Ttyl!\nSession date: 2:03 pm on 11 May, 2023\n[D6:1] Andrew: Hi Audrey! I had a great hike last weekend with some friends and my girlfriend at the spot we found recently. Nature was so peaceful – it was so nice to just relax and take it in. How's your week been? Anything exciting going on lately?\n[D6:1] Image caption (automatic): a photography of a dirt path leading to a grassy hill\n[D6:2] Audrey: Hey Andrew! That hike sounds great. Nature is good for the soul, right? My week's been good - taking care of my four doggies and making sure they're happy and healthy took up most of my free time. Also, exciting news! I signed up for a workshop about bonding with my pet next month. Can't wait to learn new stuff and strengthen my bond with my pets. What's up with you?\n[D6:2] Image caption (automatic): a photography of a group of dogs with a yellow circle\n[D6:3] Andrew: That's awesome! Glad have the opportunity to bond with your pets. That workshop sounds cool. Where did you hear about it? And the one in the picture is adorable!\n[D6:4] Audrey: I know right? I saw this workshop flyer at my local pet store. It was a positive reinforcement training class and I wanted to give it a shot. The volunteer in the store was nice enough to let me meet their dog – he was so friendly and playful!\n[D6:5] Andrew: Cool! Positive reinforcement can really help you bond with your dogs. Do you think they'll catch on quickly?\n[D6:6] Audrey: I'm sure they'll catch on really quick! They're quick learners and love rewards! Can't wait to learn how to train them better.\n[D6:7] Andrew: That's awesome! Keep me updated on their progress.\n[D6:8] Audrey: Definitely! I'll keep you updated on how it all goes and how my pups are doing. Fingers crossed they'll be extra behaved. And I'll let you know some tips on training your future dog as well!\n[D6:9] Andrew: Thanks! I'm excited to hear about it. Have a great time at the workshop!\n[D6:10] Audrey: I'll definitely have a good time and make the most of it. I'm sure this is a must learn for any dog owner.\n[D6:11] Andrew: You think so? Wow, you must be a good salesperson because I'm almost sold on this class haha.\n[D6:12] Audrey: Haha, I just think its important to have pets learn how to behave on a positive reinforcement way. Punishment is never the proper way for pets ya know?\n[D6:13] Andrew: Yeah I would't want to be punished, let alone puppies and dogs.\n[D6:14] Audrey: Right!? I don't want to hurt any of my dogs. Just by thinking of it gives me pain.\n[D6:15] Andrew: Yeah I feel you. Anyways, let me look into their classes. I'll talk to you soon, have fun!\n[D6:16] Audrey: Yup, ttyl!\nSession date: 11:27 am on 2 June, 2023\n[D7:1] Audrey: Hey how's it going? Yesterday took my pups to the park, it was awesome! Seeing them running around and playing without a leash was awesome. It filled my heart with joy - their happiness brought me so much peace. \n[D7:2] Andrew: That sounds amazing! Must have been so happy watching them running around. It's moments like that which show us how amazing animals are. Glad you had a great time. By the way, I think you mentioned before that you've taken them on a hiking trip? \n[D7:2] Image caption (automatic): a photo of a sunset over a mountain range with a horse grazing\n[D7:3] Audrey: Yeah, I took them for a hike before. We went to a national park last week and made it to this beautiful peak. It was stunning during the sunset, and I'll never forget it. My furry pals were running around as it was so awesome. It felt like a slice of paradise. The breeze was nice and you could hear birds chirping.\n[D7:4] Andrew: That sounds amazing! I'm sure it was a memorable experience. Did you manage to capture it? I'd love to see a photo!\n[D7:5] Audrey: Yep! I took a bunch of photos. This one of my favorites.\n[D7:5] Image caption (automatic): a photo of two horses in a field with a fence\n\n[3] LoCoMo conv-44 history chunk 15\nSession date: 9:02 am on 22 November, 2023\n[D28:1] Audrey: Hey Andrew! Long time no talk! Last Friday I took my fur kids to the pet salon - they were so psyched and their tails were wagging like crazy! It took a while for them to calm down, but all cut up they looked so cute! \n[D28:2] Andrew: Hey Audrey! Nice to hear from you. Sounds adorable! Do you have any pictures of them all groomed up?\n[D28:3] Audrey: Here's a pic of them, looking all groomed. Look at those shiny coats! To top it off, they were really good at the salon - I always worry about them in new places.\n[D28:3] Image caption (automatic): a photography of a dog is standing on a table with a leash\n[D28:4] Andrew: Wow, they look great! Love seeing them happy and calm in new places.\n[D28:5] Audrey: Thanks! It means a lot to see them happy and settled in new places. I guess I'm doing a good job as a doggy mom then, haha! Have you taken your furry friends to the groomers yet?\n[D28:6] Andrew: No, we haven't got the chance to take them to the groomer yet. But will do that soon! So guess what, I can't help myself but to adpot another dog the other day. Here's a photo of the doggo!\n[D28:6] Image caption (automatic): a photo of a woman feeding a dog hay in a barn\n[D28:7] Audrey: That's great news! What's the pups name?\n[D28:8] Andrew: It took us a while to decide, but we ended up going with 'Scout' for our pup - it seemed perfect for their adventurous spirit.\n[D28:9] Audrey: That's a great name for your pup! Fits their adventurous spirit. What's Scout's first adventure gonna be?\n[D28:10] Andrew: Thanks! We're gonna take Scout, Toby, and Buddy to a nearby park. It's not big, but we can all have fun and get some fresh air!\n[D28:11] Audrey: Sounds like a great start for Scout! Start small, and gradually give them more exposure. They'll have a great time, just make sure to keep them leashed.\n[D28:11] Image caption (automatic): a photography of a dog running with a tennis ball in its mouth\n[D28:12] Andrew: Yeah, safety first! For now, we're keeping the new addition on a leash while they get used to being outside. That pic you of your dog at the park is so cute. So we got some essentials for their comfort and entertainment, like a bed, toys, and some puppy pads just in case. It's like their own little safe haven.\n[D28:13] Audrey: Wow, that's so great that you two are creating a safe and fun space for Scout. It's really important they have a place that makes them feel secure. Slowly introduce Scout to Toby and Buddy, it takes time for the pups to get used to each other too! Scout is so lucky to have you and your girlfriend! \n[D28:14] Andrew: Thanks! We feel so lucky to have Scout. It's been amazing having so many furry friends! How are your dogs doing now? \n[D28:15] Audrey: They're doing great! Exploring, meeting new people...they feel so loved and safe. I'm really glad they're part of my life!\n[D28:16] Andrew: That's great to hear! Dogs truly bring so much joy and friendship. I'm glad they're happy with you.\n[D28:17] Audrey: Thanks! They're really awesome and bring so much joy and friendship. I'm so grateful to have them in my life as a part of my family.\n[D28:18] Andrew: Yeah, it's great! Dogs are always there for us. We should count ourselves lucky to have such amazing furry friends as family member.\n\n[4] LoCoMo conv-44 history chunk 8\nSession date: 11:05 am on 4 August, 2023\n[D14:21] Andrew: I hope so! I shold take him hiking with me, they would be great hiking buddies, so smart and loyal.\n[D14:21] Image caption (automatic): a photo of a dog sitting on a rock in the woods\n[D14:22] Audrey: Yep! German Shepherds are known for their loyalty and smarts. They love new journeys and would love exploring the outside with you. I can totally see you and your pup conquering trails together!\n[D14:22] Image caption (automatic): a photo of a dog sitting on a trail with a view of a city\n[D14:23] Andrew: Yeah, having someone who enjoys similar things would be great for hiking. Do you have any advice for city-dwellers that owns a pup?\n[D14:24] Audrey: My advice would be to make sure you have enough time and energy for a pup - they need lots of attention and walks! Especially for a German Shepherd like Toby, he'll need to offset a lot of energy.\n[D14:25] Andrew: Thanks for the advice! I'll definitely keep that in mind. I want to make sure I'm not limiting Toby's growth but not taking him out not enough.\n[D14:26] Audrey: No worries, Andrew! It's important to be prepared and give a pup the love it deserves. Good luck with Toby!\n[D14:27] Andrew: Thanks! Gotta take Toby out for a small hike at the local trail. Ttyl!\nSession date: 9:58 pm on 16 August, 2023\n[D15:1] Audrey: Hey Andrew, since we last spoke I got another tattoo of my four dogs on my arm! They really mean a lot to me so I thought it'd be nice to have them with me wherever I go. What've you been up to?\n[D15:1] Image caption (automatic): a photo of a person with a tattoo on their hand\n[D15:2] Andrew: Wow that's so cool! I recently went to a farm with my girlfriend to get some fresh veggies for dinner, and it was really nice. Have you been thinking about getting more fur babies or is four enough?\n[D15:3] Audrey: Sounds great! I'd love to have more, but four is enough for now. They keep me busy and I want to make sure I give each of them the attention they deserve - four dogs is already a lot! I took them all to the vet and got them checked up, it was such a havoc that next time I'll bring them one by one.\n[D15:3] Image caption (automatic): a photography of a group of people walking with dogs in a park\n[D15:4] Andrew: Oof, that vet trip must have been chaotic. Yeah I'm sure they keep you busy! That photo you shared was sweet - do they have a favorite spot to relax?\n[D15:4] Image caption (automatic): a photo of a dog laying on a rug eating lettuce\n[D15:5] Audrey: Yeah, for sure. They each have their favorite spot to chill. Pepper loves lounging on the couch, Pixie always curls up in her bed, Precious has her chair, and Panda loves to relax on his rug! They all have their own little cozy spots.\n[D15:6] Andrew: That sounds adorable! Pets always find their own little spots and it brings so much joy and comfort. Here's Toby at his favorite spot.\n[D15:6] Image caption (automatic): a photo of a dog laying on a fluffy blanket on the floor\n[D15:7] Audrey: Yeah, they sure know how to get comfy! Here's a pic of them snuggling on my favorite blanket.\n[D15:7] Image caption (automatic): a photography of two dogs laying on a blanket on a couch\n[D15:8] Andrew: Aww, they're so adorable! They look so cozy. Do they always sleep like that?\n[D15:9] Audrey: Yeah, they always sleep like that. They cuddle up together, especially when it's time to nap. They really are best friends.\n[D15:10] Andrew: Wow that's awesome! It must be great having furry friends to keep each other company.\n[D15:11] Audrey: Yeah, they're always there for each other. Seeing them together makes me so happy.\n[D15:12] Andrew: That sounds wonderful. No wonder it brings you so much happiness to have them around!\n[D15:13] Audrey: Yeah they mean the world to me, so I can't imagine life without them.\n[D15:14] Andrew: Totally get it, pets bring such joy and feel like family. I can't imagine life without them.\n[D15:14] Image caption (automatic): a photo of a man laying on a couch with a dog\n[D15:15] Audrey: Yep, pets are family. It's so sweet to see the connection between them. Here's a photo of me lying on the grass with them.\n[D15:15] Image caption (automatic): a photography of a woman sitting in a field with two dogs\n[D15:16] Andrew: Wow, that's a great pic! Looks like you guys had a really good time outside.\n[D15:17] Audrey: Oh yeah it was a great day - we had tons of fun outside.\n[D15:18] Andrew: Glad you had a blast with them. Cherish those memories!\n[D15:19] Audrey: Thanks! I'll always cherish those moments. They really make life so much brighter.\nSession date: 9:19 pm on 19 August, 2023\n[D16:1] Andrew: Hey Audrey, hope you're doing good! So I've decided to take a break from work yesterday and check out a new cafe. It was a nice change and reminded me of how the great outdoors is always there to offer you peace. Here's a photo from my last hike - so serene! How's your month been so far?\n[D16:1] Image caption (automatic): a photo of a sunset over a mountain with a church on top\n[D16:2] Audrey: Hi Andrew! The cafe sounds great, and the hike pic's great! August's been eventful - I learned a new skill! It was really awesome, making sure they were pampered and happy. I've always loved caring for my pups, and now taking care of their grooming myself makes me closer to them. They look so cute post-grooming!\n[D16:3] Andrew: Wow that's awesome! You're doing an amazing job taking care of your pups. Can you show me a pic of them after the grooming? I bet they look adorable!\n[D16:4] Audrey: Here's a photo of them after their grooming - look how soft and fluffy they are!\n[D16:4] Image caption (automatic): a photo of a dog is standing on a table in a room\n[D16:5] Andrew: Wow, they look so cute and fluffy! You did such a great job. How did you do it so well? I've always wanted to learn dog grooming but never got the time.\n[D16:6] Audrey: I took a dog grooming course and learned lots of techniques. Would you like to hear some tips?\n[D16:7] Andrew: Of course! I'd love to hear some tips. It's something I've always been interested in.\n[D16:8] Audrey: Grooming slowly and gently, paying attention to sensitive areas like ears and paws. And remember to stay patient and positive throughout the grooming process.\n[D16:9] Andrew: Cool tips! I'll remember them if I ever get to groom Toby. Thanks!\n[D16:10] Audrey: No problem, glad the tips helped. If you ever give it a shot, let me know and I can provide more advice.\n[D16:11] Andrew: Thanks! I'll let you know if I decide to give it a try. Appreciate your help. What are your plans for the weekend?\n[D16:12] Audrey: I'm taking them out for a stroll in the park - they love it and it's a good workout for us. Any weekend plans for you?\n[D16:13] Andrew: This weekend I'm heading to a nature reserve to reconnect with the outdoors - excited!\n[D16:14] Audrey: Cool! Have a great time reconnecting with nature. Don't forget to take some nice pictures!\n[D16:15] Andrew: Sure thing, I'll get some awesome pics to show you when I return. \n[D16:16] Audrey: Haha thanks! Your pics of hikes are always nice.\n[D16:17] Andrew: Yeah! I really wanted to save the moment ya know?\n[D16:18] Audrey: No wonder. Now I can't wait for the pics. Take care and have fun! My dogs will be waiting too!\n[D16:18] Image caption (automatic): a photo of two dogs running in a field with a ball in their mouth\n[D16:19] Andrew: Thanks! Can't wait to show you them when I'm back. See ya!\n\n[5] LoCoMo conv-44 history chunk 1\nSession date: 1:10 pm on 27 March, 2023\n[D1:1] Audrey: Hey Andrew! Good to see ya! What's been up since we last talked?\n[D1:2] Andrew: Hey Audrey! So, I started a new job as a Financial Analyst last week - it's been quite a change from my previous job. How about you? Anything interesting happening?\n[D1:3] Audrey: Congrats on the new job! So I got these new collars and tags for my dogs - so cute!\n[D1:4] Andrew: Thanks! That sounds cute. Can I see a picture?\n[D1:5] Audrey: Sure! See them with their new collars, cute right?\n[D1:5] Image caption (automatic): a photography of two dogs are standing in the grass with their mouths open\n[D1:6] Andrew: Cute little guys! What are their names and how long have you had them?\n[D1:7] Audrey: I've had them for 3 years! Their names are Pepper, Precious and Panda. I can't live without my little ones!\n[D1:8] Andrew: That's awesome! Have you always wanted a dog, even with living in the city? Can they still go on adventures?\n[D1:9] Audrey: Absolutely! They're city dogs and we explore all the time. They love trying out new parks and trails. We go on adventures together very often.\n[D1:10] Andrew: Wow, sounds like they make life so awesome! Kinda jealous of all those fun outings with them.\n[D1:11] Audrey: They really do! It's great how much happiness they bring. Do you have any pets?\n[D1:12] Andrew: No, no pets right now. But I do love animals.\n[D1:13] Audrey: That's great to hear! Animals are truly amazing. Do you have a favorite animal?\n[D1:14] Andrew: I've always been awed by birds. Their power to soar and explore new spots is amazing.\n[D1:15] Audrey: Yeah, birds are amazing! I can imagine it feels incredible to soar and see the world from up high. Do you have a favorite type of bird?\n[D1:16] Andrew: Eagles have always mesmerized me; they're so strong and graceful!\n[D1:16] Image caption (automatic): a photo of two birds flying in the sky with a sun shining behind them\n[D1:17] Audrey: Yeah they're beautiful. Do you go bird-watching? It must be awesome to see them up close.\n[D1:18] Andrew: Haven't specifically gone out for bird-watching, but I do spot them when I hike.\n[D1:19] Audrey: Nice, spotting pretty birds while hiking must be great. Do you have any favorite hiking spots?\n[D1:20] Andrew: Fox Hollow is a great trail to hike on weekends; the views are awesome!\n[D1:21] Audrey: Cool, gonna give it a try. Thanks for the suggestion!\n[D1:22] Andrew: No problem! Let me know how you like it. Have fun hiking!\n[D1:23] Audrey: Thanks! I'll let you know. Have a good one!\n[D1:24] Andrew: Take care and have a good one! See ya!\nSession date: 2:42 pm on 2 April, 2023\n[D2:1] Audrey: Hey Andrew, I got a surprise for you! We adopted another puppy called Pixie. She's SO cute! Isn't she just the cutest?\n[D2:1] Image caption (automatic): a photo of a small white dog sitting on a carpet\n[D2:2] Andrew: That's awesome! Pixie is so cute! Did you ever check out that hiking spot we talked about last time?\n[D2:3] Audrey: Thanks! I know right? She's so cute! Pixie's been keeping us busy, so I haven't had a chance to check out that hiking spot yet.\n[D2:4] Andrew: Yeah, I get it. A puppy really takes some work. Has she settled in okay? Is she getting along with the other pups?\n[D2:5] Audrey: Pixie's fitting in great! It took her a few days to get used to the other dogs, but now they're awesome friends. They love playing and exploring the house - so cute!\n\n[D2:5] Image caption (automatic): a photography of a dog playing with a group of other dogs\n[D2:6] Andrew: That's awesome! Is Pepper adjusting well to her?\n[D2:7] Audrey: Pepper took a bit to get used to her, but now they're always together!\n[D2:7] Image caption (automatic): a photography of two dogs standing in the grass near a fence\n[D2:8] Andrew: That's great to hear! I'm considering getting a dog too, but it can be challenging finding a dog-friendly place in the city. Do you have any tips on finding such a place?\n[D2:9] Audrey: We used websites that helped us find a place that allowed dogs. They had filters that made it super easy. Found a perfect spot thanks to them!\n[D2:9] Image caption (automatic): a photography of a dog sitting in a field of flowers\n[D2:10] Andrew: Wow, that's so cool! I'll give those websites a try, thanks for the info!\n[D2:11] Audrey: You got it! I hope you find a great spot soon!\n[D2:12] Andrew: Thanks! Fingers crossed for the apartment and that furry friend.\n[D2:13] Audrey: I'm keeping my fingers crossed for you to find a great furry friend and an apartment.\n[D2:14] Andrew: Hope I find one soon. Can't wait!\n[D2:15] Audrey: You'll love them! They're great for cuddles and companionship.\n[D2:16] Andrew: It'd be so great to have a furry buddy to cuddle and hang with. Here's a photo of my family's dog on a couch. \n[D2:16] Image caption (automatic): a photo of a dog sitting on a couch in a living room\n[D2:17] Audrey: Our furry friends make great cuddle buddies. Here's one of them enjoying some lazy couch time!\n[D2:17] Image caption (automatic): a photography of a dog laying on a couch with a pillow\n[D2:18] Andrew: That pic is so cute! It would be fun to hang out with a dog, cuddling away. Got me thinking of my old hiking pics and how much I miss exploring nature trails with my family's dog. Ah, the peaceful moments out in nature!\n[D2:18] Image caption (automatic): a photo of a man walking a dog on a trail\n[D2:19] Audrey:  Taking them on hikes must be awesome! That makes me want to hike with my dogs.\n[D2:20] Andrew: Hiking with a dog is way fun, it's a great way to bond and create memories together.\n[D2:20] Image caption (automatic): a photography of a man sitting on a rock with a dog\n[D2:21] Audrey: Yeah! Exploring nature with them and making memories is awesome!\n[D2:22] Andrew: Definitely! I miss those moments. I need to find a dog-friendly spot soon so I can get exploring again!\n[D2:23] Audrey: Yep! I hope you find the perfect dog-friendly spot soon so you can make new memories with them.\n[D2:24] Andrew: Thanks! I'll keep looking until I find it. Super excited for what's next!\n[D2:25] Audrey: So excited for you! I can't wait to see where you and your furry friend decide to hang out. All the best!\n[D2:26] Andrew: I'll keep you posted. Ttyl, Bye!\nSession date: 4:19 pm on 16 April, 2023\n[D3:1] Andrew: Hey Audrey! What's up? Missed chatting with ya! Check it out, my girl & I tried out that new cafe scene in the city last weekend! Super fun but kinda sad not being out in nature - that's when I feel like I'm really thriving. Oh man, I miss the peacefulness of being out on a hike.\n[D3:2] Audrey: Hey Andrew! That cafe sounds pretty awesome, glad you enjoyed it. Yeah, I know what you mean. That feeling of being out in nature, surrounded by beauty and peace, is unbeatable, compared to being surrounded by concrete jungles. \n[D3:3] Andrew: Yeah, being out in the nature really has a way of taking my breath away. It's like a home for my soul! I feel connected when I'm there.\n[D3:4] Audrey: I totally get it. Nature has a way of bringing us back down to earth and reminding us that we're part of something bigger. It's amazing.\n[D3:5] Andrew: Yeah, it's like hitting the reset button when life gets too chaotic. Nature has a way of being really soothing.\n[D3:6] Audrey: Definitely! For me, taking my dogs for a walk in the park helps me find my center and recharges me.\n\nQUESTION: What type of classes did Audrey start with her pups recently on 4 August, 2023?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 512,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "qa",
+      "key": "80a8d9fff8cfcd32225308067d59c3fd4b03e522a0d519c7ac0ff783d3c080cc",
+      "result": {
+        "text": "{\"answer\": \"agility classes\"}",
+        "prompt_tokens": 9350,
+        "completion_tokens": 9,
+        "latency_s": 1.9480064325034618,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You answer questions using only the passages provided. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Answer the question using only the source passages below.\n\nThe evidence map lists possible graph joins extracted from those passages. It\nis a navigation aid, not an answer key or a certificate. For each candidate,\ncheck the cited passage text, the direction of every relation, and EVERY\ncondition in the question. Ignore any candidate that fails a condition or is\nnot explicitly supported by its cited passage. The map can omit correct answers:\nalso inspect the passages themselves. Never infer an exact count from a partial\nlist of graph candidates.\n\nGive the shortest complete answer: a name, date, number or short noun phrase.\nFor questions asking for a set, list every distinct supported item, separated\nby commas. If the passages do not contain the answer, say \"insufficient\ninformation\". Return JSON exactly: {\"answer\": \"...\"}\n\nEVIDENCE MAP (provisional; conditions to verify: type of classes):\nCandidate 1: agility classes with my pups at a dog park\n  [1] Audrey | start recently on 4 August 2023 | agility classes with my pups at a dog park\n\nSOURCE PASSAGES:\n[1] LoCoMo conv-44 history chunk 7\nSession date: 10:05 am on 11 July, 2023\n[D12:16] Audrey: Counting down the days 'til our hike! Gotta get them ready soon!\n[D12:17] Andrew: Same here! It's gonna be awesome. Let's talk later k?\nSession date: 3:52 pm on 27 July, 2023\n[D13:1] Andrew: Hey Audrey! How are you? My GF and I just had a great experience volunteering at a pet shelter on Monday - it was so rewarding! We loved spending time with those cute animals and it gave us so much joy. It was so rewarding, it reminded me just how much I love them!\n[D13:2] Audrey: Hi Andrew! I'm good, thanks. That's awesome about the pet shelter volunteering. Helping animals really is great and you can tell when they're happy! So happy for you getting to experience that! I should do that someday too!\n[D13:3] Andrew: Thanks! Seeing them so content makes me happy, it really makes me realize how special and full of love they are! Have you ever volunteered at an animal shelter? It can be so rewarding. \n[D13:4] Audrey: Never been to an animal shelter before, but it must be great! My four fur babies are more important to me than anything! Here's a pic of us from a fun day out at the park.\n[D13:4] Image caption (automatic): a photo of a woman kissing a dog in a park\n[D13:5] Andrew: Aww that's a cute photo! How are their personalities? Tell me more!\n[D13:6] Audrey: Well the oldest one is the most relaxed, like a wise old sage. The second one is always ready for a game. The third one can be naughty but loves a good cuddle. And the youngest one is full of life and always up for an adventure. They all have their own individual personalities and I adore them.\n[D13:7] Andrew: Wow, they sound amazing! They must remind you of your childhood pup. That photo of you with your dog is so cute, he looks like the most playful one ever! Pets really do bring so much joy in your life!\n[D13:7] Image caption (automatic): a photo of a dog is sitting on the floor with a tennis ball\n[D13:8] Audrey: Thanks! That one is Max, my childhood dog. He had lots of energy and loved a game of fetch. I have lots of great memories with him. Pets sure bring a lot of joy.\n[D13:9] Andrew: Yeah! Their love and energy can really brighten up a day. It's amazing how close we can get to them and the memories they create for us. Do you have any other special memories with Max that you remember fondly?\n[D13:10] Audrey: Max and I would take long walks in the neighborhood when I was a kid. We explored new paths, him sniffing and marking his territory. We grew really close, and I shared my worries and hopes with him. He was a great listener, always there for me. Those days are some of my favorite memories. \n[D13:11] Andrew: Pets are more than just pets - they become friends and confidantes. They always know how to listen and provide comfort when we need it. They can make us feel so loved and understood, leaving a lasting mark on our lives.\n[D13:12] Audrey: Pets truly make our lives so much better. They listen without judging and give us the best unconditional love. They always leave a mark in our hearts and remind us how it feels to be seen and understood. I'm thankful to have them around - they bring so much joy, comfort, and love.\n[D13:13] Andrew: You nailed it! That's why we went volunteering with animals. It has been one of the most rewarding things I've ever done. They really do lift our spirits with all their love, joy, and comfort.\n[D13:14] Audrey: I'm so glad you guys got to experience that! Animals really have a way of brightening our day and giving us lots of love and joy. I'm sure the pet shelter really appreciated your help too!\n[D13:15] Andrew: Yeah we had a blast volunteering. It's our way of giving back and making their lives better!\n[D13:16] Audrey: I'm sure your kindness and care will make them happier no doubt!\nSession date: 11:05 am on 4 August, 2023\n[D14:1] Andrew: Hey, Audrey! I can't wait for the weekend. My girlfriend, Toby and I are going camping. It's been forever since I've been in nature.\n[D14:1] Image caption (automatic): a photo of a woman setting up a tent on a rocky hill\n[D14:2] Audrey: That's awesome! That must be fun! I just started agility classes with my pups at a dog park. It's awesome to watch them learn and build relationships with other dogs. Seeing them face and conquer challenges really warms my heart.\n[D14:2] Image caption (automatic): a photo of a dog in a field of flowers and grass\n[D14:3] Andrew: Wow it's amazing to watch them grow together. They look so cool overcoming obstacles like that. Impressive stuff!\n[D14:3] Image caption (automatic): a photography of a dog jumping through a ring in the air\n[D14:4] Audrey: Thanks! They've come a long way. They have so much fun with it, it's a great physical and mental workout. I take them to the park twice a week for practice - it's been a great bonding experience.\n[D14:4] Image caption (automatic): a photography of a group of dogs sitting on a dirt road\n[D14:5] Andrew: Awesome! You're having fun with them and keeping them busy - how's that going? Btw look at the trail that I was just at. Cool right?\n[D14:5] Image caption (automatic): a photography of a dirt path in the woods with rocks and trees\n[D14:6] Audrey: It's been tough at times, but overall it's going great. We're all growing together. Check out this pic of us on a trail hike!\n[D14:6] Image caption (automatic): a photography of a woman walking her dogs down a path\n[D14:7] Andrew: Wow, nice hike! How long was the trail?\n[D14:8] Audrey: The hike took us two hours and it was stunning! We saw lots of amazing views and it was great to explore nature.\n[D14:9] Andrew: That sounds awesome! Being able to just be in nature and appreciate it is really cool. I wish I could do that more often.\n[D14:10] Audrey: Nature really refreshes you, right? It's nice to appreciate all the beauty around us. Are there any outdoor activities you enjoy lately?\n[D14:11] Andrew: Well for me hiking is the best. Being out in nature with all the trees and fresh air always refreshes me. Reaching the top of a challenging trail is amazing too - it feels like all worries just vanish when you get to the top.\n[D14:12] Audrey: Yeah, totally. It's like you've achieved something and all worries just fade away. Nature is pretty special, huh?\n[D14:13] Andrew: Yeah, nature really calms me down and relaxes my mind. It's like a break from the craziness of city living.\n[D14:14] Audrey: Yeah! It's a refuge from the busy city life and it's even better when you can share it with someone special. My pets have been my good ol' buddies during all the tough times! They make me so happy and I love them so much.\n[D14:15] Andrew: Agreed! Sharing something you enjoy with someone is great. Plus, those types of bonds bring loads of joy and love.\n[D14:16] Audrey: Yeah, humans and animals have a cool connection. They bring us so much joy and love. I'm blessed to have my furry friends in my life. They're my companions and always make my day better.\n[D14:16] Image caption (automatic): a photo of a dog laying in a dog bed in a living room\n[D14:17] Andrew: They're pretty lucky to have you as their owner. Hoping for the day I can have such a deep bond with Toby and experience that special bond too.\n[D14:17] Image caption (automatic): a photo of a stream running through a lush green forest\n[D14:18] Audrey: Yeah they really mean the world to me. Btw, I never really asked, what breed is Toby?\n[D14:18] Image caption (automatic): a photo of three dogs sitting on a wooden floor looking up\n[D14:19] Andrew: He's a German Shepherd - they're so smart and loyal! What do you think?\n[D14:20] Audrey: German Shepherds are indeed awesome! They are super loyal and smart. You'll have an amazing connection with one!\n\n[2] LoCoMo conv-44 history chunk 3\nSession date: 5:41 pm on 3 May, 2023\n[D4:25] Audrey: The hats don't bother them, they just put them on for fun and treats. And the dog park is great place to start! They can run and mingle with other pooches. It's such a fun spot for playdates!\n[D4:25] Image caption (automatic): a photography of a dog jumping through a ring in a park\n[D4:26] Andrew: That sounds great! Where is it located?\n[D4:27] Audrey: It's right by the park we usually walk. It's a great spot with lots of trees and benches for us to watch the dogs play.\n[D4:28] Andrew: That's awesome, not too far away then! I'll have to check it out. Thanks for the suggestion!\n[D4:29] Audrey: Yup! Not at all! Let me know how it goes.\n[D4:30] Andrew: Sure, I'll let you know. Always great chatting with you! Ttyl.\nSession date: 10:47 am on 6 May, 2023\n[D5:1] Andrew: Hey! Since we last spoke, I've been looking for a doggo to adopt - browsing websites, visiting shelters and asking friends of theirs. It's been both fun and annoying!\n[D5:1] Image caption (automatic): a photography of a dog looking through a cage at the camera\n[D5:2] Audrey: Sounds like a fun and demanding task! Getting to meet new pups must bring so much happiness. What  do you think you can do to make the process smoother?\n[D5:2] Image caption (automatic): a photo of two dogs running in a field with a ball in their mouth\n[D5:3] Andrew: Meeting all these adorable pups has been awesome! For those considering getting a pup, the size of living space and the exercise needs of the breed are important. For me, a person living in an apartment, a smaller dog would be best, but if one is active, consider getting one that loves to play and run.\n[D5:4] Audrey: That's some good advice! It's important to consider the space and energy needs of a dog.\n[D5:5] Andrew: Yeah! Finding a pet-friendly place to live has been tough too. I'm contacting landlords and checking out neighborhoods to find the perfect spot.\n[D5:6] Audrey: Guessing it's tough to find housing. Any particular part of town you want to live in?\n[D5:7] Andrew: I'm looking for a place near a park or woods, so I can stay close to nature and give the dog a large open space to run around\n[D5:8] Audrey: That's a good plan! I'm lucky to have a park near me - it's great for my pup's walks. Last Friday we took a road trip - we went to a beautiful national park and my dogs had a blast! It was an awesome trip!\n[D5:8] Image caption (automatic): a photography of three dogs running through a field of grass\n[D5:9] Andrew: Nice! Glad the pups had a great road trip. Do you take them on road trips often?\n[D5:10] Audrey: I take them on road trips once every couple of months. It's a great way for them to explore and stay active.\n[D5:11] Andrew: Wow, that's awesome! I really wish I could go on a road trip with a furry companion.\n[D5:12] Audrey: It's a cool experience. Having your furry friends on a road trip is an amazing experience. They make it really fun and exciting. It's definitely something to look forward to!\n[D5:13] Andrew: Adding that to my bucket list! Can't wait for the day I actually go on a trip with my dog!\n[D5:14] Audrey: Good luck with your search! Fingers crossed you find the perfect one.\n[D5:15] Andrew: Thanks! Your help is much appreciated. I'm still on the lookout for the perfect furry friend.\n[D5:16] Audrey: Not a problem, I'm glad to help! Good luck with your search!\n[D5:17] Andrew: Thanks! I'll let you know how it goes. \n[D5:18] Audrey: Definitely, keep me posted and let me know if you need any suggestions or help.\n[D5:19] Andrew: Will do! Really apprecieate it. \n[D5:20] Audrey: Yup! You got it, I'll be expecting a pic of your dog soon! :)\n[D5:21] Andrew: Haha I can't wait. I'll ttyl, gotta check out another shelter soon.\n[D5:22] Audrey: Have fun! Ttyl!\nSession date: 2:03 pm on 11 May, 2023\n[D6:1] Andrew: Hi Audrey! I had a great hike last weekend with some friends and my girlfriend at the spot we found recently. Nature was so peaceful – it was so nice to just relax and take it in. How's your week been? Anything exciting going on lately?\n[D6:1] Image caption (automatic): a photography of a dirt path leading to a grassy hill\n[D6:2] Audrey: Hey Andrew! That hike sounds great. Nature is good for the soul, right? My week's been good - taking care of my four doggies and making sure they're happy and healthy took up most of my free time. Also, exciting news! I signed up for a workshop about bonding with my pet next month. Can't wait to learn new stuff and strengthen my bond with my pets. What's up with you?\n[D6:2] Image caption (automatic): a photography of a group of dogs with a yellow circle\n[D6:3] Andrew: That's awesome! Glad have the opportunity to bond with your pets. That workshop sounds cool. Where did you hear about it? And the one in the picture is adorable!\n[D6:4] Audrey: I know right? I saw this workshop flyer at my local pet store. It was a positive reinforcement training class and I wanted to give it a shot. The volunteer in the store was nice enough to let me meet their dog – he was so friendly and playful!\n[D6:5] Andrew: Cool! Positive reinforcement can really help you bond with your dogs. Do you think they'll catch on quickly?\n[D6:6] Audrey: I'm sure they'll catch on really quick! They're quick learners and love rewards! Can't wait to learn how to train them better.\n[D6:7] Andrew: That's awesome! Keep me updated on their progress.\n[D6:8] Audrey: Definitely! I'll keep you updated on how it all goes and how my pups are doing. Fingers crossed they'll be extra behaved. And I'll let you know some tips on training your future dog as well!\n[D6:9] Andrew: Thanks! I'm excited to hear about it. Have a great time at the workshop!\n[D6:10] Audrey: I'll definitely have a good time and make the most of it. I'm sure this is a must learn for any dog owner.\n[D6:11] Andrew: You think so? Wow, you must be a good salesperson because I'm almost sold on this class haha.\n[D6:12] Audrey: Haha, I just think its important to have pets learn how to behave on a positive reinforcement way. Punishment is never the proper way for pets ya know?\n[D6:13] Andrew: Yeah I would't want to be punished, let alone puppies and dogs.\n[D6:14] Audrey: Right!? I don't want to hurt any of my dogs. Just by thinking of it gives me pain.\n[D6:15] Andrew: Yeah I feel you. Anyways, let me look into their classes. I'll talk to you soon, have fun!\n[D6:16] Audrey: Yup, ttyl!\nSession date: 11:27 am on 2 June, 2023\n[D7:1] Audrey: Hey how's it going? Yesterday took my pups to the park, it was awesome! Seeing them running around and playing without a leash was awesome. It filled my heart with joy - their happiness brought me so much peace. \n[D7:2] Andrew: That sounds amazing! Must have been so happy watching them running around. It's moments like that which show us how amazing animals are. Glad you had a great time. By the way, I think you mentioned before that you've taken them on a hiking trip? \n[D7:2] Image caption (automatic): a photo of a sunset over a mountain range with a horse grazing\n[D7:3] Audrey: Yeah, I took them for a hike before. We went to a national park last week and made it to this beautiful peak. It was stunning during the sunset, and I'll never forget it. My furry pals were running around as it was so awesome. It felt like a slice of paradise. The breeze was nice and you could hear birds chirping.\n[D7:4] Andrew: That sounds amazing! I'm sure it was a memorable experience. Did you manage to capture it? I'd love to see a photo!\n[D7:5] Audrey: Yep! I took a bunch of photos. This one of my favorites.\n[D7:5] Image caption (automatic): a photo of two horses in a field with a fence\n\n[3] LoCoMo conv-44 history chunk 15\nSession date: 9:02 am on 22 November, 2023\n[D28:1] Audrey: Hey Andrew! Long time no talk! Last Friday I took my fur kids to the pet salon - they were so psyched and their tails were wagging like crazy! It took a while for them to calm down, but all cut up they looked so cute! \n[D28:2] Andrew: Hey Audrey! Nice to hear from you. Sounds adorable! Do you have any pictures of them all groomed up?\n[D28:3] Audrey: Here's a pic of them, looking all groomed. Look at those shiny coats! To top it off, they were really good at the salon - I always worry about them in new places.\n[D28:3] Image caption (automatic): a photography of a dog is standing on a table with a leash\n[D28:4] Andrew: Wow, they look great! Love seeing them happy and calm in new places.\n[D28:5] Audrey: Thanks! It means a lot to see them happy and settled in new places. I guess I'm doing a good job as a doggy mom then, haha! Have you taken your furry friends to the groomers yet?\n[D28:6] Andrew: No, we haven't got the chance to take them to the groomer yet. But will do that soon! So guess what, I can't help myself but to adpot another dog the other day. Here's a photo of the doggo!\n[D28:6] Image caption (automatic): a photo of a woman feeding a dog hay in a barn\n[D28:7] Audrey: That's great news! What's the pups name?\n[D28:8] Andrew: It took us a while to decide, but we ended up going with 'Scout' for our pup - it seemed perfect for their adventurous spirit.\n[D28:9] Audrey: That's a great name for your pup! Fits their adventurous spirit. What's Scout's first adventure gonna be?\n[D28:10] Andrew: Thanks! We're gonna take Scout, Toby, and Buddy to a nearby park. It's not big, but we can all have fun and get some fresh air!\n[D28:11] Audrey: Sounds like a great start for Scout! Start small, and gradually give them more exposure. They'll have a great time, just make sure to keep them leashed.\n[D28:11] Image caption (automatic): a photography of a dog running with a tennis ball in its mouth\n[D28:12] Andrew: Yeah, safety first! For now, we're keeping the new addition on a leash while they get used to being outside. That pic you of your dog at the park is so cute. So we got some essentials for their comfort and entertainment, like a bed, toys, and some puppy pads just in case. It's like their own little safe haven.\n[D28:13] Audrey: Wow, that's so great that you two are creating a safe and fun space for Scout. It's really important they have a place that makes them feel secure. Slowly introduce Scout to Toby and Buddy, it takes time for the pups to get used to each other too! Scout is so lucky to have you and your girlfriend! \n[D28:14] Andrew: Thanks! We feel so lucky to have Scout. It's been amazing having so many furry friends! How are your dogs doing now? \n[D28:15] Audrey: They're doing great! Exploring, meeting new people...they feel so loved and safe. I'm really glad they're part of my life!\n[D28:16] Andrew: That's great to hear! Dogs truly bring so much joy and friendship. I'm glad they're happy with you.\n[D28:17] Audrey: Thanks! They're really awesome and bring so much joy and friendship. I'm so grateful to have them in my life as a part of my family.\n[D28:18] Andrew: Yeah, it's great! Dogs are always there for us. We should count ourselves lucky to have such amazing furry friends as family member.\n\n[4] LoCoMo conv-44 history chunk 8\nSession date: 11:05 am on 4 August, 2023\n[D14:21] Andrew: I hope so! I shold take him hiking with me, they would be great hiking buddies, so smart and loyal.\n[D14:21] Image caption (automatic): a photo of a dog sitting on a rock in the woods\n[D14:22] Audrey: Yep! German Shepherds are known for their loyalty and smarts. They love new journeys and would love exploring the outside with you. I can totally see you and your pup conquering trails together!\n[D14:22] Image caption (automatic): a photo of a dog sitting on a trail with a view of a city\n[D14:23] Andrew: Yeah, having someone who enjoys similar things would be great for hiking. Do you have any advice for city-dwellers that owns a pup?\n[D14:24] Audrey: My advice would be to make sure you have enough time and energy for a pup - they need lots of attention and walks! Especially for a German Shepherd like Toby, he'll need to offset a lot of energy.\n[D14:25] Andrew: Thanks for the advice! I'll definitely keep that in mind. I want to make sure I'm not limiting Toby's growth but not taking him out not enough.\n[D14:26] Audrey: No worries, Andrew! It's important to be prepared and give a pup the love it deserves. Good luck with Toby!\n[D14:27] Andrew: Thanks! Gotta take Toby out for a small hike at the local trail. Ttyl!\nSession date: 9:58 pm on 16 August, 2023\n[D15:1] Audrey: Hey Andrew, since we last spoke I got another tattoo of my four dogs on my arm! They really mean a lot to me so I thought it'd be nice to have them with me wherever I go. What've you been up to?\n[D15:1] Image caption (automatic): a photo of a person with a tattoo on their hand\n[D15:2] Andrew: Wow that's so cool! I recently went to a farm with my girlfriend to get some fresh veggies for dinner, and it was really nice. Have you been thinking about getting more fur babies or is four enough?\n[D15:3] Audrey: Sounds great! I'd love to have more, but four is enough for now. They keep me busy and I want to make sure I give each of them the attention they deserve - four dogs is already a lot! I took them all to the vet and got them checked up, it was such a havoc that next time I'll bring them one by one.\n[D15:3] Image caption (automatic): a photography of a group of people walking with dogs in a park\n[D15:4] Andrew: Oof, that vet trip must have been chaotic. Yeah I'm sure they keep you busy! That photo you shared was sweet - do they have a favorite spot to relax?\n[D15:4] Image caption (automatic): a photo of a dog laying on a rug eating lettuce\n[D15:5] Audrey: Yeah, for sure. They each have their favorite spot to chill. Pepper loves lounging on the couch, Pixie always curls up in her bed, Precious has her chair, and Panda loves to relax on his rug! They all have their own little cozy spots.\n[D15:6] Andrew: That sounds adorable! Pets always find their own little spots and it brings so much joy and comfort. Here's Toby at his favorite spot.\n[D15:6] Image caption (automatic): a photo of a dog laying on a fluffy blanket on the floor\n[D15:7] Audrey: Yeah, they sure know how to get comfy! Here's a pic of them snuggling on my favorite blanket.\n[D15:7] Image caption (automatic): a photography of two dogs laying on a blanket on a couch\n[D15:8] Andrew: Aww, they're so adorable! They look so cozy. Do they always sleep like that?\n[D15:9] Audrey: Yeah, they always sleep like that. They cuddle up together, especially when it's time to nap. They really are best friends.\n[D15:10] Andrew: Wow that's awesome! It must be great having furry friends to keep each other company.\n[D15:11] Audrey: Yeah, they're always there for each other. Seeing them together makes me so happy.\n[D15:12] Andrew: That sounds wonderful. No wonder it brings you so much happiness to have them around!\n[D15:13] Audrey: Yeah they mean the world to me, so I can't imagine life without them.\n[D15:14] Andrew: Totally get it, pets bring such joy and feel like family. I can't imagine life without them.\n[D15:14] Image caption (automatic): a photo of a man laying on a couch with a dog\n[D15:15] Audrey: Yep, pets are family. It's so sweet to see the connection between them. Here's a photo of me lying on the grass with them.\n[D15:15] Image caption (automatic): a photography of a woman sitting in a field with two dogs\n[D15:16] Andrew: Wow, that's a great pic! Looks like you guys had a really good time outside.\n[D15:17] Audrey: Oh yeah it was a great day - we had tons of fun outside.\n[D15:18] Andrew: Glad you had a blast with them. Cherish those memories!\n[D15:19] Audrey: Thanks! I'll always cherish those moments. They really make life so much brighter.\nSession date: 9:19 pm on 19 August, 2023\n[D16:1] Andrew: Hey Audrey, hope you're doing good! So I've decided to take a break from work yesterday and check out a new cafe. It was a nice change and reminded me of how the great outdoors is always there to offer you peace. Here's a photo from my last hike - so serene! How's your month been so far?\n[D16:1] Image caption (automatic): a photo of a sunset over a mountain with a church on top\n[D16:2] Audrey: Hi Andrew! The cafe sounds great, and the hike pic's great! August's been eventful - I learned a new skill! It was really awesome, making sure they were pampered and happy. I've always loved caring for my pups, and now taking care of their grooming myself makes me closer to them. They look so cute post-grooming!\n[D16:3] Andrew: Wow that's awesome! You're doing an amazing job taking care of your pups. Can you show me a pic of them after the grooming? I bet they look adorable!\n[D16:4] Audrey: Here's a photo of them after their grooming - look how soft and fluffy they are!\n[D16:4] Image caption (automatic): a photo of a dog is standing on a table in a room\n[D16:5] Andrew: Wow, they look so cute and fluffy! You did such a great job. How did you do it so well? I've always wanted to learn dog grooming but never got the time.\n[D16:6] Audrey: I took a dog grooming course and learned lots of techniques. Would you like to hear some tips?\n[D16:7] Andrew: Of course! I'd love to hear some tips. It's something I've always been interested in.\n[D16:8] Audrey: Grooming slowly and gently, paying attention to sensitive areas like ears and paws. And remember to stay patient and positive throughout the grooming process.\n[D16:9] Andrew: Cool tips! I'll remember them if I ever get to groom Toby. Thanks!\n[D16:10] Audrey: No problem, glad the tips helped. If you ever give it a shot, let me know and I can provide more advice.\n[D16:11] Andrew: Thanks! I'll let you know if I decide to give it a try. Appreciate your help. What are your plans for the weekend?\n[D16:12] Audrey: I'm taking them out for a stroll in the park - they love it and it's a good workout for us. Any weekend plans for you?\n[D16:13] Andrew: This weekend I'm heading to a nature reserve to reconnect with the outdoors - excited!\n[D16:14] Audrey: Cool! Have a great time reconnecting with nature. Don't forget to take some nice pictures!\n[D16:15] Andrew: Sure thing, I'll get some awesome pics to show you when I return. \n[D16:16] Audrey: Haha thanks! Your pics of hikes are always nice.\n[D16:17] Andrew: Yeah! I really wanted to save the moment ya know?\n[D16:18] Audrey: No wonder. Now I can't wait for the pics. Take care and have fun! My dogs will be waiting too!\n[D16:18] Image caption (automatic): a photo of two dogs running in a field with a ball in their mouth\n[D16:19] Andrew: Thanks! Can't wait to show you them when I'm back. See ya!\n\n[5] LoCoMo conv-44 history chunk 1\nSession date: 1:10 pm on 27 March, 2023\n[D1:1] Audrey: Hey Andrew! Good to see ya! What's been up since we last talked?\n[D1:2] Andrew: Hey Audrey! So, I started a new job as a Financial Analyst last week - it's been quite a change from my previous job. How about you? Anything interesting happening?\n[D1:3] Audrey: Congrats on the new job! So I got these new collars and tags for my dogs - so cute!\n[D1:4] Andrew: Thanks! That sounds cute. Can I see a picture?\n[D1:5] Audrey: Sure! See them with their new collars, cute right?\n[D1:5] Image caption (automatic): a photography of two dogs are standing in the grass with their mouths open\n[D1:6] Andrew: Cute little guys! What are their names and how long have you had them?\n[D1:7] Audrey: I've had them for 3 years! Their names are Pepper, Precious and Panda. I can't live without my little ones!\n[D1:8] Andrew: That's awesome! Have you always wanted a dog, even with living in the city? Can they still go on adventures?\n[D1:9] Audrey: Absolutely! They're city dogs and we explore all the time. They love trying out new parks and trails. We go on adventures together very often.\n[D1:10] Andrew: Wow, sounds like they make life so awesome! Kinda jealous of all those fun outings with them.\n[D1:11] Audrey: They really do! It's great how much happiness they bring. Do you have any pets?\n[D1:12] Andrew: No, no pets right now. But I do love animals.\n[D1:13] Audrey: That's great to hear! Animals are truly amazing. Do you have a favorite animal?\n[D1:14] Andrew: I've always been awed by birds. Their power to soar and explore new spots is amazing.\n[D1:15] Audrey: Yeah, birds are amazing! I can imagine it feels incredible to soar and see the world from up high. Do you have a favorite type of bird?\n[D1:16] Andrew: Eagles have always mesmerized me; they're so strong and graceful!\n[D1:16] Image caption (automatic): a photo of two birds flying in the sky with a sun shining behind them\n[D1:17] Audrey: Yeah they're beautiful. Do you go bird-watching? It must be awesome to see them up close.\n[D1:18] Andrew: Haven't specifically gone out for bird-watching, but I do spot them when I hike.\n[D1:19] Audrey: Nice, spotting pretty birds while hiking must be great. Do you have any favorite hiking spots?\n[D1:20] Andrew: Fox Hollow is a great trail to hike on weekends; the views are awesome!\n[D1:21] Audrey: Cool, gonna give it a try. Thanks for the suggestion!\n[D1:22] Andrew: No problem! Let me know how you like it. Have fun hiking!\n[D1:23] Audrey: Thanks! I'll let you know. Have a good one!\n[D1:24] Andrew: Take care and have a good one! See ya!\nSession date: 2:42 pm on 2 April, 2023\n[D2:1] Audrey: Hey Andrew, I got a surprise for you! We adopted another puppy called Pixie. She's SO cute! Isn't she just the cutest?\n[D2:1] Image caption (automatic): a photo of a small white dog sitting on a carpet\n[D2:2] Andrew: That's awesome! Pixie is so cute! Did you ever check out that hiking spot we talked about last time?\n[D2:3] Audrey: Thanks! I know right? She's so cute! Pixie's been keeping us busy, so I haven't had a chance to check out that hiking spot yet.\n[D2:4] Andrew: Yeah, I get it. A puppy really takes some work. Has she settled in okay? Is she getting along with the other pups?\n[D2:5] Audrey: Pixie's fitting in great! It took her a few days to get used to the other dogs, but now they're awesome friends. They love playing and exploring the house - so cute!\n\n[D2:5] Image caption (automatic): a photography of a dog playing with a group of other dogs\n[D2:6] Andrew: That's awesome! Is Pepper adjusting well to her?\n[D2:7] Audrey: Pepper took a bit to get used to her, but now they're always together!\n[D2:7] Image caption (automatic): a photography of two dogs standing in the grass near a fence\n[D2:8] Andrew: That's great to hear! I'm considering getting a dog too, but it can be challenging finding a dog-friendly place in the city. Do you have any tips on finding such a place?\n[D2:9] Audrey: We used websites that helped us find a place that allowed dogs. They had filters that made it super easy. Found a perfect spot thanks to them!\n[D2:9] Image caption (automatic): a photography of a dog sitting in a field of flowers\n[D2:10] Andrew: Wow, that's so cool! I'll give those websites a try, thanks for the info!\n[D2:11] Audrey: You got it! I hope you find a great spot soon!\n[D2:12] Andrew: Thanks! Fingers crossed for the apartment and that furry friend.\n[D2:13] Audrey: I'm keeping my fingers crossed for you to find a great furry friend and an apartment.\n[D2:14] Andrew: Hope I find one soon. Can't wait!\n[D2:15] Audrey: You'll love them! They're great for cuddles and companionship.\n[D2:16] Andrew: It'd be so great to have a furry buddy to cuddle and hang with. Here's a photo of my family's dog on a couch. \n[D2:16] Image caption (automatic): a photo of a dog sitting on a couch in a living room\n[D2:17] Audrey: Our furry friends make great cuddle buddies. Here's one of them enjoying some lazy couch time!\n[D2:17] Image caption (automatic): a photography of a dog laying on a couch with a pillow\n[D2:18] Andrew: That pic is so cute! It would be fun to hang out with a dog, cuddling away. Got me thinking of my old hiking pics and how much I miss exploring nature trails with my family's dog. Ah, the peaceful moments out in nature!\n[D2:18] Image caption (automatic): a photo of a man walking a dog on a trail\n[D2:19] Audrey:  Taking them on hikes must be awesome! That makes me want to hike with my dogs.\n[D2:20] Andrew: Hiking with a dog is way fun, it's a great way to bond and create memories together.\n[D2:20] Image caption (automatic): a photography of a man sitting on a rock with a dog\n[D2:21] Audrey: Yeah! Exploring nature with them and making memories is awesome!\n[D2:22] Andrew: Definitely! I miss those moments. I need to find a dog-friendly spot soon so I can get exploring again!\n[D2:23] Audrey: Yep! I hope you find the perfect dog-friendly spot soon so you can make new memories with them.\n[D2:24] Andrew: Thanks! I'll keep looking until I find it. Super excited for what's next!\n[D2:25] Audrey: So excited for you! I can't wait to see where you and your furry friend decide to hang out. All the best!\n[D2:26] Andrew: I'll keep you posted. Ttyl, Bye!\nSession date: 4:19 pm on 16 April, 2023\n[D3:1] Andrew: Hey Audrey! What's up? Missed chatting with ya! Check it out, my girl & I tried out that new cafe scene in the city last weekend! Super fun but kinda sad not being out in nature - that's when I feel like I'm really thriving. Oh man, I miss the peacefulness of being out on a hike.\n[D3:2] Audrey: Hey Andrew! That cafe sounds pretty awesome, glad you enjoyed it. Yeah, I know what you mean. That feeling of being out in nature, surrounded by beauty and peace, is unbeatable, compared to being surrounded by concrete jungles. \n[D3:3] Andrew: Yeah, being out in the nature really has a way of taking my breath away. It's like a home for my soul! I feel connected when I'm there.\n[D3:4] Audrey: I totally get it. Nature has a way of bringing us back down to earth and reminding us that we're part of something bigger. It's amazing.\n[D3:5] Andrew: Yeah, it's like hitting the reset button when life gets too chaotic. Nature has a way of being really soothing.\n[D3:6] Audrey: Definitely! For me, taking my dogs for a walk in the park helps me find my center and recharges me.\n\nQUESTION: What type of classes did Audrey start with her pups recently on 4 August, 2023?"
+          }
+        ],
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/1ce8fe9c8d3e18b5a78377eee0c5e7bde4d0a6542c31fa6ebe3d7d46f4fcb8f2.json"
+    }
+  ],
+  "retrieval_hash": "d7fb3af986c4fc80f8320c664191d0f8f4534e6b4b43547ca0c38a9c13feb726",
+  "memory_hash": "2f0318b118400fe0354adcd16b1665aa14202641ac73e1da868afb7c84ef60d2",
+  "condition": "soft-v2",
+  "reader": "proof"
+}

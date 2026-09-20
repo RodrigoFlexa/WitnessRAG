@@ -1,0 +1,508 @@
+{
+  "qid": "locomo:conv-43:qa153",
+  "dataset": "locomo",
+  "metodo": "witnessrag",
+  "pergunta": "What was John's way of dealing with doubts and stress when he was younger?",
+  "respostas_ouro": [
+    "practicing basketball outside for hours"
+  ],
+  "passagens_ouro": [
+    "p-af06cb431e090e4b21c47168"
+  ],
+  "n_hops": 1,
+  "n_hops_fonte": "support_count_proxy",
+  "tipo": "single-hop",
+  "recuperadas": [
+    "p-ff702d61d49cfd62e2ce4112",
+    "p-19e2eec910385c4df876686e",
+    "p-eb7a65e90ce8b8b3e38918f7",
+    "p-af06cb431e090e4b21c47168",
+    "p-4cf5db730b21e403f717a762"
+  ],
+  "scores": [
+    1.0,
+    0.5,
+    0.333333,
+    0.25,
+    0.2
+  ],
+  "resposta": "practicing basketball outside for hours",
+  "em": 1.0,
+  "f1": 1.0,
+  "recall@2": 0.0,
+  "recall@5": 1.0,
+  "all_recall@5": 1.0,
+  "cobertura_testemunha": NaN,
+  "cobertura_extremos_relaxada": NaN,
+  "em_estrutural": 0.0,
+  "testemunha_no_contexto": false,
+  "abstencao": false,
+  "risco": 1.0,
+  "risco_bruto": 99.0,
+  "forma_consulta": null,
+  "resposta_estrutural": "",
+  "filtrada": false,
+  "latencia_recuperacao_s": 6.963,
+  "latencia_leitura_s": 0.442,
+  "diagnosticos": {
+    "pesquisa_provas": {
+      "fronteira": [
+        "p-ff702d61d49cfd62e2ce4112",
+        "p-af06cb431e090e4b21c47168",
+        "p-eb7a65e90ce8b8b3e38918f7",
+        "p-19e2eec910385c4df876686e",
+        "p-4cf5db730b21e403f717a762",
+        "p-5477a195195da44b7889fb68",
+        "p-3321cf2ea559f103ba9e0183",
+        "p-c95741bd8790557cb0b64583",
+        "p-98aa910cf841ba95e4e72c8e",
+        "p-00295be1b09fb252bd7a07fa",
+        "p-011482e856a93237c388a7f8",
+        "p-8f3fa6967310c5c4189fa461",
+        "p-50f052643ae811f2359b2fbd"
+      ],
+      "sondas": [
+        "What was John's way of dealing with doubts and stress when he was younger?",
+        "John deal with doubts and stress"
+      ],
+      "acoes": [],
+      "buscas_dirigidas": 0,
+      "replanejamentos": 2,
+      "rejeicoes": 0
+    },
+    "planos_compilados": [
+      {
+        "indice": 0,
+        "rodada_criacao": 0,
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "deal with doubts and stress",
+              "subject": "John",
+              "object": "?x"
+            }
+          ],
+          "expected_type": "other",
+          "aggregation": "none",
+          "shape": "single-hop",
+          "source": "llm-plan-vocabulario",
+          "fallback": "John deal with doubts and stress",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false
+        },
+        "executavel": true,
+        "fechou": true,
+        "profundidade": 1,
+        "candidatos_por_atomo": [
+          13
+        ],
+        "obrigacoes": {
+          "cobre_pergunta": false,
+          "faltas": [
+            "time qualifier",
+            "way of dealing"
+          ],
+          "motivo": "The query does not specify the time qualifier 'when he was younger' and does not explicitly ask for 'John's way of dealing'.",
+          "checado": true
+        }
+      },
+      {
+        "indice": 1,
+        "rodada_criacao": 1,
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "deal with doubts and stress when younger",
+              "subject": "John",
+              "object": "?x"
+            }
+          ],
+          "expected_type": "other",
+          "aggregation": "none",
+          "shape": "single-hop",
+          "source": "llm-replan-vocabulario",
+          "fallback": "John deal with doubts and stress when younger",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false
+        },
+        "executavel": true,
+        "fechou": false,
+        "profundidade": 0,
+        "candidatos_por_atomo": [
+          0
+        ],
+        "obrigacoes": {
+          "cobre_pergunta": false,
+          "faltas": [
+            "John's way"
+          ],
+          "motivo": "The query does not specify that it is looking for John's specific way of dealing with doubts and stress, it just asks about what he dealt with doubts and stress with when younger, which is too broad and could include methods or tools rather",
+          "checado": true
+        }
+      }
+    ],
+    "planejamento": {
+      "orcamento_planos": 5,
+      "planos_distintos": 2,
+      "chamadas": 3,
+      "replanejamentos": 2
+    },
+    "plano_escolhido": null,
+    "n_testemunhas": 0,
+    "testemunha_no_contexto": false,
+    "classe_prova": "nenhuma",
+    "fallback": "denso (pesquisa sem prova suficiente)",
+    "contexto_alterado_pelo_witness": true,
+    "risco": 1.0,
+    "risco_bruto": 99.0,
+    "risco_calibrado": false,
+    "resposta_estrutural": "",
+    "candidatos_explorados": 15,
+    "documentos_entregues": 5,
+    "orcamento_leitor": 5
+  },
+  "uso_llm": {
+    "total": {
+      "chamadas": 6,
+      "tokens_resposta": 350,
+      "em_cache": 1,
+      "tokens_prompt": 15637,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 14271,
+      "tokens_resposta_sem_cache": 281
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 1,
+        "tokens_resposta": 13,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 13,
+        "latencia_s": 0.44000000000001194,
+        "filtradas": 0,
+        "tokens_prompt": 10392,
+        "tokens_prompt_sem_cache": 10392
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 69,
+        "em_cache": 1,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 1.75,
+        "filtradas": 0,
+        "tokens_prompt": 1366,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 2,
+        "tokens_resposta": 126,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 126,
+        "latencia_s": 3.1099999999999994,
+        "filtradas": 0,
+        "tokens_prompt": 525,
+        "tokens_prompt_sem_cache": 525
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 2,
+        "tokens_resposta": 142,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 142,
+        "latencia_s": 3.640000000000015,
+        "filtradas": 0,
+        "tokens_prompt": 3354,
+        "tokens_prompt_sem_cache": 3354
+      }
+    }
+  },
+  "f1_locomo": 1.0,
+  "em_locomo": 1.0,
+  "categoria_locomo": 4,
+  "uso_leitor": {
+    "total": {
+      "chamadas": 1,
+      "tokens_resposta": 13,
+      "em_cache": 0,
+      "tokens_prompt": 10392,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 10392,
+      "tokens_resposta_sem_cache": 13
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 1,
+        "tokens_resposta": 13,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 13,
+        "latencia_s": 0.44000000000001194,
+        "filtradas": 0,
+        "tokens_prompt": 10392,
+        "tokens_prompt_sem_cache": 10392
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      }
+    }
+  },
+  "uso_recuperacao": {
+    "total": {
+      "chamadas": 5,
+      "tokens_resposta": 337,
+      "em_cache": 1,
+      "tokens_prompt": 5245,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 3879,
+      "tokens_resposta_sem_cache": 268
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 69,
+        "em_cache": 1,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 1.75,
+        "filtradas": 0,
+        "tokens_prompt": 1366,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 2,
+        "tokens_resposta": 126,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 126,
+        "latencia_s": 3.1099999999999994,
+        "filtradas": 0,
+        "tokens_prompt": 525,
+        "tokens_prompt_sem_cache": 525
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 2,
+        "tokens_resposta": 142,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 142,
+        "latencia_s": 3.640000000000015,
+        "filtradas": 0,
+        "tokens_prompt": 3354,
+        "tokens_prompt_sem_cache": 3354
+      }
+    }
+  },
+  "reader_calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You answer questions using only the passages provided. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Answer the question using only the passages below.\n\nGive the shortest answer that is complete: a name, a date, a number or a short noun\nphrase. Do not write a sentence.\n\nSome questions ask for a SET: everything a person did, made, visited, read, owns,\nwas given, or took part in, possibly mentioned on different days. For those, list\nEVERY item the passages support, separated by commas, and nothing else. Answering\nwith one item is complete only when the passages support exactly one. Never add an\nitem the passages do not state, and never repeat the same item twice.\n\nIf the passages do not contain the answer, answer with \"insufficient information\".\n\nAnswer with JSON exactly in this shape:\n{\"answer\": \"...\"}\n\n### INPUT\n[1] LoCoMo conv-43 history chunk 9\nSession date: 11:41 am on 6 November, 2023\n[D16:8] John: Wow! What makes your favorite player so inspiring? Do you have any special stories or moments with them?\n[D16:9] Tim: I just love watching LeBron. There was this Finals game a few years back with an epic block that totally changed the game and ended up winning it. Seeing him go for it like that was such an inspiration - never give up, you know?\n[D16:10] John: Remember that epic block in Game 7 of the '16 Finals? He chased down Iguodala and pinned the ball against the backboard. That kind of determination and heart is why I love basketball.\n[D16:11] Tim: Yeah, that's the one! It was awesome. Moments like that make me love sports and admire the players' determination and heart.\n[D16:12] John: LeBron's moments of determination and heart are incredible. It's why I enjoy playing and pushing myself. You never know when those special moments might occur, but it's always fun to be part of it.\n[D16:13] Tim: Those special moments make it all worth it. It's amazing to be part of something bigger and feel the joy and fulfillment. Keep pushing and having those moments on the court!\n[D16:14] John: Speaking of special moments, my wife and I just left for our European vacation! It will be short but sweet. You've been before, any recommendations?\n[D16:15] Tim: That's great! I hope you two have a great time. I would recommend visiting some castles, they are just so magical!\n[D16:16] John: Thanks! We'll have to check some out. Wishing you all the best with everything you're pursuing. Stay safe!\n[D16:17] Tim: Thanks! You too, buddy. Take it easy and keep going for it. Stay safe and let's stay in touch!\nSession date: 3:36 pm on 11 November, 2023\n[D17:1] John: Hey Tim! Great to chat again. So much has happened!\n[D17:2] Tim: Hey John! Great chatting with you as always. What's been happening lately? I've been reading as usual.\n[D17:2] Image caption (automatic): a photo of a book with a picture of a storm of swords\n[D17:3] John: My wife and I were road tripping out on the European coastline, and it was amazing! The views were spectacular, and we had lots of fun bonding and creating amazing memories. It was such a nice change to my regular life.\n[D17:3] Image caption (automatic): a photo of a group of people sitting on top of a mountain\n[D17:4] Tim: Wow! Sounds like an incredible road trip. I'm glad you and your wife had such a great time!\n[D17:4] Image caption (automatic): a photo of a statue of a woman with a blue hat on\n[D17:5] John: Thanks! Yeah, it was awesome. We got to see some epic spots. It's hard to describe how beautiful they were!\n[D17:6] Tim: Those places must've been amazing! Nature sure has a way of leaving us speechless.\n[D17:7] John: Nature sure is powerful and beautiful! It's really humbling to witness such sights.\n[D17:8] Tim: Yeah! It always makes us realize how huge the world is and how special it is. These moments really show us the beauty around us. Anyways, have you read or watched anything good recently?\n[D17:9] John: Yep, I just finished this amazing fantasy series. It was a wild ride with so many twists. The author is amazing at creating awesome storylines and characters - I love getting lost in those fantasy worlds.\n[D17:10] Tim: That's amazing! Same here. There's something special about being lost in an awesome fantasy realm and seeing what happens. It's like an escape. \"That\" is one of my favorite fantasy shows. Have you seen it?\n[D17:11] John: Yeah, I saw \"That\"! It's amazing to see those worlds and characters come alive. It's a great way to escape reality!\n[D17:12] Tim: Yeah, it's awesome how books and movies can take you away. A great escape, right?\n[D17:13] John: Definitely, it's like a mental break, giving our minds a rest and letting them wander. So refreshing!\n[D17:14] Tim: It's like entering another world! We get to take a break from everything and just let our minds wander. It's so nice and refreshing.\n[D17:15] John: And that's just what we need sometimes.\n[D17:16] Tim: Taking a break from life can help us recharge and get some peace. Plus, it gives us a chance to reconnect with ourselves and tackle life's challenges with a new outlook.\n[D17:17] John: Yeah, taking time for ourselves is crucial. It helps us stay sharp and focused. Plus, it helps us gain new perspectives and tackle challenges with more energy. Finding the right balance is key and I'll keep that in mind as I continue my journey.\n[D17:18] Tim: Balance is key and it varies. Take care of yourself, both mentally and physically, and you'll rock it. You got this, bud!\n[D17:19] John: Thanks! Your support means a lot. I'll keep pushing forward. Take care, buddy!\nSession date: 3:59 pm on 16 November, 2023\n[D18:1] Tim: Hey John! Hope you're doing good. Guess what? I went to a castle during my trip to the UK last Friday and it was unbelievable! The architecture and the history were amazing!\n[D18:1] Image caption (automatic): a photo of a castle with a river running through it\n[D18:2] John: Hey Tim! That's awesome! Yeah, it was really cool. Oh man, it's been a tough week for me with this injury. But I'm staying positive. How about you? How's your week been?\n[D18:2] Image caption (automatic): a photo of a person with a bandage on their leg\n[D18:3] Tim: Ouch, bummer about the injury. Hang tight. This week has been swamped with exams for me but I'm plowing through.\n[D18:4] John: Cheers, Tim. Injury's been rough, but I'm staying positive. How's the exam prep coming? Confident?\n[D18:4] Image caption (automatic): a photo of a notebook with a bunch of notes on it\n[D18:5] Tim: Exams can be challenging, but I'm putting in my best effort. Feeling optimistic and working diligently! How do you stay motivated during difficult study sessions?\n[D18:6] John: I visualize my goals and success for focus and motivation. It really helps me stay motivated during tough studying. Do you have any study tricks?\n[D18:6] Image caption (automatic): a photo of a soccer game with a player on the field\n[D18:7] Tim: That's cool! I like breaking up my studying into smaller parts. 25 minutes on, then 5 minutes off for something fun. It's less overwhelming and keeps me on track.\n[D18:8] John: Nice work! Breaking it down into smaller parts is definitely a smart move. I wish you all the best on your exams!\n[D18:9] Tim: Thanks! Appreciate your support. I hope your injury heals soon.\n[D18:10] John: Sure thing, Tim! Got your back. I hope so too. The doctor said it's not too serious.\n[D18:11] Tim: That's good to hear, I'm glad.\n[D18:12] John: I hate not being on the court.\n[D18:13] Tim: I bet. It's like if I couldn't read due to an injury.\n[D18:14] John: I'm pushing on though. Talk soon!\n[D18:15] Tim: Take care! Keep pushing on. Talk soon.\nSession date: 10:22 am on 21 November, 2023\n[D19:1] Tim: Hey John! Haven't talked in a bit, how ya been? Hope your injury is feeling better.\n[D19:2] John: Hey Tim! Thanks for checking in. It's been tough, but I'm staying positive and taking it slow. How about you? How have you been?\n[D19:3] Tim: I've been swamped with studies and projects, but last week I had a setback. I tried writing a story based on my experiences in the UK, but it didn't go the way I wanted. It's been tough, do you have any advice for getting better with storytelling?\n[D19:4] John: Sorry to hear about the setback with your story. I understand how frustrating it can be when things don't go as planned. When I face challenges on the court, I try to reflect on what went wrong and find ways to improve. Maybe you can try doing the same with your storytelling.\n\n[2] LoCoMo conv-43 history chunk 7\nSession date: 1:50 pm on 13 October, 2023\n[D13:2] John: Hey Tim! Great to hear from you. It's awesome how our passions connect us with others, yeah? You sound like you fit right in and got a real buzz out of it. I feel the same way with my team.\n[D13:2] Image caption (automatic): a photography of a basketball team posing for a team photo\n[D13:3] Tim: Wow, you guys look great! How have games been going?\n[D13:4] John: It was an intense season with both tough losses and great wins. Overall, I'd say we did pretty well.\n[D13:5] Tim: Cool! Sounds like you guys had some tough games. How did you handle those?\n[D13:6] John: Thanks! We faced tough opponents but that's what drives us to get better. We back each other up and won't quit.\n[D13:6] Image caption (automatic): a photo of a soccer team posing for a picture with a trophy\n[D13:7] Tim: Congrats! That's awesome. It must feel good, right?\n[D13:8] John: Yeah, it feels great! All that hard work and effort was totally worth it. We even won a trophy!\n[D13:8] Image caption (automatic): a photo of a man holding a trophy in front of a crowd\n[D13:9] Tim: Way to go! You must have been elated up there with that trophy. All the hard work paid off! Congrats - I'm so proud of you. Keep it up!\n[D13:10] John: Thanks! I was definitely elated. Your support really means a lot to me. I'll keep working hard.\n[D13:11] Tim: No problem! I'm here for you anytime. Keep believing in yourself!\n[D13:12] John: Thanks! Appreciate your support. Always staying filled with self-belief.\n[D13:13] Tim: You got this! Stay motivated and remember that anything is possible with hard work. Keep pushing for your goals!\n[D13:13] Image caption (automatic): a photo of a box of serenityy memory foam\n[D13:14] John: Thanks! Your encouragement means a lot to me. I'm feeling motivated and ready to keep pushing for my goals! I'm going to need some new shoes after all these games though.\n[D13:15] Tim: Glad my encouragement helped! These are amazing - like walking on clouds! Game changer!\n[D13:15] Image caption (automatic): a photo of a pair of black and pink running shoes\n[D13:16] John: They look comfortable. Where did you get them?\n[D13:17] Tim: I got them online - they're super comfy! Definitely recommend!\n[D13:18] John: Cheers! I'll definitely check them out. Thanks for the recommendation!\n[D13:19] Tim: No worries. Let me know if there's anything else I can assist you with. Always here to help!\n[D13:20] John: Thanks! Appreciate it. I'll reach out if I need anything.\n[D13:21] Tim: Cool! Stay motivated and keep chasing those dreams! Chat soon!\n[D13:22] John: Thanks! I'll definitely stay motivated and keep chasing those dreams. You too, keep up the passion. Talk soon!\nSession date: 1:50 pm on 17 October, 2023\n[D14:1] John: Hey Tim! Long time no talk - a lot has been going on since then!\n[D14:2] Tim: Hey John! Long time no see! Can't wait to catch up and hear all about what you've been up to.\n[D14:3] John: Seems like forever since we caught up! I'm now mentoring the younger players on my team. It's super rewarding and I'm loving sharing my skills and knowledge with them. It's also a great way for me to stay involved in the game during the off-season.\n[D14:4] Tim: Wow! Mentoring must be so rewarding. You get to show others what you know - that's awesome! Is it difficult? Any hiccups?\n[D14:5] John: There are challenges, since everyone is so different. But it's been awesome gaining experience and adapting, motivating and encouraging everyone. It's been great to watch each of them develop and reach their goals - such a reward!\n[D14:6] Tim: Wow, that's awesome! It must be really rewarding to see them reach their goals. What's it like mentoring them?\n[D14:7] John: Mentoring them has been awesome! Seeing their growth, improvement, and confidence is so fulfilling. I'm glad I could make a positive impact on their lives. Here's a pic of me and some of the younger players at a recent practice.\n[D14:7] Image caption (automatic): a photography of a basketball player standing in a gym with his hands on his hips\n[D14:8] Tim: You're really doing great with them. Do any of them see you as a mentor?\n[D14:9] John: Some of them do see me as a mentor, which is really rewarding. I try to provide them with advice and support on and off the court. Being a positive role model for them is something I enjoy.\n[D14:10] Tim: That's incredible! How does it feel to have their trust and admiration? It must be such an honor to be a positive role model for them.\n[D14:11] John: It feels great to have their trust and admiration. Being a role model for these young athletes is so fulfilling. I'm glad my experiences can help shape their future and inspire them to go after their dreams.\n[D14:12] Tim: You're doing a great job with them. Way to go! This is what I've been up to.\n[D14:12] Image caption (automatic): a photo of a sunset over a mountain range with a few trees\n[D14:13] John: Wow, stunning! And thanks. Really appreciate it. Means a lot.\n[D14:14] Tim: I took this pic last summer. Seeing it was so stunning. Thanks for appreciating it. It means a lot to me.\n[D14:14] Image caption (automatic): a photo of a sunset over a mountain with a tree\n[D14:15] John: Where did you capture this? Nature is truly amazing, isn't it?\n[D14:16] Tim: I snapped that pic on my trip to the Smoky Mountains last year. It was incredible seeing it in person. Nature's really something else!\n[D14:17] John: Yeah, it's amazing how nature's beauty and grandeur can take our breath away. It's so nice to escape the noise of the city and relax in nature. Good for you to get to enjoy that stunning view!\n[D14:18] Tim: Nature is indeed refreshing. A good break from school.\n[D14:19] John: How are you doing in shcool?\n[D14:20] Tim: Doing good! Busy with studies but finding time to relax with books - good balance.\n[D14:21] John: Cool! Finding that balance is key. Are you currently reading any books?\n[D14:22] Tim: I'm reading this book and I'm totally hooked! What about you?\n[D14:23] John: I haven't had much time to read, but after we talked I finally picked up a book and it's been awesome! Talk to you later!\nSession date: 5:51 pm on 21 October, 2023\n[D15:1] Tim: Hey John! Haven't talked to you in a bit but wanted to let you know I read this awesome book about castles in the UK. It was so interesting and blew me away! I dream of visiting them one day.\n[D15:2] John: Hey Tim! Great to hear from you. Learning about different cultures and seeing historical architecture fascinates me. Visiting castles is really on my bucket list. Just look at this one; what a sight! I'm so excited to explore the world and experience these gorgeous places. On that note, how's your fantasy writing going?\n[D15:2] Image caption (automatic): a photo of a man sitting on a bench overlooking a cliff\n[D15:3] Tim: That castle looks amazing! I hope I get to visit it someday. My writing is going well: I'm in the middle of fantasy novel and it's a bit nerve-wracking but so exciting! All my hard work is paying off. Writing brings such joy and it's incredible how it can create a whole new world. Thanks so much for believing in me!\n[D15:4] John: That's great! I'm glad your writing is going well. It must be exciting to see it all come together. Keep going! Do you have a specific source of inspiration for your stories?\n\n[3] LoCoMo conv-43 history chunk 4\nSession date: 7:54 pm on 17 August, 2023\n[D7:10] Tim: That's really cool. It's great that you have something to remind you of your friends. Keeping a bit of their energy and support with you is always nice.\n[D7:11] John: Having something like this ball to remind me of the bond and support from my teammates is really comforting. It's a nice reminder of why I started playing basketball and my journey. It motivates me to stay strong and give it my all.\n[D7:12] Tim: That's so sweet. It's great to have something so meaningful to keep you motivated. I'll keep that in mind next time I need a push to reach my goals.\n[D7:13] John: It's really motivating to have something that reminds you of why you started, and having supportive people around is like having a cheer team that helps you through tough times.\n[D7:14] Tim: Yeah, that's true. Having them there to cheer you on can be a powerful source of strength.\n[D7:15] John: Yeah, having that support really encourages me to give it my all and never give up. It's an awesome feeling!\n[D7:16] Tim: It's awesome how much strength people can get from each other. Bye!\nSession date: 4:29 pm on 21 August, 2023\n[D8:1] John: Hey Tim! Long time no talk. Hope you're doing great. Crazy things have been going on in my life. Just the other day, I found a new gym to stay on my b-ball game. Staying fit is essential to surviving pro ball, so I had to find something that fits the bill. Finding the right spot was tough but here we are!\n[D8:1] Image caption (automatic): a photo of a gym with a basketball court and cones\n[D8:2] Tim: Hey John! Really good to hear from you. Staying fit is so important. Must be so cool to practice there. Any issues you had when you got it?\n[D8:3] John: It's been great training here. The gym is awesome, but I had to overcome the hurdle of adapting and tweaking my routine. Finding the right balance was tricky, but I eventually got the hang of it.\n[D8:4] Tim: Nice one! It can be tough getting used to a new routine, but once you figure it out, it gets easier. How did you find that balance?\n[D8:5] John: Thanks! Took some trial and error but I figured out a schedule with both basketball stuff and strength training to balance it out. Listening to my body and giving it enough rest made it easier to push myself during practice but also look after me. Here's my workout plan. It helps a lot with staying on track.\n[D8:5] Image caption (automatic): a photo of a notebook with a list of items on it\n[D8:6] Tim: Nice job! Impressive plan you've got there! You've really thought it out. Why include strength training in your routine?\n[D8:7] John: Thanks! Strength training is important for basketball because it builds muscle, increases power, and prevents injuries. It also helps me become more explosive, which is essential in games. Plus, it boosts my athleticism overall.\n[D8:8] Tim: That makes sense! Your holistic approach seems to have numerous benefits. Does strength training have a positive impact on your basketball performance?\n[D8:9] John: Definitely! Incorporating strength training really changed the game for me, improving my shooting accuracy, agility, and speed. It gave me the upper hand over my opponents and helped me up my game. It gave me the confidence to take on whatever comes my way.\n[D8:10] Tim: Awesome! Gaining confidence on the court must feel great. It's cool how strength training can benefit you. You're doing great in both basketball and fitness, keep it up!\n[D8:11] John: Thanks! Appreciate your support. It's been a journey, but I'm happy with the progress. Excited to see what's next. What about you? How have you been?\n[D8:12] Tim: Things have been great since we last talked - I've been focusing on school and reading a bunch of fantasy books. It's a nice way to take a break from all the stress. I've also started learning how to play the piano - it's a learning curve, but it's so satisfying seeing the progress I make! Life's good.\n[D8:13] John: Wow! You're staying busy and having fun. Learning to play this is awesome - it's such a beautiful instrument. Do you have any favorite songs you like playing on it?\n[D8:14] Tim: Thanks! I love playing different songs on the piano, but my favorite one to jam to is a theme from a movie I really enjoy. It brings back lots of great memories.\n[D8:15] John: Wow, that's cool! Music really has a way of bringing back memories and evoking emotions, doesn't it? Almost like taking us back in time. Could you tell me more about that film and the memories it brings up for you?\n[D8:16] Tim: Yeah, \"Harry Potter and the Philosopher's Stone\" is special to me. It was the first movie from the series and brings back some great memories. Watching it with my family was amazing. It was so magical!\n[D8:17] John: Wow, that sounds great, Tim! I love that first movie too, I even have the whole collection! It was so magical! Must've been a dream watching it with your family.\n[D8:17] Image caption (automatic): a photo of a dvd cover with a castle in the background\n[D8:18] Tim: It was really a dream come true! Watching that movie with my family was awesome, we'd all get comfy with snacks and a blanket and be totally absorbed. Such a special memory!\n[D8:19] John: Cool! Cherish those family moments - they're so irreplaceable. Family time is great! Mine gets together all the time too.\n[D8:19] Image caption (automatic): a photo of a group of people standing around a kitchen table\n[D8:20] Tim: Family time means a lot to me. This photo is from a special day when we all got together to eat. It was a great day full of love and laughter!\n[D8:20] Image caption (automatic): a photo of a family sitting on a couch in front of a fireplace\n[D8:21] John: Wow, that looks like such a great day! Do you have any favorite Thanksgiving traditions?\n[D8:22] Tim: Thanksgiving's always special for us. We love prepping the feast and talking about what we're thankful for. Plus, watching some movies afterwards - the best!\n[D8:23] John: Thanksgiving dinner with family sounds great! Do you have any favorite movies you watch together?\n[D8:24] Tim: During Thanksgiving, we usually watch a few movies. We love \"Home Alone\" - it always brings lots of laughs!\n[D8:24] Image caption (automatic): a photo of a dvd cover with a child in a house\n[D8:25] John: That's a classic! What other movies do you watch during the holidays?\n[D8:26] Tim: We also watch \"Elf\" during the holidays. It makes us laugh and get us feeling festive!\n[D8:26] Image caption (automatic): a photo of a dvd cover of a movie with a leprechaun\n[D8:27] John: Those are awesome! Any other holiday movies do you enjoy watching?\n[D8:28] Tim: We love \"The Santa Clause\" too- it's so heartwarming and gets us all feeling festive!\n[D8:28] Image caption (automatic): a photo of a dvd cover of a santa clause movie\n[D8:29] John: \"The Santa Clause\" is a classic! It's so sweet and really captures the Christmas magic. It's just one of those movies that gets us all feeling festive. This was our tree last year.\n[D8:29] Image caption (automatic): a photo of a christmas tree with a lot of lights on it\n[D8:30] Tim: Yep, it really does. That tree pic looks awesome! It must add so much holiday cheer to your house. This was ours.\n[D8:30] Image caption (automatic): a photo of a christmas tree with a harry potter theme\n[D8:31] John: That looks awesome! Where did you get this tree?\n[D8:32] Tim: I decorated this tree myself, going all out with a Harry Potter theme! It was a blast!\n[D8:32] Image caption (automatic): a photo of a christmas tree with a harry potter theme\n[D8:33] John: That themed tree looks amazing! You really know how to get the vibes just right!\n[D8:34] Tim: Thanks! It was such a fun project and I'm really happy with how it turned out.\n[D8:35] John: Glad you had fun!\n[D8:36] Tim: Great catching up! Take care, talk soon.\n[D8:37] John: Catch ya later! Talk soon. Take care and enjoy the rest of your day.\n\n[4] LoCoMo conv-43 history chunk 12\nSession date: 7:42 pm on 8 December, 2023\n[D22:7] Tim: Wow, that's awesome! It's great to see how close you all have become. You must feel a great sense of unity. I'm reading this amazing series about the power of friendship and loyalty – really inspiring stuff. Anything special you do to keep that bond strong?\n[D22:7] Image caption (automatic): a photo of a stack of books sitting on top of a table\n[D22:8] John: Sounds awesome! What kind of stuff do they do in the series? I'm sure the importance of friendship is emphasized. Same with us - we have team dinners, outings, and basketball games. It's those moments away from practice that really build and strengthen our unity.\n[D22:8] Image caption (automatic): a photography of a group of people sitting around a table eating\n[D22:9] Tim: Awesome! Sounds like your team has something similar to the characters in the series. They rely on each other to push through challenges. By the way, what book are you currently reading? I'm always on the lookout for new reads!\n[D22:10] John: Thanks! I'm currently reading a book that I really enjoy. I highly recommend it!\n[D22:11] Tim: Sounds cool! Let me know the title so I can add it to my list!\n[D22:12] John: I'm reading \"Dune\" by Frank Herbert. It's a great story about religion and human control over ecology. What about you? What's the last book that moved you?\n[D22:13] Tim: I haven't read that yet but I've heard great things! Just finished \"A Dance with Dragons\" and it's a really good story. Highly recommend it!\n[D22:13] Image caption (automatic): a photography of a book shelf with a book and a book cover\n[D22:14] John: That's cool! I've heard it's such an inspiring book. Have you read all of George R. R. Martin's books?\n[D22:15] Tim: Just the GoT series. Have you tried reading any of them?\n[D22:16] John: No, I haven't read them yet but I'll definitely check them out. Cheers!\n[D22:17] Tim: Let me know if you get around to them! Have a great day!\n[D22:18] John: Thanks! I'll let you know. Have a great day!\nSession date: 8:28 pm on 11 December, 2023\n[D23:1] John: Hey Tim, great to see you! Any new success stories?\n[D23:1] Image caption (automatic): a photo of two women standing next to a banner with sales pros written on it\n[D23:2] Tim: Hey John, I had a tough time with my English lit class. Did an analysis on this series and I think it went ok!\n[D23:3] John: Thanks! It's a bummer about your English lit class, but you did your best. By the way, I had a career-high in assists last Friday in our big game against our rival. Yay!\n[D23:3] Image caption (automatic): a photo of a basketball game being played in a large arena\n[D23:4] Tim: Congrats! That's awesome. How did it feel being out there making those plays?\n[D23:5] John: Thanks! It felt great being out there, making plays for my team. I love seeing my teammates succeed because of the opportunities I create for them. The atmosphere in the arena was really electric and playing against our rivals added an extra level of intensity. It was a memorable night!\n[D23:6] Tim: Sounds incredible! Must have been quite an atmosphere. Have you had any other games that were as thrilling as this one?\n[D23:7] John: I've had some thrilling games in my career. My favorite was when we were down 10 in the 4th and I hit the buzzer-beater shot to win. The atmosphere was incredible and it was such a thrilling experience. Those moments make me love basketball so much.\n[D23:8] Tim: Wow, John! Moments like that make us love sports, huh? I still think about this pic you sent me a while back.\n[D23:8] Image caption (automatic): a photo of a basketball ball on the ground with a basketball hoop in the background\n[D23:9] John: Yeah, that pic reminds me of when I was younger. I'd practice basketball outside for hours, dreaming of playing in big games. It was my way of dealing with doubts and stress. It's amazing how a ball and hoop can be so powerful, right?\n[D23:10] Tim: Yeah! Sports are the best. When we're feeling down, it's a way to express ourselves and stay positive. It's awesome how much basketball has done for you. Keep going with your dreams!\n[D23:10] Image caption (automatic): a photo of a basketball ball on the ground with a basketball hoop in the background\n[D23:11] John: Thanks! Appreciate the support. It's been a significant part of my life and allows me to be myself and pursue my passions. Gonna keep chasing my dreams!\n[D23:12] Tim: Wow! It's really important to do our own thing and follow our dreams. Keep it up, you're gonna do amazing things!\n[D23:13] John: Your encouragement means a lot. Let's keep pushing and following our dreams - we can make a difference!\n[D23:14] Tim: Definitely. We both have so much potential! Let's keep supporting each other on our journey towards our dreams.\n[D23:15] John: Yeah, you're super inspiring and motivating. Keep it up!\n[D23:16] Tim: Thanks, it means a lot. Let's keep each other motivated. Bye!\nSession date: 3:37 pm on 16 December, 2023\n[D24:1] Tim: Hey John, catch up time! What've you been up to? Any good b-ball games lately?\n[D24:2] John: Hey Tim! Nice to talk again. The b-ball games have been crazy. We had a real battle against another team last week. It was close until the final buzzer but we got the win.\n[D24:2] Image caption (automatic): a photo of a group of women's basketball players holding up a trophy\n[D24:3] Tim: Congrats, John! That sounds like an intense game.\n[D24:4] John: Thanks! We won! It was really close, but we made it!\n[D24:5] Tim: Wow, that's amazing! Winning must have been so thrilling!\n[D24:6] John: Winning was such a thrill, and it was an awesome moment. These experiences really make me love the game.\n[D24:7] Tim: You must have been so pumped when it happened! Winning can give us a real confidence boost and makes us keep going with our passions.\n[D24:8] John: Yeah, it really does. It keeps me motivated to keep putting in the effort and makes all the tough times worth it. Here's a pic I took during a morning workout, it's a reminder that the journey can be awesome.\n[D24:8] Image caption (automatic): a photography of a basketball hoop in the sunset with a fence\n[D24:9] Tim: That's a good spot for a morning workout! Can you tell me about some challenges you've faced?\n[D24:10] John: Yeah, I injured myself not too long ago. It sucked because I had to miss some games and couldn't help my team.\n[D24:10] Image caption (automatic): a photo of a person with a cast on their foot\n[D24:11] Tim: Ouch, that's rough. Have you been able to stay active or keep up with your fitness routine while you're recovering?\n[D24:12] John: It's been tough, but I'm trying to stay active and do my rehab. I do physical therapy exercises every day.\n[D24:12] Image caption (automatic): a photo of a man sitting on a chair with a blue ball\n[D24:13] Tim: Cool, rehab can be tough but it's key to keep it up. How's it coming along?\n[D24:14] John: It's going great! I've been working hard and it's paying off. Last Friday, I had a milestone moment at the gym. I was able to jog a bit with no pain, which was such a relief!\n[D24:14] Image caption (automatic): a photography of a treadmill in a room with a window\n[D24:15] Tim: Wow! How was it jogging without any discomfort?\n[D24:16] John: It was great! After being out for so long, jogging without any pain was a huge success. My wife and I hosted a small get-together with friends and family to celebrate.\n[D24:17] Tim: Congrats! That's awesome. Keep at it and you'll be back in no time. That sounds fun, how was it?\n\n[5] LoCoMo conv-43 history chunk 5\nSession date: 6:59 pm on 26 August, 2023\n[D9:1] Tim: Hey John, this week's been really busy for me. Assignments and exams are overwhelming. I'm not giving up though! I'm trying to find a way to juggle studying with my fantasy reading hobby. How have you been?\n[D9:1] Image caption (automatic): a photo of a stack of books on a table\n[D9:2] John: Hey Tim! I know the stress of exams and homework, but you got this! I'm doing OK, cheers for asking. Last week I visited home and caught up with my family and old friends. We had a great time talking about our childhood - it reminds me of the good ol' times!\n[D9:2] Image caption (automatic): a photo of a group of girls basketball players posing for a picture\n[D9:3] Tim: Thanks for the pic! That group looks like a great squad. How long did you all play together?\n[D9:4] John: We were teammates for four years in high school, so we've played together for quite some time. Have you ever been part of a sports team?\n[D9:5] Tim: Nope, never been on a sports team. I'm more into reading and fantasy novels. I love sinking into different magical worlds. It's one of the reasons I love traveling to new places, to experience a different kind of magic.\n[D9:5] Image caption (automatic): a photo of a book shelf with books and a clock\n[D9:6] John: Wow, Tim, that's an awesome book collection! It's cool to escape to different worlds with a hobby. By the way, I love discovering new cities - check out this pic from one of my trips to New York City!\n[D9:6] Image caption (automatic): a photo of a cityscape with a view of a skyscraper\n[D9:7] Tim: Wow! That skyline looks amazing - I've been wanting to visit NYC. How was it?\n[D9:8] John: Thanks! It was amazing. Everywhere you go there's something new and exciting. Exploring the city and trying all the restaurants was awesome. It's a must-visit!\n[D9:9] Tim: Adding NYC to my travel list, sounds like a great adventure! I heard there's so much to explore and try out. Can't wait to visit!\n[D9:10] John: Trust me, NYC is amazing! It's got so much to check out - the culture, food - you won't regret it. It's an adventure you'll never forget!\n[D9:11] Tim: Woohoo! Sounds like a fun place with lots of potential. Can't wait to experience it for myself!\n[D9:12] John: Awesome! Can't wait to hear when you are going. Let me know and I'm sure I can help you out.\n[D9:13] Tim: Yep, I'll let you know! Thanks for being so helpful.\n[D9:14] John: Sure thing! Any time you need help, don't hesitate to reach out.\n[D9:15] Tim: Thanks! Your support means a lot to me. Bye!\nSession date: 2:52 pm on 31 August, 2023\n[D10:1] Tim: Hey John, it's been a few days! I got a no for a summer job I wanted which wasn't great but I'm staying positive. On your NYC trip, did you have any troubles? How did you handle them?\n[D10:2] John: Hey Tim! Sorry to hear about the job, but your positivity will help you find something great! My trip went okay - I had some trouble figuring out the subway at first, but then it was easy after someone helped explain it. How about you? Anything new you've tackled?\n[D10:3] Tim: Thanks! Appreciate your encouragement. Yesterday, I tackled something new - I gave a presentation in class. I was nervous but I made it. Small step, but feels like progress.\n[D10:4] John: Cool, Tim! Taking the plunge and presenting can be tough, but awesome work! Progress is progress, keep it up. By the way, I've been trying out cooking recipes. Made this tasty soup recently - it was real good!\n[D10:4] Image caption (automatic): a photo of a bowl of soup with a spoon and a butternut on a cutting board\n[D10:5] Tim: Wow, that looks great! How did you make it? Do you have a recipe you can share?\n[D10:6] John: Thanks, I just sort of made it up on the spot so I don't have a recipe.\n[D10:7] Tim: That's ok! I can look some up. Can you tell me what spices you used in the soup?\n[D10:8] John: I added some sage for a nice flavor. Enjoy!\n[D10:9] Tim: Thanks! Excited to try this. Love experimenting with spices. By the way, have you been to Universal Studios? Planning a trip there next month.\n[D10:10] John: Cool! Haven't been there yet, but I've heard great things about Universal Studios. It's definitely on my bucket list. Have you been before?\n[D10:11] Tim: Nope, but it's my first time going. I'm super stoked for the Harry Potter stuff. Can't wait!\n[D10:12] John: Cool! It's gonna be a blast, like stepping into another world. Have a great time!\n[D10:13] Tim: Thanks! I'll definitely have a blast. I'll let you know how it goes!\n[D10:14] John: Great! Can't wait to hear about it. Have a safe trip!\n[D10:15] Tim: Thanks! I'll make sure to have a safe trip.\n[D10:16] John: Bye! Take care and let's catch up soon!\n[D10:17] Tim: Take care! Can't wait to catch up. Talk soon!\nSession date: 8:17 pm on 21 September, 2023\n[D11:1] John: Hey Tim, been a while! How ya been?\n[D11:2] Tim: Hey John! Great to hear from you. Been busy with things, how about you?\n[D11:3] John: Yeah, something cool happened! I attended a local restaurant with some new teammates last week. It was great getting to know them better.\n[D11:4] Tim: Good support is essential. How do you feel about them?\n[D11:5] John: They're great friends. We connected over our shared love for basketball and had a ton of fun.\n[D11:6] Tim: Sounds awesome. Having friends who share your hobbies can be really fun. Any exciting plans with them?\n[D11:7] John: We're planning to take a team trip next month to explore a new city and have some fun. Can't wait!\n[D11:8] Tim: That sounds great! Exploring new cities is always so much fun. Where are you headed?\n[D11:9] John: We're still deciding on the destination. Do you have any suggestions?\n[D11:10] Tim: Edinburgh, Scotland would be great for a magical vibe. It's the birthplace of Harry Potter and has awesome history and architecture. Plus, it's a beautiful city. What do you think?\n[D11:10] Image caption (automatic): a photo of a city with a clock tower and a sun setting\n[D11:11] John: That sounds like a great idea! I haven't been to Edinburgh yet, but it definitely sounds like a place worth considering for our trip. Thanks for the suggestion!\n[D11:12] Tim: Glad you liked it. Let me know if you need any more suggestions.\n[D11:13] John: Thanks! I'll definitely reach out if I need more suggestions. Appreciate the help! Here's a pic I snapped during one of our practices. The sunset looked amazing on the court. Moments like these make me so grateful for my basketball career.\n[D11:13] Image caption (automatic): a photo of a basketball ball on the ground with a basketball hoop in the background\n[D11:14] Tim: Wow, that looks amazing! What do you love most about your basketball career?\n[D11:15] John: Thanks! I love playing pro ball - it's a constant challenge and keeps me growing. There's nothing like seeing myself get better and beating goals. Plus, playing with my teammates and having the fans cheer is awesome. Basketball gives me a great sense of satisfaction and purpose.\n[D11:16] Tim: It's great that you have a passion that helps you grow and reach your goals. Achieving and feeling fulfilled must be amazing. Do you have any specific targets or goals you're working towards?\n[D11:17] John: Definitely! I'm focusing on better shooting and making more of an impact on the court. I want to be known as a consistent performer and help my team. Off the court, I'm also looking into more endorsements and building my brand. It's important for me to think about life after basketball.\n\nPERGUNTA: What was John's way of dealing with doubts and stress when he was younger?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 512,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "qa",
+      "key": "a69dac2873e0dedfdeb88b4cce8cb52b53515e90c657b5a59485a884ea857b63",
+      "result": {
+        "text": "{\"answer\": \"practicing basketball outside for hours\"}",
+        "prompt_tokens": 10392,
+        "completion_tokens": 13,
+        "latency_s": 0.44206002727150917,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You answer questions using only the passages provided. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Answer the question using only the passages below.\n\nGive the shortest answer that is complete: a name, a date, a number or a short noun\nphrase. Do not write a sentence.\n\nSome questions ask for a SET: everything a person did, made, visited, read, owns,\nwas given, or took part in, possibly mentioned on different days. For those, list\nEVERY item the passages support, separated by commas, and nothing else. Answering\nwith one item is complete only when the passages support exactly one. Never add an\nitem the passages do not state, and never repeat the same item twice.\n\nIf the passages do not contain the answer, answer with \"insufficient information\".\n\nAnswer with JSON exactly in this shape:\n{\"answer\": \"...\"}\n\n### INPUT\n[1] LoCoMo conv-43 history chunk 9\nSession date: 11:41 am on 6 November, 2023\n[D16:8] John: Wow! What makes your favorite player so inspiring? Do you have any special stories or moments with them?\n[D16:9] Tim: I just love watching LeBron. There was this Finals game a few years back with an epic block that totally changed the game and ended up winning it. Seeing him go for it like that was such an inspiration - never give up, you know?\n[D16:10] John: Remember that epic block in Game 7 of the '16 Finals? He chased down Iguodala and pinned the ball against the backboard. That kind of determination and heart is why I love basketball.\n[D16:11] Tim: Yeah, that's the one! It was awesome. Moments like that make me love sports and admire the players' determination and heart.\n[D16:12] John: LeBron's moments of determination and heart are incredible. It's why I enjoy playing and pushing myself. You never know when those special moments might occur, but it's always fun to be part of it.\n[D16:13] Tim: Those special moments make it all worth it. It's amazing to be part of something bigger and feel the joy and fulfillment. Keep pushing and having those moments on the court!\n[D16:14] John: Speaking of special moments, my wife and I just left for our European vacation! It will be short but sweet. You've been before, any recommendations?\n[D16:15] Tim: That's great! I hope you two have a great time. I would recommend visiting some castles, they are just so magical!\n[D16:16] John: Thanks! We'll have to check some out. Wishing you all the best with everything you're pursuing. Stay safe!\n[D16:17] Tim: Thanks! You too, buddy. Take it easy and keep going for it. Stay safe and let's stay in touch!\nSession date: 3:36 pm on 11 November, 2023\n[D17:1] John: Hey Tim! Great to chat again. So much has happened!\n[D17:2] Tim: Hey John! Great chatting with you as always. What's been happening lately? I've been reading as usual.\n[D17:2] Image caption (automatic): a photo of a book with a picture of a storm of swords\n[D17:3] John: My wife and I were road tripping out on the European coastline, and it was amazing! The views were spectacular, and we had lots of fun bonding and creating amazing memories. It was such a nice change to my regular life.\n[D17:3] Image caption (automatic): a photo of a group of people sitting on top of a mountain\n[D17:4] Tim: Wow! Sounds like an incredible road trip. I'm glad you and your wife had such a great time!\n[D17:4] Image caption (automatic): a photo of a statue of a woman with a blue hat on\n[D17:5] John: Thanks! Yeah, it was awesome. We got to see some epic spots. It's hard to describe how beautiful they were!\n[D17:6] Tim: Those places must've been amazing! Nature sure has a way of leaving us speechless.\n[D17:7] John: Nature sure is powerful and beautiful! It's really humbling to witness such sights.\n[D17:8] Tim: Yeah! It always makes us realize how huge the world is and how special it is. These moments really show us the beauty around us. Anyways, have you read or watched anything good recently?\n[D17:9] John: Yep, I just finished this amazing fantasy series. It was a wild ride with so many twists. The author is amazing at creating awesome storylines and characters - I love getting lost in those fantasy worlds.\n[D17:10] Tim: That's amazing! Same here. There's something special about being lost in an awesome fantasy realm and seeing what happens. It's like an escape. \"That\" is one of my favorite fantasy shows. Have you seen it?\n[D17:11] John: Yeah, I saw \"That\"! It's amazing to see those worlds and characters come alive. It's a great way to escape reality!\n[D17:12] Tim: Yeah, it's awesome how books and movies can take you away. A great escape, right?\n[D17:13] John: Definitely, it's like a mental break, giving our minds a rest and letting them wander. So refreshing!\n[D17:14] Tim: It's like entering another world! We get to take a break from everything and just let our minds wander. It's so nice and refreshing.\n[D17:15] John: And that's just what we need sometimes.\n[D17:16] Tim: Taking a break from life can help us recharge and get some peace. Plus, it gives us a chance to reconnect with ourselves and tackle life's challenges with a new outlook.\n[D17:17] John: Yeah, taking time for ourselves is crucial. It helps us stay sharp and focused. Plus, it helps us gain new perspectives and tackle challenges with more energy. Finding the right balance is key and I'll keep that in mind as I continue my journey.\n[D17:18] Tim: Balance is key and it varies. Take care of yourself, both mentally and physically, and you'll rock it. You got this, bud!\n[D17:19] John: Thanks! Your support means a lot. I'll keep pushing forward. Take care, buddy!\nSession date: 3:59 pm on 16 November, 2023\n[D18:1] Tim: Hey John! Hope you're doing good. Guess what? I went to a castle during my trip to the UK last Friday and it was unbelievable! The architecture and the history were amazing!\n[D18:1] Image caption (automatic): a photo of a castle with a river running through it\n[D18:2] John: Hey Tim! That's awesome! Yeah, it was really cool. Oh man, it's been a tough week for me with this injury. But I'm staying positive. How about you? How's your week been?\n[D18:2] Image caption (automatic): a photo of a person with a bandage on their leg\n[D18:3] Tim: Ouch, bummer about the injury. Hang tight. This week has been swamped with exams for me but I'm plowing through.\n[D18:4] John: Cheers, Tim. Injury's been rough, but I'm staying positive. How's the exam prep coming? Confident?\n[D18:4] Image caption (automatic): a photo of a notebook with a bunch of notes on it\n[D18:5] Tim: Exams can be challenging, but I'm putting in my best effort. Feeling optimistic and working diligently! How do you stay motivated during difficult study sessions?\n[D18:6] John: I visualize my goals and success for focus and motivation. It really helps me stay motivated during tough studying. Do you have any study tricks?\n[D18:6] Image caption (automatic): a photo of a soccer game with a player on the field\n[D18:7] Tim: That's cool! I like breaking up my studying into smaller parts. 25 minutes on, then 5 minutes off for something fun. It's less overwhelming and keeps me on track.\n[D18:8] John: Nice work! Breaking it down into smaller parts is definitely a smart move. I wish you all the best on your exams!\n[D18:9] Tim: Thanks! Appreciate your support. I hope your injury heals soon.\n[D18:10] John: Sure thing, Tim! Got your back. I hope so too. The doctor said it's not too serious.\n[D18:11] Tim: That's good to hear, I'm glad.\n[D18:12] John: I hate not being on the court.\n[D18:13] Tim: I bet. It's like if I couldn't read due to an injury.\n[D18:14] John: I'm pushing on though. Talk soon!\n[D18:15] Tim: Take care! Keep pushing on. Talk soon.\nSession date: 10:22 am on 21 November, 2023\n[D19:1] Tim: Hey John! Haven't talked in a bit, how ya been? Hope your injury is feeling better.\n[D19:2] John: Hey Tim! Thanks for checking in. It's been tough, but I'm staying positive and taking it slow. How about you? How have you been?\n[D19:3] Tim: I've been swamped with studies and projects, but last week I had a setback. I tried writing a story based on my experiences in the UK, but it didn't go the way I wanted. It's been tough, do you have any advice for getting better with storytelling?\n[D19:4] John: Sorry to hear about the setback with your story. I understand how frustrating it can be when things don't go as planned. When I face challenges on the court, I try to reflect on what went wrong and find ways to improve. Maybe you can try doing the same with your storytelling.\n\n[2] LoCoMo conv-43 history chunk 7\nSession date: 1:50 pm on 13 October, 2023\n[D13:2] John: Hey Tim! Great to hear from you. It's awesome how our passions connect us with others, yeah? You sound like you fit right in and got a real buzz out of it. I feel the same way with my team.\n[D13:2] Image caption (automatic): a photography of a basketball team posing for a team photo\n[D13:3] Tim: Wow, you guys look great! How have games been going?\n[D13:4] John: It was an intense season with both tough losses and great wins. Overall, I'd say we did pretty well.\n[D13:5] Tim: Cool! Sounds like you guys had some tough games. How did you handle those?\n[D13:6] John: Thanks! We faced tough opponents but that's what drives us to get better. We back each other up and won't quit.\n[D13:6] Image caption (automatic): a photo of a soccer team posing for a picture with a trophy\n[D13:7] Tim: Congrats! That's awesome. It must feel good, right?\n[D13:8] John: Yeah, it feels great! All that hard work and effort was totally worth it. We even won a trophy!\n[D13:8] Image caption (automatic): a photo of a man holding a trophy in front of a crowd\n[D13:9] Tim: Way to go! You must have been elated up there with that trophy. All the hard work paid off! Congrats - I'm so proud of you. Keep it up!\n[D13:10] John: Thanks! I was definitely elated. Your support really means a lot to me. I'll keep working hard.\n[D13:11] Tim: No problem! I'm here for you anytime. Keep believing in yourself!\n[D13:12] John: Thanks! Appreciate your support. Always staying filled with self-belief.\n[D13:13] Tim: You got this! Stay motivated and remember that anything is possible with hard work. Keep pushing for your goals!\n[D13:13] Image caption (automatic): a photo of a box of serenityy memory foam\n[D13:14] John: Thanks! Your encouragement means a lot to me. I'm feeling motivated and ready to keep pushing for my goals! I'm going to need some new shoes after all these games though.\n[D13:15] Tim: Glad my encouragement helped! These are amazing - like walking on clouds! Game changer!\n[D13:15] Image caption (automatic): a photo of a pair of black and pink running shoes\n[D13:16] John: They look comfortable. Where did you get them?\n[D13:17] Tim: I got them online - they're super comfy! Definitely recommend!\n[D13:18] John: Cheers! I'll definitely check them out. Thanks for the recommendation!\n[D13:19] Tim: No worries. Let me know if there's anything else I can assist you with. Always here to help!\n[D13:20] John: Thanks! Appreciate it. I'll reach out if I need anything.\n[D13:21] Tim: Cool! Stay motivated and keep chasing those dreams! Chat soon!\n[D13:22] John: Thanks! I'll definitely stay motivated and keep chasing those dreams. You too, keep up the passion. Talk soon!\nSession date: 1:50 pm on 17 October, 2023\n[D14:1] John: Hey Tim! Long time no talk - a lot has been going on since then!\n[D14:2] Tim: Hey John! Long time no see! Can't wait to catch up and hear all about what you've been up to.\n[D14:3] John: Seems like forever since we caught up! I'm now mentoring the younger players on my team. It's super rewarding and I'm loving sharing my skills and knowledge with them. It's also a great way for me to stay involved in the game during the off-season.\n[D14:4] Tim: Wow! Mentoring must be so rewarding. You get to show others what you know - that's awesome! Is it difficult? Any hiccups?\n[D14:5] John: There are challenges, since everyone is so different. But it's been awesome gaining experience and adapting, motivating and encouraging everyone. It's been great to watch each of them develop and reach their goals - such a reward!\n[D14:6] Tim: Wow, that's awesome! It must be really rewarding to see them reach their goals. What's it like mentoring them?\n[D14:7] John: Mentoring them has been awesome! Seeing their growth, improvement, and confidence is so fulfilling. I'm glad I could make a positive impact on their lives. Here's a pic of me and some of the younger players at a recent practice.\n[D14:7] Image caption (automatic): a photography of a basketball player standing in a gym with his hands on his hips\n[D14:8] Tim: You're really doing great with them. Do any of them see you as a mentor?\n[D14:9] John: Some of them do see me as a mentor, which is really rewarding. I try to provide them with advice and support on and off the court. Being a positive role model for them is something I enjoy.\n[D14:10] Tim: That's incredible! How does it feel to have their trust and admiration? It must be such an honor to be a positive role model for them.\n[D14:11] John: It feels great to have their trust and admiration. Being a role model for these young athletes is so fulfilling. I'm glad my experiences can help shape their future and inspire them to go after their dreams.\n[D14:12] Tim: You're doing a great job with them. Way to go! This is what I've been up to.\n[D14:12] Image caption (automatic): a photo of a sunset over a mountain range with a few trees\n[D14:13] John: Wow, stunning! And thanks. Really appreciate it. Means a lot.\n[D14:14] Tim: I took this pic last summer. Seeing it was so stunning. Thanks for appreciating it. It means a lot to me.\n[D14:14] Image caption (automatic): a photo of a sunset over a mountain with a tree\n[D14:15] John: Where did you capture this? Nature is truly amazing, isn't it?\n[D14:16] Tim: I snapped that pic on my trip to the Smoky Mountains last year. It was incredible seeing it in person. Nature's really something else!\n[D14:17] John: Yeah, it's amazing how nature's beauty and grandeur can take our breath away. It's so nice to escape the noise of the city and relax in nature. Good for you to get to enjoy that stunning view!\n[D14:18] Tim: Nature is indeed refreshing. A good break from school.\n[D14:19] John: How are you doing in shcool?\n[D14:20] Tim: Doing good! Busy with studies but finding time to relax with books - good balance.\n[D14:21] John: Cool! Finding that balance is key. Are you currently reading any books?\n[D14:22] Tim: I'm reading this book and I'm totally hooked! What about you?\n[D14:23] John: I haven't had much time to read, but after we talked I finally picked up a book and it's been awesome! Talk to you later!\nSession date: 5:51 pm on 21 October, 2023\n[D15:1] Tim: Hey John! Haven't talked to you in a bit but wanted to let you know I read this awesome book about castles in the UK. It was so interesting and blew me away! I dream of visiting them one day.\n[D15:2] John: Hey Tim! Great to hear from you. Learning about different cultures and seeing historical architecture fascinates me. Visiting castles is really on my bucket list. Just look at this one; what a sight! I'm so excited to explore the world and experience these gorgeous places. On that note, how's your fantasy writing going?\n[D15:2] Image caption (automatic): a photo of a man sitting on a bench overlooking a cliff\n[D15:3] Tim: That castle looks amazing! I hope I get to visit it someday. My writing is going well: I'm in the middle of fantasy novel and it's a bit nerve-wracking but so exciting! All my hard work is paying off. Writing brings such joy and it's incredible how it can create a whole new world. Thanks so much for believing in me!\n[D15:4] John: That's great! I'm glad your writing is going well. It must be exciting to see it all come together. Keep going! Do you have a specific source of inspiration for your stories?\n\n[3] LoCoMo conv-43 history chunk 4\nSession date: 7:54 pm on 17 August, 2023\n[D7:10] Tim: That's really cool. It's great that you have something to remind you of your friends. Keeping a bit of their energy and support with you is always nice.\n[D7:11] John: Having something like this ball to remind me of the bond and support from my teammates is really comforting. It's a nice reminder of why I started playing basketball and my journey. It motivates me to stay strong and give it my all.\n[D7:12] Tim: That's so sweet. It's great to have something so meaningful to keep you motivated. I'll keep that in mind next time I need a push to reach my goals.\n[D7:13] John: It's really motivating to have something that reminds you of why you started, and having supportive people around is like having a cheer team that helps you through tough times.\n[D7:14] Tim: Yeah, that's true. Having them there to cheer you on can be a powerful source of strength.\n[D7:15] John: Yeah, having that support really encourages me to give it my all and never give up. It's an awesome feeling!\n[D7:16] Tim: It's awesome how much strength people can get from each other. Bye!\nSession date: 4:29 pm on 21 August, 2023\n[D8:1] John: Hey Tim! Long time no talk. Hope you're doing great. Crazy things have been going on in my life. Just the other day, I found a new gym to stay on my b-ball game. Staying fit is essential to surviving pro ball, so I had to find something that fits the bill. Finding the right spot was tough but here we are!\n[D8:1] Image caption (automatic): a photo of a gym with a basketball court and cones\n[D8:2] Tim: Hey John! Really good to hear from you. Staying fit is so important. Must be so cool to practice there. Any issues you had when you got it?\n[D8:3] John: It's been great training here. The gym is awesome, but I had to overcome the hurdle of adapting and tweaking my routine. Finding the right balance was tricky, but I eventually got the hang of it.\n[D8:4] Tim: Nice one! It can be tough getting used to a new routine, but once you figure it out, it gets easier. How did you find that balance?\n[D8:5] John: Thanks! Took some trial and error but I figured out a schedule with both basketball stuff and strength training to balance it out. Listening to my body and giving it enough rest made it easier to push myself during practice but also look after me. Here's my workout plan. It helps a lot with staying on track.\n[D8:5] Image caption (automatic): a photo of a notebook with a list of items on it\n[D8:6] Tim: Nice job! Impressive plan you've got there! You've really thought it out. Why include strength training in your routine?\n[D8:7] John: Thanks! Strength training is important for basketball because it builds muscle, increases power, and prevents injuries. It also helps me become more explosive, which is essential in games. Plus, it boosts my athleticism overall.\n[D8:8] Tim: That makes sense! Your holistic approach seems to have numerous benefits. Does strength training have a positive impact on your basketball performance?\n[D8:9] John: Definitely! Incorporating strength training really changed the game for me, improving my shooting accuracy, agility, and speed. It gave me the upper hand over my opponents and helped me up my game. It gave me the confidence to take on whatever comes my way.\n[D8:10] Tim: Awesome! Gaining confidence on the court must feel great. It's cool how strength training can benefit you. You're doing great in both basketball and fitness, keep it up!\n[D8:11] John: Thanks! Appreciate your support. It's been a journey, but I'm happy with the progress. Excited to see what's next. What about you? How have you been?\n[D8:12] Tim: Things have been great since we last talked - I've been focusing on school and reading a bunch of fantasy books. It's a nice way to take a break from all the stress. I've also started learning how to play the piano - it's a learning curve, but it's so satisfying seeing the progress I make! Life's good.\n[D8:13] John: Wow! You're staying busy and having fun. Learning to play this is awesome - it's such a beautiful instrument. Do you have any favorite songs you like playing on it?\n[D8:14] Tim: Thanks! I love playing different songs on the piano, but my favorite one to jam to is a theme from a movie I really enjoy. It brings back lots of great memories.\n[D8:15] John: Wow, that's cool! Music really has a way of bringing back memories and evoking emotions, doesn't it? Almost like taking us back in time. Could you tell me more about that film and the memories it brings up for you?\n[D8:16] Tim: Yeah, \"Harry Potter and the Philosopher's Stone\" is special to me. It was the first movie from the series and brings back some great memories. Watching it with my family was amazing. It was so magical!\n[D8:17] John: Wow, that sounds great, Tim! I love that first movie too, I even have the whole collection! It was so magical! Must've been a dream watching it with your family.\n[D8:17] Image caption (automatic): a photo of a dvd cover with a castle in the background\n[D8:18] Tim: It was really a dream come true! Watching that movie with my family was awesome, we'd all get comfy with snacks and a blanket and be totally absorbed. Such a special memory!\n[D8:19] John: Cool! Cherish those family moments - they're so irreplaceable. Family time is great! Mine gets together all the time too.\n[D8:19] Image caption (automatic): a photo of a group of people standing around a kitchen table\n[D8:20] Tim: Family time means a lot to me. This photo is from a special day when we all got together to eat. It was a great day full of love and laughter!\n[D8:20] Image caption (automatic): a photo of a family sitting on a couch in front of a fireplace\n[D8:21] John: Wow, that looks like such a great day! Do you have any favorite Thanksgiving traditions?\n[D8:22] Tim: Thanksgiving's always special for us. We love prepping the feast and talking about what we're thankful for. Plus, watching some movies afterwards - the best!\n[D8:23] John: Thanksgiving dinner with family sounds great! Do you have any favorite movies you watch together?\n[D8:24] Tim: During Thanksgiving, we usually watch a few movies. We love \"Home Alone\" - it always brings lots of laughs!\n[D8:24] Image caption (automatic): a photo of a dvd cover with a child in a house\n[D8:25] John: That's a classic! What other movies do you watch during the holidays?\n[D8:26] Tim: We also watch \"Elf\" during the holidays. It makes us laugh and get us feeling festive!\n[D8:26] Image caption (automatic): a photo of a dvd cover of a movie with a leprechaun\n[D8:27] John: Those are awesome! Any other holiday movies do you enjoy watching?\n[D8:28] Tim: We love \"The Santa Clause\" too- it's so heartwarming and gets us all feeling festive!\n[D8:28] Image caption (automatic): a photo of a dvd cover of a santa clause movie\n[D8:29] John: \"The Santa Clause\" is a classic! It's so sweet and really captures the Christmas magic. It's just one of those movies that gets us all feeling festive. This was our tree last year.\n[D8:29] Image caption (automatic): a photo of a christmas tree with a lot of lights on it\n[D8:30] Tim: Yep, it really does. That tree pic looks awesome! It must add so much holiday cheer to your house. This was ours.\n[D8:30] Image caption (automatic): a photo of a christmas tree with a harry potter theme\n[D8:31] John: That looks awesome! Where did you get this tree?\n[D8:32] Tim: I decorated this tree myself, going all out with a Harry Potter theme! It was a blast!\n[D8:32] Image caption (automatic): a photo of a christmas tree with a harry potter theme\n[D8:33] John: That themed tree looks amazing! You really know how to get the vibes just right!\n[D8:34] Tim: Thanks! It was such a fun project and I'm really happy with how it turned out.\n[D8:35] John: Glad you had fun!\n[D8:36] Tim: Great catching up! Take care, talk soon.\n[D8:37] John: Catch ya later! Talk soon. Take care and enjoy the rest of your day.\n\n[4] LoCoMo conv-43 history chunk 12\nSession date: 7:42 pm on 8 December, 2023\n[D22:7] Tim: Wow, that's awesome! It's great to see how close you all have become. You must feel a great sense of unity. I'm reading this amazing series about the power of friendship and loyalty – really inspiring stuff. Anything special you do to keep that bond strong?\n[D22:7] Image caption (automatic): a photo of a stack of books sitting on top of a table\n[D22:8] John: Sounds awesome! What kind of stuff do they do in the series? I'm sure the importance of friendship is emphasized. Same with us - we have team dinners, outings, and basketball games. It's those moments away from practice that really build and strengthen our unity.\n[D22:8] Image caption (automatic): a photography of a group of people sitting around a table eating\n[D22:9] Tim: Awesome! Sounds like your team has something similar to the characters in the series. They rely on each other to push through challenges. By the way, what book are you currently reading? I'm always on the lookout for new reads!\n[D22:10] John: Thanks! I'm currently reading a book that I really enjoy. I highly recommend it!\n[D22:11] Tim: Sounds cool! Let me know the title so I can add it to my list!\n[D22:12] John: I'm reading \"Dune\" by Frank Herbert. It's a great story about religion and human control over ecology. What about you? What's the last book that moved you?\n[D22:13] Tim: I haven't read that yet but I've heard great things! Just finished \"A Dance with Dragons\" and it's a really good story. Highly recommend it!\n[D22:13] Image caption (automatic): a photography of a book shelf with a book and a book cover\n[D22:14] John: That's cool! I've heard it's such an inspiring book. Have you read all of George R. R. Martin's books?\n[D22:15] Tim: Just the GoT series. Have you tried reading any of them?\n[D22:16] John: No, I haven't read them yet but I'll definitely check them out. Cheers!\n[D22:17] Tim: Let me know if you get around to them! Have a great day!\n[D22:18] John: Thanks! I'll let you know. Have a great day!\nSession date: 8:28 pm on 11 December, 2023\n[D23:1] John: Hey Tim, great to see you! Any new success stories?\n[D23:1] Image caption (automatic): a photo of two women standing next to a banner with sales pros written on it\n[D23:2] Tim: Hey John, I had a tough time with my English lit class. Did an analysis on this series and I think it went ok!\n[D23:3] John: Thanks! It's a bummer about your English lit class, but you did your best. By the way, I had a career-high in assists last Friday in our big game against our rival. Yay!\n[D23:3] Image caption (automatic): a photo of a basketball game being played in a large arena\n[D23:4] Tim: Congrats! That's awesome. How did it feel being out there making those plays?\n[D23:5] John: Thanks! It felt great being out there, making plays for my team. I love seeing my teammates succeed because of the opportunities I create for them. The atmosphere in the arena was really electric and playing against our rivals added an extra level of intensity. It was a memorable night!\n[D23:6] Tim: Sounds incredible! Must have been quite an atmosphere. Have you had any other games that were as thrilling as this one?\n[D23:7] John: I've had some thrilling games in my career. My favorite was when we were down 10 in the 4th and I hit the buzzer-beater shot to win. The atmosphere was incredible and it was such a thrilling experience. Those moments make me love basketball so much.\n[D23:8] Tim: Wow, John! Moments like that make us love sports, huh? I still think about this pic you sent me a while back.\n[D23:8] Image caption (automatic): a photo of a basketball ball on the ground with a basketball hoop in the background\n[D23:9] John: Yeah, that pic reminds me of when I was younger. I'd practice basketball outside for hours, dreaming of playing in big games. It was my way of dealing with doubts and stress. It's amazing how a ball and hoop can be so powerful, right?\n[D23:10] Tim: Yeah! Sports are the best. When we're feeling down, it's a way to express ourselves and stay positive. It's awesome how much basketball has done for you. Keep going with your dreams!\n[D23:10] Image caption (automatic): a photo of a basketball ball on the ground with a basketball hoop in the background\n[D23:11] John: Thanks! Appreciate the support. It's been a significant part of my life and allows me to be myself and pursue my passions. Gonna keep chasing my dreams!\n[D23:12] Tim: Wow! It's really important to do our own thing and follow our dreams. Keep it up, you're gonna do amazing things!\n[D23:13] John: Your encouragement means a lot. Let's keep pushing and following our dreams - we can make a difference!\n[D23:14] Tim: Definitely. We both have so much potential! Let's keep supporting each other on our journey towards our dreams.\n[D23:15] John: Yeah, you're super inspiring and motivating. Keep it up!\n[D23:16] Tim: Thanks, it means a lot. Let's keep each other motivated. Bye!\nSession date: 3:37 pm on 16 December, 2023\n[D24:1] Tim: Hey John, catch up time! What've you been up to? Any good b-ball games lately?\n[D24:2] John: Hey Tim! Nice to talk again. The b-ball games have been crazy. We had a real battle against another team last week. It was close until the final buzzer but we got the win.\n[D24:2] Image caption (automatic): a photo of a group of women's basketball players holding up a trophy\n[D24:3] Tim: Congrats, John! That sounds like an intense game.\n[D24:4] John: Thanks! We won! It was really close, but we made it!\n[D24:5] Tim: Wow, that's amazing! Winning must have been so thrilling!\n[D24:6] John: Winning was such a thrill, and it was an awesome moment. These experiences really make me love the game.\n[D24:7] Tim: You must have been so pumped when it happened! Winning can give us a real confidence boost and makes us keep going with our passions.\n[D24:8] John: Yeah, it really does. It keeps me motivated to keep putting in the effort and makes all the tough times worth it. Here's a pic I took during a morning workout, it's a reminder that the journey can be awesome.\n[D24:8] Image caption (automatic): a photography of a basketball hoop in the sunset with a fence\n[D24:9] Tim: That's a good spot for a morning workout! Can you tell me about some challenges you've faced?\n[D24:10] John: Yeah, I injured myself not too long ago. It sucked because I had to miss some games and couldn't help my team.\n[D24:10] Image caption (automatic): a photo of a person with a cast on their foot\n[D24:11] Tim: Ouch, that's rough. Have you been able to stay active or keep up with your fitness routine while you're recovering?\n[D24:12] John: It's been tough, but I'm trying to stay active and do my rehab. I do physical therapy exercises every day.\n[D24:12] Image caption (automatic): a photo of a man sitting on a chair with a blue ball\n[D24:13] Tim: Cool, rehab can be tough but it's key to keep it up. How's it coming along?\n[D24:14] John: It's going great! I've been working hard and it's paying off. Last Friday, I had a milestone moment at the gym. I was able to jog a bit with no pain, which was such a relief!\n[D24:14] Image caption (automatic): a photography of a treadmill in a room with a window\n[D24:15] Tim: Wow! How was it jogging without any discomfort?\n[D24:16] John: It was great! After being out for so long, jogging without any pain was a huge success. My wife and I hosted a small get-together with friends and family to celebrate.\n[D24:17] Tim: Congrats! That's awesome. Keep at it and you'll be back in no time. That sounds fun, how was it?\n\n[5] LoCoMo conv-43 history chunk 5\nSession date: 6:59 pm on 26 August, 2023\n[D9:1] Tim: Hey John, this week's been really busy for me. Assignments and exams are overwhelming. I'm not giving up though! I'm trying to find a way to juggle studying with my fantasy reading hobby. How have you been?\n[D9:1] Image caption (automatic): a photo of a stack of books on a table\n[D9:2] John: Hey Tim! I know the stress of exams and homework, but you got this! I'm doing OK, cheers for asking. Last week I visited home and caught up with my family and old friends. We had a great time talking about our childhood - it reminds me of the good ol' times!\n[D9:2] Image caption (automatic): a photo of a group of girls basketball players posing for a picture\n[D9:3] Tim: Thanks for the pic! That group looks like a great squad. How long did you all play together?\n[D9:4] John: We were teammates for four years in high school, so we've played together for quite some time. Have you ever been part of a sports team?\n[D9:5] Tim: Nope, never been on a sports team. I'm more into reading and fantasy novels. I love sinking into different magical worlds. It's one of the reasons I love traveling to new places, to experience a different kind of magic.\n[D9:5] Image caption (automatic): a photo of a book shelf with books and a clock\n[D9:6] John: Wow, Tim, that's an awesome book collection! It's cool to escape to different worlds with a hobby. By the way, I love discovering new cities - check out this pic from one of my trips to New York City!\n[D9:6] Image caption (automatic): a photo of a cityscape with a view of a skyscraper\n[D9:7] Tim: Wow! That skyline looks amazing - I've been wanting to visit NYC. How was it?\n[D9:8] John: Thanks! It was amazing. Everywhere you go there's something new and exciting. Exploring the city and trying all the restaurants was awesome. It's a must-visit!\n[D9:9] Tim: Adding NYC to my travel list, sounds like a great adventure! I heard there's so much to explore and try out. Can't wait to visit!\n[D9:10] John: Trust me, NYC is amazing! It's got so much to check out - the culture, food - you won't regret it. It's an adventure you'll never forget!\n[D9:11] Tim: Woohoo! Sounds like a fun place with lots of potential. Can't wait to experience it for myself!\n[D9:12] John: Awesome! Can't wait to hear when you are going. Let me know and I'm sure I can help you out.\n[D9:13] Tim: Yep, I'll let you know! Thanks for being so helpful.\n[D9:14] John: Sure thing! Any time you need help, don't hesitate to reach out.\n[D9:15] Tim: Thanks! Your support means a lot to me. Bye!\nSession date: 2:52 pm on 31 August, 2023\n[D10:1] Tim: Hey John, it's been a few days! I got a no for a summer job I wanted which wasn't great but I'm staying positive. On your NYC trip, did you have any troubles? How did you handle them?\n[D10:2] John: Hey Tim! Sorry to hear about the job, but your positivity will help you find something great! My trip went okay - I had some trouble figuring out the subway at first, but then it was easy after someone helped explain it. How about you? Anything new you've tackled?\n[D10:3] Tim: Thanks! Appreciate your encouragement. Yesterday, I tackled something new - I gave a presentation in class. I was nervous but I made it. Small step, but feels like progress.\n[D10:4] John: Cool, Tim! Taking the plunge and presenting can be tough, but awesome work! Progress is progress, keep it up. By the way, I've been trying out cooking recipes. Made this tasty soup recently - it was real good!\n[D10:4] Image caption (automatic): a photo of a bowl of soup with a spoon and a butternut on a cutting board\n[D10:5] Tim: Wow, that looks great! How did you make it? Do you have a recipe you can share?\n[D10:6] John: Thanks, I just sort of made it up on the spot so I don't have a recipe.\n[D10:7] Tim: That's ok! I can look some up. Can you tell me what spices you used in the soup?\n[D10:8] John: I added some sage for a nice flavor. Enjoy!\n[D10:9] Tim: Thanks! Excited to try this. Love experimenting with spices. By the way, have you been to Universal Studios? Planning a trip there next month.\n[D10:10] John: Cool! Haven't been there yet, but I've heard great things about Universal Studios. It's definitely on my bucket list. Have you been before?\n[D10:11] Tim: Nope, but it's my first time going. I'm super stoked for the Harry Potter stuff. Can't wait!\n[D10:12] John: Cool! It's gonna be a blast, like stepping into another world. Have a great time!\n[D10:13] Tim: Thanks! I'll definitely have a blast. I'll let you know how it goes!\n[D10:14] John: Great! Can't wait to hear about it. Have a safe trip!\n[D10:15] Tim: Thanks! I'll make sure to have a safe trip.\n[D10:16] John: Bye! Take care and let's catch up soon!\n[D10:17] Tim: Take care! Can't wait to catch up. Talk soon!\nSession date: 8:17 pm on 21 September, 2023\n[D11:1] John: Hey Tim, been a while! How ya been?\n[D11:2] Tim: Hey John! Great to hear from you. Been busy with things, how about you?\n[D11:3] John: Yeah, something cool happened! I attended a local restaurant with some new teammates last week. It was great getting to know them better.\n[D11:4] Tim: Good support is essential. How do you feel about them?\n[D11:5] John: They're great friends. We connected over our shared love for basketball and had a ton of fun.\n[D11:6] Tim: Sounds awesome. Having friends who share your hobbies can be really fun. Any exciting plans with them?\n[D11:7] John: We're planning to take a team trip next month to explore a new city and have some fun. Can't wait!\n[D11:8] Tim: That sounds great! Exploring new cities is always so much fun. Where are you headed?\n[D11:9] John: We're still deciding on the destination. Do you have any suggestions?\n[D11:10] Tim: Edinburgh, Scotland would be great for a magical vibe. It's the birthplace of Harry Potter and has awesome history and architecture. Plus, it's a beautiful city. What do you think?\n[D11:10] Image caption (automatic): a photo of a city with a clock tower and a sun setting\n[D11:11] John: That sounds like a great idea! I haven't been to Edinburgh yet, but it definitely sounds like a place worth considering for our trip. Thanks for the suggestion!\n[D11:12] Tim: Glad you liked it. Let me know if you need any more suggestions.\n[D11:13] John: Thanks! I'll definitely reach out if I need more suggestions. Appreciate the help! Here's a pic I snapped during one of our practices. The sunset looked amazing on the court. Moments like these make me so grateful for my basketball career.\n[D11:13] Image caption (automatic): a photo of a basketball ball on the ground with a basketball hoop in the background\n[D11:14] Tim: Wow, that looks amazing! What do you love most about your basketball career?\n[D11:15] John: Thanks! I love playing pro ball - it's a constant challenge and keeps me growing. There's nothing like seeing myself get better and beating goals. Plus, playing with my teammates and having the fans cheer is awesome. Basketball gives me a great sense of satisfaction and purpose.\n[D11:16] Tim: It's great that you have a passion that helps you grow and reach your goals. Achieving and feeling fulfilled must be amazing. Do you have any specific targets or goals you're working towards?\n[D11:17] John: Definitely! I'm focusing on better shooting and making more of an impact on the court. I want to be known as a consistent performer and help my team. Off the court, I'm also looking into more endorsements and building my brand. It's important for me to think about life after basketball.\n\nPERGUNTA: What was John's way of dealing with doubts and stress when he was younger?"
+          }
+        ],
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/a0b29cbec27feb792ef9de58f8c3201a7c4a58bdd232f52718743d2dada5cea6.json"
+    }
+  ],
+  "retrieval_hash": "ad2ac16ca6fde45da8f60efb2df3059b4ca657002a731668eb35e93e8c0584a5",
+  "memory_hash": "294ce1e607a2a327f05f6f889a6c875a4f30b176cc54b29d57f5878de13ce749",
+  "condition": "evidence",
+  "reader": "common"
+}

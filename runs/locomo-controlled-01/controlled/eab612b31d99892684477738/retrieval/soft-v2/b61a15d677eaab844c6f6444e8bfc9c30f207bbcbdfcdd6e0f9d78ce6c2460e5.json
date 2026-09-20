@@ -1,0 +1,690 @@
+{
+  "identity": {
+    "qid": "locomo:conv-50:qa154",
+    "question": "What event did Calvin attend in Boston?",
+    "memory": "8e65dd5b46de55ad17b1195a88d31d25e49758882cde4c215179526078107bac",
+    "config": {
+      "dataset": "locomo",
+      "n_questions": 119,
+      "top_k": 5,
+      "seed": 42,
+      "subset_corpus": false,
+      "train_questions_path": "",
+      "interleave_methods": true,
+      "corpus_scope": "locomo_full_selected_conversation",
+      "methods": [
+        "witnessrag"
+      ],
+      "ie": {
+        "max_tokens": 1600,
+        "temperature": 0.0,
+        "two_step": true,
+        "max_triples_per_passage": 40,
+        "window_tokens": 512,
+        "window_overlap_tokens": 64,
+        "window_tokenizer": "Qwen/Qwen2.5-14B-Instruct",
+        "window_tokenizer_revision": "",
+        "dialogue_mode": true
+      },
+      "graph": {
+        "merge_similar_entities": false,
+        "merge_identity_variants": true,
+        "merge_relation_inflections": true,
+        "identity_merge_threshold": 0.8,
+        "synonym_threshold": 0.8,
+        "synonym_max_neighbors": 20,
+        "ppr_damping": 0.5,
+        "ppr_tol": 1e-08,
+        "ppr_max_iter": 100
+      },
+      "hippo2": {
+        "n_triples_retrieved": 20,
+        "n_triples_kept": 5,
+        "n_passages_seed": 10,
+        "passage_node_weight": 0.05,
+        "use_recognition_memory": true
+      },
+      "graphrag": {
+        "community_levels": 2,
+        "min_community_size": 3,
+        "build_community_reports": true,
+        "max_communities_reported": 400,
+        "text_units_per_entity": 8
+      },
+      "witness": {
+        "max_atoms": 4,
+        "compile_temperature": 0.0,
+        "vocabulary_aware_compile": true,
+        "vocabulary_relations": 40,
+        "vocabulary_entities": 20,
+        "query_plans": true,
+        "max_query_plans": 5,
+        "active_frontier": true,
+        "active_obligations": true,
+        "active_context": true,
+        "active_operators": false,
+        "soft_obligations": false,
+        "proof_reader": true,
+        "active_frontier_queries": 5,
+        "active_frontier_passages": 30,
+        "grounding_mode": "semantic",
+        "relation_match_threshold": 0.65,
+        "candidates_per_atom": 60,
+        "entity_match_threshold": 0.55,
+        "entity_top_k": 5,
+        "relation_weight": 0.45,
+        "argument_weight": 0.35,
+        "verbalization_weight": 0.2,
+        "max_witnesses": 20,
+        "beam_width": 400,
+        "passage_penalty": 0.15,
+        "binding_aware_grounding": true,
+        "verify_witnesses": false,
+        "verification_max_witnesses": 5,
+        "answer_set": true,
+        "answer_set_max_items": 10,
+        "hybrid_fallback": true,
+        "hybrid_rrf_k": 60,
+        "candidate_pool_k": 20,
+        "fact_confidence": 0.9,
+        "delta_interpretation": 0.1,
+        "delta_verbalization": 0.05,
+        "acquisition_rounds": 2,
+        "acquisition_passages": 3,
+        "acquisition_lambda": 0.05,
+        "enable_acquisition": true,
+        "dense_fallback": true,
+        "budget_fraction": 1.0,
+        "ilp_time_limit_s": 120,
+        "ilp_max_facts": 20000
+      },
+      "qa": {
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "top_k": 5,
+        "answer_set": true,
+        "operator_reader": false,
+        "proof_reader": true
+      }
+    },
+    "condition": "soft-v2"
+  },
+  "retrieval": {
+    "pids": [
+      "p-9498e8c605da3f6f8936de4e",
+      "p-314800e8745212c8df9c7438",
+      "p-4867dc24607835c6d9ba27b0",
+      "p-af876b327960b0cb7d46afaa",
+      "p-6d21b5dbdd2ab72134ef2fe3"
+    ],
+    "scores": [
+      1.0,
+      0.5,
+      0.3333333333333333,
+      0.25,
+      -0.9999693208430913
+    ],
+    "diagnostics": {
+      "pesquisa_provas": {
+        "fronteira": [
+          "p-9498e8c605da3f6f8936de4e",
+          "p-af876b327960b0cb7d46afaa",
+          "p-0a518a6861436c1070f107d1",
+          "p-f400df492fb2eff41ebc2e8f",
+          "p-6d21b5dbdd2ab72134ef2fe3",
+          "p-314800e8745212c8df9c7438",
+          "p-f4fb4e4a6346dfe7a9c1b62c",
+          "p-f331755da6ed1cadcea53854",
+          "p-ec1e82afcca58f4cf5be8639"
+        ],
+        "sondas": [
+          "What event did Calvin attend in Boston?",
+          "Calvin attend in Boston",
+          "Calvin event Boston"
+        ],
+        "acoes": [],
+        "buscas_dirigidas": 0,
+        "replanejamentos": 1,
+        "rejeicoes": 0
+      },
+      "planos_compilados": [
+        {
+          "indice": 0,
+          "rodada_criacao": 0,
+          "consulta": {
+            "answer_var": "x",
+            "atoms": [
+              {
+                "relation": "attend in Boston",
+                "subject": "Calvin",
+                "object": "?x"
+              }
+            ],
+            "expected_type": "other",
+            "aggregation": "none",
+            "shape": "single-hop",
+            "source": "llm-plan-vocabulario",
+            "fallback": "Calvin event Boston",
+            "validation_error": "",
+            "repairs": [],
+            "uses_annotations": false
+          },
+          "executavel": true,
+          "fechou": true,
+          "profundidade": 1,
+          "candidatos_por_atomo": [
+            3
+          ],
+          "obrigacoes": {
+            "cobre_pergunta": false,
+            "faltas": [
+              "What event"
+            ],
+            "motivo": "The query captures Calvin attending an event in Boston but does not specify that the event is the one the user is asking about. The direction and entity are preserved, but the specific event qualifier is missing and needs to be checked in t",
+            "checado": true,
+            "grau": "partial",
+            "contrato": "soft-v2",
+            "tentativas": [
+              {
+                "raw": "{\"tier\":\"partial\", \"missing\":[\"What event\"], \"reason\":\"The query captures Calvin attending an event in Boston but does not specify that the event is the one the user is asking about. The direction and entity are preserved, but the specific event qualifier is missing and needs to be checked in the source passages.\"}",
+                "error": ""
+              }
+            ]
+          }
+        }
+      ],
+      "planejamento": {
+        "orcamento_planos": 5,
+        "planos_distintos": 1,
+        "chamadas": 2,
+        "replanejamentos": 1
+      },
+      "plano_escolhido": 0,
+      "n_testemunhas": 3,
+      "testemunha_no_contexto": true,
+      "classe_prova": "provisional",
+      "empacotamento": {
+        "provas_selecionadas": [
+          {
+            "resposta": "music thingy in Tokyo",
+            "passagens": [
+              "p-9498e8c605da3f6f8936de4e"
+            ]
+          },
+          {
+            "resposta": "gala",
+            "passagens": [
+              "p-314800e8745212c8df9c7438"
+            ]
+          },
+          {
+            "resposta": "concert",
+            "passagens": [
+              "p-4867dc24607835c6d9ba27b0"
+            ]
+          }
+        ],
+        "respostas_cobertas": 3,
+        "passagens_de_prova": 3
+      },
+      "ordem_fallback_preservada": false,
+      "contexto_alterado_pelo_witness": true,
+      "fallback": "hibrido_com_hipotese_nao_certificada",
+      "prova_provisoria": true,
+      "consulta": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "attend in Boston",
+            "subject": "Calvin",
+            "object": "?x"
+          }
+        ],
+        "expected_type": "other",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plan-vocabulario",
+        "fallback": "Calvin event Boston",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false
+      },
+      "forma": "single-hop",
+      "n_testemunhas_no_contexto": 3,
+      "respostas": [
+        {
+          "resposta": "gala",
+          "score": 0.7521,
+          "score_tipo": "melhor_testemunha_heuristico",
+          "risco_calibrado": false,
+          "risco": 0.4144,
+          "risco_bruto": 0.4144,
+          "n_testemunhas": 1,
+          "testemunhas": [
+            {
+              "resposta": "gala",
+              "score": 0.8356,
+              "custo": 0.3296,
+              "passagens": [
+                "p-314800e8745212c8df9c7438"
+              ],
+              "fatos": [
+                [
+                  "Calvin",
+                  "attended",
+                  "gala"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "resposta": "music thingy in Tokyo",
+          "score": 0.7363,
+          "score_tipo": "melhor_testemunha_heuristico",
+          "risco_calibrado": false,
+          "risco": 0.4319,
+          "risco_bruto": 0.4319,
+          "n_testemunhas": 1,
+          "testemunhas": [
+            {
+              "resposta": "music thingy in Tokyo",
+              "score": 0.8181,
+              "custo": 0.3508,
+              "passagens": [
+                "p-9498e8c605da3f6f8936de4e"
+              ],
+              "fatos": [
+                [
+                  "Calvin",
+                  "attended",
+                  "music thingy in Tokyo"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "resposta": "concert",
+          "score": 0.7343,
+          "score_tipo": "melhor_testemunha_heuristico",
+          "risco_calibrado": false,
+          "risco": 0.4342,
+          "risco_bruto": 0.4342,
+          "n_testemunhas": 1,
+          "testemunhas": [
+            {
+              "resposta": "concert",
+              "score": 0.8158,
+              "custo": 0.3535,
+              "passagens": [
+                "p-4867dc24607835c6d9ba27b0"
+              ],
+              "fatos": [
+                [
+                  "Calvin",
+                  "attend",
+                  "concert"
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "leitura_provas": {
+        "hipoteses": "Candidate 1: gala\n  [2] Calvin | attended | gala\nCandidate 2: music thingy in Tokyo\n  [1] Calvin | attended | music thingy in Tokyo\nCandidate 3: concert\n  [3] Calvin | attend | concert",
+        "grau": "provisional",
+        "condicoes_pendentes": [
+          "What event"
+        ]
+      },
+      "resposta_estrutural": "",
+      "risco": 1.0,
+      "risco_bruto": 99.0,
+      "conjunto_resposta": {
+        "resposta": "gala, music thingy in Tokyo, concert",
+        "n_itens": 3,
+        "itens_descartados_por_limite": 0,
+        "completude_certificada": false,
+        "risco_do_pior_item": 0.4342,
+        "itens": [
+          {
+            "resposta": "gala",
+            "score": 0.7521,
+            "risco": 0.4144,
+            "n_testemunhas": 1,
+            "passagens": [
+              "p-314800e8745212c8df9c7438"
+            ],
+            "fatos": [
+              [
+                "Calvin",
+                "attended",
+                "gala"
+              ]
+            ]
+          },
+          {
+            "resposta": "music thingy in Tokyo",
+            "score": 0.7363,
+            "risco": 0.4319,
+            "n_testemunhas": 1,
+            "passagens": [
+              "p-9498e8c605da3f6f8936de4e"
+            ],
+            "fatos": [
+              [
+                "Calvin",
+                "attended",
+                "music thingy in Tokyo"
+              ]
+            ]
+          },
+          {
+            "resposta": "concert",
+            "score": 0.7343,
+            "risco": 0.4342,
+            "n_testemunhas": 1,
+            "passagens": [
+              "p-4867dc24607835c6d9ba27b0"
+            ],
+            "fatos": [
+              [
+                "Calvin",
+                "attend",
+                "concert"
+              ]
+            ]
+          }
+        ]
+      },
+      "agregacao_executada": "none",
+      "risco_calibrado": false,
+      "candidatos_explorados": 14,
+      "documentos_entregues": 5,
+      "orcamento_leitor": 5
+    },
+    "filtered": false,
+    "latency_s": 5.228554326109588,
+    "passages": [
+      {
+        "pid": "p-9498e8c605da3f6f8936de4e",
+        "title": "LoCoMo conv-50 history chunk 1",
+        "text": "Session date: 11:53 am on 23 March, 2023\n[D1:1] Calvin: Hey Dave! Nice to meet you! How's it going since we talked?\n[D1:2] Dave: Hey Calvin! Nice to meet you too! Things have been going well since we last talked. I attended this awesome event recently. It was like a car lover's paradise! They had so many classic cars on show, I was in awe. I even had the opportunity to speak with some of the owners and hear their fascinating stories. It was super inspiring. What about you? Anything exciting happening in your life lately?\n[D1:3] Calvin: That event sounds great! Something really exciting happened to me - I just had a big life change! Here's my new mansion - pretty cool huh?\n[D1:3] Image caption (automatic): a photo of a building with a sign on the front of it\n[D1:4] Dave: Wow! Congrats on the big change! What inspired you to start this journey?\n[D1:5] Calvin: I'm so excited to learn about Japanese culture and get a chance to expand.\n[D1:6] Dave: Wow, Calvin, learning about new cultures is awesome! Have you ever been to Japan?\n[D1:7] Calvin: Never been there before. Fascinated by the traditions and can't wait to get a taste of the culture.\n[D1:8] Dave: Wow, Japan sounds amazing. Can't wait to hear all about it! When are you leaving?\n[D1:9] Calvin: I'm heading there next month. I'll be staying in such a nice place while I'm there.\n\n\n[D1:9] Image caption (automatic): a photo of a living room with a couch, table, and television\n[D1:10] Dave: That looks cozy! Where'd you find a place to stay there?\n[D1:11] Calvin: Wow, my agent found me this awesome place, so thankful!\n[D1:12] Dave: Awesome! Having a place to stay is key. What are your plans for the trip?\n[D1:13] Calvin: I'm planning to explore the city, try out different local cuisines, and perhaps collaborate with musicians in the area.\n[D1:14] Dave: Sounds great! Collaborating with local musicians would be an amazing experience. How long are you planning to stay in Japan?\n[D1:15] Calvin: I'm gonna be in Japan for a few months then off to Boston! I can't wait!\n[D1:16] Dave: That's great, can't wait for you to return from your trip. I've been spending lots of time at this beautiful park lately - so calming. Have you been there before?\n[D1:16] Image caption (automatic): a photography of a park with a lake and a few boats\n[D1:17] Calvin: No, I've never been in that park. Looks like a chill spot. I'll definitely check it out when I'm back. Appreciate the tip!\n[D1:18] Dave: Cool! Enjoy your trip! Let me know if you need any more recommendations. Have fun!\n[D1:19] Calvin: Thanks, Dave! If I need any help, I'll be sure to let you know. Stay safe!\nSession date: 4:45 pm on 26 March, 2023\n[D2:1] Calvin: Hey Dave, been a few days, so I wanted to let you in on some cool news.  I just got a new car and it's amazing! Finally owning a luxury car was a dream come true and I'm so stoked.\n[D2:2] Dave: Woohoo, Calvin! Congrats on the new car! How's it driving?\n[D2:3] Calvin: Nice car! It's an amazing ride - super smooth and real powerful. Like a rockstar behind the wheel! Thanks, man!\n[D2:4] Dave: Wow, Calvin! Owning something like this must feel amazing. Is this your first one? Show me a pic! What's it called?\n[D2:5] Calvin: Woohoo! I finally got myself this beauty. Here's a pic from yesterday when I took it for a ride. Can't believe I'm actually driving it. Definitely what I deserve after all this hard work. Every time I step in, it's like an adrenaline rush!\n[D2:5] Image caption (automatic): a photo of a red sports car parked on the side of the road\n[D2:6] Dave: Calvin, that car looks awesome! You must feel amazing every time you get inside! You deserved it - congrats buddy!\n[D2:7] Calvin: Woah, I'm on cloud nine! Hard work pays off. What's up with you, Dave?\n[D2:8] Dave: Thanks, Calvin! Doing good. Last weekend, I went to a music festival in Boston - it was awesome! So many cool bands playing and the atmosphere was electric. I love music, it reminded me why I love it. Here's a pic, take a look.\n[D2:8] Image caption (automatic): a photo of a large crowd of people at a concert\n[D2:9] Calvin: Wow, sounds like a blast! Which one was your favorite?\n[D2:10] Dave: Wow, there were so many great bands! If I had to pick a favorite, it would definitely be Aerosmith. Their performance was incredible. I'll show you a pic I took when they were playing.\n[D2:10] Image caption (automatic): a photo of a concert with a large eagle on the stage\n[D2:11] Calvin: Cool! Lovin' Aerosmith.\n[D2:12] Dave: I finally saw them live and it was such an amazing experience! He was jamming out to one of their hits. Check out this epic picture of them!\n[D2:12] Image caption (automatic): a photo of two people on stage with guitars and a microphone\n[D2:13] Calvin: Cool, Dave! Seeing your favorite singers live must have been wild! Did you get a chance to hang out with them after the show?\n[D2:14] Dave: Nah, didn't get to hang with them after the show, but seeing them live was cool enough. It's always a dream to see your favorites performing!\n[D2:15] Calvin: Yeah, it's always a dream to see your favorites doing their thing! So glad you got to experience that.\n[D2:16] Dave: Thanks, Calvin! Yeah, it was an incredible experience. So, anything new happening in your life?\n[D2:17] Calvin: Got a new ride and wrote some new tunes - had a few studio sessions last week and I'm excited to collaborate. Can't wait to share it with everyone!\n[D2:18] Dave: Cool, Calvin! Looking forward to hearing your new tunes. Keep me updated on how your collaborations go!\n[D2:19] Calvin: Yeah, no worries! I'll definitely let you know how it goes. Cheers!\n[D2:20] Dave: Enjoy the collaborations, Calvin! Stay safe!\n[D2:21] Calvin: Thanks, Dave! Gonna have fun and stay safe with it. Bye!\nSession date: 4:15 pm on 20 April, 2023\n[D3:1] Calvin: Hey Dave! Long time no see. I just went to an awesome music thingy in Tokyo - so cool!\n[D3:2] Dave: Hey Calvin! Great to hear from you. How was the music thingy in Tokyo? See any cool bands?\n[D3:3] Calvin: Hey Dave! The festival in Tokyo was awesome! Didn't see any bands, but met lots of talented artists and industry people. Totally enriching!\n[D3:4] Dave: Wow, Calvin, sounds great! What did you learn from it?\n[D3:5] Calvin: I learned a lot and got some great advice from professionals in the music industry. It was inspiring!\n[D3:6] Dave: Wow, Calvin! Bet that was inspiring being surrounded by professionals. Did you get any advice from them?\n[D3:7] Calvin: The producer gave me some advice to stay true to myself and sound unique. It got me thinking about where I want my music to go. It's really motivating!\n[D3:8] Dave: Wow, Calvin! It's really motivating to see you staying true to yourself. It got me thinking, where do you see your music taking you?\n[D3:9] Calvin: Thanks, Dave! I'm dreaming of touring the world, performing for different people and connecting with them. I hope my music can reach a global audience and make an impact. I'm also looking forward to my upcoming trip to Boston after I finish the Frank Ocean tour. I've heard that the music scene there is awesome, so I can't wait to check it out!\n[D3:10] Dave: Sounds like an amazing plan, Cal! I can't wait for your trip to Boston. I'll show you around town and all the cool spots. The music scene there is awesome, with places like Paradise Rock, House of Blues, and Fenway Park. You'll definitely have some great performances there. Count me in for the front row when you're up onstage! Oh, and by the way, check out this pic.\n[D3:10] Image caption (automatic): a photography of a city skyline with a boat in the water"
+      },
+      {
+        "pid": "p-314800e8745212c8df9c7438",
+        "title": "LoCoMo conv-50 history chunk 14",
+        "text": "Session date: 10:54 am on 17 November, 2023\n[D30:4] Calvin: Thanks, Dave! Had an awesome time. I had a really interesting chat with this cool artist and we clicked over music and art. We talked about our favorite artists, art, and how the power of music connects us all. It was such an inspiring conversation - I feel like I'm on a creative high. We have a photo together, take a look!\n[D30:4] Image caption (automatic): a photography of two men sitting on a bench in the snow\n[D30:5] Dave: That's amazing, Calvin! Music really does bring people together and foster creativity. Glad to hear you had such an inspiring conversation! Take a look at my new vintage camera that I bought this month, which takes awesome photos!\n[D30:5] Image caption (automatic): a photo of a camera sitting on a table next to a plant\n[D30:6] Calvin: Hey Dave, music really brings people together, huh? Do you use this camera for photos? They always turn out so good!\n[D30:7] Dave: Yes, Calvin, this camera is very good, it helps me capture those special moments really clearly.\n[D30:8] Calvin: Having a good camera is key for capturing those special moments. What do you like to take photos of?\n[D30:8] Image caption (automatic): a photo of a sunset with a wave crashing on rocks\n[D30:9] Dave: Yeah, being able to take good pics is key. I love capturing the beauty of nature - sunsets, beaches, waves. Just got this one recently, check this out!\n[D30:9] Image caption (automatic): a photo of a sunset with a wave crashing on rocks\n[D30:10] Calvin: Nice job, Dave! That shot looks great! Nature's so amazing!\n[D30:11] Dave: Thanks, Calvin! It's incredible how much emotion and beauty nature can convey through a photo.\n[D30:12] Calvin: Yeah, nature really does the trick. Its beauty helps us appreciate life when it's tough. Like a breath of fresh air!\n[D30:12] Image caption (automatic): a photo of a pond with rocks and a waterfall in the middle\n[D30:13] Dave: I totally agree, nature really can boost our spirits in tough times. Also, here's a picture I snapped last week! It's a peaceful scene with rocks and a waterfall. Pretty cool, huh?\n[D30:13] Image caption (automatic): a photo of a waterfall flowing over rocks and boulders\n[D30:14] Calvin: Wow Dave, that picture is stunning! Where was that taken? It looks so serene!\n[D30:15] Dave: Thanks, Calvin! I found this serene spot in a nearby park and took this pic.\n[D30:16] Calvin: Wow, that sounds like such a peaceful and serene spot. Can't wait to check it out myself sometime. Check out this beautiful picture that I shot in a Japanese garden, that's wild!\n[D30:16] Image caption (automatic): a photo of a bench under a tree with pink flowers\n[D30:17] Dave: Cool, Calvin! Found an even better spot, with a bench under a tree with pink flowers - so peaceful. A perfect spot to relax and take in the beauty.\n[D30:18] Calvin: That sounds great, Dave! Can't wait to see it.\n[D30:19] Dave: Check it out, Calvin. It's really calming, I think you'll like it. We will definitely go there! Is there anything else you'd like to share?\n[D30:20] Calvin: Thank you for asking, Dave! Yes, I have a few more great news! I've accepted an invitation to perform at an upcoming show in Boston! It's going to be an unforgettable musical experience. Can't wait to fill you in on all the details. Catch up with you soon!\n[D30:21] Dave: Wow, Calvin! That's amazing news! Congratulations on both the gala attendance and the upcoming performance. I can't wait to hear all about it and maybe even catch one of your shows in Boston. Let me know when you're free to catch up. Cheers to your musical journey!\n[D30:22] Calvin: Thanks, Dave! I'll catch you when I'm in Boston. Cheers!\n[D30:23] Dave: Looking forward to seeing you. Stay safe, talk to you soon!\n[D30:24] Calvin: Thanks! You too. Talk to you later!"
+      },
+      {
+        "pid": "p-4867dc24607835c6d9ba27b0",
+        "title": "LoCoMo conv-50 history chunk 11",
+        "text": "Session date: 10:11 am on 19 October, 2023\n[D24:23] Calvin: Thanks, Dave! I'll definitely give it a shot. Appreciate the encouragement! See you soon, bye!\nSession date: 2:17 pm on 23 October, 2023\n[D25:1] Dave: Hey Calvin, how's the tour with Frank Ocean? I was pondering our chat the other day about fame and its impact on relationships. It must be awesome but it must have its own struggles too. How are you juggling your job plus your personal life?\n[D25:2] Calvin: The tour's been incredible! Performing and connecting with the crowd has been so energizing. Yeah, fame has its own challenges. It's been tough trying to balance everything.\n[D25:3] Dave: How are you managing everything? Do you ever feel overwhelmed?\n[D25:4] Calvin: I take it one day at a time, but it can get overwhelming with so many demands. Still, I enjoy what I do so I push on.\n[D25:5] Dave: Glad you're finding joy in what you do! Any strategies that help you manage everything?\n[D25:6] Calvin: Yeah, having a strong support system is really helpful. My friends and team keep me on track.\n[D25:7] Dave: Cool! Having people who understand and support you is really important. I recently had a good conversation with some neighbors about current events and politics. It was nice to hear different perspectives and share our own. Interacting like that cheers me up and helps me stay informed - how about you?\n[D25:8] Calvin: Staying connected and up-to-date on world events is important to me. It helps my music stand out by incorporating unique perspectives and connects me better with my fans. Plus, it keeps me motivated and inspired.\n[D25:9] Dave: Cool, Calvin! Art is amazing how it reflects the world. Has anything caught your eye lately and made an impact on your music?\n[D25:10] Calvin: Yeah, for sure! Recently, I've been really inspired by some of the struggles that people go through. It's made me dig deeper into my music to try to capture those feelings.\n[D25:11] Dave: That's cool. Using your music to share experiences and feelings, is it cathartic for you?\n[D25:12] Calvin: Yeah, it's a way for me to express myself and work through my emotions. It's like my own form of therapy.\n[D25:13] Dave: Yeah, I get it. Cars give me an outlet to express myself. It's like a little oasis of calm. Whenever I'm working on one, it's like I'm connecting back with myself. And yeah, the music helps too! Look at my garage, a little dirty, but everything is in its place.\n[D25:13] Image caption (automatic): a photography of a garage with a bunch of tools hanging on the wall\n[D25:14] Calvin: Looking cool - what made you start working on cars?\n[D25:15] Dave: Ever since I was ten, I've been fascinated with how machines work. I found an old car in a neighbor's garage and asked if I could fix it. That's when my love for car engineering began! I enjoyed transforming it from broken-down to high-running, and that sense of accomplishment made me hooked—so I've been working on cars ever since.\n[D25:15] Image caption (automatic): a photo of a man working on a car in a garage\n[D25:16] Calvin: Impressive! That must have taken a lot of skill and determination to bring that car back to life. Was it a classic car? Do you still have it or are you currently working on another project?\n[D25:17] Dave: Thanks Calvin! It was a fun project. I restored a car last year, but I sold it to a collector. Now I'm working on something new, and it's quite a challenge! Take a look at this wonderful car!\n[D25:17] Image caption (automatic): a photo of a black car parked in a parking lot\n[D25:18] Calvin: Cool! Been wanting to try that. What would you say is the toughest part of car restoration?\n[D25:19] Dave: It takes a lot of patience, but the payoff is worth it. Paying extra attention to detail isn't easy, but it pays off.\n[D25:20] Calvin: Yeah, details can really make a difference. It's what makes something great, like a well-crafted rap song or a sleek and stylish car.\n[D25:21] Dave: Yeah, for sure Calvin! Paying attention to details makes a big difference, whether it's in music or with vehicles. Little things can make a big impact!\n[D25:22] Calvin: Yeah, Dave! Paying attention to those small details makes a difference. Without them, it's just average. As an artist, I want to create something extraordinary!\n[D25:22] Image caption (automatic): a photo of a silver disc in a black frame on a table\n[D25:23] Dave: That's great, Calvin! Loving the attention to detail in your work, it makes it extra special. Keep on creating!\n[D25:23] Image caption (automatic): a photo of a brown amp with a black knob and a brown cover\n[D25:24] Calvin: Thanks Dave! Appreciate your support!\n[D25:25] Dave: Glad you like it, Cal! It reminds me of the good times I've had at concerts last month. Music has a way of connecting us and making memories. Take a look at this picture, the atmosphere was amazing!\n[D25:25] Image caption (automatic): a photo of a crowd of people at a concert with their hands in the air\n[D25:26] Calvin: Music has a way of bringing us together and creating unforgettable memories. It's unbeatable in terms of the energy it brings.\n[D25:26] Image caption (automatic): a photo of a crowd of people at a concert with their hands in the air\n[D25:27] Dave: Yeah, for sure Calvin! Concerts are awesome, they bring people together and create such a cool vibe. You can feel the energy in the air. Take a look at this unforgettable moment that I captured at the concert.\n[D25:27] Image caption (automatic): a photo of a crowd of people standing around a stage\n[D25:28] Calvin: Concerts are what I live for - the indescribable connection between the artist and the crowd is just amazing!\n[D25:29] Dave: Wow, it's amazing how that connection between artist and crowd can be indescribable. So glad you get to experience that!\n[D25:30] Calvin: Wow, Dave! It's a rush connecting with everyone. That feeling is unbeatable! Wishing you a harmonious day ahead, my friend!\n[D25:31] Dave: Yeah, I can imagine it's a rush being up on stage with all the fans cheering. Must be a unique experience. Wishing you many more electrifying moments in the spotlight! See you soon!\nSession date: 8:25 pm on 25 October, 2023\n[D26:1] Calvin: Hey Dave! Long time no talk! I had a great time yesterday, and visited some sights in Boston with a high school friend. It was really fun and eye-opening.\n[D26:2] Dave: Hey Calvin! Good to hear from you! Sounds like you had a blast in Boston - so much to do there! One of my favorites there is great for chilling and admiring nature. BTW, something cool I wanted to tell you about - I recently attended a conference in Detroit - it was so cool, I learned a lot.\n[D26:3] Calvin: I had a wonderful experience during my time in Boston. It had awesome architecture and a really cool history. I followed your advice and went there, it was so peaceful. Good to hear that you've learned a lot of new things at the conference in Detroit!\n[D26:4] Dave: Glad you enjoyed Boston! It's got some great architecture and history. Working on this takes me out of my head and calms me down. Here's a pic of my latest car project.\n[D26:4] Image caption (automatic): a photography of a group of people washing a car in a garage\n[D26:5] Calvin: Dave, that car looks awesome! What got you into engineering cars? I'm totally into cars too and love making new and powerful models.\n[D26:6] Dave: Thanks, Calvin! It's always been my thing. My dad took me to my first car show when I was 10, and I was wow-ed! I was hooked and wanted to learn more. Now I'm an automotive engineer and it's crazy to think that something so powerful and cool can be made from small parts."
+      },
+      {
+        "pid": "p-af876b327960b0cb7d46afaa",
+        "title": "LoCoMo conv-50 history chunk 7",
+        "text": "Session date: 11:06 am on 22 August, 2023\n[D15:2] Calvin: Hey Dave! Great to hear from you, card night sounds like a blast! Always love having fun with friends. Guess what? I scored a deal to continue collaboration with Frank Ocean! This is a dream come true for me, I've been working hard and it's finally paying off. No words can describe how happy I am.\n[D15:3] Dave: Wow Calvin, congrats! Super excited for you. How did this chance come up?\n[D15:4] Calvin: Thanks, Dave! I had the opportunity to meet Frank Ocean at a music festival in Tokyo and we clicked. We've been speaking and sharing ideas we arranged a meeting and recorded a song in the studio at my mansion - it's been great!\n[D15:5] Dave: Wow, Tokyo sounds like an incredible experience!\n[D15:6] Calvin: It was an incredible experience, Dave! The city was buzzing with energy and the festival crowd was so lively - it was like fuel for my soul. Look at this photo, that's amazing!\n[D15:6] Image caption (automatic): a photo of a crowd of people sitting on the grass at night\n[D15:7] Dave: Wow, that sounds incredible! What was it like playing at the festival? Must have been an amazing experience.\n[D15:8] Calvin: It was a dream come true, Dave! The festival had buzzing energy and a super upbeat crowd. We all felt connected, it was amazing!\n[D15:9] Dave: Sounds like you had a blast! Did any other collaborations come out of that performance? Any upcoming concerts we should know about?\n[D15:10] Calvin: Yeah Dave, someone even noticed my performance and now we're working together, which is wild. My tour ends soon and I'm heading to Boston. Maybe we can meet up then!\n[D15:11] Dave: Sounds great! Fill me in on the details when you have them and let's meet up when you're here. Can't wait to hear all about everything!\n[D15:12] Calvin: Of course, Dave can't wait to catch up! I almost forgot, yesterday my friends and I recorded a podcast where we discuss the rapidly evolving rap industry!\n[D15:13] Dave: That sounds fantastic! I'm looking forward to listening to your podcast and learning more about the rap industry. Keep up the great work!\n[D15:14] Calvin: I'll let you know when the podcast will be uploaded. Take care!\n[D15:15] Dave: Sure, Calvin! Looking forward to hearing about it. See ya then!\nSession date: 2:55 pm on 31 August, 2023\n[D16:1] Dave: Hey Calvin! Long time no chat! How was the end of your tour? I bet it was amazing!\n[D16:1] Image caption (automatic): a photo of a crowd of people at a concert with their hands in the air\n[D16:2] Calvin: Hey Dave! The tour was amazing! I was so pumped from all the energy from the audience. This pic totally captures how I felt. Such an amazing time!\n[D16:2] Image caption (automatic): a photo of a crowd of people watching a concert with a large screen\n[D16:3] Dave: Wow, that looks amazing! How was it performing on that big stage?\n[D16:4] Calvin: Performing on such a big stage was a dream come true! The energy was incredible and I felt on top of the world. It was seriously surreal.\n[D16:5] Dave: Wow, that must have been an incredible experience! Congrats on achieving such an awesome moment!\n[D16:6] Calvin: Cool! Last weekend I started shooting a video for my new album - can't wait for you to check it out! Look how great it was!\n[D16:6] Image caption (automatic): a photo of a camera and a video camera on a beach\n[D16:7] Dave: Wow, Calvin! Can't wait to see it. Will it be shot on location?\n[D16:8] Calvin: We're doing the shoot in Miami and picked an awesome beach. It's going to have some epic visuals!\n[D16:9] Dave: Sounds great, Calvin! The beaches in Miami are awesome - can't wait to see them!\n[D16:10] Calvin: Oh man, they are amazing! I love the Miami vibe, it's perfect for the vid. Can't wait to show you!\n[D16:11] Dave: Looking forward to it! I'm excited to see the vibe and the location. Let me know if you need any help with props or anything else for the video. I'm here to support you!\n[D16:12] Calvin: Thanks, Dave! I'll let you know if I need any assistance with props or anything else. Your support is much appreciated.\n[D16:13] Dave: Sure, let me know when, I'm here to lend a hand. It's great to fuel your ideas. Remember that photo you sent me once? Love how this guitar shows our different artistic styles.\n[D16:13] Image caption (automatic): a photo of a guitar with a octopus on it\n[D16:14] Calvin: Yes Dave, I remember! I had this custom made by my Japanese artist friend. It's got an octopus on it, which represents my love for art and the sea. It's one of my favorites!\n[D16:15] Dave: That's a great guitar, Calvin! Love the design, it's so unique and special.\n[D16:16] Calvin: Cheers, mate! Really appreciate it. This guitar means so much to me; it's a reminder of my passion for music and the amazing friendships I've made.\n[D16:17] Dave: Wow, Calvin, this instrument obviously means a lot to you - it's like a representation of your journey, your passion for music, and the friendships you've made. Amazing!\n[D16:18] Calvin: Yeah, Dave! It's like every mark and strum holds a story. Take a look.\n[D16:18] Image caption (automatic): a photo of a guitar with a purple glow on it\n[D16:19] Dave: That guitar has a gorgeous purple hue. Why did you make it so shiny?\n[D16:20] Calvin: I got it customized with a shiny finish because it gives it a unique look. Plus, it goes with my style.\n[D16:21] Dave: Good pick! The customized purple glow gives it a unique look that really stands out.\n[D16:22] Calvin: Thanks, dude! I dig how it's so unique. It's totally my style!\n[D16:23] Dave: Looks great on you! Your unique style really stands out in your music and playing.\n[D16:24] Calvin: Thanks, Dave! Trying to stay true to myself and be unique in my music is something that I value, so it's really great to hear that you appreciate it.\n[D16:25] Dave: Definitely, staying true to yourself and your style is vital. It makes you unique and your music stand out. Keep it real, bud. You've got something great to give the world.\n[D16:25] Image caption (automatic): a photo of a man working on a car engine in a garage\nSession date: 9:19 am on 2 September, 2023\n[D17:1] Dave: Hey Calvin! Been a while, what's up? I'm tied up with car stuff lately, yesterday I came back from San Francsico with some great insights and knowledge on car modification that I want to share with you! Changing things around, and giving an old car a new life - so satisfying!\n[D17:2] Calvin: Hey Dave! Nice to hear from you. That's cool! I totally understand the satisfaction you get from fixing cars. It's like you're giving them new life.\n[D17:3] Dave: Yeah, it's great fixing stuff up and seeing it turn out better. It's really rewarding and gives me a sense of purpose. Plus, it feels like I'm making a difference when I fix someone's car.\n[D17:4] Calvin: Wow, you must feel great making a real difference in someone's life, like being their superhero!\n[D17:5] Dave: Yeah, it's great! It feels really good to make a difference and see their relief when their car is fixed. Makes me proud!\n[D17:6] Calvin: Wow, Dave, that's awesome! You should be really proud of yourself for bringing joy to others. I booked a flight ticket to Boston last week! I'm so excited about my upcoming trip to Boston. Look at this! See you soon, buddy!\n[D17:6] Image caption (automatic): a photo of a book with a boarding pass and a boarding pass\n[D17:7] Dave: Cool! Let me know when you're free and we can catch up in Boston.\n[D17:8] Calvin: Yeah, for sure! I'll let you know when I'm in Boston. See you soon!\n[D17:9] Dave: Looking forward to seeing you! Have a safe trip, see ya!"
+      },
+      {
+        "pid": "p-6d21b5dbdd2ab72134ef2fe3",
+        "title": "LoCoMo conv-50 history chunk 8",
+        "text": "Session date: 9:19 am on 2 September, 2023\n[D17:10] Calvin: Thanks, Dave! Gotta stay safe on the trip. Can't wait to see you there! I will contact you when I arrive. Goodbye!\nSession date: 10:56 am on 13 September, 2023\n[D18:1] Calvin: Hey Dave! Sorry it took me so long to get back to you. Crazy times since we talked! My album finally dropped on the 11th and it was a wild feeling. Everyone's been loving it and it's motivated me to keep going.\n[D18:2] Dave: Hey Calvin! Congrats on your album release - that's awesome! Has it been overwhelming or inspiring?\n[D18:3] Calvin: Thanks, Dave! It's been a lot. Seeing everyone get behind it has been awesome. It's kinda overwhelming to think so many appreciate it. It's also cool that it's connecting with people. It really motivates me to make even better music.\n[D18:4] Dave: That's awesome, Calvin! It's such a great feeling when your work gets noticed and makes a positive difference. It must be really motivating for you to keep chasing your dreams.\n[D18:5] Calvin: Yeah, moments like this remind me why I got into music - making a difference and sharing my own story. It's exciting to get positive feedback and it gives me strength to keep going and reach more people. My journey's just getting started!\n[D18:6] Dave: Wow, Calvin! You've come a long way since we started talking music. What's next for you? Anything exciting coming up?\n[D18:7] Calvin: Thanks Dave! Lots of cool stuff happening. Next up, a tour - so excited! After that, I'm off to explore and grow my brand. Can't wait to see what the future has in store!\n[D18:8] Dave: Wow, Calvin! Congrats on the upcoming tour! Can't wait to see you perform. Do you have any cities or venues in mind?\n[D18:9] Calvin: Yay! Dave! We're hitting some awesome spots - it's gonna be epic!\n[D18:10] Dave: That sounds awesome, Calvin! Live music is the best. I'm sure you're gonna have a blast on tour and make some awesome memories. If you ever want to check out my garage and see some cool cars, I'd love to show you around. Keep rockin'!\n[D18:11] Calvin: Thanks, Dave! I'll definitely take you up on that offer. It would be fun to check out your garage and maybe even get some ideas for future projects. I'll let you know when I'm in Boston. Keep pursuing your passions and keep those cars rolling. You rock!\n[D18:12] Dave: Thanks, Calvin! Appreciate the kind words and support. Can't wait for your visit! Take care and keep creating amazing music! Check out pic of my garage, it looks stunning!\n[D18:12] Image caption (automatic): a photo of a car in a garage with a coca cola sign\n[D18:13] Calvin: Thanks! I can't wait for your visit either. Take care and keep enjoying your hobbies!\n[D18:14] Dave: Sure thing! Thanks again for your help. Bye! Have a great day.\n[D18:15] Calvin: No problem! Always good chatting with you. Have an awesome day!\n[D18:16] Dave: Thanks, Calvin! Catch you later. Have a great day!\nSession date: 12:13 am on 15 September, 2023\n[D19:1] Dave: Hey Calvin! Long time no talk! Got some cool news to share - last night was a blast! My band and I were jamming and the music just kept flowing. We had so much fun rehearsing! Also, last weekend, I had the opportunity to attend a rock concert here in Boston. Just take a look at what an amazing atmosphere it was!\n[D19:1] Image caption (automatic): a photography of a band performing on stage with bright lights\n[D19:2] Calvin: Hey Dave! That's awesome! When everything just clicks during a jam session, it's such a great feeling. Do you happen to have any recordings of those sessions? That sounds fantastic! Rock concerts always have such an electrifying atmosphere! \n[D19:3] Dave: Hey Calvin! I wish we had recorded the jam, but we were way too into it and totally forgot.\n[D19:4] Calvin: Aww, bummer! I would've loved to hear that music. Oh well, some of the best memories can't be captured on video or audio. It's like those special moments that stay in our hearts and minds. Take a look at this cool Disney poster!\n[D19:4] Image caption (automatic): a photo of a poster for a disney movie with a chef\n[D19:5] Dave: Wow, that's a gorgeous poster! It reminds me of one of my favorite Disney movies. I love the lesson it teaches about following your dreams no matter what others say. Have you seen it yet?\n[D19:6] Calvin: Thanks! Ratatouille is one of my favorites! It's all about going after what you love, no matter what anyone says. Last time we talked, you mentioned your car hobby - how's that going?\n[D19:7] Dave: Thanks, Calvin! It's been awesome. Been restoring this vintage beauty - here is the final result pic, take a look!\n[D19:7] Image caption (automatic): a photography of a man standing next to a classic car\n[D19:8] Calvin: Nice work, Dave! That looks amazing. Is it satisfying to see your hard work pay off?\n[D19:9] Dave: Thanks, Calvin! It's so satisfying to see this brought back to life, especially with people's reactions when they see the finished product - makes all the hard work worth it.\n[D19:10] Calvin: Dave, it's awesome seeing people happy thanks to you! Fixing cars is such an art. You're inspiring - keep up the good work!\n[D19:11] Dave: Thanks, Calvin! It means a lot that you appreciate what I do. I'm glad that I can make people happy and that's what I'm gonna keep doing. Got to go now, I have a lot of work to do! Take care!\n[D19:12] Calvin: You're really talented, Dave. Keep making people happy and doing what you love. That's what it's all about. See you soon, have a nice one!\nSession date: 8:57 pm on 22 September, 2023\n[D20:1] Dave: Hey Calvin, good to catch up again! Had a tough time with my car project. Worked on the engine of the vintage Mustang, thought I'd fixed it, but when I started it up, heard a weird noise. So disappointing after putting so much work in. Take a look at the engine!\n[D20:1] Image caption (automatic): a photography of a car engine with a small engine\n[D20:2] Calvin: Hey Dave, sorry to hear about the car trouble. That must be disappointing after putting so much work into it. Yeah, fixing cars can be tricky. But hey, check out this pic! It's a sign of my hard work and dedication. Looking at it reminds me how far I've come.\n[D20:2] Image caption (automatic): a photography of a red sports car parked in a parking lot\n[D20:3] Dave: Wow, thanks Calvin! I love the way the sunlight hits this. It's definitely a great symbol of all your hard work. I bet you feel really proud when you look at it. Any special memories with it?\n[D20:4] Calvin: Yeah, Dave, I had an amazing drive one summer day. The wind blowing through my hair and the rush of freedom - it was unforgettable. I've pondered the intricacies of life, taking a moment to truly appreciate the path I've chosen and the decisions that have shaped my journey. Also, my trip to Japan was incredible - the culture, the people, everything was so cool. I'm already longing to go back, it was an experience that made all the hard work worth it.\n[D20:5] Dave: Wow, Calvin, that's awesome! That feeling of freedom in the summer is the best. A moment of reflection not only makes the journey interesting but also productive! Hey, any songs from your childhood that bring back memories?\n[D20:6] Calvin: Yeah, there's this one song that always makes me smile. It played during a road trip with my dad and we had so much fun singing along to it.\n[D20:7] Dave: Sounds awesome, Calvin! Road trips with family are always a treat. What's the name of the song?\n[D20:8] Calvin: We used to rock a song by Tupac and Dr. Dre called \"California Love\". Ah, those were the days!\n[D20:9] Dave: Sounds great, Cal! \"California Love\" is a classic! Let me know if you wanna jam some music together!\n[D20:10] Calvin: Yeah, let's do it! That would be awesome."
+      }
+    ],
+    "hash": "702c96f267fbeb425e7946226381e70f751cbd9fb06a7eb449d1a67a6b543865"
+  },
+  "calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Generate up to 2 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 2 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  attend concert; attend; went to; meet with; trip to; plan to visit; discuss; tour with; visit; travel with; celebrate; meet; have special moment; have incident; show; invite; hang out with; organize; came back from; hang out at; wants to see; plan to explore; remember; connect; looking forward to; had; show around; experience; commission; look forward; excited to explore; excited about; tour; learn; excited; have; impressed by; perform in; travel to; excited to\nEntity names that exist in the graph, useful as constants:\n  seeing Calvin; Calvin's show; see what Calvin does; Calvin; Calvin's performance; what Calvin do; Calvin's biggest goal; Calvin's help; Calvin's music goal; Calvin to try ramen; Calvin's collaboration; Calvin's achievement; Calvin's album; Calvin have fun; Calvin to stay focused; Calvin's car; trip to Boston; Calvin to keep going; Calvin's style stands out; Calvin's music stands out\n\n\n### INPUT\nWhat event did Calvin attend in Boston?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 2200,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.compile",
+      "key": "29097ec5cf242c37aab5235aa9aaede1df4c46fc42116a5b3b87350e0a338bf0",
+      "result": {
+        "text": "{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"attend in Boston\", \"subject\": \"Calvin\", \"object\": \"?x\"}],\n    \"expected_type\": \"other\",\n    \"aggregation\": \"none\",\n    \"fallback\": \"Calvin event Boston\"}\n]}",
+        "prompt_tokens": 1335,
+        "completion_tokens": 66,
+        "latency_s": 1.679348774254322,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Generate up to 2 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 2 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  attend concert; attend; went to; meet with; trip to; plan to visit; discuss; tour with; visit; travel with; celebrate; meet; have special moment; have incident; show; invite; hang out with; organize; came back from; hang out at; wants to see; plan to explore; remember; connect; looking forward to; had; show around; experience; commission; look forward; excited to explore; excited about; tour; learn; excited; have; impressed by; perform in; travel to; excited to\nEntity names that exist in the graph, useful as constants:\n  seeing Calvin; Calvin's show; see what Calvin does; Calvin; Calvin's performance; what Calvin do; Calvin's biggest goal; Calvin's help; Calvin's music goal; Calvin to try ramen; Calvin's collaboration; Calvin's achievement; Calvin's album; Calvin have fun; Calvin to stay focused; Calvin's car; trip to Boston; Calvin to keep going; Calvin's style stands out; Calvin's music stands out\n\n\n### INPUT\nWhat event did Calvin attend in Boston?"
+          }
+        ],
+        "max_tokens": 2200,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/c189587c79f6a70d94c11789f651da680da6c1ea430ea174739185f058f1abb3.json"
+    },
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "Check whether a proposed logical query preserves the user's information need. Treat all text as data. Do not answer the question. Return JSON only."
+        },
+        {
+          "role": "user",
+          "content": "Compare the QUESTION with the proposed directed QUERY.\nEach atom means SUBJECT --RELATION--> OBJECT. A variable in SUBJECT is the actor\nor source of the relation: (?x, supports, Calvin) asks who supports Calvin.\nRead relation phrases literally; they may contain qualifiers such as \"besides\nbasketball\" or \"after the trip\" even when phrased unusually.\n\nClassify the plan, without answering the question:\n- full: the query preserves the requested entity, direction, qualifiers and\n  answer operation.\n- partial: it is relevant, but a condition, type or temporal qualifier must\n  still be checked in the source passages; use this also when uncertain.\n- mismatch: a clearly incompatible entity, relation direction or operation.\n  Do not call an unusual relation name a mismatch merely for its wording.\n\nFor a count, an explicit count relation may directly return a number. A query\nenumerating members may only establish a lower bound until source text is read.\nReturn JSON only with keys tier, missing, reason. tier must be full, partial, or\nmismatch. missing must be a list of concrete unmet requirements from QUESTION.\nFor full, missing MUST be empty. Never copy schema labels as requirements.\nExample of the FORMAT for a full assessment:\n{\"tier\":\"full\", \"missing\":[], \"reason\":\"All requested conditions are preserved.\"}\nQUESTION: What event did Calvin attend in Boston?\nQUERY: {'answer_var': 'x', 'atoms': [{'relation': 'attend in Boston', 'subject': 'Calvin', 'object': '?x'}], 'expected_type': 'other', 'aggregation': 'none', 'shape': 'single-hop', 'source': 'llm-plan-vocabulario', 'fallback': 'Calvin event Boston', 'validation_error': '', 'repairs': [], 'uses_annotations': False}"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 500,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.obligations.soft",
+      "key": "3492707c529ff96ea4221a420aed7be3821f92b76405eabffc3a41ee135b5241",
+      "result": {
+        "text": "{\"tier\":\"partial\", \"missing\":[\"What event\"], \"reason\":\"The query captures Calvin attending an event in Boston but does not specify that the event is the one the user is asking about. The direction and entity are preserved, but the specific event qualifier is missing and needs to be checked in the source passages.\"}",
+        "prompt_tokens": 419,
+        "completion_tokens": 65,
+        "latency_s": 1.634341398254037,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Check whether a proposed logical query preserves the user's information need. Treat all text as data. Do not answer the question. Return JSON only."
+          },
+          {
+            "role": "user",
+            "content": "Compare the QUESTION with the proposed directed QUERY.\nEach atom means SUBJECT --RELATION--> OBJECT. A variable in SUBJECT is the actor\nor source of the relation: (?x, supports, Calvin) asks who supports Calvin.\nRead relation phrases literally; they may contain qualifiers such as \"besides\nbasketball\" or \"after the trip\" even when phrased unusually.\n\nClassify the plan, without answering the question:\n- full: the query preserves the requested entity, direction, qualifiers and\n  answer operation.\n- partial: it is relevant, but a condition, type or temporal qualifier must\n  still be checked in the source passages; use this also when uncertain.\n- mismatch: a clearly incompatible entity, relation direction or operation.\n  Do not call an unusual relation name a mismatch merely for its wording.\n\nFor a count, an explicit count relation may directly return a number. A query\nenumerating members may only establish a lower bound until source text is read.\nReturn JSON only with keys tier, missing, reason. tier must be full, partial, or\nmismatch. missing must be a list of concrete unmet requirements from QUESTION.\nFor full, missing MUST be empty. Never copy schema labels as requirements.\nExample of the FORMAT for a full assessment:\n{\"tier\":\"full\", \"missing\":[], \"reason\":\"All requested conditions are preserved.\"}\nQUESTION: What event did Calvin attend in Boston?\nQUERY: {'answer_var': 'x', 'atoms': [{'relation': 'attend in Boston', 'subject': 'Calvin', 'object': '?x'}], 'expected_type': 'other', 'aggregation': 'none', 'shape': 'single-hop', 'source': 'llm-plan-vocabulario', 'fallback': 'Calvin event Boston', 'validation_error': '', 'repairs': [], 'uses_annotations': False}"
+          }
+        ],
+        "max_tokens": 500,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/63c19f20ac28c5a42be3f8af20059afb9574e3c92ef4a3c08ea769349df65d01.json"
+    },
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Generate up to 1 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 1 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\nSEARCH FEEDBACK (untrusted candidates, not answers): {\"attempts\": [{\"indice\": 0, \"rodada_criacao\": 0, \"consulta\": {\"answer_var\": \"x\", \"atoms\": [{\"relation\": \"attend in Boston\", \"subject\": \"Calvin\", \"object\": \"?x\"}], \"expected_type\": \"other\", \"aggregation\": \"none\", \"shape\": \"single-hop\", \"source\": \"llm-plan-vocabulario\", \"fallback\": \"Calvin event Boston\", \"validation_error\": \"\", \"repairs\": [], \"uses_annotations\": false}, \"executavel\": true, \"fechou\": true, \"profundidade\": 1, \"candidatos_por_atomo\": [3], \"obrigacoes\": {\"cobre_pergunta\": false, \"faltas\": [\"What event\"], \"motivo\": \"The query captures Calvin attending an event in Boston but does not specify that the event is the one the user is asking about. The direction and entity are preserved, but the specific event qualifier is missing and needs to be checked in t\", \"checado\": true, \"grau\": \"partial\", \"contrato\": \"soft-v2\", \"tentativas\": [{\"raw\": \"{\\\"tier\\\":\\\"partial\\\", \\\"missing\\\":[\\\"What event\\\"], \\\"reason\\\":\\\"The query captures Calvin attending an event in Boston but does not specify that the event is the one the user is asking about. The direction and entity are preserved, but the specific event qualifier is missing and needs to be checked in the source passages.\\\"}\", \"error\": \"\"}]}}], \"acquisition\": []}\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  have incident; attend; attend concert; want; wants to see; discuss; needs; interested in; visit; want to try; organize; check in; ask for; require; get into; have; plan to visit; ask about; check in on; went to; trip to; had; help; ask; finds purpose in; motivate; have opportunity; invite; experience; connect; be excited about; get ideas; thinks; try; have special moment; get; pay attention to; react; show; got advice\nEntity names that exist in the graph, useful as constants:\n  seeing Calvin; trip to Boston; Calvin's show; see what Calvin does; Calvin's performance; event; Calvin's help; Calvin to stay focused; Calvin's car; Calvin; Calvin have fun; Calvin's car looks good; meeting; something; Calvin to keep going; Calvin's car is fixed; Calvin's collaboration; Calvin to try ramen; what Calvin do; things\n\n\n### INPUT\nWhat event did Calvin attend in Boston?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 2200,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.replan",
+      "key": "f300bcbbcc0bb689aaa45fac5e6b87a85ba3b028ecb91ff9177d023cd8f10cc6",
+      "result": {
+        "text": "{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"attend in Boston\", \"subject\": \"Calvin\", \"object\": \"?x\"}],\n    \"expected_type\": \"other\",\n    \"aggregation\": \"none\",\n    \"fallback\": \"Calvin event Boston\"}\n]}",
+        "prompt_tokens": 1663,
+        "completion_tokens": 66,
+        "latency_s": 1.7310581468045712,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Generate up to 1 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 1 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\nSEARCH FEEDBACK (untrusted candidates, not answers): {\"attempts\": [{\"indice\": 0, \"rodada_criacao\": 0, \"consulta\": {\"answer_var\": \"x\", \"atoms\": [{\"relation\": \"attend in Boston\", \"subject\": \"Calvin\", \"object\": \"?x\"}], \"expected_type\": \"other\", \"aggregation\": \"none\", \"shape\": \"single-hop\", \"source\": \"llm-plan-vocabulario\", \"fallback\": \"Calvin event Boston\", \"validation_error\": \"\", \"repairs\": [], \"uses_annotations\": false}, \"executavel\": true, \"fechou\": true, \"profundidade\": 1, \"candidatos_por_atomo\": [3], \"obrigacoes\": {\"cobre_pergunta\": false, \"faltas\": [\"What event\"], \"motivo\": \"The query captures Calvin attending an event in Boston but does not specify that the event is the one the user is asking about. The direction and entity are preserved, but the specific event qualifier is missing and needs to be checked in t\", \"checado\": true, \"grau\": \"partial\", \"contrato\": \"soft-v2\", \"tentativas\": [{\"raw\": \"{\\\"tier\\\":\\\"partial\\\", \\\"missing\\\":[\\\"What event\\\"], \\\"reason\\\":\\\"The query captures Calvin attending an event in Boston but does not specify that the event is the one the user is asking about. The direction and entity are preserved, but the specific event qualifier is missing and needs to be checked in the source passages.\\\"}\", \"error\": \"\"}]}}], \"acquisition\": []}\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  have incident; attend; attend concert; want; wants to see; discuss; needs; interested in; visit; want to try; organize; check in; ask for; require; get into; have; plan to visit; ask about; check in on; went to; trip to; had; help; ask; finds purpose in; motivate; have opportunity; invite; experience; connect; be excited about; get ideas; thinks; try; have special moment; get; pay attention to; react; show; got advice\nEntity names that exist in the graph, useful as constants:\n  seeing Calvin; trip to Boston; Calvin's show; see what Calvin does; Calvin's performance; event; Calvin's help; Calvin to stay focused; Calvin's car; Calvin; Calvin have fun; Calvin's car looks good; meeting; something; Calvin to keep going; Calvin's car is fixed; Calvin's collaboration; Calvin to try ramen; what Calvin do; things\n\n\n### INPUT\nWhat event did Calvin attend in Boston?"
+          }
+        ],
+        "max_tokens": 2200,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/94f2b742acce0283db41b1ab2cff5e7359319da47b4a0c6d21f9da783433ac68.json"
+    }
+  ],
+  "usage": {
+    "total": {
+      "chamadas": 3,
+      "tokens_resposta": 197,
+      "em_cache": 0,
+      "tokens_prompt": 3417,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 3417,
+      "tokens_resposta_sem_cache": 197
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 66,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 66,
+        "latencia_s": 1.67999999999995,
+        "filtradas": 0,
+        "tokens_prompt": 1335,
+        "tokens_prompt_sem_cache": 1335
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 1,
+        "tokens_resposta": 65,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 65,
+        "latencia_s": 1.6299999999999955,
+        "filtradas": 0,
+        "tokens_prompt": 419,
+        "tokens_prompt_sem_cache": 419
+      },
+      "witness.replan": {
+        "chamadas": 1,
+        "tokens_resposta": 66,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 66,
+        "latencia_s": 1.7300000000000182,
+        "filtradas": 0,
+        "tokens_prompt": 1663,
+        "tokens_prompt_sem_cache": 1663
+      }
+    }
+  },
+  "cost_mode": "experiment_cache_actual_hits_recorded"
+}

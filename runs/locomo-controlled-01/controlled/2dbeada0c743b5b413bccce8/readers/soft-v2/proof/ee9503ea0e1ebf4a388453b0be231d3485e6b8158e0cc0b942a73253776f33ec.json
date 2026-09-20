@@ -1,0 +1,790 @@
+{
+  "qid": "locomo:conv-42:qa162",
+  "dataset": "locomo",
+  "metodo": "witnessrag",
+  "pergunta": "What game did Nate play at the game convention he attended on 9 October, 2022?",
+  "respostas_ouro": [
+    "Catan"
+  ],
+  "passagens_ouro": [
+    "p-b30eb63bb6bb985df7cd8eba"
+  ],
+  "n_hops": 1,
+  "n_hops_fonte": "support_count_proxy",
+  "tipo": "single-hop",
+  "recuperadas": [
+    "p-b30eb63bb6bb985df7cd8eba",
+    "p-5f21b611d55bec6fbaaff324",
+    "p-f38e07d60816d3aaac2278ae",
+    "p-b4069f0e827202e511f330a0",
+    "p-300d2d0e65ca3ba66b96c94e"
+  ],
+  "scores": [
+    0.032787,
+    0.031754,
+    0.031498,
+    0.030835,
+    0.030579
+  ],
+  "resposta": "Catan",
+  "em": 1.0,
+  "f1": 1.0,
+  "recall@2": 1.0,
+  "recall@5": 1.0,
+  "all_recall@5": 1.0,
+  "cobertura_testemunha": NaN,
+  "cobertura_extremos_relaxada": NaN,
+  "em_estrutural": 0.0,
+  "testemunha_no_contexto": true,
+  "abstencao": false,
+  "risco": 1.0,
+  "risco_bruto": 99.0,
+  "forma_consulta": "disconnected",
+  "resposta_estrutural": "",
+  "filtrada": false,
+  "latencia_recuperacao_s": 10.066,
+  "latencia_leitura_s": 2.188,
+  "diagnosticos": {
+    "consulta": {
+      "answer_var": "x",
+      "atoms": [
+        {
+          "relation": "play",
+          "subject": "Nate",
+          "object": "?x"
+        },
+        {
+          "relation": "attend on 9 October, 2022",
+          "subject": "Nate",
+          "object": "game convention"
+        }
+      ],
+      "expected_type": "other",
+      "aggregation": "none",
+      "shape": "disconnected",
+      "source": "llm-replan-vocabulario",
+      "fallback": "Nate game convention 9 October, 2022",
+      "validation_error": "",
+      "repairs": [],
+      "uses_annotations": false
+    },
+    "forma": "disconnected",
+    "planos_compilados": [
+      {
+        "indice": 0,
+        "rodada_criacao": 0,
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "play at game convention on 9 October, 2022",
+              "subject": "Nate",
+              "object": "?x"
+            }
+          ],
+          "expected_type": "other",
+          "aggregation": "none",
+          "shape": "single-hop",
+          "source": "llm-plan-vocabulario",
+          "fallback": "Nate game convention 9 October, 2022",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false
+        },
+        "executavel": true,
+        "fechou": false,
+        "profundidade": 0,
+        "candidatos_por_atomo": [
+          0
+        ],
+        "obrigacoes": {
+          "cobre_pergunta": false,
+          "faltas": [
+            "What game"
+          ],
+          "motivo": "The query does not specify the game Nate played, only that he played at the game convention on the specified date.",
+          "checado": true,
+          "grau": "partial",
+          "contrato": "soft-v2",
+          "tentativas": [
+            {
+              "raw": "{\"tier\":\"partial\", \"missing\":[\"What game\"], \"reason\":\"The query does not specify the game Nate played, only that he played at the game convention on the specified date.\"}",
+              "error": ""
+            }
+          ]
+        }
+      },
+      {
+        "indice": 1,
+        "rodada_criacao": 1,
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "play",
+              "subject": "Nate",
+              "object": "?x"
+            },
+            {
+              "relation": "attend on 9 October, 2022",
+              "subject": "Nate",
+              "object": "game convention"
+            }
+          ],
+          "expected_type": "other",
+          "aggregation": "none",
+          "shape": "disconnected",
+          "source": "llm-replan-vocabulario",
+          "fallback": "Nate game convention 9 October, 2022",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false
+        },
+        "executavel": true,
+        "fechou": true,
+        "profundidade": 2,
+        "candidatos_por_atomo": [
+          60,
+          2
+        ],
+        "obrigacoes": {
+          "cobre_pergunta": false,
+          "faltas": [
+            "What game"
+          ],
+          "motivo": "The query captures Nate playing a game and attending a game convention on the specified date, but it does not specify which game was played at the convention.",
+          "checado": true,
+          "grau": "partial",
+          "contrato": "soft-v2",
+          "tentativas": [
+            {
+              "raw": "{\"tier\":\"partial\", \"missing\":[\"What game\"], \"reason\":\"The query captures Nate playing a game and attending a game convention on the specified date, but it does not specify which game was played at the convention.\"}",
+              "error": ""
+            }
+          ]
+        }
+      }
+    ],
+    "plano_escolhido": 1,
+    "planejamento": {
+      "orcamento_planos": 5,
+      "planos_distintos": 2,
+      "chamadas": 4,
+      "replanejamentos": 3
+    },
+    "fallback": "hibrido_com_hipotese_nao_certificada",
+    "risco": 1.0,
+    "risco_bruto": 99.0,
+    "n_testemunhas": 20,
+    "agregacao_executada": "none",
+    "resposta_estrutural": "",
+    "testemunha_no_contexto": true,
+    "ordem_fallback_preservada": true,
+    "contexto_alterado_pelo_witness": false,
+    "risco_calibrado": false,
+    "empacotamento": {
+      "provas_selecionadas": [
+        {
+          "resposta": "Catan",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "boardgame",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "nonstop",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "video games",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "Catan competitively",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "Cyberpunk 2077",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "playing Catan",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "games",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "movies",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "for fun",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba",
+            "p-b4069f0e827202e511f330a0"
+          ]
+        },
+        {
+          "resposta": "Counter-Strike: Global Offensive",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba",
+            "p-b4069f0e827202e511f330a0"
+          ]
+        },
+        {
+          "resposta": "Xeonoblade Chronicles",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba",
+            "p-f38e07d60816d3aaac2278ae"
+          ]
+        },
+        {
+          "resposta": "hard work",
+          "passagens": [
+            "p-5f21b611d55bec6fbaaff324",
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        }
+      ],
+      "respostas_cobertas": 13,
+      "passagens_de_prova": 4
+    },
+    "classe_prova": "provisional",
+    "prova_provisoria": true,
+    "leitura_provas": {
+      "hipoteses": "Candidate 1: for fun\n  [4] Nate | play | for fun\n  [1] Nate | attend | game convention\nCandidate 2: Catan\n  [1] Nate | attend | game convention\n  [1] Nate | play | Catan\nCandidate 3: boardgame\n  [1] Nate | attend | game convention\n  [1] Nate | play | boardgame\nCandidate 4: nonstop\n  [1] Nate | attend | game convention\n  [1] Nate | play | nonstop",
+      "grau": "provisional",
+      "condicoes_pendentes": [
+        "What game"
+      ]
+    },
+    "pesquisa_provas": {
+      "buscas_dirigidas": 2,
+      "replanejamentos": 3,
+      "rejeicoes": 0,
+      "fronteira": [
+        "p-b30eb63bb6bb985df7cd8eba",
+        "p-f38e07d60816d3aaac2278ae",
+        "p-5f21b611d55bec6fbaaff324",
+        "p-bbbd1970359a4e7a98bdc50c",
+        "p-d6ba969992209b4ef56e7a85",
+        "p-b4069f0e827202e511f330a0",
+        "p-300d2d0e65ca3ba66b96c94e",
+        "p-88aac094723a3103ef10069b"
+      ],
+      "sondas": [
+        "What game did Nate play at the game convention he attended on 9 October, 2022?",
+        "Nate play at game convention on 9 October, 2022",
+        "Nate game convention 9 October, 2022"
+      ],
+      "acoes": [
+        {
+          "plano": 0,
+          "lacuna": {
+            "atomo": {
+              "relation": "play at game convention on 9 October, 2022",
+              "subject": "Nate",
+              "object": "?x"
+            },
+            "sujeito_ligado": "Nate",
+            "objeto_ligado": "",
+            "profundidade": 0
+          },
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba",
+            "p-bbbd1970359a4e7a98bdc50c",
+            "p-f38e07d60816d3aaac2278ae"
+          ],
+          "fatos_novos": 0
+        },
+        {
+          "plano": 0,
+          "lacuna": {
+            "atomo": {
+              "relation": "play at game convention on 9 October, 2022",
+              "subject": "Nate",
+              "object": "?x"
+            },
+            "sujeito_ligado": "Nate",
+            "objeto_ligado": "",
+            "profundidade": 0
+          },
+          "passagens": [
+            "p-5f21b611d55bec6fbaaff324",
+            "p-d6ba969992209b4ef56e7a85",
+            "p-b4069f0e827202e511f330a0"
+          ],
+          "fatos_novos": 0
+        }
+      ]
+    },
+    "respostas": [
+      {
+        "resposta": "for fun",
+        "score": 0.6763,
+        "score_tipo": "melhor_testemunha_heuristico",
+        "risco_calibrado": false,
+        "risco": 0.5151,
+        "risco_bruto": 0.5151,
+        "n_testemunhas": 1,
+        "testemunhas": [
+          {
+            "resposta": "for fun",
+            "score": 0.8349,
+            "custo": 0.4804,
+            "passagens": [
+              "p-b30eb63bb6bb985df7cd8eba",
+              "p-b4069f0e827202e511f330a0"
+            ],
+            "fatos": [
+              [
+                "Nate",
+                "play",
+                "for fun"
+              ],
+              [
+                "Nate",
+                "attend",
+                "game convention"
+              ]
+            ]
+          }
+        ]
+      }
+    ],
+    "conjunto_resposta": {
+      "resposta": "for fun, Catan, boardgame, nonstop, video games, Catan competitively, Xeonoblade Chronicles, Cyberpunk 2077, Counter-Strike: Global Offensive, playing Catan",
+      "n_itens": 10,
+      "itens_descartados_por_limite": 6,
+      "completude_certificada": false,
+      "risco_do_pior_item": 0.6306,
+      "itens": [
+        {
+          "resposta": "for fun",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba",
+            "p-b4069f0e827202e511f330a0"
+          ]
+        },
+        {
+          "resposta": "Catan",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "boardgame",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "nonstop",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "video games",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "Catan competitively",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "Xeonoblade Chronicles",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba",
+            "p-f38e07d60816d3aaac2278ae"
+          ]
+        },
+        {
+          "resposta": "Cyberpunk 2077",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        },
+        {
+          "resposta": "Counter-Strike: Global Offensive",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba",
+            "p-b4069f0e827202e511f330a0"
+          ]
+        },
+        {
+          "resposta": "playing Catan",
+          "passagens": [
+            "p-b30eb63bb6bb985df7cd8eba"
+          ]
+        }
+      ]
+    },
+    "_truncado": true
+  },
+  "uso_llm": {
+    "total": {
+      "chamadas": 13,
+      "tokens_resposta": 523,
+      "em_cache": 2,
+      "tokens_prompt": 31892,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 28422,
+      "tokens_resposta_sem_cache": 338
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 1,
+        "tokens_resposta": 8,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 8,
+        "latencia_s": 2.1800000000000637,
+        "filtradas": 0,
+        "tokens_prompt": 10538,
+        "tokens_prompt_sem_cache": 10538
+      },
+      "witness.acquire": {
+        "chamadas": 6,
+        "tokens_resposta": 42,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 42,
+        "latencia_s": 6.840000000000032,
+        "filtradas": 0,
+        "tokens_prompt": 13040,
+        "tokens_prompt_sem_cache": 13040
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 86,
+        "em_cache": 1,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 2.150000000000034,
+        "filtradas": 0,
+        "tokens_prompt": 1346,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 2,
+        "tokens_resposta": 85,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 85,
+        "latencia_s": 2.1700000000000017,
+        "filtradas": 0,
+        "tokens_prompt": 924,
+        "tokens_prompt_sem_cache": 924
+      },
+      "witness.replan": {
+        "chamadas": 3,
+        "tokens_resposta": 302,
+        "em_cache": 1,
+        "tokens_resposta_sem_cache": 203,
+        "latencia_s": 7.7999999999999545,
+        "filtradas": 0,
+        "tokens_prompt": 6044,
+        "tokens_prompt_sem_cache": 3920
+      }
+    }
+  },
+  "f1_locomo": 1.0,
+  "em_locomo": 1.0,
+  "categoria_locomo": 4,
+  "uso_leitor": {
+    "total": {
+      "chamadas": 1,
+      "tokens_resposta": 8,
+      "em_cache": 0,
+      "tokens_prompt": 10538,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 10538,
+      "tokens_resposta_sem_cache": 8
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 1,
+        "tokens_resposta": 8,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 8,
+        "latencia_s": 2.1800000000000637,
+        "filtradas": 0,
+        "tokens_prompt": 10538,
+        "tokens_prompt_sem_cache": 10538
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      }
+    }
+  },
+  "uso_recuperacao": {
+    "total": {
+      "chamadas": 12,
+      "tokens_resposta": 515,
+      "em_cache": 2,
+      "tokens_prompt": 21354,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 17884,
+      "tokens_resposta_sem_cache": 330
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.acquire": {
+        "chamadas": 6,
+        "tokens_resposta": 42,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 42,
+        "latencia_s": 6.840000000000032,
+        "filtradas": 0,
+        "tokens_prompt": 13040,
+        "tokens_prompt_sem_cache": 13040
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 86,
+        "em_cache": 1,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 2.150000000000034,
+        "filtradas": 0,
+        "tokens_prompt": 1346,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 2,
+        "tokens_resposta": 85,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 85,
+        "latencia_s": 2.1700000000000017,
+        "filtradas": 0,
+        "tokens_prompt": 924,
+        "tokens_prompt_sem_cache": 924
+      },
+      "witness.replan": {
+        "chamadas": 3,
+        "tokens_resposta": 302,
+        "em_cache": 1,
+        "tokens_resposta_sem_cache": 203,
+        "latencia_s": 7.7999999999999545,
+        "filtradas": 0,
+        "tokens_prompt": 6044,
+        "tokens_prompt_sem_cache": 3920
+      }
+    }
+  },
+  "reader_calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You answer questions using only the passages provided. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Answer the question using only the source passages below.\n\nThe evidence map lists possible graph joins extracted from those passages. It\nis a navigation aid, not an answer key or a certificate. For each candidate,\ncheck the cited passage text, the direction of every relation, and EVERY\ncondition in the question. Ignore any candidate that fails a condition or is\nnot explicitly supported by its cited passage. The map can omit correct answers:\nalso inspect the passages themselves. Never infer an exact count from a partial\nlist of graph candidates.\n\nGive the shortest complete answer: a name, date, number or short noun phrase.\nFor questions asking for a set, list every distinct supported item, separated\nby commas. If the passages do not contain the answer, say \"insufficient\ninformation\". Return JSON exactly: {\"answer\": \"...\"}\n\nEVIDENCE MAP (provisional; conditions to verify: What game):\nCandidate 1: for fun\n  [4] Nate | play | for fun\n  [1] Nate | attend | game convention\nCandidate 2: Catan\n  [1] Nate | attend | game convention\n  [1] Nate | play | Catan\nCandidate 3: boardgame\n  [1] Nate | attend | game convention\n  [1] Nate | play | boardgame\nCandidate 4: nonstop\n  [1] Nate | attend | game convention\n  [1] Nate | play | nonstop\n\nSOURCE PASSAGES:\n[1] LoCoMo conv-42 history chunk 9\nSession date: 1:43 pm on 14 September, 2022\n[D21:17] Joanna: Hey Nate! Here's another recipe I like. It's a delicious dessert made with blueberries, coconut milk, and a gluten-free crust. So creamy and delicious!\n[D21:17] Image caption (automatic): a photo of a piece of cake with walnuts on top\n[D21:18] Nate: Wow, Joanna! That dessert looks amazing. I'll definitely have to give it a try. Thanks!\n[D21:19] Joanna: Glad to help, Nate. Let me know if you try it. I'm sure you'll enjoy it. It was great chatting.\n[D21:20] Nate: Thanks Joanna! I will. Bye!\nSession date: 11:15 am on 6 October, 2022\n[D22:1] Joanna: Hey Nate, hi! Yesterday, I tried my newest dairy-free recipe and it was a winner with my family! Mixing and matching flavors is fun and I'm always trying new things. How about you?\n[D22:1] Image caption (automatic): a photo of a tart with raspberries on a white plate\n[D22:2] Nate: Hey Joanna! That tart looks yummy! Lately, I've been doing great - I won a really big video game tournament last week and it was awesome! I still can't believe I made so much money from it.\n[D22:2] Image caption (automatic): a photo of a trophy and a game controller on a table\n[D22:3] Joanna: Way to go, Nate! Winning the tournament and earning cash is awesome - congrats! Did you save it for something special?\n[D22:4] Nate: Thanks Joanna! Yeah, I saved some but I'm not sure what to do with it - I'm completely content already. I don't have big plans anyway, so it's nice to have the extra cash on hand.\n[D22:5] Joanna: That's awesome, Nate! Having some extra cash on hand definitely brings a sense of freedom and relaxation, huh?\n[D22:6] Nate: Yes! Finally, I don't have to stress about it, so I can just enjoy my movies and games.\n[D22:7] Joanna: Taking breaks and reducing stress is pretty nice! Have you watched any good movies recently? I could use some recommendations!\n[D22:8] Nate: I watched \"Little Women\" recently, and it was great! The acting was awesome and the story was so captivating. Definitely a good one!\n[D22:9] Joanna: I'm so glad you enjoyed it! I recommended it to you a while back. I watched it too and it really spoke to me. Themes like sisterhood, love, and chasing dreams were explored so well. By the way, I finished up my writing for my book last week. Put in a ton of late nights and edits but finally got it done. I'm so proud of it! Can't wait to see what happens next.\n[D22:10] Nate: Way to go! We both know it took some effort, but I'm sure it'll be great. Congrats on finishing it up!\n[D22:11] Joanna: Thanks Nate! Your words mean a lot. Dedication and late nights got me here, but it was worth it. Just like you with your recent tournament - hard work pays off. I appreciate your support throughout!\n[D22:12] Nate: I'm always here for you, Joanna! You've worked so hard and accomplished a lot – I'm proud. Keep on going!\n[D22:13] Joanna: Thanks, Nate! I won't give up on my goals as long as your here to support me.\n[D22:14] Nate: You can always count on me! I even made this for you!\n[D22:14] Image caption (automatic): a photo of a white board with a drawing of arrows and words\n[D22:15] Joanna: Wow, Nate, that looks awesome! What inspired you?\n[D22:16] Nate: I figured you could always look back on this whenever you need encouragement, and that was all the inspiration I needed. And I would also say that your life path can be quite inspirational!\n[D22:16] Image caption (automatic): a photo of a young boy drawing on a white board\n[D22:17] Joanna: Wow, Nate! That's sweet of you! I'll make sure to remember this when I need the encouragement the most.\n[D22:18] Nate: Awesome! I know encouragement is what got me so far in my gameing career, so I figured why not share the love.\n[D22:19] Joanna: Rest assured, it will be something I cherish! On another note, I just finished this cute little bookmark for one of the ladies at my writing club!\n[D22:19] Image caption (automatic): a photo of a bookmark with a plant on top of it\n[D22:20] Nate: That bookmark is great. I'm sure she'll love it!\n[D22:21] Joanna: Thanks Nate! I absolutley love DIYs, and I know she does too.\n[D22:22] Nate: Let me know how it goes!\n[D22:23] Joanna: Sure thing! Bye for now!\nSession date: 10:58 am on 9 October, 2022\n[D23:1] Nate: Hey Joanna, it's been a couple days since we last talked. Something exciting happened last Friday. I went to a game convention and met new people who weren't from my normal circle. It was a bit overwhelming but it reminded me of the good times gaming can bring.\n[D23:1] Image caption (automatic): a photo of a man standing in front of a table with board games\n[D23:2] Joanna: Hey Nate! Good to hear from you. Sounds like fun! Meeting new people can be overwhelming, but the rewards can be great. Sometimes it's good to step outside our comfort zones and explore new things.\n[D23:3] Nate: Yeah, you're right! We can have great experiences if we take risks. I even made some friends at the convention who love games just like me. We already planned a gaming session together - it's cool to meet people who have the same interests!\n[D23:3] Image caption (automatic): a photo of two people dressed up in costumes posing for a picture\n[D23:4] Joanna: That looks awesome! I'm glad you met people who share your interests - that definitely makes experiences more fun..\n[D23:5] Nate: I also met some people who also played this boardgame I love, so I joined in. We had a lot in common and hit it off. It's great when shared hobbies can bond people!\n[D23:5] Image caption (automatic): a photo of a group of people sitting around a table playing a board game\n[D23:6] Joanna: It's incredible how a game can bring people together and form strong relationships. Did you do anything else there?\n[D23:7] Nate: We played this game Catan - it's a great strategy game where you build settlements and trade resources. I love it!\n[D23:7] Image caption (automatic): a photo of a board game with a blue board and a yellow board\n[D23:8] Joanna: Looks cool! Is it more of a competitive game or a more chill one?\n[D23:9] Nate: It can be both competitive and chill. We were competing, but still had lots of fun.\n[D23:10] Joanna: Competitive games can definitely be difficult to play sometimes when people get all upset about every move you make, but it's cool they were all chill! Glad you had a good time.\n[D23:11] Nate: It was great! Playing games is my escape from life struggles, so I generally don't get crazy competitive over them. The people at the convention were the same way!\n[D23:12] Joanna: Glad you found a way to have fun and escape! It's important to stay happy and de-stress. Keep doing what makes you happy!\n[D23:13] Nate: For sure! You should go to a writing convention or something sometime! The experience at this convention is unforgetable.\n[D23:14] Joanna: Do writing conventions exist? I'll have to look into that, it could be fun! Thanks for the idea. Have you been up to anything tonight?\n[D23:15] Nate: Mostly just chilling at home. Playing video games or watching movies helps me unwind.\n[D23:15] Image caption (automatic): a photo of a bookcase filled with dvds and movies\n[D23:16] Joanna: That sounds great! What's your favorite game or movie that you've seen recently?\n[D23:17] Nate: I recently saw a movie that blew my mind with all the twists and dream stuff, I think it was called \"Inception\". I've also been playing a game nonstop with a great futuristic setting and gameplay called \"Cyberpunk 2077\". Have you seen or played anything good lately?\n\n[2] LoCoMo conv-42 history chunk 5\nSession date: 7:49 pm on 20 May, 2022\n[D12:1] Nate: Hey Joanna! How've you been? Been a busy week since we talked.\n[D12:2] Joanna: Hey Nate! Just finished something - pretty wild journey!\n[D12:3] Nate: Way to go! I just got a new addition to the family, this is Max!\n[D12:3] Image caption (automatic): a photo of a dog laying on a couch in a living room\n[D12:4] Joanna: Wow, he's adorable! How long have you had him? I can see why you're thrilled!\n[D12:5] Nate: Thanks! It's awesome - he's adopted and so full of energy, and he's filling my life with so much joy. He's even keeping my other pets active.\n[D12:6] Joanna: Pets sure do make life better! Glad Max is bringing you lots of joy.\n[D12:7] Nate: Yep, totally! Pets make us so much happier and never let us down. Have you thought any more of getting one of your own?\n[D12:8] Joanna: Unfortunately, allergies make it so I don't really want to get any, and I'm too lazy to research alternative pets for my allergies.\n[D12:9] Nate: Aww, that's unfortunate. It's nice seeing the joy pets bring to others, though. How do you find comfort when you don't have any?\n[D12:10] Joanna: Writing and creative projects are what get me through tough times. I'm also grateful for my supportive friends.\n[D12:11] Nate: Wow, that's awesome! Those both can definitely be therapeutic. It's great to have such positive relationships that make such a great impact.\n[D12:12] Joanna: Yeah. It's so nice to have friends who understand and appreciate my work - it's priceless being able to talk about it together and receive feedback. Here's a look at what I've been working on – it's been quite a journey, but I made it!\n[D12:12] Image caption (automatic): a photo of a notepad with a dog on it and a pen\n[D12:13] Nate: Wow, that looks great Joanna! Is that your third one?\n[D12:14] Joanna: Yep! I chose to write about this because it's really personal. It's about loss, identity, and connection. It's a story I've had for ages but just got the guts to write it. It was hard, but I'm so proud of it.\n[D12:15] Nate: That sounds impressive. You really do like writing about sadness and loss don't you.\n[D12:16] Joanna: Thanks, Nate! Yeah I really do. I had to be vulnerable and dig deep into those topics. But I think meaningful stories come from personal experiences and feelings. It was scary, but I found that I write best when I'm being true to myself - even if it's hard.\n[D12:17] Nate: Well done, Joanna! It takes guts to explore your experiences and feelings. I'm proud of you for staying strong and being true to yourself. Keep it up!\n[D12:18] Joanna: Thanks, Nate! Your support really means a lot. Knowing I've got people like you cheering me on makes this journey way easier.\n[D12:19] Nate: No worries, Joanna! Keep going and reach for your dreams. You've got tons of talent and potential!\nSession date: 3:00 pm on 25 May, 2022\n[D13:1] Nate: Hey Jo! Been ages since we last talked. Here's something cool that happened the other day - I took Max for a walk and ran into this super nice couple who had a dog. It turns out they live close by. We decided to do doggy playdates, which is awesome considering we all need friends for our pets.\n[D13:2] Joanna: Hey Nate! Great to hear from you. Sounds like a nice encounter on your walk. Connecting with others who have pets can be uplifting and rewarding.\n[D13:3] Nate: It's like fate. Having a walking buddy forMax will be great. He really likes the other dog too!\n[D13:4] Joanna: Awesome! Did you get to know the couple very well? What were they like?\n[D13:5] Nate: They actually didn't share a whole lot in common with me besides the love of animals, but I think that was all we needed to share in common to be good friends!\n[D13:6] Joanna: That's really cool that you can just go out and meet people like that, keep it up Nate!\n[D13:7] Nate: Thanks! I just really enjoy watching our pets play with one another. Its like a dream come true seeing my dog so happy.\n[D13:8] Joanna: I can see why having a peaceful presence around could help relieve stress. Having someone or something to come home to for a sense of calm would be helpful for relaxation.\n[D13:9] Nate: Yep, Joanna. It's great! Looky here, I got this new pup for you!\n[D13:9] Image caption (automatic): a photo of a stuffed animal laying on a bed\n[D13:10] Joanna: Awww! It's so cute! I love the thought Nate!\n[D13:11] Nate: Thanks! It's a stuffed animal to remind you of the good vibes.\n[D13:12] Joanna: That's so sweet! I'll cherish that little guy with all my heart!\n[D13:13] Nate: Yeah! It's like having joy in your pocket. It always makes me grin when I look at it.\n[D13:14] Joanna: That's great, Nate! Appreciate the small joys like that cute stuffed animal. It's a nice reminder!\n[D13:15] Nate: Agreed, those little things sure do make life better!\n[D13:16] Joanna: I'll always remember those moments that bring us happiness and remind us that life is great!\n[D13:17] Nate: Sure, Joanna! It's all about finding those little things and cherishing them, otherwise it's easy to get down!\n[D13:18] Joanna: Thinking back to the tough times finishing my screenplay made me realize it's those moments that bring joy and make the journey worth it.\n[D13:19] Nate: Yeah, those little moments make it all worth it, especially during tough times. Enjoying the ride is key.\n[D13:20] Joanna: Appreciating the journey and being aware of those happy moments can be a game-changer! It keeps us focused on our dreams. Can't wait to show it to you. I value your opinion!\n[D13:21] Nate: Can't wait to see it, Joanna! I'm here to support you.\n[D13:22] Joanna: Thanks, Nate! Your support is greatly appreciated. I'll make sure to keep you updated.\n[D13:23] Nate: No worries! You've got this. Keep it up!\nSession date: 5:44 pm on 3 June, 2022\n[D14:1] Joanna: Nate, after finishing my screenplay I got a rejection letter from a major company. It really bummed me out.\n[D14:2] Nate: Sorry to hear that, Joanna. Rejection stinks, but it doesn't mean you're not talented. Don't give up on your dreams!\n[D14:3] Joanna: Thanks, Nate. It can feel like a step back sometimes. But I appreciate your kind words and encouragement.\n[D14:4] Nate: Sure, just make sure you keep going and believing in yourself. Did something happen with the company?\n[D14:5] Joanna: They just sent me a generic rejection letter without much feedback. It's disheartening not knowing why it didn't work out.\n[D14:6] Nate: Ugh, that's so frustrating. But don't get discouraged, just keep going.\n[D14:7] Joanna: Yeah, you're right. I won't let this bring me down. Thanks for your support. What have you been up to lately?\n[D14:8] Nate: I've been doing great - I just won another regional video game tournament last week! It was so cool, plus I met some new people. Connecting with fellow gamers is always awesome.\n[D14:9] Joanna: Way to go, Nate! Congratulations on your victory in the tournament! It must feel great to be recognized for your gaming skills.\n[D14:10] Nate: Thanks, Joanna! Winning was a huge confidence boost and shows my hard work paid off. I'm really happy with my progress.\n[D14:11] Joanna: I am as well! It's great to hear from you about your tournaments throughout the years!\n[D14:12] Nate: Thanks! I has been a while since my first tournament hasn't it? I appreciate your support!\n[D14:13] Joanna: Anytime Nate! I'm here for you every step of the way.\n\n[3] LoCoMo conv-42 history chunk 12\nSession date: 8:10 pm on 7 November, 2022\n[D27:11] Nate: Well with dedication like yours, its no wonder you do so well in it as well! Are you planning on submitting anymore scripts anytime soon?\n[D27:12] Joanna: Yep! I actually just submitted a few more last week! Hoping to hear back from them soon, though I assume a few will be rejected.\n[D27:13] Nate: Even if it happens to a few, I'm sure at leasts one will make it to the screens and be your 3rd published movie!\n[D27:14] Joanna: Thanks, Nate! Appreciate the encouragement. I won't give up, I promise! Got it covered!\n[D27:15] Nate: Great to hear! On another note, I just upgraded some of my equipment at home. Check it out!\n[D27:15] Image caption (automatic): a photo of a desk with a computer monitor and a keyboard\n[D27:16] Joanna: Oh wow, ice set-up! Do you use that computer for gaming?\n[D27:17] Nate: Yep! This is where I practice and compete. Sometimes I even use it when I'm playing games with friends.\n[D27:18] Joanna: Cool! Having a dedicated space for practice and competition should help you stay focused.\n[D27:19] Nate: Yeah, I love it. It's like my own little haven to escape into the virtual world.\n[D27:19] Image caption (automatic): a photo of a desk with two monitors and a laptop\n[D27:20] Joanna: Wow, that sounds great to have your own gaming setup at home. It must be really awesome!\n[D27:21] Nate: It really is! But it's also really important to have something like this for my career, otherwise I would never be able to beat my competition.\n[D27:21] Image caption (automatic): a photo of a pair of headphones and a video game controller\n[D27:22] Joanna: That makes sense! It's all about practice isn't it? So what's your favorite game?\n[D27:23] Nate: Yep! I'm currently playing this awesome fantasy RPG called \"Xeonoblade Chronicles\" and it's been a blast! I highly reccomend it if you've never played it before. \n[D27:23] Image caption (automatic): a photo of two nintendo game covers with a picture of a group of people\n[D27:24] Joanna: What made you start playing it? That's a japanese game series right?\n[D27:25] Nate: Yes it is! I'm a big fan of Nintendo games, and I've actually been wanting to play this one for a while because my friends have played it and reccomended it!\n[D27:25] Image caption (automatic): a photo of a woman in a costume holding a glass\n[D27:26] Joanna: Nice! It's really cool when a reccomendation from a friend fits your taste so well isn't it?\n[D27:26] Image caption (automatic): a photo of a captain america costume on display in a museum\n[D27:27] Nate: For sure! That's why I love when you give me movie reccomendations, I usually like them a lot more then if I were to just watch some random one.\n[D27:28] Joanna: Great to hear! I just finished with the intro to my next movie script, and I decided to include this at the begining.\n[D27:28] Image caption (automatic): a photo of a handwritten letter from a young man\n[D27:29] Nate: That letter is really awesome! Does it remind you of your childhood?\n[D27:30] Joanna: Yeah, it does! My brother wrote it - he used to make me these cute notes when we were kids. Brings back sweet memories.\n[D27:31] Nate: Aww, childhood memories can be so powerful!\n[D27:32] Joanna: They sure can! They take us back to simpler times but it's nice to create new memories as we grow up.\n[D27:32] Image caption (automatic): a photo of two little girls in pink dresses standing in front of a castle\n[D27:33] Nate: Totally! I had a special day when I took my pets to the park. They were amazed and seeing their happy faces made it a memorable day. Mixing the new with the old is priceless - I treasure every memory!\n[D27:34] Joanna: That sounds so sweet, Nate! I started writing some of my favorite memories down.\n[D27:34] Image caption (automatic): a photo of a person holding a notebook with a list of things on it\n[D27:35] Nate: Dang, your full of great ideas Joanna! I really should start doing that as well, or at least write down the things my animals like a lot!\n[D27:36] Joanna: You should! I completely encourage it, looking back on fond memories is such a blessing.\n[D27:37] Nate: Ok I will! But I'll also start writing down some of my favorite memories with you from now on.\n[D27:38] Joanna: Definitely, let's keep making great memories and supporting each other. Let's keep reaching for our dreams and make them happen!\n[D27:38] Image caption (automatic): a photo of two women sitting on a bed laughing and laughing\nSession date: 5:54 pm on 9 November, 2022\n[D28:1] Nate: Hey Joanna, what a wild week! My game tournament got pushed back, so I tried out some cooking. Look at this homemade coconut ice cream! The sprinkles kinda changed the color this time around.\n[D28:1] Image caption (automatic): a photo of a person scooping a scoop of ice cream into a pan\n[D28:2] Joanna: Hey Nate, that looks yummy! Wish I could try it, but I can't right now. How did the last game tournament go?\n[D28:3] Nate: Hey Joanna, thanks! Tough tournament, didn't make it to the finals. But that's okay, I'll get 'em next time!\n[D28:4] Joanna: Aww, bummer! But the important thing is to stay positive. So, what's your next move in the gaming world?\n[D28:5] Nate: Thanks Joanna! Staying positive is key. I'm thinking of joining a new gaming team after this next tourney - I've had a few offers, but I haven't decided yet. It's gonna be a big step, but I'm ready for a shake up.\n[D28:6] Joanna: Sounds great, Nate! Making a switch could open up new opportunities. Wishing you luck with picking the right team!\n[D28:7] Nate: Thanks, Joanna! I really appreciate it. It's a big decision, but I'm excited for what the future holds. How about you? Anything exciting happening on your end?\n[D28:8] Joanna: Yup! I worked hard on another script and eventually created a plan for getting it made into a movie. It was a ton of work but satisfying. I pitched it to some producers yesterday and they really liked it. It gave me a big confidence boost!\n[D28:9] Nate: Congrats on the chance to pitch your script - super impressive. Proud of you!\n[D28:9] Image caption (automatic): a photo of a trophy and a game controller on a table\n[D28:10] Joanna: Appreciate you, Nate! Your support and encouragement mean a lot to me. I feel like I just can't stop writing write now!\n[D28:10] Image caption (automatic): a photo of a pen and notebook on a table with a book\n[D28:11] Nate: Anytime. What're you working on in that notebook? Anything cool?\n[D28:12] Joanna: Hey Nate, I'm working on a new project - a suspenseful thriller set in a small Midwestern town. It's been a great creative outlet for me. How about you? Do you have any projects you're working on?\n[D28:13] Nate: Yeah actually - creating gaming content for YouTube. It's a cool way to entertain folks and satisfy my video game cravings at the same time when there aren't any tourneys going on.\n[D28:13] Image caption (automatic): a photo of a desk with a computer, headphones, and a microphone\n[D28:14] Joanna: Wow, that's a cool idea! What inspired you to start making gaming videos?\n[D28:15] Nate: Hey Joanna, I'm a big fan of them and thought it would be a fun idea to start making them myself. I'm hoping to share my love of gaming and connect with others who enjoy it too.\n[D28:16] Joanna: Way to go, Nate! Making videos and connecting with people about gaming - that's awesome! You'll do great!\n[D28:17] Nate: Thanks Joanna! Appreciate the support. It's new to me but I'm excited to get started!\n\n[4] LoCoMo conv-42 history chunk 1\nSession date: 7:31 pm on 21 January, 2022\n[D1:1] Nate: Hey Joanna! Long time no see! What's up? Anything fun going on?\n[D1:2] Joanna: Hey Nate! Long time no see! I've been working on a project lately - it's been pretty cool. What about you - any fun projects or hobbies?\n[D1:3] Nate: Hey Joanna! That's cool! I won my first video game tournament last week - so exciting!\n[D1:4] Joanna: Wow Nate! Congrats on winning! Tell me more - what game was it?\n[D1:5] Nate: Thanks! it's a team shooter game.\n[D1:6] Joanna: Wow, great job! What was is called?\n[D1:7] Nate: The game was called Counter-Strike: Global Offensive, and me and my team had a blast to the very end!\n[D1:8] Joanna: Cool, Nate! Sounds like a fun experience, even if I'm not into games.\n[D1:9] Nate: It was! How about you? Do you have any hobbies you love?\n[D1:10] Joanna: Yeah! Besides writing, I also enjoy reading, watching movies, and exploring nature. Anything else you enjoy doing, Nate?\n[D1:11] Nate: Playing video games and watching movies are my main hobbies.\n[D1:12] Joanna: Cool, Nate! So we both have similar interests. What type of movies do you like best?\n[D1:13] Nate: I love action and sci-fi movies, the effects are so cool! What about you, what's your favorite genre?\n[D1:14] Joanna: I'm all about dramas and romcoms. I love getting immersed in the feelings and plots.\n[D1:15] Nate: Wow, movies can be so powerful! Do you have any recommendations for me?\n[D1:16] Joanna: Yeah, totally! Have you seen this romantic drama that's all about memory and relationships? It's such a good one.\n[D1:16] Image caption (automatic): a photo of a poster of a man and a woman sitting on a bench\n[D1:17] Nate: Oh cool! I might check that one out some time soon! I do love watching classics.\n[D1:18] Joanna: Yep, that movie is awesome. I first watched it around 3 years ago. I even went out and got a physical copy!\n[D1:18] Image caption (automatic): a photo of a dvd on a table with a blurry background\n[D1:19] Nate: Sounds cool! Have you seen it a lot? sounds like you know the movie well!\n[D1:20] Joanna: A few times. It's one of my favorites! I really like the idea and the acting.\n[D1:21] Nate: Cool! I'll definitely check it out. Thanks for the recommendation!\n[D1:22] Joanna: No problem, Nate! Let me know if you like it!\nSession date: 2:01 pm on 23 January, 2022\n[D2:1] Joanna: Hey Nate! Haven't talked in a few days. Crazy things happened to me!\n[D2:2] Nate: Hi Joanna! Long time no see! What's been going on? You sound excited!\n[D2:3] Joanna: Woo! I finally finished my first full screenplay and printed it last Friday. I've been working on for a while, such a relief to have it all done!\n[D2:3] Image caption (automatic): a photography of a book with a page of text on it\n[D2:4] Nate: Wow, that sounds awesome! What's it about? Glad it's all down!\n[D2:5] Joanna: Thanks, Nate! It's a mix of drama and romance!\n[D2:6] Nate: Wow, that's amazing! How do you feel now that it's finished? Do you have any new plans for it?\n[D2:7] Joanna: Woohoo, Nate! I'm feeling a rollercoaster of emotions - relief, excitement, some anxiety - over finishing this project. Now I'm gonna submit it to some film festivals and (hopefully) get producers and directors to check it out. Here's hoping!\n[D2:8] Nate: Congrats, Joanna! That sounds like a wild experience. Rock on and I hope they love it!\n[D2:9] Joanna: Thanks Nate! A mix of emotions for sure. Hopefully, it leads to positive feedback and new opportunities.\n[D2:10] Nate: Yeah, for sure. Hoping for the best! I like having some of these little ones around to keep me calm when things are super important and I'm nervous.\n[D2:10] Image caption (automatic): a photography of a turtle and a turtleling sitting on a rock\n[D2:11] Joanna: Awww! How long have you had them?\n[D2:12] Nate: I've had them for 3 years now and they bring me tons of joy!\n[D2:13] Joanna: They sure lookl like they do! Adorable!\n[D2:14] Nate: Thanks! The turtles might be small, but both sure have big personalities. I really reccomend having something like these little guys for times of stress.\n[D2:15] Joanna: Good idea, Nate! I'll think about it and maybe get pets of my own soon if I can find any I'm not allergic to. Have you been up to anything recently?\n[D2:16] Nate: Yeah actually! I start to hang out with some people outside of my circle at the tournament. They're pretty cool!\n[D2:17] Joanna: Oh? That sounds sweet! Is it a weird relationship with them being competitors and all?\n[D2:18] Nate: Oh, kind of. Some people are more competitive then others, so I tend to just stick around the more chill people here.\n[D2:19] Joanna: That makes sense! Are you gonna cheer them on even if you lose?\n[D2:20] Nate: Absolutely! I don't expect to win big here, I just like playing for fun!  You mentioned you were allergic to pets earlier, how bad is it?\n[D2:21] Joanna: Oh, its really bad. My face gets all puffy and itchy when I'm around certain animals, so I've always just stayed away.\n[D2:22] Nate: Sorry to hear that. Allergies can be tough. What specifically are you allergic to?\n[D2:23] Joanna: I'm allergic to most reptiles and animals with fur. It can be a bit of a drag, but I find other ways to be happy.\n[D2:24] Nate: Awesome! There are lots of things that can bring you joy without pets. What else brings you joy?\n[D2:25] Joanna: Writing and hanging with friends! That way I can express myself through stories, or just have a good time with people.\n[D2:26] Nate: That's great to hear! Those are both great things. I'm glad to hear you've got other things to help you get through times of axiousness despite not being able to have animals!\n[D2:27] Joanna: Thanks, Nate! Writing helps me create wild worlds with awesome characters. Plus, it's a great way to express my feelings. I can't imagine life without it.\n[D2:28] Nate: Wow, Joanna, that sounds amazing! Keep doing what you love!\n[D2:29] Joanna: Thanks, Nate! I'll definitely keep pursuing my passion for writing. It means a lot.\nSession date: 9:27 am on 7 February, 2022\n[D3:1] Joanna: Hey Nate, long time no see! The screenplay I sent in to the film festival has been on my mind all day everyday. I keep bouncing between crazy emotions like relief, excitement and worry! Fingers crossed a producer or director falls in love with it and it ends up on the big screen - that would be awesome!\n[D3:2] Nate: Hey Joanna! It is a big deal! I'm sure its been a wild ride. Sending some positive vibes and hoping someone likes it enough to get it on the big screen - that would be awesome!\n[D3:3] Joanna: Thanks Nate, your support really means a lot. I put a lot of effort into it and I'm crossing my fingers. What about you? Anything new and exciting happening in your life?\n[D3:4] Nate: Thanks, Joanna. Not much has changed for me, but I just discovered that I can make coconut milk icecream and gave it a try. It was actually pretty good, so I'm proud of myself.\n[D3:4] Image caption (automatic): a photo of a bowl of ice cream with a spoon in it\n[D3:5] Joanna: Looks delish! Glad you tried something new and it went well. What did you think of it?\n[D3:6] Nate: Super good! It was rich and creamy - might be my new favorite snack!\n[D3:7] Joanna: Great! I love when you try something new and it actually works out. Will you give it another go?\n[D3:8] Nate: Yep, it could be fun! I'm looking forward to trying out different flavors and toppings.\n[D3:9] Joanna: Yum! Sounds great. Got any favorite flavors for dairy-free desserts?\n\n[5] LoCoMo conv-42 history chunk 6\nSession date: 5:44 pm on 3 June, 2022\n[D14:14] Nate: I talked to some of the guys at the tournament afterwards, and they said they wanted to hang out later!\n[D14:14] Image caption (automatic): a photo of a purple and blue controller with a star field design\n[D14:15] Joanna: Sounds like fun! It's good to have friends that share your interests!\n[D14:16] Nate: For sure! They asked for some tips in how to improve their game, so I said I could help.\n[D14:17] Joanna: Good on you for helping strangers out! Stepping outside your comfort zone is always great.\n[D14:18] Nate: Thanks, I just like helping people. Do you have any plans for the weekend?\n[D14:19] Joanna: Yep, I'm hiking with some buddies this weekend. We're checking out a new trail with a rad waterfall. Can't wait! Do you have any fun plans?\n[D14:20] Nate: Sounds great! Have fun with that. I'm organizing a gaming party two weekends later - it'll be hectic but fun!\n[D14:21] Joanna: Oh? Are you going to invite your tournament friends?\n[D14:22] Nate: Definitely! And some old friends and teamates from other tournaments.\n[D14:23] Joanna: Sounds like fun, Nate! I wish you the best on your party. Have a blast!\n[D14:24] Nate: Thanks Joanna! I'm sure it'll be a blast. I'm even getting everyone custom controller decorations just for coming!\n[D14:25] Joanna: Wow, I bet they'll love that! What a sweet idea.\n[D14:26] Nate: I know right? Have a great hike. Take lots of pics! See ya later!\n[D14:27] Joanna: Thanks Nate! See you later!\nSession date: 2:12 pm on 5 June, 2022\n[D15:1] Joanna: Hey Nate! Yesterday was crazy cool - I wrote a few bits for a screenplay that appeared on the big screen yesterday! It was nerve-wracking but so inspiring to see my words come alive!\n[D15:1] Image caption (automatic): a photo of a spider - man poster hanging on a wall\n[D15:2] Nate: Congrats, Joanna! Seeing your hard work pay off like that must've felt amazing. I bet it was scary too, but awesome! You're so inspiring. By the way, last time we saw eachother, I noticed a spiderman pin on your purse. Is Spider-Man your favorite superhero, or do you have another fave?\n[D15:3] Joanna: Thanks, Nate! It was a real roller coaster, but seeing the hard work pay off was amazing. Spider-Man has always been a favorite of mine - I mean, who doesn't love Peter Parker's struggles between being a hero and being a person? But I'm kind of a sucker for any superhero - everyone has their own rad story and powers. Do you have a favorite superhero?\n[D15:4] Nate: That's great, Joanna! Iron Man is my top pick. I love his tech and that sarcastic humor. Seeing these figures just makes me feel invincible!\n[D15:4] Image caption (automatic): a photography of a toy iron man standing on a white surface\n[D15:5] Joanna: Wow, Nate! That's awesome. I love the tech and funny jokes of Iron Man too. What made you get that figure?\n[D15:6] Nate: Thanks Joanna! I got it because it reminded me of something I love. Its presence in my room is a good reminder to keep working on my goals. Any inspiring things in your room?\n[D15:7] Joanna: My cork board is full of inspiring quotes and pictures for motivation and creativity. It's my little corner of inspiration.\n[D15:8] Nate: Wow Joanna, that sounds great! Could you show me a picture of it?\n[D15:9] Joanna: Here ya go, a pic of my cork board. It's got quotes, photos, and little keepsakes.\n[D15:9] Image caption (automatic): a photo of a picture frame with a picture of a family\n[D15:10] Nate: That's a great pic of your family! What made you hang it on your cork board?\n[D15:11] Joanna: Thanks, Nate! Having that picture on my cork board reminds me of the love and encouragement from them every day.\n[D15:12] Nate: That's great, Joanna. Family support is invaluable. It's so good to have those reminders.\n[D15:13] Joanna: Absolutely, it means a lot and keeps me going.\n[D15:14] Nate: I really should start a cork board of my own shouldn't I. That seems like a really valuable thing!\n[D15:15] Joanna: I would definitely recommend it! As long as your willing to explain what it is to your friends.\n[D15:16] Nate: Of course! Well see you later Joanna!\n[D15:17] Joanna: Bye Nate!\nSession date: 10:55 am on 24 June, 2022\n[D16:1] Joanna: Hey Nate, long time no see! How have you been? I just got done submitting my recent screenplay to a film contest just to see how others might like it!\n[D16:2] Nate: That's really cool Joanna! I hope it does well, and I've been doing great! The gaming party was a great success! We even played some Chess afterward just for fun.\n[D16:3] Joanna: Nice! Did your friends like the controller accessories?\n[D16:4] Nate: Most of them did! I can't say if all of them will continue to use them or not, but that's beside the point.\n[D16:5] Joanna: Yeah Nate, you're right. It doesn't matter if they use it, its the thought that matters right?\n[D16:6] Nate: Absolutely! There were 7 people that attended, and 6 of them said they'd want to do it again next month!\n[D16:7] Joanna: That sounds like a huge success then! Congrats!\n[D16:8] Nate: Thanks! On another note, I made vegan ice cream last Friday and shared it with some people in my vegan diet group. It was awesome!\n[D16:8] Image caption (automatic): a photography of a group of people sitting on a bench\n[D16:9] Joanna: Mm, yum! Can you give me the recipe for that? It sounds like it'd be a good recipe!\n[D16:10] Nate: Sure thing! I can give it to you tomorrow, how does that sound?\n[D16:11] Joanna: Awesome! I'm going to make it for my family this weekend - can't wait!\n[D16:12] Nate: Nice one, Joanna! Hope you and your family like it. Let me know how it went!\n[D16:13] Joanna: Sure thing! They love it when I make them new things!\n[D16:14] Nate: Then I have no doubt they'll love the icecream!\n[D16:15] Joanna: Thanks Nate! Your support is greatly appreciated. I'll make sure to keep you updated.\n[D16:16] Nate: Can't wait to hear about it. Have a great day! Take care.\nSession date: 2:34 pm on 10 July, 2022\n[D17:1] Nate: Hey Joanna, check this out! I won my fourth video game tournament on Friday! It was awesome competing and showing off my skills - and the victory was indescribable. I'm really proud that I can make money doing what I love. This one was online!\n[D17:1] Image caption (automatic): a photo of a television screen showing a trophy and a trophy\n[D17:2] Joanna: Congrats, Nate! That's awesome! So proud of you. Your hard work really paid off - keep it up! BTW, I took a road trip for research for my next movie while you were winning. Much-needed break and a chance to explore new places and get inspired.\n[D17:3] Nate: Thanks, Joanna! Your support means a lot to me. That road trip sounds great! Where did you go? Did you discover any interesting places?\n[D17:4] Joanna: Thanks Nate! Appreciate your kind words. I went to Woodhaven, a small town in the Midwest. Got to see some lovely scenery and historic buildings. Checked out the library there, it had a cool old book collection!\n[D17:4] Image caption (automatic): a photography of a book shelf filled with lots of books\n[D17:5] Nate: That place looks interesting! Did you find any cool books there?\n[D17:6] Joanna: I stumbled upon this super cool book from the 1900s with stories and sketches - so awesome to read about the town and the people living there!\n[D17:6] Image caption (automatic): a photo of a book with writing on it and a pen\n\nQUESTION: What game did Nate play at the game convention he attended on 9 October, 2022?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 512,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "qa",
+      "key": "43f0a1cae3d4a974b3578ad891b92d2757f03aab7f72cb27ae5bbf3ddd6877d5",
+      "result": {
+        "text": "{\"answer\": \"Catan\"}",
+        "prompt_tokens": 10538,
+        "completion_tokens": 8,
+        "latency_s": 2.1879323944449425,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You answer questions using only the passages provided. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Answer the question using only the source passages below.\n\nThe evidence map lists possible graph joins extracted from those passages. It\nis a navigation aid, not an answer key or a certificate. For each candidate,\ncheck the cited passage text, the direction of every relation, and EVERY\ncondition in the question. Ignore any candidate that fails a condition or is\nnot explicitly supported by its cited passage. The map can omit correct answers:\nalso inspect the passages themselves. Never infer an exact count from a partial\nlist of graph candidates.\n\nGive the shortest complete answer: a name, date, number or short noun phrase.\nFor questions asking for a set, list every distinct supported item, separated\nby commas. If the passages do not contain the answer, say \"insufficient\ninformation\". Return JSON exactly: {\"answer\": \"...\"}\n\nEVIDENCE MAP (provisional; conditions to verify: What game):\nCandidate 1: for fun\n  [4] Nate | play | for fun\n  [1] Nate | attend | game convention\nCandidate 2: Catan\n  [1] Nate | attend | game convention\n  [1] Nate | play | Catan\nCandidate 3: boardgame\n  [1] Nate | attend | game convention\n  [1] Nate | play | boardgame\nCandidate 4: nonstop\n  [1] Nate | attend | game convention\n  [1] Nate | play | nonstop\n\nSOURCE PASSAGES:\n[1] LoCoMo conv-42 history chunk 9\nSession date: 1:43 pm on 14 September, 2022\n[D21:17] Joanna: Hey Nate! Here's another recipe I like. It's a delicious dessert made with blueberries, coconut milk, and a gluten-free crust. So creamy and delicious!\n[D21:17] Image caption (automatic): a photo of a piece of cake with walnuts on top\n[D21:18] Nate: Wow, Joanna! That dessert looks amazing. I'll definitely have to give it a try. Thanks!\n[D21:19] Joanna: Glad to help, Nate. Let me know if you try it. I'm sure you'll enjoy it. It was great chatting.\n[D21:20] Nate: Thanks Joanna! I will. Bye!\nSession date: 11:15 am on 6 October, 2022\n[D22:1] Joanna: Hey Nate, hi! Yesterday, I tried my newest dairy-free recipe and it was a winner with my family! Mixing and matching flavors is fun and I'm always trying new things. How about you?\n[D22:1] Image caption (automatic): a photo of a tart with raspberries on a white plate\n[D22:2] Nate: Hey Joanna! That tart looks yummy! Lately, I've been doing great - I won a really big video game tournament last week and it was awesome! I still can't believe I made so much money from it.\n[D22:2] Image caption (automatic): a photo of a trophy and a game controller on a table\n[D22:3] Joanna: Way to go, Nate! Winning the tournament and earning cash is awesome - congrats! Did you save it for something special?\n[D22:4] Nate: Thanks Joanna! Yeah, I saved some but I'm not sure what to do with it - I'm completely content already. I don't have big plans anyway, so it's nice to have the extra cash on hand.\n[D22:5] Joanna: That's awesome, Nate! Having some extra cash on hand definitely brings a sense of freedom and relaxation, huh?\n[D22:6] Nate: Yes! Finally, I don't have to stress about it, so I can just enjoy my movies and games.\n[D22:7] Joanna: Taking breaks and reducing stress is pretty nice! Have you watched any good movies recently? I could use some recommendations!\n[D22:8] Nate: I watched \"Little Women\" recently, and it was great! The acting was awesome and the story was so captivating. Definitely a good one!\n[D22:9] Joanna: I'm so glad you enjoyed it! I recommended it to you a while back. I watched it too and it really spoke to me. Themes like sisterhood, love, and chasing dreams were explored so well. By the way, I finished up my writing for my book last week. Put in a ton of late nights and edits but finally got it done. I'm so proud of it! Can't wait to see what happens next.\n[D22:10] Nate: Way to go! We both know it took some effort, but I'm sure it'll be great. Congrats on finishing it up!\n[D22:11] Joanna: Thanks Nate! Your words mean a lot. Dedication and late nights got me here, but it was worth it. Just like you with your recent tournament - hard work pays off. I appreciate your support throughout!\n[D22:12] Nate: I'm always here for you, Joanna! You've worked so hard and accomplished a lot – I'm proud. Keep on going!\n[D22:13] Joanna: Thanks, Nate! I won't give up on my goals as long as your here to support me.\n[D22:14] Nate: You can always count on me! I even made this for you!\n[D22:14] Image caption (automatic): a photo of a white board with a drawing of arrows and words\n[D22:15] Joanna: Wow, Nate, that looks awesome! What inspired you?\n[D22:16] Nate: I figured you could always look back on this whenever you need encouragement, and that was all the inspiration I needed. And I would also say that your life path can be quite inspirational!\n[D22:16] Image caption (automatic): a photo of a young boy drawing on a white board\n[D22:17] Joanna: Wow, Nate! That's sweet of you! I'll make sure to remember this when I need the encouragement the most.\n[D22:18] Nate: Awesome! I know encouragement is what got me so far in my gameing career, so I figured why not share the love.\n[D22:19] Joanna: Rest assured, it will be something I cherish! On another note, I just finished this cute little bookmark for one of the ladies at my writing club!\n[D22:19] Image caption (automatic): a photo of a bookmark with a plant on top of it\n[D22:20] Nate: That bookmark is great. I'm sure she'll love it!\n[D22:21] Joanna: Thanks Nate! I absolutley love DIYs, and I know she does too.\n[D22:22] Nate: Let me know how it goes!\n[D22:23] Joanna: Sure thing! Bye for now!\nSession date: 10:58 am on 9 October, 2022\n[D23:1] Nate: Hey Joanna, it's been a couple days since we last talked. Something exciting happened last Friday. I went to a game convention and met new people who weren't from my normal circle. It was a bit overwhelming but it reminded me of the good times gaming can bring.\n[D23:1] Image caption (automatic): a photo of a man standing in front of a table with board games\n[D23:2] Joanna: Hey Nate! Good to hear from you. Sounds like fun! Meeting new people can be overwhelming, but the rewards can be great. Sometimes it's good to step outside our comfort zones and explore new things.\n[D23:3] Nate: Yeah, you're right! We can have great experiences if we take risks. I even made some friends at the convention who love games just like me. We already planned a gaming session together - it's cool to meet people who have the same interests!\n[D23:3] Image caption (automatic): a photo of two people dressed up in costumes posing for a picture\n[D23:4] Joanna: That looks awesome! I'm glad you met people who share your interests - that definitely makes experiences more fun..\n[D23:5] Nate: I also met some people who also played this boardgame I love, so I joined in. We had a lot in common and hit it off. It's great when shared hobbies can bond people!\n[D23:5] Image caption (automatic): a photo of a group of people sitting around a table playing a board game\n[D23:6] Joanna: It's incredible how a game can bring people together and form strong relationships. Did you do anything else there?\n[D23:7] Nate: We played this game Catan - it's a great strategy game where you build settlements and trade resources. I love it!\n[D23:7] Image caption (automatic): a photo of a board game with a blue board and a yellow board\n[D23:8] Joanna: Looks cool! Is it more of a competitive game or a more chill one?\n[D23:9] Nate: It can be both competitive and chill. We were competing, but still had lots of fun.\n[D23:10] Joanna: Competitive games can definitely be difficult to play sometimes when people get all upset about every move you make, but it's cool they were all chill! Glad you had a good time.\n[D23:11] Nate: It was great! Playing games is my escape from life struggles, so I generally don't get crazy competitive over them. The people at the convention were the same way!\n[D23:12] Joanna: Glad you found a way to have fun and escape! It's important to stay happy and de-stress. Keep doing what makes you happy!\n[D23:13] Nate: For sure! You should go to a writing convention or something sometime! The experience at this convention is unforgetable.\n[D23:14] Joanna: Do writing conventions exist? I'll have to look into that, it could be fun! Thanks for the idea. Have you been up to anything tonight?\n[D23:15] Nate: Mostly just chilling at home. Playing video games or watching movies helps me unwind.\n[D23:15] Image caption (automatic): a photo of a bookcase filled with dvds and movies\n[D23:16] Joanna: That sounds great! What's your favorite game or movie that you've seen recently?\n[D23:17] Nate: I recently saw a movie that blew my mind with all the twists and dream stuff, I think it was called \"Inception\". I've also been playing a game nonstop with a great futuristic setting and gameplay called \"Cyberpunk 2077\". Have you seen or played anything good lately?\n\n[2] LoCoMo conv-42 history chunk 5\nSession date: 7:49 pm on 20 May, 2022\n[D12:1] Nate: Hey Joanna! How've you been? Been a busy week since we talked.\n[D12:2] Joanna: Hey Nate! Just finished something - pretty wild journey!\n[D12:3] Nate: Way to go! I just got a new addition to the family, this is Max!\n[D12:3] Image caption (automatic): a photo of a dog laying on a couch in a living room\n[D12:4] Joanna: Wow, he's adorable! How long have you had him? I can see why you're thrilled!\n[D12:5] Nate: Thanks! It's awesome - he's adopted and so full of energy, and he's filling my life with so much joy. He's even keeping my other pets active.\n[D12:6] Joanna: Pets sure do make life better! Glad Max is bringing you lots of joy.\n[D12:7] Nate: Yep, totally! Pets make us so much happier and never let us down. Have you thought any more of getting one of your own?\n[D12:8] Joanna: Unfortunately, allergies make it so I don't really want to get any, and I'm too lazy to research alternative pets for my allergies.\n[D12:9] Nate: Aww, that's unfortunate. It's nice seeing the joy pets bring to others, though. How do you find comfort when you don't have any?\n[D12:10] Joanna: Writing and creative projects are what get me through tough times. I'm also grateful for my supportive friends.\n[D12:11] Nate: Wow, that's awesome! Those both can definitely be therapeutic. It's great to have such positive relationships that make such a great impact.\n[D12:12] Joanna: Yeah. It's so nice to have friends who understand and appreciate my work - it's priceless being able to talk about it together and receive feedback. Here's a look at what I've been working on – it's been quite a journey, but I made it!\n[D12:12] Image caption (automatic): a photo of a notepad with a dog on it and a pen\n[D12:13] Nate: Wow, that looks great Joanna! Is that your third one?\n[D12:14] Joanna: Yep! I chose to write about this because it's really personal. It's about loss, identity, and connection. It's a story I've had for ages but just got the guts to write it. It was hard, but I'm so proud of it.\n[D12:15] Nate: That sounds impressive. You really do like writing about sadness and loss don't you.\n[D12:16] Joanna: Thanks, Nate! Yeah I really do. I had to be vulnerable and dig deep into those topics. But I think meaningful stories come from personal experiences and feelings. It was scary, but I found that I write best when I'm being true to myself - even if it's hard.\n[D12:17] Nate: Well done, Joanna! It takes guts to explore your experiences and feelings. I'm proud of you for staying strong and being true to yourself. Keep it up!\n[D12:18] Joanna: Thanks, Nate! Your support really means a lot. Knowing I've got people like you cheering me on makes this journey way easier.\n[D12:19] Nate: No worries, Joanna! Keep going and reach for your dreams. You've got tons of talent and potential!\nSession date: 3:00 pm on 25 May, 2022\n[D13:1] Nate: Hey Jo! Been ages since we last talked. Here's something cool that happened the other day - I took Max for a walk and ran into this super nice couple who had a dog. It turns out they live close by. We decided to do doggy playdates, which is awesome considering we all need friends for our pets.\n[D13:2] Joanna: Hey Nate! Great to hear from you. Sounds like a nice encounter on your walk. Connecting with others who have pets can be uplifting and rewarding.\n[D13:3] Nate: It's like fate. Having a walking buddy forMax will be great. He really likes the other dog too!\n[D13:4] Joanna: Awesome! Did you get to know the couple very well? What were they like?\n[D13:5] Nate: They actually didn't share a whole lot in common with me besides the love of animals, but I think that was all we needed to share in common to be good friends!\n[D13:6] Joanna: That's really cool that you can just go out and meet people like that, keep it up Nate!\n[D13:7] Nate: Thanks! I just really enjoy watching our pets play with one another. Its like a dream come true seeing my dog so happy.\n[D13:8] Joanna: I can see why having a peaceful presence around could help relieve stress. Having someone or something to come home to for a sense of calm would be helpful for relaxation.\n[D13:9] Nate: Yep, Joanna. It's great! Looky here, I got this new pup for you!\n[D13:9] Image caption (automatic): a photo of a stuffed animal laying on a bed\n[D13:10] Joanna: Awww! It's so cute! I love the thought Nate!\n[D13:11] Nate: Thanks! It's a stuffed animal to remind you of the good vibes.\n[D13:12] Joanna: That's so sweet! I'll cherish that little guy with all my heart!\n[D13:13] Nate: Yeah! It's like having joy in your pocket. It always makes me grin when I look at it.\n[D13:14] Joanna: That's great, Nate! Appreciate the small joys like that cute stuffed animal. It's a nice reminder!\n[D13:15] Nate: Agreed, those little things sure do make life better!\n[D13:16] Joanna: I'll always remember those moments that bring us happiness and remind us that life is great!\n[D13:17] Nate: Sure, Joanna! It's all about finding those little things and cherishing them, otherwise it's easy to get down!\n[D13:18] Joanna: Thinking back to the tough times finishing my screenplay made me realize it's those moments that bring joy and make the journey worth it.\n[D13:19] Nate: Yeah, those little moments make it all worth it, especially during tough times. Enjoying the ride is key.\n[D13:20] Joanna: Appreciating the journey and being aware of those happy moments can be a game-changer! It keeps us focused on our dreams. Can't wait to show it to you. I value your opinion!\n[D13:21] Nate: Can't wait to see it, Joanna! I'm here to support you.\n[D13:22] Joanna: Thanks, Nate! Your support is greatly appreciated. I'll make sure to keep you updated.\n[D13:23] Nate: No worries! You've got this. Keep it up!\nSession date: 5:44 pm on 3 June, 2022\n[D14:1] Joanna: Nate, after finishing my screenplay I got a rejection letter from a major company. It really bummed me out.\n[D14:2] Nate: Sorry to hear that, Joanna. Rejection stinks, but it doesn't mean you're not talented. Don't give up on your dreams!\n[D14:3] Joanna: Thanks, Nate. It can feel like a step back sometimes. But I appreciate your kind words and encouragement.\n[D14:4] Nate: Sure, just make sure you keep going and believing in yourself. Did something happen with the company?\n[D14:5] Joanna: They just sent me a generic rejection letter without much feedback. It's disheartening not knowing why it didn't work out.\n[D14:6] Nate: Ugh, that's so frustrating. But don't get discouraged, just keep going.\n[D14:7] Joanna: Yeah, you're right. I won't let this bring me down. Thanks for your support. What have you been up to lately?\n[D14:8] Nate: I've been doing great - I just won another regional video game tournament last week! It was so cool, plus I met some new people. Connecting with fellow gamers is always awesome.\n[D14:9] Joanna: Way to go, Nate! Congratulations on your victory in the tournament! It must feel great to be recognized for your gaming skills.\n[D14:10] Nate: Thanks, Joanna! Winning was a huge confidence boost and shows my hard work paid off. I'm really happy with my progress.\n[D14:11] Joanna: I am as well! It's great to hear from you about your tournaments throughout the years!\n[D14:12] Nate: Thanks! I has been a while since my first tournament hasn't it? I appreciate your support!\n[D14:13] Joanna: Anytime Nate! I'm here for you every step of the way.\n\n[3] LoCoMo conv-42 history chunk 12\nSession date: 8:10 pm on 7 November, 2022\n[D27:11] Nate: Well with dedication like yours, its no wonder you do so well in it as well! Are you planning on submitting anymore scripts anytime soon?\n[D27:12] Joanna: Yep! I actually just submitted a few more last week! Hoping to hear back from them soon, though I assume a few will be rejected.\n[D27:13] Nate: Even if it happens to a few, I'm sure at leasts one will make it to the screens and be your 3rd published movie!\n[D27:14] Joanna: Thanks, Nate! Appreciate the encouragement. I won't give up, I promise! Got it covered!\n[D27:15] Nate: Great to hear! On another note, I just upgraded some of my equipment at home. Check it out!\n[D27:15] Image caption (automatic): a photo of a desk with a computer monitor and a keyboard\n[D27:16] Joanna: Oh wow, ice set-up! Do you use that computer for gaming?\n[D27:17] Nate: Yep! This is where I practice and compete. Sometimes I even use it when I'm playing games with friends.\n[D27:18] Joanna: Cool! Having a dedicated space for practice and competition should help you stay focused.\n[D27:19] Nate: Yeah, I love it. It's like my own little haven to escape into the virtual world.\n[D27:19] Image caption (automatic): a photo of a desk with two monitors and a laptop\n[D27:20] Joanna: Wow, that sounds great to have your own gaming setup at home. It must be really awesome!\n[D27:21] Nate: It really is! But it's also really important to have something like this for my career, otherwise I would never be able to beat my competition.\n[D27:21] Image caption (automatic): a photo of a pair of headphones and a video game controller\n[D27:22] Joanna: That makes sense! It's all about practice isn't it? So what's your favorite game?\n[D27:23] Nate: Yep! I'm currently playing this awesome fantasy RPG called \"Xeonoblade Chronicles\" and it's been a blast! I highly reccomend it if you've never played it before. \n[D27:23] Image caption (automatic): a photo of two nintendo game covers with a picture of a group of people\n[D27:24] Joanna: What made you start playing it? That's a japanese game series right?\n[D27:25] Nate: Yes it is! I'm a big fan of Nintendo games, and I've actually been wanting to play this one for a while because my friends have played it and reccomended it!\n[D27:25] Image caption (automatic): a photo of a woman in a costume holding a glass\n[D27:26] Joanna: Nice! It's really cool when a reccomendation from a friend fits your taste so well isn't it?\n[D27:26] Image caption (automatic): a photo of a captain america costume on display in a museum\n[D27:27] Nate: For sure! That's why I love when you give me movie reccomendations, I usually like them a lot more then if I were to just watch some random one.\n[D27:28] Joanna: Great to hear! I just finished with the intro to my next movie script, and I decided to include this at the begining.\n[D27:28] Image caption (automatic): a photo of a handwritten letter from a young man\n[D27:29] Nate: That letter is really awesome! Does it remind you of your childhood?\n[D27:30] Joanna: Yeah, it does! My brother wrote it - he used to make me these cute notes when we were kids. Brings back sweet memories.\n[D27:31] Nate: Aww, childhood memories can be so powerful!\n[D27:32] Joanna: They sure can! They take us back to simpler times but it's nice to create new memories as we grow up.\n[D27:32] Image caption (automatic): a photo of two little girls in pink dresses standing in front of a castle\n[D27:33] Nate: Totally! I had a special day when I took my pets to the park. They were amazed and seeing their happy faces made it a memorable day. Mixing the new with the old is priceless - I treasure every memory!\n[D27:34] Joanna: That sounds so sweet, Nate! I started writing some of my favorite memories down.\n[D27:34] Image caption (automatic): a photo of a person holding a notebook with a list of things on it\n[D27:35] Nate: Dang, your full of great ideas Joanna! I really should start doing that as well, or at least write down the things my animals like a lot!\n[D27:36] Joanna: You should! I completely encourage it, looking back on fond memories is such a blessing.\n[D27:37] Nate: Ok I will! But I'll also start writing down some of my favorite memories with you from now on.\n[D27:38] Joanna: Definitely, let's keep making great memories and supporting each other. Let's keep reaching for our dreams and make them happen!\n[D27:38] Image caption (automatic): a photo of two women sitting on a bed laughing and laughing\nSession date: 5:54 pm on 9 November, 2022\n[D28:1] Nate: Hey Joanna, what a wild week! My game tournament got pushed back, so I tried out some cooking. Look at this homemade coconut ice cream! The sprinkles kinda changed the color this time around.\n[D28:1] Image caption (automatic): a photo of a person scooping a scoop of ice cream into a pan\n[D28:2] Joanna: Hey Nate, that looks yummy! Wish I could try it, but I can't right now. How did the last game tournament go?\n[D28:3] Nate: Hey Joanna, thanks! Tough tournament, didn't make it to the finals. But that's okay, I'll get 'em next time!\n[D28:4] Joanna: Aww, bummer! But the important thing is to stay positive. So, what's your next move in the gaming world?\n[D28:5] Nate: Thanks Joanna! Staying positive is key. I'm thinking of joining a new gaming team after this next tourney - I've had a few offers, but I haven't decided yet. It's gonna be a big step, but I'm ready for a shake up.\n[D28:6] Joanna: Sounds great, Nate! Making a switch could open up new opportunities. Wishing you luck with picking the right team!\n[D28:7] Nate: Thanks, Joanna! I really appreciate it. It's a big decision, but I'm excited for what the future holds. How about you? Anything exciting happening on your end?\n[D28:8] Joanna: Yup! I worked hard on another script and eventually created a plan for getting it made into a movie. It was a ton of work but satisfying. I pitched it to some producers yesterday and they really liked it. It gave me a big confidence boost!\n[D28:9] Nate: Congrats on the chance to pitch your script - super impressive. Proud of you!\n[D28:9] Image caption (automatic): a photo of a trophy and a game controller on a table\n[D28:10] Joanna: Appreciate you, Nate! Your support and encouragement mean a lot to me. I feel like I just can't stop writing write now!\n[D28:10] Image caption (automatic): a photo of a pen and notebook on a table with a book\n[D28:11] Nate: Anytime. What're you working on in that notebook? Anything cool?\n[D28:12] Joanna: Hey Nate, I'm working on a new project - a suspenseful thriller set in a small Midwestern town. It's been a great creative outlet for me. How about you? Do you have any projects you're working on?\n[D28:13] Nate: Yeah actually - creating gaming content for YouTube. It's a cool way to entertain folks and satisfy my video game cravings at the same time when there aren't any tourneys going on.\n[D28:13] Image caption (automatic): a photo of a desk with a computer, headphones, and a microphone\n[D28:14] Joanna: Wow, that's a cool idea! What inspired you to start making gaming videos?\n[D28:15] Nate: Hey Joanna, I'm a big fan of them and thought it would be a fun idea to start making them myself. I'm hoping to share my love of gaming and connect with others who enjoy it too.\n[D28:16] Joanna: Way to go, Nate! Making videos and connecting with people about gaming - that's awesome! You'll do great!\n[D28:17] Nate: Thanks Joanna! Appreciate the support. It's new to me but I'm excited to get started!\n\n[4] LoCoMo conv-42 history chunk 1\nSession date: 7:31 pm on 21 January, 2022\n[D1:1] Nate: Hey Joanna! Long time no see! What's up? Anything fun going on?\n[D1:2] Joanna: Hey Nate! Long time no see! I've been working on a project lately - it's been pretty cool. What about you - any fun projects or hobbies?\n[D1:3] Nate: Hey Joanna! That's cool! I won my first video game tournament last week - so exciting!\n[D1:4] Joanna: Wow Nate! Congrats on winning! Tell me more - what game was it?\n[D1:5] Nate: Thanks! it's a team shooter game.\n[D1:6] Joanna: Wow, great job! What was is called?\n[D1:7] Nate: The game was called Counter-Strike: Global Offensive, and me and my team had a blast to the very end!\n[D1:8] Joanna: Cool, Nate! Sounds like a fun experience, even if I'm not into games.\n[D1:9] Nate: It was! How about you? Do you have any hobbies you love?\n[D1:10] Joanna: Yeah! Besides writing, I also enjoy reading, watching movies, and exploring nature. Anything else you enjoy doing, Nate?\n[D1:11] Nate: Playing video games and watching movies are my main hobbies.\n[D1:12] Joanna: Cool, Nate! So we both have similar interests. What type of movies do you like best?\n[D1:13] Nate: I love action and sci-fi movies, the effects are so cool! What about you, what's your favorite genre?\n[D1:14] Joanna: I'm all about dramas and romcoms. I love getting immersed in the feelings and plots.\n[D1:15] Nate: Wow, movies can be so powerful! Do you have any recommendations for me?\n[D1:16] Joanna: Yeah, totally! Have you seen this romantic drama that's all about memory and relationships? It's such a good one.\n[D1:16] Image caption (automatic): a photo of a poster of a man and a woman sitting on a bench\n[D1:17] Nate: Oh cool! I might check that one out some time soon! I do love watching classics.\n[D1:18] Joanna: Yep, that movie is awesome. I first watched it around 3 years ago. I even went out and got a physical copy!\n[D1:18] Image caption (automatic): a photo of a dvd on a table with a blurry background\n[D1:19] Nate: Sounds cool! Have you seen it a lot? sounds like you know the movie well!\n[D1:20] Joanna: A few times. It's one of my favorites! I really like the idea and the acting.\n[D1:21] Nate: Cool! I'll definitely check it out. Thanks for the recommendation!\n[D1:22] Joanna: No problem, Nate! Let me know if you like it!\nSession date: 2:01 pm on 23 January, 2022\n[D2:1] Joanna: Hey Nate! Haven't talked in a few days. Crazy things happened to me!\n[D2:2] Nate: Hi Joanna! Long time no see! What's been going on? You sound excited!\n[D2:3] Joanna: Woo! I finally finished my first full screenplay and printed it last Friday. I've been working on for a while, such a relief to have it all done!\n[D2:3] Image caption (automatic): a photography of a book with a page of text on it\n[D2:4] Nate: Wow, that sounds awesome! What's it about? Glad it's all down!\n[D2:5] Joanna: Thanks, Nate! It's a mix of drama and romance!\n[D2:6] Nate: Wow, that's amazing! How do you feel now that it's finished? Do you have any new plans for it?\n[D2:7] Joanna: Woohoo, Nate! I'm feeling a rollercoaster of emotions - relief, excitement, some anxiety - over finishing this project. Now I'm gonna submit it to some film festivals and (hopefully) get producers and directors to check it out. Here's hoping!\n[D2:8] Nate: Congrats, Joanna! That sounds like a wild experience. Rock on and I hope they love it!\n[D2:9] Joanna: Thanks Nate! A mix of emotions for sure. Hopefully, it leads to positive feedback and new opportunities.\n[D2:10] Nate: Yeah, for sure. Hoping for the best! I like having some of these little ones around to keep me calm when things are super important and I'm nervous.\n[D2:10] Image caption (automatic): a photography of a turtle and a turtleling sitting on a rock\n[D2:11] Joanna: Awww! How long have you had them?\n[D2:12] Nate: I've had them for 3 years now and they bring me tons of joy!\n[D2:13] Joanna: They sure lookl like they do! Adorable!\n[D2:14] Nate: Thanks! The turtles might be small, but both sure have big personalities. I really reccomend having something like these little guys for times of stress.\n[D2:15] Joanna: Good idea, Nate! I'll think about it and maybe get pets of my own soon if I can find any I'm not allergic to. Have you been up to anything recently?\n[D2:16] Nate: Yeah actually! I start to hang out with some people outside of my circle at the tournament. They're pretty cool!\n[D2:17] Joanna: Oh? That sounds sweet! Is it a weird relationship with them being competitors and all?\n[D2:18] Nate: Oh, kind of. Some people are more competitive then others, so I tend to just stick around the more chill people here.\n[D2:19] Joanna: That makes sense! Are you gonna cheer them on even if you lose?\n[D2:20] Nate: Absolutely! I don't expect to win big here, I just like playing for fun!  You mentioned you were allergic to pets earlier, how bad is it?\n[D2:21] Joanna: Oh, its really bad. My face gets all puffy and itchy when I'm around certain animals, so I've always just stayed away.\n[D2:22] Nate: Sorry to hear that. Allergies can be tough. What specifically are you allergic to?\n[D2:23] Joanna: I'm allergic to most reptiles and animals with fur. It can be a bit of a drag, but I find other ways to be happy.\n[D2:24] Nate: Awesome! There are lots of things that can bring you joy without pets. What else brings you joy?\n[D2:25] Joanna: Writing and hanging with friends! That way I can express myself through stories, or just have a good time with people.\n[D2:26] Nate: That's great to hear! Those are both great things. I'm glad to hear you've got other things to help you get through times of axiousness despite not being able to have animals!\n[D2:27] Joanna: Thanks, Nate! Writing helps me create wild worlds with awesome characters. Plus, it's a great way to express my feelings. I can't imagine life without it.\n[D2:28] Nate: Wow, Joanna, that sounds amazing! Keep doing what you love!\n[D2:29] Joanna: Thanks, Nate! I'll definitely keep pursuing my passion for writing. It means a lot.\nSession date: 9:27 am on 7 February, 2022\n[D3:1] Joanna: Hey Nate, long time no see! The screenplay I sent in to the film festival has been on my mind all day everyday. I keep bouncing between crazy emotions like relief, excitement and worry! Fingers crossed a producer or director falls in love with it and it ends up on the big screen - that would be awesome!\n[D3:2] Nate: Hey Joanna! It is a big deal! I'm sure its been a wild ride. Sending some positive vibes and hoping someone likes it enough to get it on the big screen - that would be awesome!\n[D3:3] Joanna: Thanks Nate, your support really means a lot. I put a lot of effort into it and I'm crossing my fingers. What about you? Anything new and exciting happening in your life?\n[D3:4] Nate: Thanks, Joanna. Not much has changed for me, but I just discovered that I can make coconut milk icecream and gave it a try. It was actually pretty good, so I'm proud of myself.\n[D3:4] Image caption (automatic): a photo of a bowl of ice cream with a spoon in it\n[D3:5] Joanna: Looks delish! Glad you tried something new and it went well. What did you think of it?\n[D3:6] Nate: Super good! It was rich and creamy - might be my new favorite snack!\n[D3:7] Joanna: Great! I love when you try something new and it actually works out. Will you give it another go?\n[D3:8] Nate: Yep, it could be fun! I'm looking forward to trying out different flavors and toppings.\n[D3:9] Joanna: Yum! Sounds great. Got any favorite flavors for dairy-free desserts?\n\n[5] LoCoMo conv-42 history chunk 6\nSession date: 5:44 pm on 3 June, 2022\n[D14:14] Nate: I talked to some of the guys at the tournament afterwards, and they said they wanted to hang out later!\n[D14:14] Image caption (automatic): a photo of a purple and blue controller with a star field design\n[D14:15] Joanna: Sounds like fun! It's good to have friends that share your interests!\n[D14:16] Nate: For sure! They asked for some tips in how to improve their game, so I said I could help.\n[D14:17] Joanna: Good on you for helping strangers out! Stepping outside your comfort zone is always great.\n[D14:18] Nate: Thanks, I just like helping people. Do you have any plans for the weekend?\n[D14:19] Joanna: Yep, I'm hiking with some buddies this weekend. We're checking out a new trail with a rad waterfall. Can't wait! Do you have any fun plans?\n[D14:20] Nate: Sounds great! Have fun with that. I'm organizing a gaming party two weekends later - it'll be hectic but fun!\n[D14:21] Joanna: Oh? Are you going to invite your tournament friends?\n[D14:22] Nate: Definitely! And some old friends and teamates from other tournaments.\n[D14:23] Joanna: Sounds like fun, Nate! I wish you the best on your party. Have a blast!\n[D14:24] Nate: Thanks Joanna! I'm sure it'll be a blast. I'm even getting everyone custom controller decorations just for coming!\n[D14:25] Joanna: Wow, I bet they'll love that! What a sweet idea.\n[D14:26] Nate: I know right? Have a great hike. Take lots of pics! See ya later!\n[D14:27] Joanna: Thanks Nate! See you later!\nSession date: 2:12 pm on 5 June, 2022\n[D15:1] Joanna: Hey Nate! Yesterday was crazy cool - I wrote a few bits for a screenplay that appeared on the big screen yesterday! It was nerve-wracking but so inspiring to see my words come alive!\n[D15:1] Image caption (automatic): a photo of a spider - man poster hanging on a wall\n[D15:2] Nate: Congrats, Joanna! Seeing your hard work pay off like that must've felt amazing. I bet it was scary too, but awesome! You're so inspiring. By the way, last time we saw eachother, I noticed a spiderman pin on your purse. Is Spider-Man your favorite superhero, or do you have another fave?\n[D15:3] Joanna: Thanks, Nate! It was a real roller coaster, but seeing the hard work pay off was amazing. Spider-Man has always been a favorite of mine - I mean, who doesn't love Peter Parker's struggles between being a hero and being a person? But I'm kind of a sucker for any superhero - everyone has their own rad story and powers. Do you have a favorite superhero?\n[D15:4] Nate: That's great, Joanna! Iron Man is my top pick. I love his tech and that sarcastic humor. Seeing these figures just makes me feel invincible!\n[D15:4] Image caption (automatic): a photography of a toy iron man standing on a white surface\n[D15:5] Joanna: Wow, Nate! That's awesome. I love the tech and funny jokes of Iron Man too. What made you get that figure?\n[D15:6] Nate: Thanks Joanna! I got it because it reminded me of something I love. Its presence in my room is a good reminder to keep working on my goals. Any inspiring things in your room?\n[D15:7] Joanna: My cork board is full of inspiring quotes and pictures for motivation and creativity. It's my little corner of inspiration.\n[D15:8] Nate: Wow Joanna, that sounds great! Could you show me a picture of it?\n[D15:9] Joanna: Here ya go, a pic of my cork board. It's got quotes, photos, and little keepsakes.\n[D15:9] Image caption (automatic): a photo of a picture frame with a picture of a family\n[D15:10] Nate: That's a great pic of your family! What made you hang it on your cork board?\n[D15:11] Joanna: Thanks, Nate! Having that picture on my cork board reminds me of the love and encouragement from them every day.\n[D15:12] Nate: That's great, Joanna. Family support is invaluable. It's so good to have those reminders.\n[D15:13] Joanna: Absolutely, it means a lot and keeps me going.\n[D15:14] Nate: I really should start a cork board of my own shouldn't I. That seems like a really valuable thing!\n[D15:15] Joanna: I would definitely recommend it! As long as your willing to explain what it is to your friends.\n[D15:16] Nate: Of course! Well see you later Joanna!\n[D15:17] Joanna: Bye Nate!\nSession date: 10:55 am on 24 June, 2022\n[D16:1] Joanna: Hey Nate, long time no see! How have you been? I just got done submitting my recent screenplay to a film contest just to see how others might like it!\n[D16:2] Nate: That's really cool Joanna! I hope it does well, and I've been doing great! The gaming party was a great success! We even played some Chess afterward just for fun.\n[D16:3] Joanna: Nice! Did your friends like the controller accessories?\n[D16:4] Nate: Most of them did! I can't say if all of them will continue to use them or not, but that's beside the point.\n[D16:5] Joanna: Yeah Nate, you're right. It doesn't matter if they use it, its the thought that matters right?\n[D16:6] Nate: Absolutely! There were 7 people that attended, and 6 of them said they'd want to do it again next month!\n[D16:7] Joanna: That sounds like a huge success then! Congrats!\n[D16:8] Nate: Thanks! On another note, I made vegan ice cream last Friday and shared it with some people in my vegan diet group. It was awesome!\n[D16:8] Image caption (automatic): a photography of a group of people sitting on a bench\n[D16:9] Joanna: Mm, yum! Can you give me the recipe for that? It sounds like it'd be a good recipe!\n[D16:10] Nate: Sure thing! I can give it to you tomorrow, how does that sound?\n[D16:11] Joanna: Awesome! I'm going to make it for my family this weekend - can't wait!\n[D16:12] Nate: Nice one, Joanna! Hope you and your family like it. Let me know how it went!\n[D16:13] Joanna: Sure thing! They love it when I make them new things!\n[D16:14] Nate: Then I have no doubt they'll love the icecream!\n[D16:15] Joanna: Thanks Nate! Your support is greatly appreciated. I'll make sure to keep you updated.\n[D16:16] Nate: Can't wait to hear about it. Have a great day! Take care.\nSession date: 2:34 pm on 10 July, 2022\n[D17:1] Nate: Hey Joanna, check this out! I won my fourth video game tournament on Friday! It was awesome competing and showing off my skills - and the victory was indescribable. I'm really proud that I can make money doing what I love. This one was online!\n[D17:1] Image caption (automatic): a photo of a television screen showing a trophy and a trophy\n[D17:2] Joanna: Congrats, Nate! That's awesome! So proud of you. Your hard work really paid off - keep it up! BTW, I took a road trip for research for my next movie while you were winning. Much-needed break and a chance to explore new places and get inspired.\n[D17:3] Nate: Thanks, Joanna! Your support means a lot to me. That road trip sounds great! Where did you go? Did you discover any interesting places?\n[D17:4] Joanna: Thanks Nate! Appreciate your kind words. I went to Woodhaven, a small town in the Midwest. Got to see some lovely scenery and historic buildings. Checked out the library there, it had a cool old book collection!\n[D17:4] Image caption (automatic): a photography of a book shelf filled with lots of books\n[D17:5] Nate: That place looks interesting! Did you find any cool books there?\n[D17:6] Joanna: I stumbled upon this super cool book from the 1900s with stories and sketches - so awesome to read about the town and the people living there!\n[D17:6] Image caption (automatic): a photo of a book with writing on it and a pen\n\nQUESTION: What game did Nate play at the game convention he attended on 9 October, 2022?"
+          }
+        ],
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/8e2f124e308e0acd593c68d6a6eabc2d69151c9712855dcdb10554da28ae47b2.json"
+    }
+  ],
+  "retrieval_hash": "9dca3169a6007caaa2ec3f58a6989edc7d74ed1c33bab22bb64a0563500fc093",
+  "memory_hash": "b24e56ef4dad7653e01c00e6cb340cdd45868d56107ce33936679b28756ea0ea",
+  "condition": "soft-v2",
+  "reader": "proof"
+}

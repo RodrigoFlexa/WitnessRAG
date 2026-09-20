@@ -1,0 +1,526 @@
+{
+  "identity": {
+    "qid": "locomo:conv-42:qa155",
+    "question": "What is Nate's favorite dish from the cooking show he hosted?",
+    "memory": "b24e56ef4dad7653e01c00e6cb340cdd45868d56107ce33936679b28756ea0ea",
+    "config": {
+      "dataset": "locomo",
+      "n_questions": 148,
+      "top_k": 5,
+      "seed": 42,
+      "subset_corpus": false,
+      "train_questions_path": "",
+      "interleave_methods": true,
+      "corpus_scope": "locomo_full_selected_conversation",
+      "methods": [
+        "witnessrag"
+      ],
+      "ie": {
+        "max_tokens": 1600,
+        "temperature": 0.0,
+        "two_step": true,
+        "max_triples_per_passage": 40,
+        "window_tokens": 512,
+        "window_overlap_tokens": 64,
+        "window_tokenizer": "Qwen/Qwen2.5-14B-Instruct",
+        "window_tokenizer_revision": "",
+        "dialogue_mode": true
+      },
+      "graph": {
+        "merge_similar_entities": false,
+        "merge_identity_variants": true,
+        "merge_relation_inflections": true,
+        "identity_merge_threshold": 0.8,
+        "synonym_threshold": 0.8,
+        "synonym_max_neighbors": 20,
+        "ppr_damping": 0.5,
+        "ppr_tol": 1e-08,
+        "ppr_max_iter": 100
+      },
+      "hippo2": {
+        "n_triples_retrieved": 20,
+        "n_triples_kept": 5,
+        "n_passages_seed": 10,
+        "passage_node_weight": 0.05,
+        "use_recognition_memory": true
+      },
+      "graphrag": {
+        "community_levels": 2,
+        "min_community_size": 3,
+        "build_community_reports": true,
+        "max_communities_reported": 400,
+        "text_units_per_entity": 8
+      },
+      "witness": {
+        "max_atoms": 4,
+        "compile_temperature": 0.0,
+        "vocabulary_aware_compile": true,
+        "vocabulary_relations": 40,
+        "vocabulary_entities": 20,
+        "query_plans": true,
+        "max_query_plans": 5,
+        "active_frontier": true,
+        "active_obligations": true,
+        "active_context": true,
+        "active_operators": false,
+        "soft_obligations": false,
+        "proof_reader": true,
+        "active_frontier_queries": 5,
+        "active_frontier_passages": 30,
+        "grounding_mode": "semantic",
+        "relation_match_threshold": 0.65,
+        "candidates_per_atom": 60,
+        "entity_match_threshold": 0.55,
+        "entity_top_k": 5,
+        "relation_weight": 0.45,
+        "argument_weight": 0.35,
+        "verbalization_weight": 0.2,
+        "max_witnesses": 20,
+        "beam_width": 400,
+        "passage_penalty": 0.15,
+        "binding_aware_grounding": true,
+        "verify_witnesses": false,
+        "verification_max_witnesses": 5,
+        "answer_set": true,
+        "answer_set_max_items": 10,
+        "hybrid_fallback": true,
+        "hybrid_rrf_k": 60,
+        "candidate_pool_k": 20,
+        "fact_confidence": 0.9,
+        "delta_interpretation": 0.1,
+        "delta_verbalization": 0.05,
+        "acquisition_rounds": 2,
+        "acquisition_passages": 3,
+        "acquisition_lambda": 0.05,
+        "enable_acquisition": true,
+        "dense_fallback": true,
+        "budget_fraction": 1.0,
+        "ilp_time_limit_s": 120,
+        "ilp_max_facts": 20000
+      },
+      "qa": {
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "top_k": 5,
+        "answer_set": true,
+        "operator_reader": false,
+        "proof_reader": true
+      }
+    },
+    "condition": "evidence"
+  },
+  "retrieval": {
+    "pids": [
+      "p-ae82f17fc100c173eabd03b3",
+      "p-bbbd1970359a4e7a98bdc50c",
+      "p-5254ce0ba0169bd4a10605f5",
+      "p-88aac094723a3103ef10069b",
+      "p-5f21b611d55bec6fbaaff324"
+    ],
+    "scores": [
+      0.032266458495966696,
+      0.03131881575727918,
+      0.031009615384615385,
+      0.030536130536130537,
+      0.030017921146953404
+    ],
+    "diagnostics": {
+      "pesquisa_provas": {
+        "fronteira": [
+          "p-ae82f17fc100c173eabd03b3",
+          "p-5254ce0ba0169bd4a10605f5",
+          "p-bbbd1970359a4e7a98bdc50c",
+          "p-88aac094723a3103ef10069b",
+          "p-b4069f0e827202e511f330a0",
+          "p-f38e07d60816d3aaac2278ae",
+          "p-5f21b611d55bec6fbaaff324"
+        ],
+        "sondas": [
+          "What is Nate's favorite dish from the cooking show he hosted?",
+          "Nate favorite dish from cooking show hosted",
+          "Nate favorite dish cooking show hosted"
+        ],
+        "acoes": [],
+        "buscas_dirigidas": 0,
+        "replanejamentos": 0,
+        "rejeicoes": 0
+      },
+      "planos_compilados": [
+        {
+          "indice": 0,
+          "rodada_criacao": 0,
+          "consulta": {
+            "answer_var": "x",
+            "atoms": [
+              {
+                "relation": "favorite dish from cooking show hosted",
+                "subject": "Nate",
+                "object": "?x"
+              }
+            ],
+            "expected_type": "other",
+            "aggregation": "none",
+            "shape": "single-hop",
+            "source": "llm-plan-vocabulario",
+            "fallback": "Nate favorite dish cooking show hosted",
+            "validation_error": "",
+            "repairs": [],
+            "uses_annotations": false
+          },
+          "executavel": true,
+          "fechou": true,
+          "profundidade": 1,
+          "candidatos_por_atomo": [
+            1
+          ],
+          "obrigacoes": {
+            "cobre_pergunta": true,
+            "faltas": [],
+            "motivo": "The query correctly identifies Nate as the subject and seeks his favorite dish from a cooking show he hosted, matching the information need in the question.",
+            "checado": true
+          }
+        }
+      ],
+      "planejamento": {
+        "orcamento_planos": 5,
+        "planos_distintos": 1,
+        "chamadas": 1,
+        "replanejamentos": 0
+      },
+      "plano_escolhido": 0,
+      "n_testemunhas": 1,
+      "testemunha_no_contexto": true,
+      "classe_prova": "full",
+      "empacotamento": {
+        "provas_selecionadas": [
+          {
+            "resposta": "coconut milk ice cream",
+            "passagens": [
+              "p-ae82f17fc100c173eabd03b3"
+            ]
+          }
+        ],
+        "respostas_cobertas": 1,
+        "passagens_de_prova": 1
+      },
+      "ordem_fallback_preservada": false,
+      "contexto_alterado_pelo_witness": false,
+      "consulta": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "favorite dish from cooking show hosted",
+            "subject": "Nate",
+            "object": "?x"
+          }
+        ],
+        "expected_type": "other",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plan-vocabulario",
+        "fallback": "Nate favorite dish cooking show hosted",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false
+      },
+      "forma": "single-hop",
+      "n_testemunhas_no_contexto": 1,
+      "respostas": [
+        {
+          "resposta": "coconut milk ice cream",
+          "score": 0.7155,
+          "score_tipo": "melhor_testemunha_heuristico",
+          "risco_calibrado": false,
+          "risco": 0.455,
+          "risco_bruto": 0.455,
+          "n_testemunhas": 1,
+          "testemunhas": [
+            {
+              "resposta": "coconut milk ice cream",
+              "score": 0.795,
+              "custo": 0.3794,
+              "passagens": [
+                "p-ae82f17fc100c173eabd03b3"
+              ],
+              "fatos": [
+                [
+                  "Nate",
+                  "favorite",
+                  "Coconut milk ice cream"
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "leitura_provas": {
+        "hipoteses": "Candidate 1: coconut milk ice cream\n  [1] Nate | favorite | Coconut milk ice cream",
+        "grau": "full",
+        "condicoes_pendentes": []
+      },
+      "resposta_estrutural": "coconut milk ice cream",
+      "risco": 0.455,
+      "risco_bruto": 0.455,
+      "conjunto_resposta": {
+        "resposta": "coconut milk ice cream",
+        "n_itens": 1,
+        "itens_descartados_por_limite": 0,
+        "completude_certificada": false,
+        "risco_do_pior_item": 0.455,
+        "itens": [
+          {
+            "resposta": "coconut milk ice cream",
+            "score": 0.7155,
+            "risco": 0.455,
+            "n_testemunhas": 1,
+            "passagens": [
+              "p-ae82f17fc100c173eabd03b3"
+            ],
+            "fatos": [
+              [
+                "Nate",
+                "favorite",
+                "Coconut milk ice cream"
+              ]
+            ]
+          }
+        ]
+      },
+      "agregacao_executada": "none",
+      "risco_calibrado": false,
+      "candidatos_explorados": 13,
+      "documentos_entregues": 5,
+      "orcamento_leitor": 5
+    },
+    "filtered": false,
+    "latency_s": 1.1058586798608303,
+    "passages": [
+      {
+        "pid": "p-ae82f17fc100c173eabd03b3",
+        "title": "LoCoMo conv-42 history chunk 8",
+        "text": "Session date: 10:57 am on 22 August, 2022\n[D19:14] Joanna: I reccomend finding a fantasy book series to read through. Most fiction series are great reads when your trying to relax.\n[D19:15] Nate: Good idea! How about this series?\n[D19:15] Image caption (automatic): a photo of a stack of books sitting on top of a wooden table\n[D19:16] Joanna: That's a great one! Let me know what you think when your finished!\n[D19:17] Nate: Sure thing! And since your recommending me a book, I thought I should do the same! I'd really recommend this series. It's got awesome battles and interesting characters.\n[D19:17] Image caption (automatic): a photo of a poster of a man falling off a cliff\n[D19:18] Joanna: Wow, that series looks awesome! I'll have to check it out sometime!\n[D19:19] Nate: You really should! The action scenes are awesome and the plot rocks. Definitely one of my favorites!\n[D19:20] Joanna: Wow, sounds great! I'll definitely add it to my list; thanks for the recommendation!\n[D19:21] Nate: Enjoy it! Have a good day.\n[D19:22] Joanna: Thanks, Nate! You too! Have a great day. Take care.\nSession date: 6:03 pm on 5 September, 2022\n[D20:1] Nate: Hey Joanna! Long time no talk. So much has happened. Look how cute they are! Hanging with them has been a big help, especially recently. Speaking of which, I just had a letdown in a video game tourney - I didn't do too great, even though I tried. It was a setback, but I'm trying to stay positive.\n[D20:1] Image caption (automatic): a photography of two turtles sitting on a rock in a pond\n[D20:2] Joanna: Hey Nate! Cute turtles! Bummer about the setback. Any positive vibes comin' your way? I just revised on of my old recipes and made this!\n[D20:2] Image caption (automatic): a photo of a piece of cake with strawberries and chocolate\n[D20:3] Nate: Hey Joanna, yeah it's a bummer that I didn't do well. But it's all part of the learning curve, you know? Also that looks super good! Anyways, how are you holding up?\n[D20:4] Joanna: I'm doing OK, thanks. Just been tinkering with that recipe and a few others. It's helping me find some comfort and getting creative.\n[D20:5] Nate: What else are you making? It's always satisfying to see the kind of things you do when your in one of those moods!\n[D20:6] Joanna: Been tweaking a dessert recipe to make it yummier and more accessible.\n[D20:7] Nate: Wow, that sounds great! What flavors are you experimenting with?\n[D20:8] Joanna: Trying out different flavors like chocolate, raspberry, and coconut has been a blast!\n[D20:9] Nate: Sounds delicious! Are you only trying dairy-free options?\n[D20:10] Joanna: Yeah, since I'm lactose intolerant I'm trying out dairy-free options like coconut or almond milk instead. It's been a fun challenge seeing how to make yummy treats that suit everyone's diets. I even made these dairy-free chocolate coconut cupcakes with raspberry frosting.\n[D20:10] Image caption (automatic): a photo of a plate of cupcakes with different toppings\n[D20:11] Nate: Woah, those look great, Joanna! It's cool that you make desserts that work for everyone's diets. Do you have any more yummy recipes hiding in there?\n[D20:12] Joanna: Yep! I've been making all sorts of desserts that work for everyone's diets - cookies, pies, cakes - everything! I'll share more recipes with you soon.\n[D20:13] Nate: Can't wait to try them. Can I join you sometime? I think baking and cooking really brings us together!\n[D20:13] Image caption (automatic): a photo of a pile of cookies with sprinkles on a wooden table\n[D20:14] Joanna: Yeah, Nate! A fellow Chef in the kitchen is always a great help! Speaking of which, i'm curious, any more tips for dairy-free baking?\n[D20:15] Nate: You can use stuff like dairy-free margarine or coconut oil instead of butter, and make sure to check the labels to ensure they're dairy-free. Good luck!\n[D20:16] Joanna: Thanks, Nate! Love your ideas, can't wait to try them out!\n[D20:16] Image caption (automatic): a photo of a cookie with chocolate drizzle and almonds\n[D20:17] Nate: No problem! I love to help, so just shoot me a question anytime you need!\n[D20:18] Joanna: Got it Nate, I'll see you soon!\n[D20:19] Nate: Bye Joanna! Good luck!\nSession date: 1:43 pm on 14 September, 2022\n[D21:1] Joanna: Hey Nate, long time no see! My laptop crashed last week and I lost all my work - super frustrating! As a writer, my laptop is like half of my lifeline so losing all progress was like a major blow.\n[D21:2] Nate: Hey Joanna, sorry to hear about that. Losing so much progress must be really frustrating. Did you manage to recover anything? Maybe consider backing up your work in the future?\n[D21:3] Joanna: Thanks for the sympathy, Nate. Nothing was recoverable, but now I have an external drive for backups. I never want to go through this again. So, how have you been? Making anything cool?\n[D21:4] Nate: Hey Joanna, I'm no writer like you, but something pretty awesome happened. Last Monday I got to teach people vegan ice cream recipes on my own cooking show! It was a bit nerve-wracking to put myself out there, but it was a blast. Plus, I picked up a few new recipes!\n[D21:5] Joanna: Way to go, Nate! Congrats on the cooking show, I'll definitely be tuning in! What's your favorite dish from the show?\n[D21:6] Nate: Coconut milk ice cream is at the top of my list. It's so smooth and creamy with a tropical coconut twist. Plus, it's dairy-free for people who can't have lactose or who want vegan options. Here's a snap of the ice cream I made.\n[D21:6] Image caption (automatic): a photography of a bowl of ice cream with a spoon on a table\n[D21:7] Joanna: Wow, that looks amazing, Nate! I love the color and texture. It's great that you're making these options. Could you share the recipe? I'd love to try making it sometime!\n[D21:8] Nate: Yeah sure! Would love to share it. Let's spread the joy of dairy-free options! Let me know when you make it!\n[D21:9] Joanna: Cool, Nate! Gonna give it a go. Dairy-free is a must for me, especially for desserts. Last Friday, I made a deeeelish dessert with almond milk - it was good! Got any favs when it comes to dairy-free desserts?\n[D21:10] Nate: Coconut milk ice cream is one of my favorites as you might be able to tell, but I also love a dairy-free chocolate mousse. It's super creamy and tastes like the real thing. What's been your favorite dairy-free sweet treat so far?\n[D21:11] Joanna: Hey Nate, my favorite dairy-free treat is this amazing chocolate raspberry tart. It has an almond flour crust, chocolate ganache, and fresh raspberries - it's delicious!\n[D21:11] Image caption (automatic): a photo of a chocolate tart with raspberries on top\n[D21:12] Nate: That looks amazing, Joanna! I need to try baking that. What other treats do you like making?\n[D21:12] Image caption (automatic): a photo of a piece of chocolate cake with raspberries on a plate\n[D21:13] Joanna: Hey Nate, I love making this dairy-free chocolate cake with raspberries. It's so moist and delicious - perfect sweetness level.\n[D21:13] Image caption (automatic): a photo of a piece of chocolate cake with raspberries on a plate\n[D21:14] Nate: That cake looks amazing, Joanna! How did you make it?\n[D21:15] Joanna: I make it with almond flour, coconut oil, chocolate and raspberries. It's my favorite for birthdays and special days.\n[D21:16] Nate: Yum, Joanna! Gotta try that one. Any others you want to share?"
+      },
+      {
+        "pid": "p-bbbd1970359a4e7a98bdc50c",
+        "title": "LoCoMo conv-42 history chunk 11",
+        "text": "Session date: 8:16 pm on 25 October, 2022\n[D25:19] Nate: They eat a combination of vegetables, fruits, and insects. They have a varied diet.\n[D25:19] Image caption (automatic): a photo of a container of lettuce and other greens\n[D25:20] Joanna: Wow, that's fascinating! It's interesting how they have such a varied diet, including insects. Do you have a favorite among their food choices?\n[D25:21] Nate: I love seeing them eat fruit - they get so hyped and it's so cute!\n[D25:21] Image caption (automatic): a photography of a group of strawberries and a turtle on a table\n[D25:22] Joanna: Wow, that's so cute! They look like they really enjoy fruit.\n[D25:23] Nate: Yeah, it's adorable! Watching them enjoy their favorite snacks is so fun. I also like holding them.\n[D25:23] Image caption (automatic): a photo of a person holding a small turtle in their hand\n[D25:24] Joanna: Do they have different personalities, like the way dogs and cats do?\n[D25:24] Image caption (automatic): a photo of a rock formation with a person standing on the side\n[D25:25] Nate: Yeah, they each do. One is more adventurous while the other is more reserved, which I find cute. Having them around brings me joy and they make great companions.\n[D25:26] Joanna: That's super cool! I never knew turtles could be so interesting until I met your turtles. Wow!\n[D25:27] Nate: I've always liked turtles since I was a boy, so I know all about them!\n[D25:28] Joanna: You'll have to keep me posted on them! It's been fun chatting!\n[D25:29] Nate: See you later Joanna!\nSession date: 3:56 pm on 4 November, 2022\n[D26:1] Joanna: Wow, Nate, I'm on fire! I just set up meetings with movie producers — my dreams are comin' true!\n[D26:2] Nate: Wow Joanna, nice work! How did it go with those producer meetings?\n[D26:3] Joanna: Thanks, Nate! The meetings went really well. I felt confident discussing my script and vision and they seemed interested and excited. They loved the elements of self-discovery in it. It was so validating to be taken seriously. I'm feeling hopeful and inspired about the future!\n[D26:4] Nate: Way to go, Joanna! Putting yourself out there is really brave and winning recognition for your hard work feels great. It's just like when I win a video game tournament - it feels awesome! I'm so proud of you and so glad you're feeling hopeful and inspired.\n[D26:4] Image caption (automatic): a photo of a television screen showing a game being played\n[D26:5] Joanna: Thanks Nate! Your support and encouragement mean a lot. Writing isn't always easy but moments like these make me appreciate it. I'm so thankful for all the opportunities. Last week, I found these old notebooks with my early writings - it was cool to see how far I've come.\n[D26:5] Image caption (automatic): a photo of a notebook with a list of things to write\n[D26:6] Nate: That's cool! You must love seeing how you've grown as an artist. Is there a favorite piece from your early writings that stands out to you?\n[D26:6] Image caption (automatic): a photo of a turtle laying on a bed of rocks and gravel\n[D26:7] Joanna: Yup, I still remember this story from when I was 10. It was about a brave little turtle who was scared but explored the world anyway. Maybe even back then, I was inspired by stories about finding courage and taking risks. It's still a part of my writing today.\n[D26:8] Nate: You obviously have a passion for writing, and it's funny the story was about a turtle! Their resilience is so inspiring! Take courage and keep pushing yourself with your writing. Great job!\n[D26:8] Image caption (automatic): a photo of a turtle laying on a bed of rocks and gravel\n[D26:9] Joanna: Thanks, Nate! They make me think of strength and perseverance. They help motivate me in tough times - glad you find that inspiring!\n[D26:10] Nate: What can I say, I love turtles. So, what's been happening with you?\n[D26:11] Joanna: Hey Nate! Apart from meetings, I'm working on a project - challenging but fulfilling. How about you? What's been going on?\n[D26:12] Nate: Just been helping some friends reset their high scores at the international tournament. It's been fun!\n[D26:13] Joanna: Wow, sounds like so much fun! You're really passionate about gaming. Have an awesome time and keep helping others with those high scores!\n[D26:14] Nate: Thanks! It feels good to use my skills to make a difference.\n[D26:15] Joanna: I couldn't agree more! Which is why my meetings are so exciting!\n[D26:16] Nate: On another note, want to come over and try some of this? It's super yummy, just made it yesterday!\n[D26:16] Image caption (automatic): a photo of a bowl of ice cream with a spoon in it\n[D26:17] Joanna: Mmm, that looks delicious! Is it lactose-free by any chance?\n[D26:18] Nate: Yep, I made it with coconut milk so it's lactose-free!\n[D26:19] Joanna: Thanks so much, Nate! Sure! I'll come over tomorrow if that's fine.\n[D26:19] Image caption (automatic): a photo of a bowl of ice cream with a spoon in it\n[D26:20] Nate: I don't see why not! I'm not doing anything then, so your completely welcome to!\n[D26:21] Joanna: Awesome! I'll bring some of my recipes so we can both share deserts!\n[D26:22] Nate: I'd love that! I've been wanting to try some of your chocolate and rasberry cake for a while now.\n[D26:23] Joanna: You got it! See you tomorrow!\n[D26:24] Nate: See you then! Take care!\nSession date: 8:10 pm on 7 November, 2022\n[D27:1] Nate: Hey Joanna! Hope you’re doing alright. Crazy thing happened - I was in the final of a big Valorant tournament last Saturday, and I won! It was the best feeling to see my name as the champion. Tournaments really bring out strong emotions in me.\n[D27:2] Joanna: Hey Nate! Congrats on winning the tournament - that's awesome! I know you must have been buzzing! Anyway, I've been working on something exciting too. Last Friday, I finished the presentation for producers - it was tough but it's looking good. What have you been up to?\n[D27:2] Image caption (automatic): a photo of a notebook with a handwritten letter on it\n[D27:3] Nate: Thanks, Joanna! I've been having a blast and preparing for other tournaments, so I've been real busy - but I'm loving it!\n[D27:4] Joanna: Sounds like you're really loving life right now! It's great when you find something that suits you. Being busy can be tiring but it's so rewarding in the end. Keep it up!\n[D27:4] Image caption (automatic): a photo of a book with a black border and a white title\n[D27:5] Nate: Thanks, Joanna! I'm really grateful to have a job I enjoy every day. So anyways, anything new going on in your life?\n[D27:6] Joanna: I am writing another movie script! It's a love story with lots of challenges. I've put lots of hard work into it and I'm hoping to get it on the big screen.\n[D27:7] Nate: Woah Joanna, that's incredible! I remember when you started working on these sorta things. It's crazy to see how far you've gotten! You've really got a thing for writing, huh? Where'd you get the idea for it?\n[D27:7] Image caption (automatic): a photo of a turtle laying on a bed of rocks and gravel\n[D27:8] Joanna: Thanks Nate! Writing has always been a passion of mine. I got the idea for this script from a dream. How have your turtles been? I haven't seen pictures of them in a while!\n[D27:9] Nate: Great actually! These little guys sure bring joy to my life! Watching them is so calming and fascinating. I've really grown fond of them. So, what about you, Joanna? What brings you happiness?\n[D27:10] Joanna: Creating stories and watching them come alive gives me happiness and fulfillment. Writing has been such a blessing for me."
+      },
+      {
+        "pid": "p-5254ce0ba0169bd4a10605f5",
+        "title": "LoCoMo conv-42 history chunk 2",
+        "text": "Session date: 9:27 am on 7 February, 2022\n[D3:10] Nate: I love coconut milk, but I also enjoy chocolate and mixed berry flavors.\n[D3:11] Joanna: Wow, those sound great! Who can say no to chocolate and berries? I'm tempted to try dairy-free flavors now!\n[D3:11] Image caption (automatic): a photo of a piece of cake with berries on a plate\n[D3:12] Nate: Well I also made a dairy-free chocolate cake with berries on it the other day, maybe you would like that!\n[D3:13] Joanna: Wow! That sounds yummy! You're so talented. Thanks for sharing your amazing creations! I should really try making one or just pay you a visit and try one for myself!\n[D3:14] Nate: I couldn't agree more! It's always fun experimenting in the kitchen.\n[D3:15] Joanna: I can tell! Your cooking skills are awesome. Seen any good movies lately?\n[D3:16] Nate: Not recently. Any good ones you'd recommend?\n[D3:17] Joanna: I just watched \"Little Women\" and it was amazing! It's a great story about sisterhood, love, and reaching for your dreams. Definitely a must-see!\n[D3:18] Nate: Oh, that sounds like a great one! I'll definitely add it to my list. Thanks for the recommendation!\n[D3:19] Joanna: Anytime! I'm always down to give movie reccomendations.\n[D3:20] Nate: Good to know! I'll be sure to give you a shout whenever I run out of things to watch!\n[D3:21] Joanna: Sounds great! Let me know what you think of it when your done!\n[D3:22] Nate: You bet! You'll be the first to know.\n[D3:23] Joanna: Awesome! Enjoy yourself!\n[D3:24] Nate: You too, take care!\n[D3:25] Joanna: Later, take care!\nSession date: 1:07 pm on 25 February, 2022\n[D4:1] Nate: Hey Joanna! Sorry I haven't been around. I made my friend some ice cream and they loved it!\n[D4:2] Joanna: No worries, Nate! Glad to hear it. What flavor did you make?\n[D4:3] Nate: I whipped up some chocolate and vanilla swirl.\n[D4:3] Image caption (automatic): a photo of a person holding a chocolate and vanilla ice cream cone\n[D4:4] Joanna: That looks delicious! Unfortunately, I can't have dairy, so no ice cream for me. Do you happen to have a dairy-free recipe that I could try?\n[D4:5] Nate: Sure, I know one recipe using coconut milk. Would you like me to send it to you?\n[D4:6] Joanna: Yeah, definitely! I'm keen to try your recipe. Always up for something sweet.\n[D4:7] Nate: Cool, I'll do that. I'm all about these desserts, let me know what you think!\n[D4:8] Joanna: Definitely keeping you posted! Love your creations!\n[D4:9] Nate: Thanks, Joanna! It means a lot that you enjoy the desserts I bake.\n[D4:10] Joanna: Yeah Nate, your cooking is amazing! I can't stop thinking about the screenplay, so I just started writing another one while I wait to hear back about how the first one did.\n[D4:11] Nate: I hear that, taking your mind of something like that is very challenging. What's the new one about?\n[D4:12] Joanna: It's about a thirty year old woman on a journey of self-discovery after a loss. Somewhat similar to the last one, but hey, that's just the kind of thing I'm inspired to write about!\n[D4:13] Nate: Interesting! That's a deep topic. Love to hear more about it.\n[D4:14] Joanna: Thanks, Nate! It's my own story. The main character is dealing with some tough stuff: loss and trying to figure out who they are. They take a road trip to heal and grow.\n[D4:15] Nate: Wow, Joanna, that sounds awesome. I love stories that tackle important issues. What inspired you to this one?\n[D4:16] Joanna: Thanks, Nate! It was inspired by personal experiences and my own journey of self-discovery.\n[D4:17] Nate: Wow, Joanna, that takes guts! I can't wait to see it all come together. I'm also pumped to see how your first one will do!\n[D4:18] Joanna: Thanks, Nate! Appreciate your support. Hoping my screenplay gets noticed and makes it to the screen. Fingers crossed!\n[D4:19] Nate: Crossing my fingers for you! Hope your screenplay finds a fan and is given its due. Good luck!\nSession date: 6:59 pm on 18 March, 2022\n[D5:1] Joanna: Hey Nate, it's been a minute! I wrapped up my second script, and the feels have been wild. Sometimes I'm so relieved, but other times I just feel anxious about what comes next. It's a mix of excitement and terror, thinking about my work getting noticed and hitting the big screen.\n[D5:2] Nate: Hey Joanna! Awesome to hear from you! Congrats on wrapping up a second one! All that hard work and dedication will definitely shine through and get noticed, no doubt. Hope you've been able to take some time to relax after everything!\n[D5:3] Joanna: Thanks Nate! It's been a wild ride. I've been decompressing, but it's hard to switch off. There's always this tug-of-war of hope and doubt.\n[D5:4] Nate: It's normal to have doubts, but you've worked hard and put tons of passion into it. Believe in yourself and things will work out. Here, look at this cute pic - walking them always reminds me to enjoy the small stuff!\n[D5:4] Image caption (automatic): a photography of two tortoises laying on the ground in a jungle\n[D5:5] Joanna: That pic's adorable! They always look so relaxed outside. What made you choose them as pets?\n[D5:6] Nate: I'm drawn to turtles. They're unique and their slow pace is a nice change from the rush of life. They're also low-maintenance and calming. Check out this moment I snapped!\n[D5:6] Image caption (automatic): a photography of three turtles sitting on rocks in a pond\n[D5:7] Joanna: They look so peaceful! It's amazing how these creatures bring so much calm and joy. Is taking care of them tough?\n[D5:8] Nate: No, not really. Just keep their area clean, feed them properly, and make sure they get enough light. It's actually kind of fun.\n[D5:9] Joanna: Sounds great! Having pets must be a wonderful experience.\n[D5:10] Nate: Pets definitely bring tons of joy. They are always there for us and they're so cute! Relaxing with them is a great way to chill.\n[D5:11] Joanna: I wish I wasn't allergic! I would get two turtles today if I could! I found out recently I'm allergic to cockroaches as well, so who knows if I'll ever get a pet.\n[D5:12] Nate: Sorry! Maybe there are other animals you could consider! In the meantime though, I'll be sure to send you pics of my turtles so you can still watch them grow without getting too close.\n[D5:13] Joanna: Great idea! I'm already really invested in those little guys!\n[D5:14] Nate: Pets really seem to do that to everyone don't they! So, what about your script now? Any ideas for the next steps?\n[D5:15] Joanna: I've been doing my fair share of research and networking non-stop for it. It's tough, but I'm determined to make it happen.\n[D5:16] Nate: Great idea! that should hopefully get some more eyes on it. Keep up the hard work!\n[D5:17] Joanna: Thanks so much, Nate! Your support means a lot. I'll keep working at it and hopefully the next steps will become clearer soon.\n[D5:18] Nate: Just make sure you don't quit - the path forward will show up soon. You got this!\n[D5:19] Joanna: Appreciated! I think just having someone to support me throughout the whole process is such a blessing. It gives me the motivation to keep pushing forward.\n[D5:20] Nate: Glad to hear my support makes a difference, Joanna. I'm here for you!\n[D5:21] Joanna: Always good to hear! See you later!\n[D5:21] Image caption (automatic): a photo of a cinema ticket on a chair\nSession date: 1:43 pm on 24 March, 2022\n[D6:1] Nate: Hey Joanna! Long time no talk, how's it going? Crazy stuff's been happening since we last chatted.\n[D6:2] Joanna: Hey Nate! Been quite a ride - in a good way - had an audition yesterday for a writing gig."
+      },
+      {
+        "pid": "p-88aac094723a3103ef10069b",
+        "title": "LoCoMo conv-42 history chunk 4",
+        "text": "Session date: 7:44 pm on 21 April, 2022\n[D9:5] Joanna: Yeah, I bet the nerves and excitement are quite a rush! I remember when I did my first play, I was so nervous I forgot my lines. It was embarrassing, but it taught me how important it is to prepare and stay in the moment.\n[D9:5] Image caption (automatic): a photography of a man in a striped suit is performing on stage\n[D9:6] Nate: Sounds like you had an interesting time on stage! It's always a learning experience. Have you ever considered going back to acting? Is that you in the photo?\n[D9:7] Joanna: Yeah, that's me in that photo! Acting was my first passion, but now I really shine in writing. It helps me express myself in a new way, but who knows, maybe I'll go back to acting someday. Never say never!\n[D9:8] Nate: Go for it! Follow your passion for writing, but if acting really makes you happy, give it a shot as well. Who knows what'll happen! Any particular movies that spark your writing?\n[D9:8] Image caption (automatic): a photo of a turtle laying on a bed of rocks and gravel\n[D9:9] Joanna: Thanks Nate! I'm gonna keep writing, but if acting calls out I might give it a try. I really enjoy dramas and emotionally-driven films. What about you? What inspires your passion?\n[D9:10] Nate: I love fantasy and sci-fi movies, they're a great escape and get my imagination going. Playing video games is a great way to express my creativity and passion.\n[D9:10] Image caption (automatic): a photography of a black xbox controller sitting on top of a wooden table\n[D9:11] Joanna: That's awesome! I love how video games can really spark your imagination. Do you have a favorite fantasy or sci-fi movie?\n[D9:12] Nate: Yeah, for sure! This trilogy is one of my faves. The world building, battles, and storytelling always blow me away!\n[D9:12] Image caption (automatic): a photo of a shelf with a lot of books on it\n[D9:13] Joanna: Wow, that's great to hear! What books do you enjoy? I'm always up for some new book recommendations.\n[D9:14] Nate: I love this series. It has adventures, magic, and great characters - it's a must-read!\n[D9:14] Image caption (automatic): a photo of a bunch of books on a table\n[D9:15] Joanna: Heard of that series! It's been on my list forever. Thanks for the recommendation, Nate. I'm definitely going to check it out!\n[D9:16] Nate: No problem, glad to see an interest. Let me know what you think when you check it out.\n[D9:17] Joanna: Thanks Nate! I'll definitely let you know my thoughts. Take care and have a great day!\n[D9:18] Nate: See you! Good chatting with you! Have a great day!\nSession date: 11:54 am on 2 May, 2022\n[D10:1] Joanna: Hey Nate, how's it going? I took your reccomendation and watched \"The Lord of the Rings\" Trilogy last night! It was awesome!\n[D10:1] Image caption (automatic): a photo of a person holding a book openhemer\n[D10:2] Nate: Glad to hear you enjoyed it! It's probably the greatest trilogy of all time! As for me, life's been ok, just taking care of this.\n[D10:2] Image caption (automatic): a photo of a gaming room with a computer and a gaming chair\n[D10:3] Joanna: Wow, Nate! I'm proud of what you did. Your gaming room looks great - have you been gaming a lot recently?\n[D10:4] Nate: Gaming has been my focus - practicing a lot and even winning a few tournaments. Last week I won my second tournament!\n[D10:4] Image caption (automatic): a photo of a woman with purple hair and a black dress\n[D10:5] Joanna: Wow, congrats! What game were you playing?\n[D10:6] Nate: Thanks! I usually play CS:GO, but I tried my hand at the local Street Fighter tournament this time since I play that game a lot with my friends, and turns out I'm really good!\n[D10:7] Joanna: Nice! That must have been a surprise. How did it feel to finally win one?\n[D10:8] Nate: It was super awesome! So much adrenaline went into that last match, and the other finalist even shook my hand! Enough about me though, how about you? What have you been up to?\n[D10:9] Joanna: Not much is new other than the screenplay. Been working on some projects and testing out dairy-free dessert recipes for friends and fam. Here's a pic of a cake I made recently!\n[D10:9] Image caption (automatic): a photo of a cake with white frosting on a wooden table\n[D10:10] Nate: That looks really good! I love the way the frosting turned out!\n[D10:11] Joanna: Thanks! It's dairy-free vanilla with strawberry filling and coconut cream frosting. I gotta say, I really like your coconut reccomendation you gave a while back!\n[D10:12] Nate: Wow, Joanna, that looks amazing! I bet it tastes great - you're so talented at making dairy-free desserts!\n[D10:13] Joanna: Thanks Nate! I really appreciate it. I love experimenting in the kitchen, coming up with something tasty. Cooking and baking are my creative outlets. Especially when I'm snackin' dairy-free, trying to make the desserts just as delicious - it's a rewarding challenge! Seeing the smiles on everyone's faces when they try it - it's a total win!\n[D10:14] Nate: That's great, Joanna! It must be so rewarding to see everyone enjoying your creations. Keep up the good work!\n[D10:15] Joanna: Thanks, Nate! Appreciate all the help. Gonna keep trying new things. See ya later!\n[D10:16] Nate: Bye!\nSession date: 3:35 pm on 12 May, 2022\n[D11:1] Joanna: Hey Nate! Great to hear from you! Quite a week since we last talked - something awesome happened to me!\n[D11:2] Nate: Hey Jo! Great hearing from you! What happened?\n[D11:3] Joanna: I went hiking and found some more amazing trails in my town. It was such an awesome experience! I think I am an expert hiker now.\n[D11:4] Nate: Sounds great, Jo! Happy you had an awesome experience. Did you happen to take any photos of it?\n[D11:5] Joanna: Yeah, I did! Loved this spot on the hike. The rush of the water was so soothing.\n[D11:5] Image caption (automatic): a photo of a waterfall with a dark sky in the background\n[D11:6] Nate: Wow, looks great! Where did you take this picture? I love the dark sky and green scenery.\n[D11:7] Joanna: Thanks! I took this photo at a beautiful location called Whispering Falls. It was really peaceful and serene.\n[D11:8] Nate: I wish I could have been there! Your hikes sound like a blast.\n[D11:9] Joanna: It was awesome, Nate. The sound of that place and the beauty of nature made me so calm and peaceful. Everything else faded away and all that mattered was the present.\n[D11:10] Nate: That's great. Glad you found a spot that calms you down - nature sure can be a break from the craziness.\n[D11:11] Joanna: Nature totally inspires me and it's so calming to be surrounded by its beauty. Hiking has opened up a whole new world for me and I feel like a different person now.\n[D11:12] Nate: Wow, Jo, that's really cool! It's great to have something that gets those creative juices flowing.\n[D11:13] Joanna: I always feel like I could write a whole movie when I'm out there in cool places like that!\n[D11:14] Nate: Wow! That's really cool that it inspires you that much! For me I just get deep in thought and think about my life or new recipes.\n[D11:15] Joanna: I think about my life too sometimes when I'm out and about, but there was something special about these trails that made me feel like writing a drama.\n[D11:16] Nate: Hey, we should go together sometime, don't you think? Maybe I'll start to think of a drama myself and publish my own screenplay.\n[D11:17] Joanna: Haha, now that would be something! Sure, you should come down and join me on the trails sometime!\n[D11:18] Nate: Sounds like a plan! Thanks for the invite Joanna!\n[D11:19] Joanna: Sure thing Nate! See you later!\n[D11:20] Nate: See ya!"
+      },
+      {
+        "pid": "p-5f21b611d55bec6fbaaff324",
+        "title": "LoCoMo conv-42 history chunk 5",
+        "text": "Session date: 7:49 pm on 20 May, 2022\n[D12:1] Nate: Hey Joanna! How've you been? Been a busy week since we talked.\n[D12:2] Joanna: Hey Nate! Just finished something - pretty wild journey!\n[D12:3] Nate: Way to go! I just got a new addition to the family, this is Max!\n[D12:3] Image caption (automatic): a photo of a dog laying on a couch in a living room\n[D12:4] Joanna: Wow, he's adorable! How long have you had him? I can see why you're thrilled!\n[D12:5] Nate: Thanks! It's awesome - he's adopted and so full of energy, and he's filling my life with so much joy. He's even keeping my other pets active.\n[D12:6] Joanna: Pets sure do make life better! Glad Max is bringing you lots of joy.\n[D12:7] Nate: Yep, totally! Pets make us so much happier and never let us down. Have you thought any more of getting one of your own?\n[D12:8] Joanna: Unfortunately, allergies make it so I don't really want to get any, and I'm too lazy to research alternative pets for my allergies.\n[D12:9] Nate: Aww, that's unfortunate. It's nice seeing the joy pets bring to others, though. How do you find comfort when you don't have any?\n[D12:10] Joanna: Writing and creative projects are what get me through tough times. I'm also grateful for my supportive friends.\n[D12:11] Nate: Wow, that's awesome! Those both can definitely be therapeutic. It's great to have such positive relationships that make such a great impact.\n[D12:12] Joanna: Yeah. It's so nice to have friends who understand and appreciate my work - it's priceless being able to talk about it together and receive feedback. Here's a look at what I've been working on – it's been quite a journey, but I made it!\n[D12:12] Image caption (automatic): a photo of a notepad with a dog on it and a pen\n[D12:13] Nate: Wow, that looks great Joanna! Is that your third one?\n[D12:14] Joanna: Yep! I chose to write about this because it's really personal. It's about loss, identity, and connection. It's a story I've had for ages but just got the guts to write it. It was hard, but I'm so proud of it.\n[D12:15] Nate: That sounds impressive. You really do like writing about sadness and loss don't you.\n[D12:16] Joanna: Thanks, Nate! Yeah I really do. I had to be vulnerable and dig deep into those topics. But I think meaningful stories come from personal experiences and feelings. It was scary, but I found that I write best when I'm being true to myself - even if it's hard.\n[D12:17] Nate: Well done, Joanna! It takes guts to explore your experiences and feelings. I'm proud of you for staying strong and being true to yourself. Keep it up!\n[D12:18] Joanna: Thanks, Nate! Your support really means a lot. Knowing I've got people like you cheering me on makes this journey way easier.\n[D12:19] Nate: No worries, Joanna! Keep going and reach for your dreams. You've got tons of talent and potential!\nSession date: 3:00 pm on 25 May, 2022\n[D13:1] Nate: Hey Jo! Been ages since we last talked. Here's something cool that happened the other day - I took Max for a walk and ran into this super nice couple who had a dog. It turns out they live close by. We decided to do doggy playdates, which is awesome considering we all need friends for our pets.\n[D13:2] Joanna: Hey Nate! Great to hear from you. Sounds like a nice encounter on your walk. Connecting with others who have pets can be uplifting and rewarding.\n[D13:3] Nate: It's like fate. Having a walking buddy forMax will be great. He really likes the other dog too!\n[D13:4] Joanna: Awesome! Did you get to know the couple very well? What were they like?\n[D13:5] Nate: They actually didn't share a whole lot in common with me besides the love of animals, but I think that was all we needed to share in common to be good friends!\n[D13:6] Joanna: That's really cool that you can just go out and meet people like that, keep it up Nate!\n[D13:7] Nate: Thanks! I just really enjoy watching our pets play with one another. Its like a dream come true seeing my dog so happy.\n[D13:8] Joanna: I can see why having a peaceful presence around could help relieve stress. Having someone or something to come home to for a sense of calm would be helpful for relaxation.\n[D13:9] Nate: Yep, Joanna. It's great! Looky here, I got this new pup for you!\n[D13:9] Image caption (automatic): a photo of a stuffed animal laying on a bed\n[D13:10] Joanna: Awww! It's so cute! I love the thought Nate!\n[D13:11] Nate: Thanks! It's a stuffed animal to remind you of the good vibes.\n[D13:12] Joanna: That's so sweet! I'll cherish that little guy with all my heart!\n[D13:13] Nate: Yeah! It's like having joy in your pocket. It always makes me grin when I look at it.\n[D13:14] Joanna: That's great, Nate! Appreciate the small joys like that cute stuffed animal. It's a nice reminder!\n[D13:15] Nate: Agreed, those little things sure do make life better!\n[D13:16] Joanna: I'll always remember those moments that bring us happiness and remind us that life is great!\n[D13:17] Nate: Sure, Joanna! It's all about finding those little things and cherishing them, otherwise it's easy to get down!\n[D13:18] Joanna: Thinking back to the tough times finishing my screenplay made me realize it's those moments that bring joy and make the journey worth it.\n[D13:19] Nate: Yeah, those little moments make it all worth it, especially during tough times. Enjoying the ride is key.\n[D13:20] Joanna: Appreciating the journey and being aware of those happy moments can be a game-changer! It keeps us focused on our dreams. Can't wait to show it to you. I value your opinion!\n[D13:21] Nate: Can't wait to see it, Joanna! I'm here to support you.\n[D13:22] Joanna: Thanks, Nate! Your support is greatly appreciated. I'll make sure to keep you updated.\n[D13:23] Nate: No worries! You've got this. Keep it up!\nSession date: 5:44 pm on 3 June, 2022\n[D14:1] Joanna: Nate, after finishing my screenplay I got a rejection letter from a major company. It really bummed me out.\n[D14:2] Nate: Sorry to hear that, Joanna. Rejection stinks, but it doesn't mean you're not talented. Don't give up on your dreams!\n[D14:3] Joanna: Thanks, Nate. It can feel like a step back sometimes. But I appreciate your kind words and encouragement.\n[D14:4] Nate: Sure, just make sure you keep going and believing in yourself. Did something happen with the company?\n[D14:5] Joanna: They just sent me a generic rejection letter without much feedback. It's disheartening not knowing why it didn't work out.\n[D14:6] Nate: Ugh, that's so frustrating. But don't get discouraged, just keep going.\n[D14:7] Joanna: Yeah, you're right. I won't let this bring me down. Thanks for your support. What have you been up to lately?\n[D14:8] Nate: I've been doing great - I just won another regional video game tournament last week! It was so cool, plus I met some new people. Connecting with fellow gamers is always awesome.\n[D14:9] Joanna: Way to go, Nate! Congratulations on your victory in the tournament! It must feel great to be recognized for your gaming skills.\n[D14:10] Nate: Thanks, Joanna! Winning was a huge confidence boost and shows my hard work paid off. I'm really happy with my progress.\n[D14:11] Joanna: I am as well! It's great to hear from you about your tournaments throughout the years!\n[D14:12] Nate: Thanks! I has been a while since my first tournament hasn't it? I appreciate your support!\n[D14:13] Joanna: Anytime Nate! I'm here for you every step of the way."
+      }
+    ],
+    "hash": "fed298d155efb3d96dccfeaac3697561354df769812e60002b07dfd77ee73ec6"
+  },
+  "calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Generate up to 2 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 2 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  favorite part; eat; favorite; cook; show; cheer on; want to watch; prepare; fascinate; is inviting; choose as pet; enjoy; recommend; excited about; has pet; celebrate; excited; cheer up; like; grow fond of; praise; chill with; want; best; happy with; theme; appear on; wants to; make; passionate about; want to do again; feels inspired; taught; sit on; save; have fun; main character; plan to make; plan to watch; feel satisfied\nEntity names that exist in the graph, useful as constants:\n  Nate favorite flavors; Nate's favorite game or movie; Nate's life; Nate's place; Nate the best on his party; Nate's encouragement; Nate; Nate's feeling; Nate's sharing; watch Nate play with turtles; Nate's hair; Nate continue doing what makes him happy; Nate's activity; Nate about inspiration; Nate having fun; Nate's words; Nate de-stressing; Nate's support; cooking show; Nate about favorite fantasy or sci-fi movie\n\n\n### INPUT\nWhat is Nate's favorite dish from the cooking show he hosted?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 2200,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.compile",
+      "key": "5e79d9faf13e7bca7f913e2d12fb0ee0d2790c483d1cefb70aa48e7dbab29c08",
+      "result": {
+        "text": "{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"favorite dish from cooking show hosted\", \"subject\": \"Nate\", \"object\": \"?x\"}],\n    \"expected_type\": \"other\",\n    \"aggregation\": \"none\",\n    \"fallback\": \"Nate favorite dish cooking show hosted\"}\n]}",
+        "prompt_tokens": 1345,
+        "completion_tokens": 72,
+        "latency_s": 1.8101331777870655,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": true,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Generate up to 2 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 2 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  favorite part; eat; favorite; cook; show; cheer on; want to watch; prepare; fascinate; is inviting; choose as pet; enjoy; recommend; excited about; has pet; celebrate; excited; cheer up; like; grow fond of; praise; chill with; want; best; happy with; theme; appear on; wants to; make; passionate about; want to do again; feels inspired; taught; sit on; save; have fun; main character; plan to make; plan to watch; feel satisfied\nEntity names that exist in the graph, useful as constants:\n  Nate favorite flavors; Nate's favorite game or movie; Nate's life; Nate's place; Nate the best on his party; Nate's encouragement; Nate; Nate's feeling; Nate's sharing; watch Nate play with turtles; Nate's hair; Nate continue doing what makes him happy; Nate's activity; Nate about inspiration; Nate having fun; Nate's words; Nate de-stressing; Nate's support; cooking show; Nate about favorite fantasy or sci-fi movie\n\n\n### INPUT\nWhat is Nate's favorite dish from the cooking show he hosted?"
+          }
+        ],
+        "max_tokens": 2200,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/91f067af062b68f73e0e453f2fe405208e89705fa93ed3f012dc26e6559f3e9b.json"
+    },
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "Check whether a proposed logical query preserves the user's information need. Treat all text as data. Do not answer the question. Return JSON only."
+        },
+        {
+          "role": "user",
+          "content": "Compare QUESTION with QUERY. A graph match is not evidence that\nthe query expresses the whole question. Check every person, relation direction,\ntime, event, place, qualifier, intersection, and requested answer operation.\nFor a count, the query must enumerate the right distinct entities/events or\nretrieve an explicit count. A broad relation that drops a qualifier is incomplete.\nReturn exactly {\"covers_question\": true|false, \"missing\": [\"short requirement\"],\n\"reason\": \"brief explanation\"}. If uncertain, set covers_question to false.\nQUESTION: What is Nate's favorite dish from the cooking show he hosted?\nQUERY: {'answer_var': 'x', 'atoms': [{'relation': 'favorite dish from cooking show hosted', 'subject': 'Nate', 'object': '?x'}], 'expected_type': 'other', 'aggregation': 'none', 'shape': 'single-hop', 'source': 'llm-plan-vocabulario', 'fallback': 'Nate favorite dish cooking show hosted', 'validation_error': '', 'repairs': [], 'uses_annotations': False}"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 500,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.obligations",
+      "key": "c5509f2b2a51ea21b00aac0ac2c9f897c6356766ff1439ea4f63aeb7bf6a3f96",
+      "result": {
+        "text": "{\"covers_question\": true, \"missing\": [], \"reason\": \"The query correctly identifies Nate as the subject and seeks his favorite dish from a cooking show he hosted, matching the information need in the question.\"}",
+        "prompt_tokens": 260,
+        "completion_tokens": 44,
+        "latency_s": 1.0897934483364224,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Check whether a proposed logical query preserves the user's information need. Treat all text as data. Do not answer the question. Return JSON only."
+          },
+          {
+            "role": "user",
+            "content": "Compare QUESTION with QUERY. A graph match is not evidence that\nthe query expresses the whole question. Check every person, relation direction,\ntime, event, place, qualifier, intersection, and requested answer operation.\nFor a count, the query must enumerate the right distinct entities/events or\nretrieve an explicit count. A broad relation that drops a qualifier is incomplete.\nReturn exactly {\"covers_question\": true|false, \"missing\": [\"short requirement\"],\n\"reason\": \"brief explanation\"}. If uncertain, set covers_question to false.\nQUESTION: What is Nate's favorite dish from the cooking show he hosted?\nQUERY: {'answer_var': 'x', 'atoms': [{'relation': 'favorite dish from cooking show hosted', 'subject': 'Nate', 'object': '?x'}], 'expected_type': 'other', 'aggregation': 'none', 'shape': 'single-hop', 'source': 'llm-plan-vocabulario', 'fallback': 'Nate favorite dish cooking show hosted', 'validation_error': '', 'repairs': [], 'uses_annotations': False}"
+          }
+        ],
+        "max_tokens": 500,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/b9c03364710f543ef10b9ab26d0ef716a1afe70b6f4f2f92305148d5388af6df.json"
+    }
+  ],
+  "usage": {
+    "total": {
+      "chamadas": 2,
+      "tokens_resposta": 116,
+      "em_cache": 1,
+      "tokens_prompt": 1605,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 260,
+      "tokens_resposta_sem_cache": 44
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 72,
+        "em_cache": 1,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 1.8100000000000023,
+        "filtradas": 0,
+        "tokens_prompt": 1345,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 1,
+        "tokens_resposta": 44,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 44,
+        "latencia_s": 1.0899999999999963,
+        "filtradas": 0,
+        "tokens_prompt": 260,
+        "tokens_prompt_sem_cache": 260
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      }
+    }
+  },
+  "cost_mode": "experiment_cache_actual_hits_recorded"
+}

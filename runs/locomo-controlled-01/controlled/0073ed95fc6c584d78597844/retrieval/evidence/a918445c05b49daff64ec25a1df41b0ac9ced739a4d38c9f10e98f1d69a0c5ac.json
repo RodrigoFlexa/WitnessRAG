@@ -1,0 +1,491 @@
+{
+  "identity": {
+    "qid": "locomo:conv-43:qa38",
+    "question": "which country has Tim visited most frequently in his travels?",
+    "memory": "294ce1e607a2a327f05f6f889a6c875a4f30b176cc54b29d57f5878de13ce749",
+    "config": {
+      "dataset": "locomo",
+      "n_questions": 138,
+      "top_k": 5,
+      "seed": 42,
+      "subset_corpus": false,
+      "train_questions_path": "",
+      "interleave_methods": true,
+      "corpus_scope": "locomo_full_selected_conversation",
+      "methods": [
+        "witnessrag"
+      ],
+      "ie": {
+        "max_tokens": 1600,
+        "temperature": 0.0,
+        "two_step": true,
+        "max_triples_per_passage": 40,
+        "window_tokens": 512,
+        "window_overlap_tokens": 64,
+        "window_tokenizer": "Qwen/Qwen2.5-14B-Instruct",
+        "window_tokenizer_revision": "",
+        "dialogue_mode": true
+      },
+      "graph": {
+        "merge_similar_entities": false,
+        "merge_identity_variants": true,
+        "merge_relation_inflections": true,
+        "identity_merge_threshold": 0.8,
+        "synonym_threshold": 0.8,
+        "synonym_max_neighbors": 20,
+        "ppr_damping": 0.5,
+        "ppr_tol": 1e-08,
+        "ppr_max_iter": 100
+      },
+      "hippo2": {
+        "n_triples_retrieved": 20,
+        "n_triples_kept": 5,
+        "n_passages_seed": 10,
+        "passage_node_weight": 0.05,
+        "use_recognition_memory": true
+      },
+      "graphrag": {
+        "community_levels": 2,
+        "min_community_size": 3,
+        "build_community_reports": true,
+        "max_communities_reported": 400,
+        "text_units_per_entity": 8
+      },
+      "witness": {
+        "max_atoms": 4,
+        "compile_temperature": 0.0,
+        "vocabulary_aware_compile": true,
+        "vocabulary_relations": 40,
+        "vocabulary_entities": 20,
+        "query_plans": true,
+        "max_query_plans": 5,
+        "active_frontier": true,
+        "active_obligations": true,
+        "active_context": true,
+        "active_operators": false,
+        "soft_obligations": false,
+        "proof_reader": true,
+        "active_frontier_queries": 5,
+        "active_frontier_passages": 30,
+        "grounding_mode": "semantic",
+        "relation_match_threshold": 0.65,
+        "candidates_per_atom": 60,
+        "entity_match_threshold": 0.55,
+        "entity_top_k": 5,
+        "relation_weight": 0.45,
+        "argument_weight": 0.35,
+        "verbalization_weight": 0.2,
+        "max_witnesses": 20,
+        "beam_width": 400,
+        "passage_penalty": 0.15,
+        "binding_aware_grounding": true,
+        "verify_witnesses": false,
+        "verification_max_witnesses": 5,
+        "answer_set": true,
+        "answer_set_max_items": 10,
+        "hybrid_fallback": true,
+        "hybrid_rrf_k": 60,
+        "candidate_pool_k": 20,
+        "fact_confidence": 0.9,
+        "delta_interpretation": 0.1,
+        "delta_verbalization": 0.05,
+        "acquisition_rounds": 2,
+        "acquisition_passages": 3,
+        "acquisition_lambda": 0.05,
+        "enable_acquisition": true,
+        "dense_fallback": true,
+        "budget_fraction": 1.0,
+        "ilp_time_limit_s": 120,
+        "ilp_max_facts": 20000
+      },
+      "qa": {
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "top_k": 5,
+        "answer_set": true,
+        "operator_reader": false,
+        "proof_reader": true
+      }
+    },
+    "condition": "evidence"
+  },
+  "retrieval": {
+    "pids": [
+      "p-4245b90eebac2b664688c6f3",
+      "p-4cf5db730b21e403f717a762",
+      "p-011482e856a93237c388a7f8",
+      "p-00295be1b09fb252bd7a07fa",
+      "p-ff702d61d49cfd62e2ce4112"
+    ],
+    "scores": [
+      1.0,
+      0.5,
+      0.3333333333333333,
+      0.25,
+      0.2
+    ],
+    "diagnostics": {
+      "pesquisa_provas": {
+        "fronteira": [
+          "p-4245b90eebac2b664688c6f3",
+          "p-4cf5db730b21e403f717a762",
+          "p-00295be1b09fb252bd7a07fa",
+          "p-011482e856a93237c388a7f8",
+          "p-ff702d61d49cfd62e2ce4112",
+          "p-98aa910cf841ba95e4e72c8e",
+          "p-c95741bd8790557cb0b64583",
+          "p-50f052643ae811f2359b2fbd",
+          "p-3321cf2ea559f103ba9e0183"
+        ],
+        "sondas": [
+          "which country has Tim visited most frequently in his travels?",
+          "Tim visited most frequently",
+          "Tim most visited country"
+        ],
+        "acoes": [],
+        "buscas_dirigidas": 0,
+        "replanejamentos": 1,
+        "rejeicoes": 0
+      },
+      "planos_compilados": [
+        {
+          "indice": 0,
+          "rodada_criacao": 0,
+          "consulta": {
+            "answer_var": "x",
+            "atoms": [
+              {
+                "relation": "visited most frequently",
+                "subject": "Tim",
+                "object": "?x"
+              }
+            ],
+            "expected_type": "place",
+            "aggregation": "none",
+            "shape": "single-hop",
+            "source": "llm-plan-vocabulario",
+            "fallback": "Tim most visited country",
+            "validation_error": "",
+            "repairs": [],
+            "uses_annotations": false
+          },
+          "executavel": true,
+          "fechou": true,
+          "profundidade": 1,
+          "candidatos_por_atomo": [
+            7
+          ],
+          "obrigacoes": {
+            "cobre_pergunta": false,
+            "faltas": [
+              "country qualifier"
+            ],
+            "motivo": "The query does not specify that the place must be a country, it could be any place Tim visited most frequently.",
+            "checado": true
+          }
+        }
+      ],
+      "planejamento": {
+        "orcamento_planos": 5,
+        "planos_distintos": 1,
+        "chamadas": 2,
+        "replanejamentos": 1
+      },
+      "plano_escolhido": null,
+      "n_testemunhas": 0,
+      "testemunha_no_contexto": false,
+      "classe_prova": "nenhuma",
+      "fallback": "denso (pesquisa sem prova suficiente)",
+      "contexto_alterado_pelo_witness": true,
+      "risco": 1.0,
+      "risco_bruto": 99.0,
+      "risco_calibrado": false,
+      "resposta_estrutural": "",
+      "candidatos_explorados": 15,
+      "documentos_entregues": 5,
+      "orcamento_leitor": 5
+    },
+    "filtered": false,
+    "latency_s": 4.525536465458572,
+    "passages": [
+      {
+        "pid": "p-4245b90eebac2b664688c6f3",
+        "title": "LoCoMo conv-43 history chunk 15",
+        "text": "Session date: 5:26 pm on 2 January, 2024\n[D27:33] Tim: It's a map of Middle-earth from LOTR - it's really cool to see all the different realms and regions.\n[D27:34] John: Wow, that looks awesome! Exploring different lands and regions in fantasy stories is always fun!\n[D27:35] Tim: Thanks! It's really cool how fantasy stories allow me to explore other cultures and landscapes, all from the comfort of my home.\n[D27:36] John: Yeah! That's why I love traveling - it's a way to learn about different cultures and places.\n[D27:36] Image caption (automatic): a photo of a person walking down a path in front of the eiffel tower\n[D27:37] Tim: I love traveling too. That picture is awesome. Have you been to Paris? The Eiffel Tower is so cool!\n[D27:37] Image caption (automatic): a photo of a group of people climbing up a stone wall\n[D27:38] John: Thanks! Yeah, I've been there before and loved it! That place is amazing and the view from there is incredible!\n[D27:38] Image caption (automatic): a photo of a view of a city from a bird's eye view\n[D27:39] Tim: Wow, John, it looks amazing! Can't wait to see it for myself. Traveling is so eye-opening!\n[D27:40] John: Yeah, it really is. It helps you see new things and get a different view of everything. It's so cool and educational! Talk to you later!\nSession date: 5:24 pm on 7 January, 2024\n[D28:1] Tim: Hey John, long time no talk. On Friday, I got great news - I'm finally in the study abroad program I applied for! Next month, I'm off to Ireland for a semester.\n[D28:2] John: Congrats, Tim! That's amazing news. So, where are you going to stay?\n[D28:3] Tim: Thanks! I'm gonna stay in Galway, it's great for its arts and Irish music. This place has such a vibrant atmosphere.\n[D28:3] Image caption (automatic): a photo of a woman standing on the side of a street\n[D28:4] John: Awesome, Galway looks amazing! Is there anything in particular that you're keen to check out while you're there?\n[D28:5] Tim: Yep! I'm so excited to explore the nature - it looks amazing!\n[D28:5] Image caption (automatic): a photo of a cliff overlooking the ocean at sunset\n[D28:6] John: Wow, great view! Have you visited any other places?\n[D28:7] Tim: I want to visit The Cliffs of Moher. It has amazing ocean views and awesome cliffs.\n[D28:7] Image caption (automatic): a photo of a person standing on a cliff overlooking the ocean\n[D28:8] John: Wow, that's awesome! I could stop by there after my season.\n[D28:9] Tim: Cool, let me know if you're around!\n[D28:10] John: Yep, I'll let you know. Oh, I held a benefit basketball game last week.\n[D28:10] Image caption (automatic): a photo of a boy dribbling a basketball on a court\n[D28:11] Tim: Wow! How did the game go?\n[D28:12] John: The game turned out to be a total success! Lots of people showed up and had a great time, plus we were able to raise some money for charity.\n[D28:13] Tim: Great job organizing the event. That's really making a difference!\n[D28:14] John: Thanks! It's amazing how basketball brings people together and creates a positive impact!\n[D28:15] Tim: You rock! Keep it up!\n[D28:15] Image caption (automatic): a photo of a basketball ball and a book on a court\n[D28:16] John: Thanks, Tim! It's awesome to see how sports can unite people. By the way, what book are you currently reading?\n[D28:17] Tim: I'm currently reading a fantasy novel called \"The Name of the Wind\" by Patrick Rothfuss. It's really good!\n[D28:18] John: \"The Name of the Wind\" sounds cool. I'll add it to my list. Thanks!\n[D28:19] Tim: I hope you enjoy it! Let me know your thoughts.\n[D28:20] John: Will do! Thanks for the recommendation!\n[D28:21] Tim: No problem. Talk to you soon!\nSession date: 1:41 pm on 12 January, 2024\n[D29:1] Tim: Hey John! How's it going? Hope all is good.\n[D29:2] John: Hey Tim! Things have been good. Something exciting happened recently for me. What about you? How's everything going?\n[D29:3] Tim: Cool news! I'm trying to get my head around the visa requirements for some places I want to visit. It's kind of overwhelming but I'm excited! What have you been up to?\n[D29:4] John: Last week was wild - something incredible happened. But it's a total dream come true - just crazy! I got an endorsement with a popular beverage company!\n[D29:4] Image caption (automatic): a photo of a baseball player holding a bat next to a soda\n[D29:5] Tim: Congrats! How did it feel to seal the deal?\n[D29:6] John: Thanks! It felt crazy. It's not just about the signing, but it's about feeling like all the hard work paid off - like all those training hours weren't for nothing.\n[D29:7] Tim: Wow! I bet you were thrilled when everything finally worked out. That sense of accomplishment is awesome and really boosts your self-esteem. I can imagine all the hard work you put into it was definitely worth it.\n[D29:8] John: Yeah, it's great when you reach a goal and it feels rewarding. It's a reminder that you're going in the right direction, and all the hard work was worth it. What's something you feel proud of recently?\n[D29:9] Tim: I'm proud of researching visa requirements for countries I want to visit. It feels like taking initiative is a step towards making my travel dreams a reality!\n[D29:10] John: Great going! Taking initiative is a must if you wanna achieve your goals. I'm excited to hear about all your future adventures!\n[D29:11] Tim: Thanks! I'll keep you in the loop about my travels. Is there anywhere you recommend visiting?\n[D29:12] John: Barcelona is a must-visit city! You'll love exploring the culture, admiring the architecture, and tasting the amazing food in each neighborhood. Plus, the nearby beaches are great for soaking up the sun. Definitely add it to your travel list!\n[D29:13] Tim: Barcelona sounds awesome! I've heard so many great things. Definitely adding it to my list. Thanks!\n[D29:14] John: No problem! Glad you liked the suggestion. Let me know if you have any other questions or need help with anything.\n[D29:15] Tim: Cheers! I owe you one. Let me know if you need anything. Bye!"
+      },
+      {
+        "pid": "p-4cf5db730b21e403f717a762",
+        "title": "LoCoMo conv-43 history chunk 5",
+        "text": "Session date: 6:59 pm on 26 August, 2023\n[D9:1] Tim: Hey John, this week's been really busy for me. Assignments and exams are overwhelming. I'm not giving up though! I'm trying to find a way to juggle studying with my fantasy reading hobby. How have you been?\n[D9:1] Image caption (automatic): a photo of a stack of books on a table\n[D9:2] John: Hey Tim! I know the stress of exams and homework, but you got this! I'm doing OK, cheers for asking. Last week I visited home and caught up with my family and old friends. We had a great time talking about our childhood - it reminds me of the good ol' times!\n[D9:2] Image caption (automatic): a photo of a group of girls basketball players posing for a picture\n[D9:3] Tim: Thanks for the pic! That group looks like a great squad. How long did you all play together?\n[D9:4] John: We were teammates for four years in high school, so we've played together for quite some time. Have you ever been part of a sports team?\n[D9:5] Tim: Nope, never been on a sports team. I'm more into reading and fantasy novels. I love sinking into different magical worlds. It's one of the reasons I love traveling to new places, to experience a different kind of magic.\n[D9:5] Image caption (automatic): a photo of a book shelf with books and a clock\n[D9:6] John: Wow, Tim, that's an awesome book collection! It's cool to escape to different worlds with a hobby. By the way, I love discovering new cities - check out this pic from one of my trips to New York City!\n[D9:6] Image caption (automatic): a photo of a cityscape with a view of a skyscraper\n[D9:7] Tim: Wow! That skyline looks amazing - I've been wanting to visit NYC. How was it?\n[D9:8] John: Thanks! It was amazing. Everywhere you go there's something new and exciting. Exploring the city and trying all the restaurants was awesome. It's a must-visit!\n[D9:9] Tim: Adding NYC to my travel list, sounds like a great adventure! I heard there's so much to explore and try out. Can't wait to visit!\n[D9:10] John: Trust me, NYC is amazing! It's got so much to check out - the culture, food - you won't regret it. It's an adventure you'll never forget!\n[D9:11] Tim: Woohoo! Sounds like a fun place with lots of potential. Can't wait to experience it for myself!\n[D9:12] John: Awesome! Can't wait to hear when you are going. Let me know and I'm sure I can help you out.\n[D9:13] Tim: Yep, I'll let you know! Thanks for being so helpful.\n[D9:14] John: Sure thing! Any time you need help, don't hesitate to reach out.\n[D9:15] Tim: Thanks! Your support means a lot to me. Bye!\nSession date: 2:52 pm on 31 August, 2023\n[D10:1] Tim: Hey John, it's been a few days! I got a no for a summer job I wanted which wasn't great but I'm staying positive. On your NYC trip, did you have any troubles? How did you handle them?\n[D10:2] John: Hey Tim! Sorry to hear about the job, but your positivity will help you find something great! My trip went okay - I had some trouble figuring out the subway at first, but then it was easy after someone helped explain it. How about you? Anything new you've tackled?\n[D10:3] Tim: Thanks! Appreciate your encouragement. Yesterday, I tackled something new - I gave a presentation in class. I was nervous but I made it. Small step, but feels like progress.\n[D10:4] John: Cool, Tim! Taking the plunge and presenting can be tough, but awesome work! Progress is progress, keep it up. By the way, I've been trying out cooking recipes. Made this tasty soup recently - it was real good!\n[D10:4] Image caption (automatic): a photo of a bowl of soup with a spoon and a butternut on a cutting board\n[D10:5] Tim: Wow, that looks great! How did you make it? Do you have a recipe you can share?\n[D10:6] John: Thanks, I just sort of made it up on the spot so I don't have a recipe.\n[D10:7] Tim: That's ok! I can look some up. Can you tell me what spices you used in the soup?\n[D10:8] John: I added some sage for a nice flavor. Enjoy!\n[D10:9] Tim: Thanks! Excited to try this. Love experimenting with spices. By the way, have you been to Universal Studios? Planning a trip there next month.\n[D10:10] John: Cool! Haven't been there yet, but I've heard great things about Universal Studios. It's definitely on my bucket list. Have you been before?\n[D10:11] Tim: Nope, but it's my first time going. I'm super stoked for the Harry Potter stuff. Can't wait!\n[D10:12] John: Cool! It's gonna be a blast, like stepping into another world. Have a great time!\n[D10:13] Tim: Thanks! I'll definitely have a blast. I'll let you know how it goes!\n[D10:14] John: Great! Can't wait to hear about it. Have a safe trip!\n[D10:15] Tim: Thanks! I'll make sure to have a safe trip.\n[D10:16] John: Bye! Take care and let's catch up soon!\n[D10:17] Tim: Take care! Can't wait to catch up. Talk soon!\nSession date: 8:17 pm on 21 September, 2023\n[D11:1] John: Hey Tim, been a while! How ya been?\n[D11:2] Tim: Hey John! Great to hear from you. Been busy with things, how about you?\n[D11:3] John: Yeah, something cool happened! I attended a local restaurant with some new teammates last week. It was great getting to know them better.\n[D11:4] Tim: Good support is essential. How do you feel about them?\n[D11:5] John: They're great friends. We connected over our shared love for basketball and had a ton of fun.\n[D11:6] Tim: Sounds awesome. Having friends who share your hobbies can be really fun. Any exciting plans with them?\n[D11:7] John: We're planning to take a team trip next month to explore a new city and have some fun. Can't wait!\n[D11:8] Tim: That sounds great! Exploring new cities is always so much fun. Where are you headed?\n[D11:9] John: We're still deciding on the destination. Do you have any suggestions?\n[D11:10] Tim: Edinburgh, Scotland would be great for a magical vibe. It's the birthplace of Harry Potter and has awesome history and architecture. Plus, it's a beautiful city. What do you think?\n[D11:10] Image caption (automatic): a photo of a city with a clock tower and a sun setting\n[D11:11] John: That sounds like a great idea! I haven't been to Edinburgh yet, but it definitely sounds like a place worth considering for our trip. Thanks for the suggestion!\n[D11:12] Tim: Glad you liked it. Let me know if you need any more suggestions.\n[D11:13] John: Thanks! I'll definitely reach out if I need more suggestions. Appreciate the help! Here's a pic I snapped during one of our practices. The sunset looked amazing on the court. Moments like these make me so grateful for my basketball career.\n[D11:13] Image caption (automatic): a photo of a basketball ball on the ground with a basketball hoop in the background\n[D11:14] Tim: Wow, that looks amazing! What do you love most about your basketball career?\n[D11:15] John: Thanks! I love playing pro ball - it's a constant challenge and keeps me growing. There's nothing like seeing myself get better and beating goals. Plus, playing with my teammates and having the fans cheer is awesome. Basketball gives me a great sense of satisfaction and purpose.\n[D11:16] Tim: It's great that you have a passion that helps you grow and reach your goals. Achieving and feeling fulfilled must be amazing. Do you have any specific targets or goals you're working towards?\n[D11:17] John: Definitely! I'm focusing on better shooting and making more of an impact on the court. I want to be known as a consistent performer and help my team. Off the court, I'm also looking into more endorsements and building my brand. It's important for me to think about life after basketball."
+      },
+      {
+        "pid": "p-011482e856a93237c388a7f8",
+        "title": "LoCoMo conv-43 history chunk 14",
+        "text": "Session date: 3:35 pm on 26 December, 2023\n[D26:28] Tim: Yeah, I have! Watching them and seeing how they compare to the books is awesome. It's amazing to watch the story come alive. Have you seen all of them?\n[D26:29] John: I'm a total movie fan! Seeing it all come alive on the big screen is awesome, and a great way to relax.\n[D26:30] Tim: Yeah, watching movies is a fun way to relax. We love having movie marathons with our friends.\n[D26:30] Image caption (automatic): a photography of three guys sitting on a couch watching a movie\n[D26:31] John: Sounds like a blast! Movie marathons with friends and popcorn, right? So, what's your favorite genre?\n[D26:32] Tim: I'm a huge fan of this genre! Epic adventures and magical worlds are my thing. Here's a pic of my favorite, Lord of the Rings!\n[D26:32] Image caption (automatic): a photo of a poster of a group of people with a sword\n[D26:33] John: Wow, that's great! Are there any new fantasy movies that you're excited about?\n[D26:34] Tim: Woo-hoo! There's a new fantasy TV series coming out next month - can't wait!\n[D26:35] John: What's it called? I'm always down for something new.\n[D26:36] Tim: I'm really excited to watch this new show that's coming out called \"The Wheel of Time\". It's based on a book series that I love.\n[D26:37] John: That sounds exciting!\n[D26:38] Tim: Yeah, can't wait to check out the series. It's always fun seeing the books come to life on screen! Talk to you later!\nSession date: 5:26 pm on 2 January, 2024\n[D27:1] Tim: Hi John, how's it going? Interesting things have happened since we last talked - I joined a group of globetrotters who are into the same stuff as me. It's been awesome getting to know them and hear about their trips.\n[D27:1] Image caption (automatic): a photo of a man standing on a fence in front of a leaning tower\n[D27:2] John: Hey Tim! Cool to hear about your globetrotting group! Must be great connecting with other traveling buffs. By the way, have you been to Italy? I had a blast there last month.\n[D27:3] Tim: It's been awesome chatting with fellow travel enthusiasts. Italy is definitely on my list of places to visit. How was your trip there last month?\n[D27:3] Image caption (automatic): a photo of a book with a tag on it\n[D27:4] John: Italy was awesome! Everything from the food to the history and architecture was amazing. I even got this awesome book while I was there and it's been giving me some cooking inspiration.\n[D27:5] Tim: Wow, traveling is amazing, isn't it? I'm learning German now - tough but fun. Do you know any other languages?\n[D27:6] John: Wow! Impressive you're learning German. I know a bit of it myself and Spanish, it makes travel so much easier. How's it going with your language studies?\n\n[D27:6] Image caption (automatic): a photo of a book with a red cover and white title\n[D27:7] Tim: Learning German has been tough but worth it. I like the structure of the language, it's much easier when I took French in high school. What made you decide to learn Spanish?\n[D27:7] Image caption (automatic): a photo of a book sitting on a table next to a wall\n[D27:8] John: I've always wanted to learn Spanish. I just stared with it. It's such a useful language with many personal and professional opportunities!\n[D27:9] Tim: Yeah, knowing another language opens up a lot of opportunities. Have you come across any good resources for learning Spanish? I've been using this app.\n[D27:9] Image caption (automatic): a photo of a cell phone sitting on a notebook with a smiley face app\n[D27:10] John: Yeah! I've been using that app on my phone to practice too! It's helped a lot.\n[D27:11] Tim: That app is great. Learning another language is tough, but the rewards are totally worth it.\n[D27:12] John: It takes dedication and practice, but it's so rewarding to communicate with different cultures. Keep it up with German!\n[D27:12] Image caption (automatic): a photo of a basketball ball on the ground with a basketball hoop in the background\n[D27:13] Tim: Thanks! I appreciate your encouragement. I'm definitely going to keep up with my German lessons. Do you still play basketball often?\n[D27:14] John: Yeah, basketball is still really important to me - I practice and train every day to stay in shape and improve. Can't imagine my life without it, it's my passion.\n[D27:14] Image caption (automatic): a photo of a basketball ball on the ground with a basketball hoop in the background\n[D27:15] Tim: Wow! Love the way you go for it. Don't ever quit on what you love. I will always love reading, personally.\n[D27:15] Image caption (automatic): a photo of a collection of harry potter books on a desk\n[D27:16] John: Thanks! I won't give up on it. What got you into books?\n[D27:17] Tim: I love escaping to that world. I have a collection of books that take me there.\n[D27:17] Image caption (automatic): a photo of a desk with a chair and a book shelf\n[D27:18] John: That's awesome! I totally understand why reading means so much to you. It's amazing how much playing a game can help us grow. Thanks for showing us your collection! Which one do you like best that takes you to another world?\n[D27:19] Tim: Harry Potter is my favorite book. It's so immersive!\n[D27:19] Image caption (automatic): a photo of a collection of movies and dvds on a carpet\n[D27:20] John: Cool! Glad you're enjoying that book! Do you have any favorite fantasy movies as well? These are mine.\n[D27:20] Image caption (automatic): a photo of a collection of star wars movies on a table\n[D27:21] Tim: Definitely Star Wars! It's my favorite and never gets old. What about you, do you have any favorite fantasy films?\n[D27:22] John: I'm a huge fan of Lord of the Rings! The adventure, the world, and the characters are awesome.\n[D27:22] Image caption (automatic): a photo of a shelf with a lot of books on it\n[D27:23] Tim: Wow, me too! That's an awesome collection! Have you watched them heaps? Got any favorite characters from those movies?\n[D27:23] Image caption (automatic): a photo of a bookcase filled with dvds and games\n[D27:24] John: Thanks! I've watched a bunch of them and they're inspiring. My favorite character is Aragorn, he grows so much throughout the story.\n[D27:24] Image caption (automatic): a photo of a bookmark with a picture of a woman kissing a man\n[D27:25] Tim: Nice one! Why is he your favorite?\n[D27:26] John: He's a great leader and puts others first - that's why he eventually becomes king.\n[D27:27] Tim: Wow, Aragorn's story is so inspiring - from a ranger to king of Gondor. It's amazing how he grows and achieves redemption throughout his journey.\n[D27:27] Image caption (automatic): a photo of a painting of a man with long hair\n[D27:28] John: Yeah. His journey is really inspiring. I have a painting in my room to remind me to stay true and be a leader in everything I do.\n[D27:28] Image caption (automatic): a photo of a painting of a man smoking a cigarette\n[D27:29] Tim: Wow, that's awesome! What is it about him that makes him so inspiring for you?\n[D27:30] John: Aragorn's brave, selfless, down-to-earth attitude is what inspired me. He never gives up and always stands up for justice.\n[D27:31] Tim: Yeah, he's really inspiring. What's awesome about fantasy books like LOTR is getting lost in another world and seeing all the tiny details.\n[D27:31] Image caption (automatic): a photo of a map of the world on a piece of paper\n[D27:32] John: Yeah, that's what I'm thinking! Love this map, it really helps you get lost in another world. What's on it?"
+      },
+      {
+        "pid": "p-00295be1b09fb252bd7a07fa",
+        "title": "LoCoMo conv-43 history chunk 6",
+        "text": "Session date: 8:17 pm on 21 September, 2023\n[D11:18] Tim: Awesome! It's great that you have goals both on and off the court. It's wise to think about the future and building your brand. What are your thoughts on life after basketball?\n[D11:19] John: I've thought about it a lot. I want to use my platform to make a positive difference and inspire others - maybe even start a foundation and do charity work. It's important to me to make the most of the chances I get and leave a meaningful legacy.\n[D11:20] Tim: Wow, that's amazing. Good on you for wanting to make a difference and motivate others. I'm sure you'll succeed! Is there anything I can do to support you?\n[D11:21] John: Thanks! I'm trying to figure out how to pick the right ones - any advice on that?\n[D11:22] Tim: When picking endorsements, make sure they align with your values and brand. Look for a company that shares your desire to make a change and help others. It's important that the endorsement feels authentic to your followers.\n[D11:22] Image caption (automatic): a photo of a stack of books sitting on top of a counter\n[D11:23] John: Sounds like good advice! I was wondering if you have any book recommendations for my trip?\n[D11:24] Tim: Yeah! I think you'd love this fantasy novel by Patrick Rothfuss. It's a book that'll take you to a different world. Great for you when you're traveling. Have fun!\n[D11:24] Image caption (automatic): a photography of a book cover with a man in a hooded jacket\n[D11:25] John: Thanks! I'll definitely check it out - looks like a great book to read while traveling. Can't wait to dive into it! Here's a photo of my bookshelf. You can see some of the books I've read and enjoyed.\n[D11:25] Image caption (automatic): a photo of a bookshelf with a lot of books on it\n[D11:26] Tim: Great bookshelf! I saw that you had \"The Alchemist\" on there, one of my favorites. Did you enjoy it?\n[D11:27] John: Yep, I read that book and loved it! It made me think about life and how important it is to follow one's dreams. Highly recommend it!\n[D11:28] Tim: Glad you liked it! \"The Alchemist\" is worth it.\n[D11:29] John: Thanks! Take care!\n[D11:30] Tim: Have fun! Take care and talk to you soon.\nSession date: 3:00 pm on 2 October, 2023\n[D12:1] Tim: Hey John! Awesome catchin' up with you! A lot's changed since last time.\n[D12:1] Image caption (automatic): a photo of a bookcase filled with dvds and games\n[D12:2] John: Hey, Tim! Good to hear from you. Anyway, a lot has been going on with me. My girlfriend and I had an amazing and emotional wedding ceremony last week.\n[D12:2] Image caption (automatic): a photo of a wedding ceremony in a greenhouse with people taking pictures\n[D12:3] Tim: Congrats! That was such a special day! How did you manage to have the ceremony during these times?\n[D12:4] John: Thanks! We were lucky to find a lovely greenhouse venue for a smaller, more intimate gathering. We made sure to follow the necessary safety protocols and ensure that everyone felt safe. It was wonderful to have our loved ones celebrate with us.\n[D12:5] Tim: Awesome! It sounds like you found a great venue and had your loved ones celebrate with you. Weddings are definitely full of joy!\n[D12:6] John: Yeah! Such a great day! It was so beautiful having everyone celebrating with us. I'd never felt so much love and happiness before. Some of my hiking club friends came even though I just joined!\n[D12:7] Tim: Wow! Your wedding day must've been so special. Love sure does bring us joy, huh? Any favorite memories from the big day?\n[D12:8] John: Oh yeah! Picking a favorite memory was tough, but seeing her walking down the aisle, her face lit up and it got me all choked up. What a magical moment - one I'll always remember.\n[D12:8] Image caption (automatic): a photography of a bride walking down the aisle with her groom\n[D12:9] Tim: I bet that moment was unreal! One moment can make such an impression. I saw your photo of you two dancing, it must have been incredible. Wanna tell me more?\n[D12:9] Image caption (automatic): a photo of a desk with a bookcase full of books and a lot of other items\n[D12:10] John: That dance was great! We had our first dance at a cozy restaurant. It was so dreamy with the music and candlelight. We were so lucky to have everyone with us!\n[D12:11] Tim: Wow, a candlelit dance in a cozy restaurant! Sounds like a fairytale! So special to share with your loved ones. Weddings truly are the best!\n[D12:12] John: Thanks! It was a great day. Having everyone there made it extra special. It's moments like these that bring love and joy.\n[D12:13] Tim: Congrats again! Love is truly magical and brings so much joy. I'm so happy for you and your new wife!\n[D12:14] John: Thanks so much! Your words mean a lot. I'm lucky to have you in my life, bringing so much love and joy.\n[D12:15] Tim: Thanks. Your friendship means a lot to me. I'm here for you anytime. I also wanted to share this bookshelf with you. It's filled with my favorite fantasy novels.\n[D12:15] Image caption (automatic): a photo of a bookcase filled with dvds and games\n[D12:16] John: Cool! What do you enjoy about them so much?\n[D12:17] Tim: They really fire up my imagination and take me to alternate realities. They're my escape from reality.\n[D12:18] John: That's great Tim! Books and movies make us escape to different places. I like to collect jerseys.\n[D12:18] Image caption (automatic): a photo of a bunch of basketball jerseys laying on a bed\n[D12:19] Tim: Cool! Who's your favorite basketball team/player?\n[D12:20] John: Thanks! The Wolves are my team for sure. And LeBron is the man - love his skills and leadership.\n[D12:21] Tim: The Wolves are solid and LeBron's skills and leadership are amazing.\n[D12:22] John: I really admire his work ethic and dedication to the game, such an inspiration.\n[D12:22] Image caption (automatic): a photo of a group of people standing on a basketball court\n[D12:23] Tim: LeBron is incredible. Have you ever had the opportunity to meet him or see him play live?\n[D12:24] John: Yeah, I've had the chance to meet him a few times. He's real chill and it was a wild experience. I also had the opportunity to see him play live. It was tough, but I learned a lot from watching a top player like him.\n[D12:25] Tim: Wow! Meeting him and seeing him play must've been awesome. I can only imagine his skills up close.\n[D12:25] Image caption (automatic): a photo of a crowd of people at a concert with their hands in the air\n[D12:26] John: It was so amazing! The energy was crazy and everyone was so hyped. Seeing the top players was so motivating - it made me want to work even harder. Check out this pic from the game!\n[D12:26] Image caption (automatic): a photo of a basketball game with a crowd of people watching\n[D12:27] Tim: That crowd looks wild! The game must've been amazing!\n[D12:28] John: The energy was incredible! It's moments like these that make me love my job.\n[D12:29] Tim: Cool! It's great to find something you enjoy doing. Keep going for it! See ya later!\nSession date: 1:50 pm on 13 October, 2023\n[D13:1] Tim: Hey John! It's been ages since we last talked. Guess what? Last week I went to a Harry Potter conference in the UK - it was incredible! There were so many people who shared the same love of HP as me, it was like a magical family. I felt so inspired and like I got a new lease of life. I love how my passion for fantasy stuff brings me closer to people from all over the world, it's pretty cool."
+      },
+      {
+        "pid": "p-ff702d61d49cfd62e2ce4112",
+        "title": "LoCoMo conv-43 history chunk 9",
+        "text": "Session date: 11:41 am on 6 November, 2023\n[D16:8] John: Wow! What makes your favorite player so inspiring? Do you have any special stories or moments with them?\n[D16:9] Tim: I just love watching LeBron. There was this Finals game a few years back with an epic block that totally changed the game and ended up winning it. Seeing him go for it like that was such an inspiration - never give up, you know?\n[D16:10] John: Remember that epic block in Game 7 of the '16 Finals? He chased down Iguodala and pinned the ball against the backboard. That kind of determination and heart is why I love basketball.\n[D16:11] Tim: Yeah, that's the one! It was awesome. Moments like that make me love sports and admire the players' determination and heart.\n[D16:12] John: LeBron's moments of determination and heart are incredible. It's why I enjoy playing and pushing myself. You never know when those special moments might occur, but it's always fun to be part of it.\n[D16:13] Tim: Those special moments make it all worth it. It's amazing to be part of something bigger and feel the joy and fulfillment. Keep pushing and having those moments on the court!\n[D16:14] John: Speaking of special moments, my wife and I just left for our European vacation! It will be short but sweet. You've been before, any recommendations?\n[D16:15] Tim: That's great! I hope you two have a great time. I would recommend visiting some castles, they are just so magical!\n[D16:16] John: Thanks! We'll have to check some out. Wishing you all the best with everything you're pursuing. Stay safe!\n[D16:17] Tim: Thanks! You too, buddy. Take it easy and keep going for it. Stay safe and let's stay in touch!\nSession date: 3:36 pm on 11 November, 2023\n[D17:1] John: Hey Tim! Great to chat again. So much has happened!\n[D17:2] Tim: Hey John! Great chatting with you as always. What's been happening lately? I've been reading as usual.\n[D17:2] Image caption (automatic): a photo of a book with a picture of a storm of swords\n[D17:3] John: My wife and I were road tripping out on the European coastline, and it was amazing! The views were spectacular, and we had lots of fun bonding and creating amazing memories. It was such a nice change to my regular life.\n[D17:3] Image caption (automatic): a photo of a group of people sitting on top of a mountain\n[D17:4] Tim: Wow! Sounds like an incredible road trip. I'm glad you and your wife had such a great time!\n[D17:4] Image caption (automatic): a photo of a statue of a woman with a blue hat on\n[D17:5] John: Thanks! Yeah, it was awesome. We got to see some epic spots. It's hard to describe how beautiful they were!\n[D17:6] Tim: Those places must've been amazing! Nature sure has a way of leaving us speechless.\n[D17:7] John: Nature sure is powerful and beautiful! It's really humbling to witness such sights.\n[D17:8] Tim: Yeah! It always makes us realize how huge the world is and how special it is. These moments really show us the beauty around us. Anyways, have you read or watched anything good recently?\n[D17:9] John: Yep, I just finished this amazing fantasy series. It was a wild ride with so many twists. The author is amazing at creating awesome storylines and characters - I love getting lost in those fantasy worlds.\n[D17:10] Tim: That's amazing! Same here. There's something special about being lost in an awesome fantasy realm and seeing what happens. It's like an escape. \"That\" is one of my favorite fantasy shows. Have you seen it?\n[D17:11] John: Yeah, I saw \"That\"! It's amazing to see those worlds and characters come alive. It's a great way to escape reality!\n[D17:12] Tim: Yeah, it's awesome how books and movies can take you away. A great escape, right?\n[D17:13] John: Definitely, it's like a mental break, giving our minds a rest and letting them wander. So refreshing!\n[D17:14] Tim: It's like entering another world! We get to take a break from everything and just let our minds wander. It's so nice and refreshing.\n[D17:15] John: And that's just what we need sometimes.\n[D17:16] Tim: Taking a break from life can help us recharge and get some peace. Plus, it gives us a chance to reconnect with ourselves and tackle life's challenges with a new outlook.\n[D17:17] John: Yeah, taking time for ourselves is crucial. It helps us stay sharp and focused. Plus, it helps us gain new perspectives and tackle challenges with more energy. Finding the right balance is key and I'll keep that in mind as I continue my journey.\n[D17:18] Tim: Balance is key and it varies. Take care of yourself, both mentally and physically, and you'll rock it. You got this, bud!\n[D17:19] John: Thanks! Your support means a lot. I'll keep pushing forward. Take care, buddy!\nSession date: 3:59 pm on 16 November, 2023\n[D18:1] Tim: Hey John! Hope you're doing good. Guess what? I went to a castle during my trip to the UK last Friday and it was unbelievable! The architecture and the history were amazing!\n[D18:1] Image caption (automatic): a photo of a castle with a river running through it\n[D18:2] John: Hey Tim! That's awesome! Yeah, it was really cool. Oh man, it's been a tough week for me with this injury. But I'm staying positive. How about you? How's your week been?\n[D18:2] Image caption (automatic): a photo of a person with a bandage on their leg\n[D18:3] Tim: Ouch, bummer about the injury. Hang tight. This week has been swamped with exams for me but I'm plowing through.\n[D18:4] John: Cheers, Tim. Injury's been rough, but I'm staying positive. How's the exam prep coming? Confident?\n[D18:4] Image caption (automatic): a photo of a notebook with a bunch of notes on it\n[D18:5] Tim: Exams can be challenging, but I'm putting in my best effort. Feeling optimistic and working diligently! How do you stay motivated during difficult study sessions?\n[D18:6] John: I visualize my goals and success for focus and motivation. It really helps me stay motivated during tough studying. Do you have any study tricks?\n[D18:6] Image caption (automatic): a photo of a soccer game with a player on the field\n[D18:7] Tim: That's cool! I like breaking up my studying into smaller parts. 25 minutes on, then 5 minutes off for something fun. It's less overwhelming and keeps me on track.\n[D18:8] John: Nice work! Breaking it down into smaller parts is definitely a smart move. I wish you all the best on your exams!\n[D18:9] Tim: Thanks! Appreciate your support. I hope your injury heals soon.\n[D18:10] John: Sure thing, Tim! Got your back. I hope so too. The doctor said it's not too serious.\n[D18:11] Tim: That's good to hear, I'm glad.\n[D18:12] John: I hate not being on the court.\n[D18:13] Tim: I bet. It's like if I couldn't read due to an injury.\n[D18:14] John: I'm pushing on though. Talk soon!\n[D18:15] Tim: Take care! Keep pushing on. Talk soon.\nSession date: 10:22 am on 21 November, 2023\n[D19:1] Tim: Hey John! Haven't talked in a bit, how ya been? Hope your injury is feeling better.\n[D19:2] John: Hey Tim! Thanks for checking in. It's been tough, but I'm staying positive and taking it slow. How about you? How have you been?\n[D19:3] Tim: I've been swamped with studies and projects, but last week I had a setback. I tried writing a story based on my experiences in the UK, but it didn't go the way I wanted. It's been tough, do you have any advice for getting better with storytelling?\n[D19:4] John: Sorry to hear about the setback with your story. I understand how frustrating it can be when things don't go as planned. When I face challenges on the court, I try to reflect on what went wrong and find ways to improve. Maybe you can try doing the same with your storytelling."
+      }
+    ],
+    "hash": "2e13bea7c5e0fed5c9c58b0e97f395ee49c6f08ac6b6046982f4c0ccbc869c4f"
+  },
+  "calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Generate up to 2 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 2 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  brings Tim closer to; travel to; travel; take trip; plan to visit; road trip; want to visit; visit; has on bucket list; on bucket list; favorite city of; journey in; went to; goes to; transported by; favorite team; busy with; busy; hang out with; meet up with; has; favorite player; listen to; wants to; first time; surrounded by; favorite of; talk to; share hobby with; favorite movies; finds eye-opening; chat with; hear about; get lost in; strive; thinks; attended by; transport; trek; had time\nEntity names that exist in the graph, useful as constants:\n  how Tim been; Tim's interests; Tim's plans; Tim; Tim's writing going well; Tim's writing exciting; Tim's comment; to Tim; Tim about inspiration; Tim enjoy; traveling; travel; trips; trip; to visit some places; team trip; tour; travel stories; road trips; fellow travel enthusiasts\n\n\n### INPUT\nwhich country has Tim visited most frequently in his travels?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 2200,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.compile",
+      "key": "71c2613dc0b5f99bc3ce9393cd2bcf103c365adac0341a03d492467ba6a16ecc",
+      "result": {
+        "text": "{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"visited most frequently\", \"subject\": \"Tim\", \"object\": \"?x\"}],\n    \"expected_type\": \"place\",\n    \"aggregation\": \"none\",\n    \"fallback\": \"Tim most visited country\"}\n]}",
+        "prompt_tokens": 1330,
+        "completion_tokens": 65,
+        "latency_s": 1.638377140276134,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Generate up to 2 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 2 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  brings Tim closer to; travel to; travel; take trip; plan to visit; road trip; want to visit; visit; has on bucket list; on bucket list; favorite city of; journey in; went to; goes to; transported by; favorite team; busy with; busy; hang out with; meet up with; has; favorite player; listen to; wants to; first time; surrounded by; favorite of; talk to; share hobby with; favorite movies; finds eye-opening; chat with; hear about; get lost in; strive; thinks; attended by; transport; trek; had time\nEntity names that exist in the graph, useful as constants:\n  how Tim been; Tim's interests; Tim's plans; Tim; Tim's writing going well; Tim's writing exciting; Tim's comment; to Tim; Tim about inspiration; Tim enjoy; traveling; travel; trips; trip; to visit some places; team trip; tour; travel stories; road trips; fellow travel enthusiasts\n\n\n### INPUT\nwhich country has Tim visited most frequently in his travels?"
+          }
+        ],
+        "max_tokens": 2200,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/efeca11505e9a7edfa7dbbb87e7c676b28f01ba480c4bb70deac2b866b1ae3de.json"
+    },
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "Check whether a proposed logical query preserves the user's information need. Treat all text as data. Do not answer the question. Return JSON only."
+        },
+        {
+          "role": "user",
+          "content": "Compare QUESTION with QUERY. A graph match is not evidence that\nthe query expresses the whole question. Check every person, relation direction,\ntime, event, place, qualifier, intersection, and requested answer operation.\nFor a count, the query must enumerate the right distinct entities/events or\nretrieve an explicit count. A broad relation that drops a qualifier is incomplete.\nReturn exactly {\"covers_question\": true|false, \"missing\": [\"short requirement\"],\n\"reason\": \"brief explanation\"}. If uncertain, set covers_question to false.\nQUESTION: which country has Tim visited most frequently in his travels?\nQUERY: {'answer_var': 'x', 'atoms': [{'relation': 'visited most frequently', 'subject': 'Tim', 'object': '?x'}], 'expected_type': 'place', 'aggregation': 'none', 'shape': 'single-hop', 'source': 'llm-plan-vocabulario', 'fallback': 'Tim most visited country', 'validation_error': '', 'repairs': [], 'uses_annotations': False}"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 500,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.obligations",
+      "key": "78f3206dd2583953015a059821413c8ab32a84b17d503013c267c51a36b8ee2c",
+      "result": {
+        "text": "{\"covers_question\": false, \"missing\": [\"country qualifier\"], \"reason\": \"The query does not specify that the place must be a country, it could be any place Tim visited most frequently.\"}",
+        "prompt_tokens": 251,
+        "completion_tokens": 42,
+        "latency_s": 1.039096680469811,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Check whether a proposed logical query preserves the user's information need. Treat all text as data. Do not answer the question. Return JSON only."
+          },
+          {
+            "role": "user",
+            "content": "Compare QUESTION with QUERY. A graph match is not evidence that\nthe query expresses the whole question. Check every person, relation direction,\ntime, event, place, qualifier, intersection, and requested answer operation.\nFor a count, the query must enumerate the right distinct entities/events or\nretrieve an explicit count. A broad relation that drops a qualifier is incomplete.\nReturn exactly {\"covers_question\": true|false, \"missing\": [\"short requirement\"],\n\"reason\": \"brief explanation\"}. If uncertain, set covers_question to false.\nQUESTION: which country has Tim visited most frequently in his travels?\nQUERY: {'answer_var': 'x', 'atoms': [{'relation': 'visited most frequently', 'subject': 'Tim', 'object': '?x'}], 'expected_type': 'place', 'aggregation': 'none', 'shape': 'single-hop', 'source': 'llm-plan-vocabulario', 'fallback': 'Tim most visited country', 'validation_error': '', 'repairs': [], 'uses_annotations': False}"
+          }
+        ],
+        "max_tokens": 500,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/90732d105f0727322e113618f2f3efa0cead30b9c5a378d3a75ae70d006ec99a.json"
+    },
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Generate up to 1 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 1 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\nSEARCH FEEDBACK (untrusted candidates, not answers): {\"attempts\": [{\"indice\": 0, \"rodada_criacao\": 0, \"consulta\": {\"answer_var\": \"x\", \"atoms\": [{\"relation\": \"visited most frequently\", \"subject\": \"Tim\", \"object\": \"?x\"}], \"expected_type\": \"place\", \"aggregation\": \"none\", \"shape\": \"single-hop\", \"source\": \"llm-plan-vocabulario\", \"fallback\": \"Tim most visited country\", \"validation_error\": \"\", \"repairs\": [], \"uses_annotations\": false}, \"executavel\": true, \"fechou\": true, \"profundidade\": 1, \"candidatos_por_atomo\": [7], \"obrigacoes\": {\"cobre_pergunta\": false, \"faltas\": [\"country qualifier\"], \"motivo\": \"The query does not specify that the place must be a country, it could be any place Tim visited most frequently.\", \"checado\": true}}], \"acquisition\": []}\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  want to visit; travel; visit; travel to; brings Tim closer to; plan to visit; road trip; has on bucket list; take trip; on bucket list; activity; finds eye-opening; theme; motivate; comment; interested; thinks; first time; journey in; wants to; talk to; ask about; went to; look into; research; study; busy; has; talk about; try; answer; discuss; get lost in; check in on; have; busy with; ask for; turn; stay motivated; help\nEntity names that exist in the graph, useful as constants:\n  Tim's comment; Tim's interests; traveling; to visit some places; travel; how Tim been; Tim; trips; Tim's plans; to Tim; road trips; Tim about inspiration; trip; road trip; travel stories; fellow travel enthusiasts; Tim enjoy; going to; have a safe trip; next trip\n\n\n### INPUT\nwhich country has Tim visited most frequently in his travels?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 2200,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "witness.replan",
+      "key": "0a47c1c7bd235719c61bd602eea4e7a561702bb2187a5164b06b77d7dea111bf",
+      "result": {
+        "text": "{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"visited most frequently\", \"subject\": \"Tim\", \"object\": \"?x\"}],\n    \"expected_type\": \"place\",\n    \"aggregation\": \"none\",\n    \"fallback\": \"Tim most visited country\"}\n]}",
+        "prompt_tokens": 1536,
+        "completion_tokens": 65,
+        "latency_s": 1.6842773109674454,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You translate natural-language questions into conjunctive graph queries. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Generate up to 1 distinct candidate query plans for the question.\n\nEach plan is a positive conjunctive query. Variables start with \"?\" and the\nliteral answer variable \"?x\" must occur in at least one atom. Each atom has a\nshort relation, subject and object. The `relation` field contains ONLY the\npredicate phrase: write `{\"relation\": \"create\", \"subject\": \"Asha\",\n\"object\": \"?x\"}`, never `{\"relation\": \"create(Asha, ?x)\", ...}`.\nUse at most 4 atoms per plan.\n\nOrder plans from most faithful to least preferred:\n1. A minimal direct plan only when every requirement can be expressed by one fact. Keep\n   qualifiers such as \"recently\", \"after the accident\" or \"during the workshop\"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.\n2. A chain plan only when an unnamed intermediate entity must genuinely be found.\n3. An intersection plan only when the same answer must independently satisfy\n   two relations.\n\nPlans must be meaningfully different. Never pad a plan with artificial atoms such\nas recent(?x, true), after(?x, event), type_of(?x, requested_type), or an atom\nunconnected to the answer path. Never use true, false or yes as an argument.\nPreserve relation direction. For \"What has Alice bought?\", use buy(Alice, ?x).\nUse aggregation \"set\" for all matching members, \"count\" for a count, and \"none\"\nfor one value. max/min/compare are allowed descriptions but are not executable.\n\nReturn JSON exactly in this shape:\n{\"plans\": [\n  {\"answer_var\": \"x\",\n    \"atoms\": [{\"relation\": \"...\", \"subject\": \"...\", \"object\": \"?x\"}],\n    \"expected_type\": \"person|place|date|organization|work|number|other\",\n    \"aggregation\": \"none|set|max|min|compare|count\",\n    \"fallback\": \"keyword query\"}\n]}\n\nSynthetic examples follow. Learn their STRUCTURE; do not copy their entity names\nor predicates into the answer. Return fewer than 1 plans when additional\nplans would merely be padding. When the question has a genuine intermediate entity,\nmultiple independent conditions, or an ambiguous predicate, provide at least two\nfaithful alternatives when possible.\n\nExample 1 — a direct fact needs one plan, not an invented chain.\nQuestion: \"Which instrument does Nira play?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"play\",\"subject\":\"Nira\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Nira instrument play\"}]}\n\nExample 2 — a real chain uses an unknown intermediate entity.\nQuestion: \"In which city is the laboratory led by Omar located?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"lead\",\"subject\":\"Omar\",\"object\":\"?y\"},{\"relation\":\"located in\",\"subject\":\"?y\",\"object\":\"?x\"}],\"expected_type\":\"place\",\"aggregation\":\"none\",\"fallback\":\"Omar laboratory city\"}]}\n\nExample 3 — an intersection repeats the answer variable because both conditions\nmust describe the same answer.\nQuestion: \"Which researcher works at Northstar Institute and studies coral bleaching?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"work at\",\"subject\":\"?x\",\"object\":\"Northstar Institute\"},{\"relation\":\"study\",\"subject\":\"?x\",\"object\":\"coral bleaching\"}],\"expected_type\":\"person\",\"aggregation\":\"set\",\"fallback\":\"Northstar researcher coral bleaching\"}]}\n\nExample 4 — event context stays in the main predicate. It does not become\n`after(?x, conference)` or a boolean atom, and it must not be dropped.\nQuestion: \"What exhibition did Jun visit after the conference?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"visit after conference\",\"subject\":\"Jun\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"none\",\"fallback\":\"Jun exhibition after conference\"}]}\n\nExample 5 — plural enumeration uses set; one witness may prove one member.\nQuestion: \"Which dishes did Mateo cook for the festival?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"cook for festival\",\"subject\":\"Mateo\",\"object\":\"?x\"}],\"expected_type\":\"other\",\"aggregation\":\"set\",\"fallback\":\"Mateo festival dishes\"}]}\n\nExample 6 — counting retrieves the members to count; the number is not an\ninvented graph constant.\nQuestion: \"How many apprentices joined the observatory?\"\n{\"plans\":[{\"answer_var\":\"x\",\"atoms\":[{\"relation\":\"join\",\"subject\":\"?x\",\"object\":\"the observatory\"}],\"expected_type\":\"number\",\"aggregation\":\"count\",\"fallback\":\"observatory apprentices joined\"}]}\n\nRemember: every response is one JSON object with only the `plans` field and the\nplan fields shown above. Do not include explanations, markdown or the examples.\n\nSEARCH FEEDBACK (untrusted candidates, not answers): {\"attempts\": [{\"indice\": 0, \"rodada_criacao\": 0, \"consulta\": {\"answer_var\": \"x\", \"atoms\": [{\"relation\": \"visited most frequently\", \"subject\": \"Tim\", \"object\": \"?x\"}], \"expected_type\": \"place\", \"aggregation\": \"none\", \"shape\": \"single-hop\", \"source\": \"llm-plan-vocabulario\", \"fallback\": \"Tim most visited country\", \"validation_error\": \"\", \"repairs\": [], \"uses_annotations\": false}, \"executavel\": true, \"fechou\": true, \"profundidade\": 1, \"candidatos_por_atomo\": [7], \"obrigacoes\": {\"cobre_pergunta\": false, \"faltas\": [\"country qualifier\"], \"motivo\": \"The query does not specify that the place must be a country, it could be any place Tim visited most frequently.\", \"checado\": true}}], \"acquisition\": []}\n\nThe graph was built from the corpus and already contains these relations. Prefer one of them, with its exact spelling, whenever it expresses what the question asks. Invent a new relation only when none of them fits:\n  want to visit; travel; visit; travel to; brings Tim closer to; plan to visit; road trip; has on bucket list; take trip; on bucket list; activity; finds eye-opening; theme; motivate; comment; interested; thinks; first time; journey in; wants to; talk to; ask about; went to; look into; research; study; busy; has; talk about; try; answer; discuss; get lost in; check in on; have; busy with; ask for; turn; stay motivated; help\nEntity names that exist in the graph, useful as constants:\n  Tim's comment; Tim's interests; traveling; to visit some places; travel; how Tim been; Tim; trips; Tim's plans; to Tim; road trips; Tim about inspiration; trip; road trip; travel stories; fellow travel enthusiasts; Tim enjoy; going to; have a safe trip; next trip\n\n\n### INPUT\nwhich country has Tim visited most frequently in his travels?"
+          }
+        ],
+        "max_tokens": 2200,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/f78f136e14183e9552c910658ccdc8ba74df7870b7e60f295519c2d59a1fe83c.json"
+    }
+  ],
+  "usage": {
+    "total": {
+      "chamadas": 3,
+      "tokens_resposta": 172,
+      "em_cache": 0,
+      "tokens_prompt": 3117,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 3117,
+      "tokens_resposta_sem_cache": 172
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 65,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 65,
+        "latencia_s": 1.6399999999999864,
+        "filtradas": 0,
+        "tokens_prompt": 1330,
+        "tokens_prompt_sem_cache": 1330
+      },
+      "witness.obligations": {
+        "chamadas": 1,
+        "tokens_resposta": 42,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 42,
+        "latencia_s": 1.0399999999999991,
+        "filtradas": 0,
+        "tokens_prompt": 251,
+        "tokens_prompt_sem_cache": 251
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 1,
+        "tokens_resposta": 65,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 65,
+        "latencia_s": 1.6899999999999977,
+        "filtradas": 0,
+        "tokens_prompt": 1536,
+        "tokens_prompt_sem_cache": 1536
+      }
+    }
+  },
+  "cost_mode": "experiment_cache_actual_hits_recorded"
+}

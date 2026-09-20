@@ -1,0 +1,831 @@
+{
+  "qid": "locomo:conv-41:qa60",
+  "dataset": "locomo",
+  "metodo": "witnessrag",
+  "pergunta": "What are Maria's dogs' names?",
+  "respostas_ouro": [
+    "Coco, Shadow"
+  ],
+  "passagens_ouro": [
+    "p-91fc8b6c7282dcec49a36e08"
+  ],
+  "n_hops": 1,
+  "n_hops_fonte": "support_count_proxy",
+  "tipo": "multi-hop",
+  "recuperadas": [
+    "p-91fc8b6c7282dcec49a36e08",
+    "p-4e5b8de3655d0e2f0ed4dd8b",
+    "p-657bbc2788e03231e8bb9fce",
+    "p-e9964abc6d305cb0cf720d25",
+    "p-328bcf329862181ed3f8411f"
+  ],
+  "scores": [
+    1.0,
+    0.5,
+    0.333333,
+    0.25,
+    0.2
+  ],
+  "resposta": "Coco, Shadow",
+  "em": 1.0,
+  "f1": 1.0,
+  "recall@2": 1.0,
+  "recall@5": 1.0,
+  "all_recall@5": 1.0,
+  "cobertura_testemunha": NaN,
+  "cobertura_extremos_relaxada": NaN,
+  "em_estrutural": 0.0,
+  "testemunha_no_contexto": true,
+  "abstencao": false,
+  "risco": 0.5495,
+  "risco_bruto": 0.5495,
+  "forma_consulta": "chain",
+  "resposta_estrutural": "Coco, Shadow, Kyle, Maria, Rob, Max, John, made difference, needs and hopes of our neighborhood, education",
+  "filtrada": false,
+  "latencia_recuperacao_s": 12.779,
+  "latencia_leitura_s": 2.213,
+  "diagnosticos": {
+    "consulta": {
+      "answer_var": "x",
+      "atoms": [
+        {
+          "relation": "name",
+          "subject": "?y",
+          "object": "?x"
+        },
+        {
+          "relation": "dog of",
+          "subject": "?y",
+          "object": "Maria"
+        }
+      ],
+      "expected_type": "other",
+      "aggregation": "set",
+      "shape": "chain",
+      "source": "llm-replan-vocabulario",
+      "fallback": "Maria dogs names",
+      "validation_error": "",
+      "repairs": [],
+      "uses_annotations": false
+    },
+    "forma": "chain",
+    "planos_compilados": [
+      {
+        "indice": 0,
+        "rodada_criacao": 0,
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "name",
+              "subject": "?y",
+              "object": "?x"
+            }
+          ],
+          "expected_type": "other",
+          "aggregation": "set",
+          "shape": "single-hop",
+          "source": "llm-plan-vocabulario",
+          "fallback": "Maria dogs names",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false
+        },
+        "executavel": true,
+        "fechou": true,
+        "profundidade": 1,
+        "candidatos_por_atomo": [
+          44
+        ],
+        "obrigacoes": {
+          "cobre_pergunta": false,
+          "faltas": [
+            "Maria's ownership",
+            "dog relation"
+          ],
+          "motivo": "The query does not specify that the names are of Maria's dogs; it lacks the relation connecting Maria to the dogs and the ownership condition.",
+          "checado": true
+        }
+      },
+      {
+        "indice": 1,
+        "rodada_criacao": 0,
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "dog of",
+              "subject": "?x",
+              "object": "Maria"
+            }
+          ],
+          "expected_type": "other",
+          "aggregation": "set",
+          "shape": "single-hop",
+          "source": "llm-plan-vocabulario",
+          "fallback": "Maria dogs names",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false
+        },
+        "executavel": true,
+        "fechou": true,
+        "profundidade": 1,
+        "candidatos_por_atomo": [
+          5
+        ],
+        "obrigacoes": {
+          "cobre_pergunta": false,
+          "faltas": [
+            "names of Maria's dogs"
+          ],
+          "motivo": "The query retrieves dogs of Maria but does not specify retrieving their names.",
+          "checado": true
+        }
+      },
+      {
+        "indice": 2,
+        "rodada_criacao": 1,
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "name",
+              "subject": "?y",
+              "object": "?x"
+            },
+            {
+              "relation": "dog of",
+              "subject": "?y",
+              "object": "Maria"
+            }
+          ],
+          "expected_type": "other",
+          "aggregation": "set",
+          "shape": "chain",
+          "source": "llm-replan-vocabulario",
+          "fallback": "Maria dogs names",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false
+        },
+        "executavel": true,
+        "fechou": true,
+        "profundidade": 2,
+        "candidatos_por_atomo": [
+          44,
+          5
+        ],
+        "obrigacoes": {
+          "cobre_pergunta": true,
+          "faltas": [],
+          "motivo": "The query correctly identifies Maria's dogs by their names, matching the user's information need.",
+          "checado": true
+        }
+      }
+    ],
+    "plano_escolhido": 2,
+    "planejamento": {
+      "orcamento_planos": 5,
+      "planos_distintos": 3,
+      "chamadas": 3,
+      "replanejamentos": 2
+    },
+    "risco": 0.5495,
+    "risco_bruto": 0.5495,
+    "n_testemunhas": 20,
+    "agregacao_executada": "set",
+    "resposta_estrutural": "Coco, Shadow, Kyle, Maria, Rob, Max, John, made difference, needs and hopes of our neighborhood, education",
+    "testemunha_no_contexto": true,
+    "ordem_fallback_preservada": false,
+    "contexto_alterado_pelo_witness": true,
+    "risco_calibrado": false,
+    "empacotamento": {
+      "provas_selecionadas": [
+        {
+          "resposta": "Coco",
+          "passagens": [
+            "p-91fc8b6c7282dcec49a36e08"
+          ]
+        },
+        {
+          "resposta": "Max",
+          "passagens": [
+            "p-91fc8b6c7282dcec49a36e08"
+          ]
+        },
+        {
+          "resposta": "sponsors",
+          "passagens": [
+            "p-91fc8b6c7282dcec49a36e08"
+          ]
+        },
+        {
+          "resposta": "Shadow",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b",
+            "p-91fc8b6c7282dcec49a36e08"
+          ]
+        },
+        {
+          "resposta": "Rob",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b"
+          ]
+        },
+        {
+          "resposta": "John",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b"
+          ]
+        },
+        {
+          "resposta": "education",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b"
+          ]
+        },
+        {
+          "resposta": "infrastructure",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b"
+          ]
+        },
+        {
+          "resposta": "a photography of a painting of a castle on a hill",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b"
+          ]
+        },
+        {
+          "resposta": "people",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b"
+          ]
+        },
+        {
+          "resposta": "support system",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b"
+          ]
+        },
+        {
+          "resposta": "Maria",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b",
+            "p-657bbc2788e03231e8bb9fce"
+          ]
+        },
+        {
+          "resposta": "Kyle",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b",
+            "p-e9964abc6d305cb0cf720d25"
+          ]
+        },
+        {
+          "resposta": "needs and hopes of our neighborhood",
+          "passagens": [
+            "p-e9964abc6d305cb0cf720d25"
+          ]
+        },
+        {
+          "resposta": "tattoo",
+          "passagens": [
+            "p-e9964abc6d305cb0cf720d25"
+          ]
+        },
+        {
+          "resposta": "work",
+          "passagens": [
+            "p-e9964abc6d305cb0cf720d25"
+          ]
+        },
+        {
+          "resposta": "tough times",
+          "passagens": [
+            "p-e9964abc6d305cb0cf720d25"
+          ]
+        },
+        {
+          "resposta": "since last talk",
+          "passagens": [
+            "p-e9964abc6d305cb0cf720d25"
+          ]
+        },
+        {
+          "resposta": "family",
+          "passagens": [
+            "p-e9964abc6d305cb0cf720d25"
+          ]
+        },
+        {
+          "resposta": "made difference",
+          "passagens": [
+            "p-328bcf329862181ed3f8411f",
+            "p-e9964abc6d305cb0cf720d25"
+          ]
+        }
+      ],
+      "respostas_cobertas": 20,
+      "passagens_de_prova": 5
+    },
+    "classe_prova": "full",
+    "leitura_provas": {
+      "hipoteses": "Candidate 1: Coco\n  [1] Coco | dog | Maria\n  [1] Coco | name | Coco\nCandidate 2: Shadow\n  [2] Maria | child of | Maria\n  [1] Maria | name | Shadow\nCandidate 3: Kyle\n  [4] John | friend of | Maria\n  [2] John | name | Kyle\nCandidate 4: Maria\n  [2] Maria | child of | Maria\n  [3] Maria | name | Maria",
+      "grau": "full",
+      "condicoes_pendentes": []
+    },
+    "pesquisa_provas": {
+      "buscas_dirigidas": 1,
+      "replanejamentos": 2,
+      "rejeicoes": 0,
+      "fronteira": [
+        "p-657bbc2788e03231e8bb9fce",
+        "p-91fc8b6c7282dcec49a36e08",
+        "p-328bcf329862181ed3f8411f",
+        "p-5f84e68d6716c8499bae27da",
+        "p-ef05274538e61df63961e7a6",
+        "p-5caabaa9d0a7b418ae086837",
+        "p-e9964abc6d305cb0cf720d25",
+        "p-4e5b8de3655d0e2f0ed4dd8b",
+        "p-26157e28367c3b2c6852dd48",
+        "p-0f747fcc2878c0ae9b35f93f"
+      ],
+      "sondas": [
+        "What are Maria's dogs' names?",
+        "name",
+        "dog of Maria",
+        "Maria dogs names"
+      ],
+      "acoes": [
+        {
+          "plano": 2,
+          "lacuna": {
+            "atomo": {
+              "relation": "name",
+              "subject": "?y",
+              "object": "?x"
+            },
+            "sujeito_ligado": "",
+            "objeto_ligado": "",
+            "profundidade": 0
+          },
+          "passagens": [
+            "p-657bbc2788e03231e8bb9fce",
+            "p-91fc8b6c7282dcec49a36e08",
+            "p-4e5b8de3655d0e2f0ed4dd8b"
+          ],
+          "fatos_novos": 7
+        }
+      ]
+    },
+    "respostas": [
+      {
+        "resposta": "Coco",
+        "score": 0.6484,
+        "score_tipo": "melhor_testemunha_heuristico",
+        "risco_calibrado": false,
+        "risco": 0.5495,
+        "risco_bruto": 0.5495,
+        "n_testemunhas": 1,
+        "testemunhas": [
+          {
+            "resposta": "Coco",
+            "score": 0.8005,
+            "custo": 0.3725,
+            "passagens": [
+              "p-91fc8b6c7282dcec49a36e08"
+            ],
+            "fatos": [
+              [
+                "Coco",
+                "dog",
+                "Maria"
+              ],
+              [
+                "Coco",
+                "name",
+                "Coco"
+              ]
+            ]
+          }
+        ]
+      }
+    ],
+    "conjunto_resposta": {
+      "resposta": "Coco, Shadow, Kyle, Maria, Rob, Max, John, made difference, needs and hopes of our neighborhood, education",
+      "n_itens": 10,
+      "itens_descartados_por_limite": 10,
+      "completude_certificada": false,
+      "risco_do_pior_item": 0.8623,
+      "itens": [
+        {
+          "resposta": "Coco",
+          "passagens": [
+            "p-91fc8b6c7282dcec49a36e08"
+          ]
+        },
+        {
+          "resposta": "Shadow",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b",
+            "p-91fc8b6c7282dcec49a36e08"
+          ]
+        },
+        {
+          "resposta": "Kyle",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b",
+            "p-e9964abc6d305cb0cf720d25"
+          ]
+        },
+        {
+          "resposta": "Maria",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b",
+            "p-657bbc2788e03231e8bb9fce"
+          ]
+        },
+        {
+          "resposta": "Rob",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b"
+          ]
+        },
+        {
+          "resposta": "Max",
+          "passagens": [
+            "p-91fc8b6c7282dcec49a36e08"
+          ]
+        },
+        {
+          "resposta": "John",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b"
+          ]
+        },
+        {
+          "resposta": "made difference",
+          "passagens": [
+            "p-328bcf329862181ed3f8411f",
+            "p-e9964abc6d305cb0cf720d25"
+          ]
+        },
+        {
+          "resposta": "needs and hopes of our neighborhood",
+          "passagens": [
+            "p-e9964abc6d305cb0cf720d25"
+          ]
+        },
+        {
+          "resposta": "education",
+          "passagens": [
+            "p-4e5b8de3655d0e2f0ed4dd8b"
+          ]
+        }
+      ]
+    },
+    "_truncado": true
+  },
+  "uso_llm": {
+    "total": {
+      "chamadas": 10,
+      "tokens_resposta": 514,
+      "em_cache": 0,
+      "tokens_prompt": 22937,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 22937,
+      "tokens_resposta_sem_cache": 514
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 1,
+        "tokens_resposta": 10,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 10,
+        "latencia_s": 2.2100000000000364,
+        "filtradas": 0,
+        "tokens_prompt": 10533,
+        "tokens_prompt_sem_cache": 10533
+      },
+      "witness.acquire": {
+        "chamadas": 3,
+        "tokens_resposta": 100,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 100,
+        "latencia_s": 5.439999999999998,
+        "filtradas": 0,
+        "tokens_prompt": 6497,
+        "tokens_prompt_sem_cache": 6497
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 119,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 119,
+        "latencia_s": 2.9599999999999795,
+        "filtradas": 0,
+        "tokens_prompt": 1344,
+        "tokens_prompt_sem_cache": 1344
+      },
+      "witness.obligations": {
+        "chamadas": 3,
+        "tokens_resposta": 122,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 122,
+        "latencia_s": 3.0600000000000023,
+        "filtradas": 0,
+        "tokens_prompt": 755,
+        "tokens_prompt_sem_cache": 755
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 2,
+        "tokens_resposta": 163,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 163,
+        "latencia_s": 4.210000000000036,
+        "filtradas": 0,
+        "tokens_prompt": 3808,
+        "tokens_prompt_sem_cache": 3808
+      }
+    }
+  },
+  "f1_locomo": 1.0,
+  "em_locomo": 1.0,
+  "categoria_locomo": 1,
+  "uso_leitor": {
+    "total": {
+      "chamadas": 1,
+      "tokens_resposta": 10,
+      "em_cache": 0,
+      "tokens_prompt": 10533,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 10533,
+      "tokens_resposta_sem_cache": 10
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 1,
+        "tokens_resposta": 10,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 10,
+        "latencia_s": 2.2100000000000364,
+        "filtradas": 0,
+        "tokens_prompt": 10533,
+        "tokens_prompt_sem_cache": 10533
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      }
+    }
+  },
+  "uso_recuperacao": {
+    "total": {
+      "chamadas": 9,
+      "tokens_resposta": 504,
+      "em_cache": 0,
+      "tokens_prompt": 12404,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 12404,
+      "tokens_resposta_sem_cache": 504
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.acquire": {
+        "chamadas": 3,
+        "tokens_resposta": 100,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 100,
+        "latencia_s": 5.439999999999998,
+        "filtradas": 0,
+        "tokens_prompt": 6497,
+        "tokens_prompt_sem_cache": 6497
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 119,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 119,
+        "latencia_s": 2.9599999999999795,
+        "filtradas": 0,
+        "tokens_prompt": 1344,
+        "tokens_prompt_sem_cache": 1344
+      },
+      "witness.obligations": {
+        "chamadas": 3,
+        "tokens_resposta": 122,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 122,
+        "latencia_s": 3.0600000000000023,
+        "filtradas": 0,
+        "tokens_prompt": 755,
+        "tokens_prompt_sem_cache": 755
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 2,
+        "tokens_resposta": 163,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 163,
+        "latencia_s": 4.210000000000036,
+        "filtradas": 0,
+        "tokens_prompt": 3808,
+        "tokens_prompt_sem_cache": 3808
+      }
+    }
+  },
+  "reader_calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You answer questions using only the passages provided. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Answer the question using only the source passages below.\n\nThe evidence map lists possible graph joins extracted from those passages. It\nis a navigation aid, not an answer key or a certificate. For each candidate,\ncheck the cited passage text, the direction of every relation, and EVERY\ncondition in the question. Ignore any candidate that fails a condition or is\nnot explicitly supported by its cited passage. The map can omit correct answers:\nalso inspect the passages themselves. Never infer an exact count from a partial\nlist of graph candidates.\n\nGive the shortest complete answer: a name, date, number or short noun phrase.\nFor questions asking for a set, list every distinct supported item, separated\nby commas. If the passages do not contain the answer, say \"insufficient\ninformation\". Return JSON exactly: {\"answer\": \"...\"}\n\nEVIDENCE MAP (full; conditions to verify: none):\nCandidate 1: Coco\n  [1] Coco | dog | Maria\n  [1] Coco | name | Coco\nCandidate 2: Shadow\n  [2] Maria | child of | Maria\n  [1] Maria | name | Shadow\nCandidate 3: Kyle\n  [4] John | friend of | Maria\n  [2] John | name | Kyle\nCandidate 4: Maria\n  [2] Maria | child of | Maria\n  [3] Maria | name | Maria\n\nSOURCE PASSAGES:\n[1] LoCoMo conv-41 history chunk 14\nSession date: 8:06 pm on 9 August, 2023\n[D29:6] John: Thanks, Maria! It means a lot to me. It was hard work - getting sponsors, coordinating with the city, and spreading the word. But seeing everyone come together to support our veterans made it worth it.\n[D29:6] Image caption (automatic): a photo of a map of the streets of downtown\n[D29:7] Maria: Wow, John, that sounds like a lot of effort! Your dedication definitely paid off. Were there any challenges along the way?\n[D29:8] John: Definitely, Maria! Getting sponsors was difficult. I had to reach out to several businesses through different means, but it paid off. We ended up with some awesome sponsors that made the event a hit.\n[D29:8] Image caption (automatic): a photo of a sign on a door that says domestic abuse\n[D29:9] Maria: Wow, John! You really overcame those challenges. Have you done events for any other causes?\n[D29:10] John: Yep, we worked with a local organization that helps victims of domestic abuse. We raised awareness and funds at the event for the cause — it's unfortunate how many people suffer from it.\n[D29:11] Maria: Oof, John, that's really sad. Domestic abuse is horrible. You did great raising awareness and funds. It's important we support the organizations fighting against it.\n[D29:12] John: Thanks, Maria. It's a tough issue, but we've gotta do what we can. It's really wonderful to see people come together for such an important cause.\n[D29:13] Maria: Agree, John! It's great to see community power in action. Let's keep spreading awareness and supporting causes like this.\n[D29:14] John: Yeah Maria! I totally agree! Together, we can do so much. Let's keep spreading the good vibes and making our community better. \n[D29:14] Image caption (automatic): a photo of a man holding a stick and a giant cartoon figure\n[D29:15] Maria: You rock! Let's keep spreading positivity and making a difference. We got this!\n[D29:16] John: Yeah, we got this. Thanks for your help!\n[D29:17] Maria: Yeah, John! It's really cool to have a friend like you who's just as passionate and motivated. Let's talk again soon!\n[D29:18] John: Yeah Maria! Friends like you make a big difference. Talk to you later!\nSession date: 12:10 am on 11 August, 2023\n[D30:1] Maria: Hey John! Long time no talk! Guess what - I got a puppy two weeks ago! Her name's Coco and she's adorable.\n[D30:1] Image caption (automatic): a photo of a white dog laying in the grass with a baseball\n[D30:2] John: Wow, Maria! Coco looks so adorable! She seems so happy in that photo. How's it been having her around?\n[D30:3] Maria: Thanks, John! It really brings joy to my life; she's always there to greet me when I come home. It's definitely been an adjustment taking care of her, but it's totally worth it!\n[D30:4] John: That's great! Pets are the best for lifting our spirits. I'm always still thinking about Max- here's a pic of him.\n[D30:4] Image caption (automatic): a photo of a dog laying on the floor next to a person\n[D30:5] Maria: Aww, he looks so cute in that pic! He obviously brought you lots of joy. What's your best memory with him?\n[D30:6] John: Thanks, Maria! Max and I had a blast on our camping trip last summer. We hiked, swam, and made great memories. It was a really peaceful and awesome experience.\n[D30:6] Image caption (automatic): a photo of a dog and a person sitting by a campfire\n[D30:7] Maria: Wow, John, sounds like you and Max had a great time! Camping with pets can be so soul-nourishing, right?\n[D30:8] John: Definitely, Maria! It was so chill. Being out in nature, away from all the noise and taking some quality time was great. It was a nice break from the everyday hustle and bustle. \n[D30:8] Image caption (automatic): a photo of a tent in the woods with a blue tarp\n[D30:9] Maria: Wow, John! Sounds awesome! I can imagine that it felt good to tune out and get lost in nature!\n[D30:10] John: Yeah, it was like restarting my mind and spirit. It's amazing how peaceful and pretty it can be. It made me remember the little things in life and savor the peaceful moments.\n[D30:10] Image caption (automatic): a photo of a person sitting on a bench looking at the sunset\n[D30:11] Maria: Yeah, nature is amazing like that. It's like a reset for our souls and your photos capture it.\n[D30:12] John: Thanks, Maria! I'm glad my photos can capture that feeling. They help me take a step back and appreciate the little things in life - especially these days. There've been some tough times lately for me.\n[D30:13] Maria: Sorry to hear that, John. Is there anything on your mind lately?\n[D30:14] John: Lately, I've been stumped about something. Don't feel like I'm making much of an impact here, which has me questioning my decisions and goals.\n[D30:15] Maria: Hey John, I understand how you feel. It's tough when you start questioning that. But remember, even small things can make a difference. Why do you feel that way?\n[D30:16] John: Thanks for understanding. I just want to positively affect people and the world, but it feels like I'm stuck. I need to find a better way to focus my passion and enthusiasm.\n[D30:17] Maria: Yeah, it can be tough. Taking small steps can help. Have you thought about any ideas for how to channel your energy into something meaningful?\n[D30:18] John: Lately I've been exploring options. One idea I had was to join local organizations or volunteering programs. Maybe that's an option.\n[D30:19] Maria: Sounds like a great plan, John! That could definitely help you make a difference. You can meet like-minded people and contribute to causes that you care about. Why not do some research and explore the organizations you'd be interested in?\n[D30:20] John: Yeah, Maria, that's a good idea. I'll make a list of the ones that suit what I believe in and reach out for more info. Thanks!\n[D30:21] Maria: No worries, John. I'm happy to help. Let me know if you need anything else. Keep going, you can do it!\n[D30:22] John: Thanks for your kind words, Maria! I'll let you know if I need anything else. Keep being positive and kind, you're an inspiration!\n[D30:23] Maria: Thanks, John. Your words mean a lot. I'll definitely keep spreading positivity. Take care!\nSession date: 3:14 pm on 13 August, 2023\n[D31:1] John: Hi Maria, since we last chatted, I'm volunteering as a mentor for a local school. It's really rewarding to see how much I can help these students.\n[D31:1] Image caption (automatic): a photo of a group of people sitting around a table\n[D31:2] Maria: Wow, John! You're doing great things. Kudos for helping kids learn. On another note, I just adopted this cute pup from a shelter last week. She brings so much joy! I feel blessed to be able to give her a home.\n[D31:2] Image caption (automatic): a photography of a black puppy sitting in the grass looking at the camera\n[D31:3] John: Wow, Maria, how cute! What's her name? Do she and your other dog get along?\n[D31:4] Maria: Her name is Shadow! She's full of energy and always puts a smile on my face. She's been a great addition to my life. They get along great.\n[D31:4] Image caption (automatic): a photo of a dog sitting in the grass with a leash\n[D31:5] John: Aww, that sounds adorable! Animals really bring a lot of joy and love, don't they? Did you have any pets growing up?\n[D31:6] Maria: No, I didn't. But having a furry pal definitely brightens my days.\n[D31:7] John: They sure do!  I'll have to look into shelters near me soon, it would be great to have a new pup in the house.\n[D31:8] Maria: Yeah, John! Pets are great at making you feel loved. It's awesome having them around, they bring so much joy! How's everything going with the mentoring program? Are the students making progress?\n\n[2] LoCoMo conv-41 history chunk 4\nSession date: 8:55 pm on 25 February, 2023\n[D7:14] John: I totally agree, Maria! Let's keep helping each other and make the world a better place.\n\n\n[D7:14] Image caption (automatic): a photo of a man holding a child on his shoulders\n[D7:15] Maria: Sounds cool, John! Let's make some positive change and brighten up that place. Do you have anything fun coming up soon?\n[D7:16] John: Let's do it, Maria! Together, we can make a real difference and bring a brighter future. And nothing too soon, but my colleague Rob invited me to a beginner's yoga class.\n[D7:17] Maria: Sounds fun! I hope you have a good time. In the meantime, let's work together to make things better for our community.\nSession date: 6:03 pm on 6 March, 2023\n[D8:1] Maria: Hey John, I haven't talked to you in a while. Last week, my grandma passed away and it's been really hard. I'm trying to stay positive, but it's tough. How're you doing?\n[D8:1] Image caption (automatic): a photo of a bride and groom walking down the street\n[D8:2] John: So sorry to hear about your loss, Maria. I'm here for you if you need anything. I'm doing well, I just had a picnic with the wife and kids.\n[D8:2] Image caption (automatic): a photo of a family sitting on the grass with a baby\n[D8:3] Maria: Thanks for your support, John. How's your family doing? That baby in the pic is adorable! What's their name?\n[D8:4] John: Thanks, Maria! They're doing great. Our one-year-old is so cute, his name is Kyle!\n[D8:5] Maria: Sounds like parenting has been a wonderful experience for you - what has it been like?\n[D8:5] Image caption (automatic): a photo of a person walking on the beach with a surfboard\n[D8:6] John: It's definitely been a wild ride! It's full of ups and downs, but the love and happiness outweigh it all.\n[D8:6] Image caption (automatic): a photography of two children playing on a playground equipment\n[D8:7] Maria: Parenting can be tough but rewarding. Do you take your kid to the park often?\n[D8:8] John: Yeah, we go a few times a week. It's great for family bonding and letting the kids run around. We had a great time last weekend - they really enjoyed the carefree joy.\n\n[D8:8] Image caption (automatic): a photography of a young girl and a young boy on a swing\n[D8:9] Maria: Looks like a blast! Did everyone get a chance to try it? Glad you're all having a great time!\n[D8:10] John: Yeah, everyone got a chance to swing. It's always fun coming up with activities for my family to enjoy.\n[D8:11] Maria: Wow, John, that's amazing! How do you come up with these ideas?\n[D8:12] John: I just try to find things that we'll have fun with, like a walk or picnic in the park, or finding events in our town and beyond. Just last week, I found a violin concert that we all enjoyed. It's all about making memories together.\n[D8:13] Maria: Wow, John, that's great! Making memories together is so valuable. I loved doing something similar with my siblings when I was young - it's amazing how something so simple can make such lasting memories.\n[D8:13] Image caption (automatic): a photo of a picture of a castle in a shadow box\n[D8:14] John: That pic is so cool! It looks like something from a storybook. What gave you the idea for this?\n[D8:15] Maria: Thanks, John! I got the idea from that trip to England a few years ago - I was mesmerized by the castles. I wanted to bring that same magic to my home, like a reminder of the world's beauty. I made a painting too!\n[D8:15] Image caption (automatic): a photography of a painting of a castle on a hill\n[D8:16] John: Wow, that looks great! Where in England was it?\n[D8:17] Maria: It was in London. The architecture there was so captivating that I wanted to recreate some of that charm in my own space. It's a reminder of London's history and grace.\n[D8:18] John: Wow, having symbols of travel memories in our homes is so cool! Last week I retook the aptitude test with some great results, and I feel drawn to serving my country in this way.\n[D8:18] Image caption (automatic): a photo of a wooden sign with a flag and eagle\n[D8:19] Maria: Wow, that's really cool! Have you discussed it with anyone yet?\n[D8:20] John: Yeah, I chatted with my family and friends about it. They've been supportive and understand why I want to volunteer. I'm really proud to have this opportunity!\n[D8:21] Maria: Glad you have a good support system, John. It's been great having people behind me while volunteering at the homeless shelter. Positive influences make a big impact.\n\n[D8:21] Image caption (automatic): a photo of a group of people standing around a table with food\n[D8:22] John: Cool, Maria! You've built some awesome connections and you're making a big impact at the homeless shelter - nice work! How did you manage to do that?\n[D8:23] Maria: Thanks, John! It took time and effort, but I slowly formed connections by listening and showing compassion. It's all about building trust and forming real relationships.\n[D8:24] John: Wow, Maria! I see, so that's the key to making a difference.\n[D8:25] Maria: Yeah, building those real connections and getting people to trust us is key. It's usually the little things, like taking the time to hear what they're saying, that make the biggest impact.\n[D8:26] John: Yeah, Maria, I agree. That can really make a difference. It's important to make people feel noticed and listened to.\n[D8:26] Image caption (automatic): a photo of a group of people sitting at a table with plates of food\nSession date: 9:36 am on 2 April, 2023\n[D9:1] Maria: Hey John, long time no see! I've been taking a poetry class lately to help me put my feelings into words. It's been a rough ride, but it's been good. How have you been?\n[D9:2] John: Hey Maria! Awesome to hear from you. Sounds like a great way to delve into your feelings. Since we spoke last, I've had quite the adventure!\n\n[D9:2] Image caption (automatic): a photo of a certificate of completion of a university degree\n[D9:3] Maria: Congrats on finishing your degree, John! It must have been quite the adventure. How did it feel when you achieved such a big goal?\n[D9:4] John: Thanks, Maria! It was quite a journey, but definitely worth it. I graduated last week!\n[D9:5] Maria: I bet! What are your plans for the future?\n[D9:6] John: Thanks! I'm considering going into policymaking because of my degree and my passion for making a positive impact. There are many opportunities to make improvements.\n[D9:7] Maria: Sounds great, John! That seems perfect for you with your passion and dedication. Are there any specific areas you're particularly interested in?\n[D9:8] John: Thanks, Maria! Improving education and infrastructure is particularly interesting to me. It's important for our community.\n[D9:9] Maria: Yeah, I remember you mentioning those areas. How have your experiences in the community meeting and involvement shaped your views on them?\n[D9:10] John: Going to community meetings and getting involved in my community has given me a better understanding of the challenges our education and infrastructure systems face. It has also shown me the impact these issues have on our neighbors, highlighting the need for us to work towards finding solutions.\n[D9:11] Maria: Way to go, John! You're really showing dedication and commitment. Gaining first-hand experience and working to find solutions is awesome!\n[D9:12] John: Thanks Maria! It's important to me to put my words into action and find solutions. Even though it can be hard, it's so rewarding to know I'm making a difference!\n[D9:13] Maria: Agreed, John! Yeah, it can be tough, but it's really satisfying and worthwhile. Keep it up!\n[D9:14] John: Maria, thanks a lot! Your support is really encouraging - I appreciate having you in my corner!\n[D9:15] Maria: No problem, John. Let me know if you need any help. We work well together!\n[D9:16] John: Thanks, Maria! Will do. Working together would be great!\n\n[3] LoCoMo conv-41 history chunk 8\nSession date: 7:38 pm on 20 May, 2023\n[D15:4] Maria: Wow, John! What a kind gesture. It's really cool seeing you making a difference.\n[D15:5] John: Thanks, Maria. It sure has taken a lot of work, but I think it's worth it. Just want to let them know their hard work is appreciated.\n[D15:6] Maria: Wow, John, that's awesome! Your project is going to be great for them!\n[D15:7] John: Yeah, I hope so. They've given so much and deserve our backing. I want to help make their lives better.\n[D15:8] Maria: That's great, John! It's awesome that you're doing that.\n[D15:9] John: I'm really passionate about making sure veterans are supported and valued in our community, so let's make it happen!\n[D15:10] Maria: Count me in, John! I'm in to help out with that. Let's make a difference together.\n[D15:11] John: Awesome, Maria! I knew you'd be on board. With your help, we can make a real impact. Thank you so much! Here's a pic from last Friday with some veterans who are really excited about this. Their support keeps me motivated.\n[D15:11] Image caption (automatic): a photography of a man shaking hands with a soldier in uniform\n[D15:12] Maria: Wow, John, that looks great! What did you do to make them so happy?\n[D15:13] John: Thanks, Maria! We had a great time throwing a small party and inviting some veterans to share their stories. It was awesome seeing them make connections and find camaraderie. All the smiles and new friendships made it really heartwarming.\n[D15:14] Maria: Wow, John, that's really heartwarming! Stories and connections can truly make a difference.\n[D15:15] John: Yeah, Maria. It reminded me of that sense of community and togetherness. It made me realize how important it is to help veterans.\n[D15:16] Maria: Yeah John! It's great to see how your project is making a difference for them. The sense of community and support really matters. Keep doing what you're doing; I'm here to back you up!\n[D15:17] John: Thanks, Maria! Your support means a lot. Together, we can make a difference for our veterans!\n[D15:18] Maria: Yep, John! Keep going and we'll make a difference! I'm currently planning a ring-toss tournament for the homeless shelter's fundraiser later this month, I can't wait to see the impact it will make. \n[D15:19] John: Wow, sounds fun! I can't wait to hear more about it. Talk to you soon!\nSession date: 1:24 pm on 25 May, 2023\n[D16:1] John: Hey Maria, I've been busy doing the petition I started - it's tricky but it's been cool getting back in touch with my buddies and gaining support. I got this picture of my workmates when we went on a hiking trip, they really make me keep going! What have you been up to? Anything new with your charity?\n[D16:1] Image caption (automatic): a photo of a group of people and a dog standing in front of a waterfall\n[D16:2] Maria: Hey John! Cool that it's going well - you and your friends look like a great team! I'm busy at the shelter getting ready for a fundraiser next week. Hopefully, I can raise enough to cover basic needs for the homeless.\n[D16:2] Image caption (automatic): a photo of a red trash can with clothes in it\n[D16:3] John: Wow, Maria! Raising money is crucial for those in need. Is there any way I can help out with your fundraiser?\n[D16:3] Image caption (automatic): a photo of a poster for a chili cook off event\n[D16:4] Maria: Thanks, John! Appreciate your help. We need to get the word out about the chili cook-off at the fundraiser. Here's the poster!\n[D16:4] Image caption (automatic): a photo of a poster for a chili cook off event\n[D16:5] John: Wow, it looks awesome! I'll make sure to spread the word about it. Is there anything else I can do to assist?\n[D16:6] Maria: Thanks, John! Your help is really appreciated. If you know anyone who might be interested in volunteering for the event, let me know. We can do this!\n[D16:7] John: Yep, Maria! I'll ask around to see if anyone I know wants to help. We'll find some awesome people for the cause. Let's make a change!\n[D16:8] Maria: Way to go, John! Let's help those in need. Thanks for your support!\n[D16:9] John: No problem, Maria! Working together with passionate people like you is awesome! Let's make a difference.\n[D16:10] Maria: Yeah, working with passionate people like you is really motivating.\n[D16:11] John: Yeah, Maria! We're making a difference and we'll keep it up! Here's a pic of my fam at the beach.\n[D16:11] Image caption (automatic): a photo of a couple walking into the ocean at sunset\n[D16:12] Maria: Wow, John, that pic is gorgeous! It really gives me hope to appreciate the little moments.\n[D16:13] John: Thanks, Maria! It's moments like these that give me hope too.\n[D16:14] Maria: Yeah, John! They give me peace and make me appreciate life.\n[D16:15] John: Glad the photo made you feel that way, Maria. Cherish those little moments!\n[D16:16] Maria: Thanks, John. I definitely will!\n[D16:17] John: Thanks for letting me help, Maria. It's moments like these that make life worth living.\n[D16:18] Maria: Yep, John. These reminders help us stay motivated to make a positive impact. Well, talk to you soon!\n[D16:19] John: Yeah, Maria! We're really making progress towards making a positive impact. I believe in us! See ya!\nSession date: 11:51 am on 3 June, 2023\n[D17:1] John: Hey Maria, long time no talk! Life's been pretty wild lately. The toughest thing to deal with is that we had to say goodbye to Max. He was such an important part of our family for 10 years and it's so hard to think he's not here wagging that tail anymore.\n[D17:2] Maria: John, I'm sorry to hear about Max. It can be tough to lose a pet - they're like family. How have you been coping?\n[D17:3] John: Hey Maria, thanks for the kind words. We're all still sad about it, but have been comforted by the good times we had and the memories we have. It's tough, but we'll keep doing our best.\n[D17:4] Maria: Good to hear that you're finding comfort in the good times you had with Max. Pets really have a way of touching our hearts. Do you have any pictures you'd like to share?\n[D17:5] John: Let's make sure we make progress in the coming weeks to ensure that we honor the memories of our loved ones. Here's a picture of him that I cherish. \n\n[D17:5] Image caption (automatic): a photo of a dog sitting in the grass with a leash\n[D17:6] Maria: Max looks so peaceful in that photo, just chilling in the backyard. It's nice to remember him like that. It's a great way to honor him.\n[D17:7] John: Yeah, that's how we'll think of him - peaceful and happy. He brought us so much joy. It's heartbreaking that he's gone but we're grateful to have had him as part of our family. He taught us a lot about love and loyalty.\n[D17:8] Maria: Max was truly awesome. Let's cherish the lessons he taught.\n[D17:9] John: He really taught us the importance of unconditional love and loyalty. I want my kids to learn that too. Our bond with him was so special and something I cherish.\n[D17:10] Maria: That's a great lesson to pass on to your kids, John. Both are really important for strong relationships. Any plans to give another pet a loving home?\n[D17:11] John: We're considering adopting a rescue dog - for love and to teach our kids responsibility and compassion.\n[D17:12] Maria: John, that's such a great idea! It gives the pup a loving home and teaches your kids important values. If you need any help, let me know! I just started volunteering at a local dog shelter once a month.\n[D17:13] John: Thanks for the offer, Maria! It's so awesome to have friends like you. If we need help, we'll let you know. Appreciate it!\n\n[4] LoCoMo conv-41 history chunk 2\nSession date: 8:30 pm on 1 January, 2023\n[D3:6] Maria: That sounds great, John. It's nice to see the difference you're making. Do you have any ideas for future projects?\n[D3:7] John: We're brainstorming some to help underserved communities get access to education, mentorship, job training, and resume building. The goal is to empower individuals in achieving their aspirations.\n[D3:8] Maria: That's great, John! Empowering individuals through education and mentorship is crucial for helping them reach their goals. Can't wait to see the initiatives you come up with!\n[D3:9] John: Thanks, Maria! I'm really excited about them too. I believe that providing the right assistance and resources can make a lasting impact.\n[D3:10] Maria: Yep John, a bit of support can make an amazing change. You're spot on about it, it really is powerful. Keep doing what you're doing, it's really inspiring!\n[D3:11] John: Thanks, Maria! I really appreciate your support, It means a lot to me. Especially after I failed the military aptitude test recently, I've been feeling a bit stressed out.\n[D3:12] Maria: No worries, John. I'm here for you and I got your back. Nature's beauty reminds me to slow down and enjoy the small stuff.\n[D3:12] Image caption (automatic): a photo of a sunset over the ocean with a wave coming in\n[D3:13] John: That's a chill pic! Where did you find it?\n[D3:14] Maria: I took it at the beach last month. Watching the sunset was so peaceful, it made me feel connected to nature and appreciate life's small moments.\n[D3:15] John: Wow, nature can be so beautiful! It reminds me of the film camera I had as a kid, I took plenty of beach pics. Thanks for sharing.\n[D3:16] Maria: Glad you enjoyed it, John! It's amazing how beautiful it can be.\n[D3:17] John: Yeah, it does. It helps us remember the small joys, especially when life gets busy.\n[D3:17] Image caption (automatic): a photo of a group of people standing around a field\nSession date: 7:06 pm on 9 January, 2023\n[D4:1] Maria: Hey John, great news - I'm now friends with one of my fellow volunteers! We both love helping others. How have you been since we last chatted?\n[D4:2] John: Hey Maria, I've been busy with work and family, but last week I had an unexpected incident on my way home. It reminded me how life can throw unexpected troubles our way.\n[D4:2] Image caption (automatic): a photo of a car with a broken windshield and a broken windshield\n[D4:3] Maria: Oh John, that sounds tough. I'm glad you're alright. Life does throw us some surprises, doesn't it?\n\n\n[D4:3] Image caption (automatic): a photo of a tattoo with a quote on it\n[D4:4] John: Thanks, Maria. This is a reminder to stay strong during tough times.\n[D4:5] Maria: Yeah John, when stuff like that happens, it's good to tap into our own inner strength. How did you handle it?\n[D4:6] John: I tried to stay calm and asked for assistance, which helped me handle the situation and make it back safely.\n[D4:7] Maria: Hey, John that's awesome! You really showed your resilience and resourcefulness. How did you feel afterwards?\n[D4:8] John: I felt relieved and grateful to make it through without incident.\n[D4:9] Maria: Yeah, it's tough. Appreciate what you've got. You got through it - stay strong. Are there any things you like to do to calm down during times like this?\n[D4:10] John: Thanks, Maria! I like to just take a look at the sunset- it reminds me to enjoy the small things in life.\n[D4:11] Maria: It's great to hear that you appreciate the beauty of sunsets! By the way, have there been any developments regarding your political goals?\n[D4:12] John: I've been keeping busy since we last talked! I've been looking into local politics, talking to community leaders, and getting to know the needs and hopes of our neighborhood. It's been super informative, and I'm feeling optimistic about it all.\n[D4:13] Maria: Wow, John! Your dedication to our community is amazing. Keep up the great work! I've been taking some notes about local politics in my notebook.\n[D4:13] Image caption (automatic): a photo of a notebook with a pencil and a notepad on a table\n[D4:14] John: Thanks, Maria! You're super helpful. That gives me some new ideas and plans for our community!\n[D4:15] Maria: Glad I could help, John. What's up next for you?\n[D4:16] John: Next week I have a community meeting coming up, we'll be discussing education and infrastructure upgrades.\n[D4:17] Maria: Good luck on that! Hope your ideas and concerns get heard.\n[D4:17] Image caption (automatic): a photo of a microphone, a charger, and a charger on a table\n[D4:18] John: Thanks, Maria! I'm hoping so. I'll definitely stick up for our community. Discussing it is important.\n[D4:19] Maria: Definitely, John! Talking and working together will make a great difference. You're really doing our community a service by speaking out. It's admirable and inspiring.\n[D4:20] John: Maria, thank you! Your support means a lot. Let's make some change in our community!\n[D4:20] Image caption (automatic): a photo of a group of people sitting around a table with a laptop\n[D4:21] Maria: Yeah, let's do it, John! Working together, we can bring positive changes to the neighborhood as a team.\n[D4:22] John: Yeah, Maria! We can achieve great things if we join forces together.\n[D4:22] Image caption (automatic): a photography of a man and a woman shaking hands\n[D4:23] Maria: Agreed, John! Uniting is essential for making a difference. if we stand together we can tackle any problems and build a great community.\n[D4:24] John: Yeah, Maria! I couldn't agree more. Thanks for being an awesome friend.\n[D4:25] Maria: No worries, John. It's really nice to help. We make a great team.\n[D4:26] John: Yup, we rock as a team! Glad to have you.\nSession date: 1:17 pm on 28 January, 2023\n[D5:1] John: Hey Maria, since we last spoke I went to that community mtg. It was really interesting hearing everyone's worries and how it affects our area. It made me realize how crucial the upgrades are, especially for the kids. I'm really upset seeing the state of our education. How do you think we can make things better?\n[D5:1] Image caption (automatic): a photo of a wooden floor with a white wall and a wooden floor\n[D5:2] Maria: Hey John, cool that you made it. You're right, it's really sad to see the state of education. We should fight for more money and resources for schools and raise awareness about the importance of education. It's not just for our kids, but for all of us too!\n[D5:3] John: Yup, education is essential for a successful society. I totally agree that we should fight for more money and resources for our schools. It breaks my heart that our kids don't have the proper stuff they need. They deserve better.\n[D5:4] Maria: Yeah, John. Our kids are our future; they should have the best. It kills me to think about all the kids without the proper stuff they need. It's just not right.\n[D5:5] John: It's definitely isn't, Maria. My kids have so much and others don't. We really need to do something about it.\n[D5:6] Maria: Sure, it's not right that some kids get all they need while others have nothing to help them succeed. We gotta do something! Last week I volunteered at a shelter during an event for kids, and it's been a great experience.\n[D5:6] Image caption (automatic): a photo of three women in green aprons holding pots and cups\n[D5:7] John: Wow, Maria! That's really making a big impact. What made you decide to get involved with that?\n[D5:8] Maria: I started volunteering to help make a difference. My aunt believed in volunteering, and used to help my family out when we were struggling, so I'm inspired by her. It makes me happy knowing I can brighten somebody's day.\n[D5:9] John: Wow, Maria. That's amazing! I can imagine it's incredibly rewarding. Is there a particular moment that stands out to you as the most impactful?\n\n[5] LoCoMo conv-41 history chunk 1\nSession date: 11:01 am on 17 December, 2022\n[D1:1] Maria: Hey John! Long time no see! What's up?\n[D1:2] John: Hey Maria! Good to see you. Just got back from a family road trip yesterday, it was fun! Anything exciting happening for you?\n[D1:3] Maria: Been busy volunteering at the homeless shelter and keeping fit. Just started doing aerial yoga, it's great. Have you tried any other cool workout classes?\n[D1:4] John: Woah, Maria, that sounds cool! I'm doing kickboxing and it's giving me so much energy.\n[D1:5] Maria: Cool, John. Kickboxing is a perfect way to stay in shape and de-stress. Do you have any goals you're working towards?\n[D1:6] John: Yeah Maria, I'm really hoping to get into local politics. I love helping the community and making it a better place.\n[D1:7] Maria: Woohoo, John! That's awesome! Any specific areas you want to tackle?\n[D1:8] John: I'm passionate about improving education and infrastructure in our community. Those are my main focuses.\n[D1:9] Maria: Wow, John! It's great to hear that. Could you tell me what got you interested in those topics?\n[D1:10] John: Growing up, I saw how lack of education and crumbling infrastructure affected my neighborhood. I don't want future generations to go through that, so I think schools and infrastructure should be funded properly. Here's a pic of a school last year, after they got the funding.\n[D1:10] Image caption (automatic): a photo of a group of men working on a building\n[D1:11] Maria: Looks good! How did the extra funding help with building the school?\n[D1:12] John: It enabled needed repairs and renovations, making the learning environment safer and more modern for students.\n[D1:13] Maria: Wow John, it really made a difference for schools and students! It must have been great to be involved. What's your next move in politics?\n[D1:14] John: I'm gonna chat with local leaders and organizations, get support and gather ideas for my next move.\n[D1:15] Maria: Sounds good, John. Let's get support and great ideas from local leaders and organizations. Keep me posted on how your campaign is going.\n[D1:16] John: Got it! Thanks, Maria. I definitely will.\nSession date: 6:10 pm on 22 December, 2022\n[D2:1] Maria: Hey John, been a few days since we chatted. In the meantime, I donated my old car to a homeless shelter I volunteer at yesterday. How's the campaign going? I'm keen to hearabout it.\n[D2:2] John: Hi Maria! It's been an interesting ride so far. I've been networking with some people to get their input.\n[D2:3] Maria: That's awesome, John! Networking is great for gaining new perspectives and insights. Have you had any interesting conversations or revelations so far?\n[D2:4] John: I just talked to someone who shared some amazing stories. It really fired up my passion to make education better in our area.\n[D2:5] Maria: Wow, John! Hearing that can really make an impact and get us fired up to make a difference. It's great to hear that you're feeling motivated to make improvements to our community's education!\n[D2:6] John: Definitely, Maria. Investing in our future generations is key, giving them the right tools for success. It's the foundation of progress and opportunity.\n[D2:7] Maria: Yeah, John. It's amazing how even minor tweaks to the system can make a big difference for lots of people. I'm really impressed with your enthusiasm and commitment to it!\n[D2:8] John: Thanks, Maria. Your encouragement means a lot to me. It's true that with effort and support, we can make a real difference in our community.\n[D2:9] Maria: You got this, John! I believe in your power to make a positive difference. Your passion inspires me. Keep going - I'm here for you.\n[D2:10] John: Thanks a lot, Maria. Your help is really motivating and makes me more determined. Here's a pic of my family - they're the reason why I never give up. Their love gives me strength.\n[D2:10] Image caption (automatic): a photography of a family having a picnic in the park\n[D2:11] Maria: Wow, John, that's a great pic! Your family looks so cheerful and loving. It's wonderful to have such a supportive and loving family.\n[D2:12] John: Thanks, Maria. They really help me stay centered. They remind me why I'm so passionate about making a positive impact.\n[D2:13] Maria: Family's love really grounds us and gives us strength. Their support certainly boosts your motivation.\n[D2:14] John: Yeah, they are my rock in tough times and always cheer me on. I'm really thankful for their love. Family time means a lot to me.\n[D2:14] Image caption (automatic): a photography of a family enjoying a ride on a swing\n[D2:15] Maria: Wow, John, that playground looks cool! What kind of stuff do you and your family do there?\n[D2:16] John: Thanks, Maria! We love climbing, sliding, and playing games. It's an awesome way to connect and have a blast. What do you enjoy doing with your family?\n[D2:17] Maria: My fam's small, but I love spending time with the friends I have. We usually watch movies, hike, and have game nights at my place. Quality connections matter most to me.\n[D2:18] John: Sounds nice, Maria! Spending time with loved ones is important.\n[D2:19] Maria: Definitely, John. They bring us joy, support, and a feeling of being part of something special. We should cherish every moment with them.\n[D2:20] John: Yeah Maria, making memories with family is priceless! Life is so much more meaningful when we spend time together. Here's a pic of us at dinner.\n[D2:20] Image caption (automatic): a photo of a group of people standing around a kitchen table\n[D2:21] Maria: Woah, that's a nice pic, John! You all obviously had a blast at dinner. Nothing beats getting together with loved ones for a good meal - it makes some awesome memories!\n[D2:22] John: Thanks, Maria! Meal times are always fun. Good food, laughs, and chats help us stay close.\n[D2:23] Maria: Yeah, John! It definitely builds a strong bond. Those shared meals really make life enjoyable and meaningful. What did you make?\n[D2:23] Image caption (automatic): a photo of a table with pizzas and salads on it\n[D2:24] John: We made pizza! We had so much fun making them together. It was great picking out toppings and sharing a tasty meal with family. Have you made anything lately?\n[D2:25] Maria: I can picture you all laughing and having a blast making your own pizzas - a great way to bond! I made some peach cobbler recently, it was great.\n[D2:26] John: Yeah Maria, it's awesome! We get our creative on and have a blast together.\n[D2:27] Maria: Sure, John! It's those moments of creativity and laughter that bring us closer. Let's make happy memories with our family and keep them close.\n[D2:28] John:  Yep, let's keep making great memories with our loved ones and cherishing the time we have. I'm off to do some taekwondo!\nSession date: 8:30 pm on 1 January, 2023\n[D3:1] John: Hey Maria, great to chat again! I joined a service-focused online group last week and it's been an emotional ride. Everyone there is incredible with their own inspiring stories. They've opened my eyes to new perspectives, and I'm feeling a sense of connection and purpose with them.\n[D3:1] Image caption (automatic): a photo of a man sitting on a bed using a laptop\n[D3:2] Maria: Wow, John! That's amazing news. It's great to see you finding such a supportive community that is making a difference.\n[D3:3] John: Thanks, Maria! It's great to have a group of people with the same passion for serving. It's been really inspiring sharing stories, advice, and encouragement.\n[D3:4] Maria: That's great to hear! It's always inspiring to share thos things with like-minded individuals. By the way, have you had the chance to meet any of them in person?\n\n[D3:4] Image caption (automatic): a photo of a poster on a table with a santa clause\n[D3:5] John: We held some events and got to meet some people. We went to a homeless shelter to give out food and supplies. Seeing the smiles on their faces, we knew we made a real difference. We also organized a toy drive for kids in need. It was amazing seeing the community come together to spread some joy.\n\nQUESTION: What are Maria's dogs' names?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 512,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "qa",
+      "key": "5c4274bdd1f97299aae92b484cf03fde60c66c5ec9e2074b4e1d0699b2f93e67",
+      "result": {
+        "text": "{\"answer\": \"Coco, Shadow\"}",
+        "prompt_tokens": 10533,
+        "completion_tokens": 10,
+        "latency_s": 2.2126691788434982,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You answer questions using only the passages provided. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Answer the question using only the source passages below.\n\nThe evidence map lists possible graph joins extracted from those passages. It\nis a navigation aid, not an answer key or a certificate. For each candidate,\ncheck the cited passage text, the direction of every relation, and EVERY\ncondition in the question. Ignore any candidate that fails a condition or is\nnot explicitly supported by its cited passage. The map can omit correct answers:\nalso inspect the passages themselves. Never infer an exact count from a partial\nlist of graph candidates.\n\nGive the shortest complete answer: a name, date, number or short noun phrase.\nFor questions asking for a set, list every distinct supported item, separated\nby commas. If the passages do not contain the answer, say \"insufficient\ninformation\". Return JSON exactly: {\"answer\": \"...\"}\n\nEVIDENCE MAP (full; conditions to verify: none):\nCandidate 1: Coco\n  [1] Coco | dog | Maria\n  [1] Coco | name | Coco\nCandidate 2: Shadow\n  [2] Maria | child of | Maria\n  [1] Maria | name | Shadow\nCandidate 3: Kyle\n  [4] John | friend of | Maria\n  [2] John | name | Kyle\nCandidate 4: Maria\n  [2] Maria | child of | Maria\n  [3] Maria | name | Maria\n\nSOURCE PASSAGES:\n[1] LoCoMo conv-41 history chunk 14\nSession date: 8:06 pm on 9 August, 2023\n[D29:6] John: Thanks, Maria! It means a lot to me. It was hard work - getting sponsors, coordinating with the city, and spreading the word. But seeing everyone come together to support our veterans made it worth it.\n[D29:6] Image caption (automatic): a photo of a map of the streets of downtown\n[D29:7] Maria: Wow, John, that sounds like a lot of effort! Your dedication definitely paid off. Were there any challenges along the way?\n[D29:8] John: Definitely, Maria! Getting sponsors was difficult. I had to reach out to several businesses through different means, but it paid off. We ended up with some awesome sponsors that made the event a hit.\n[D29:8] Image caption (automatic): a photo of a sign on a door that says domestic abuse\n[D29:9] Maria: Wow, John! You really overcame those challenges. Have you done events for any other causes?\n[D29:10] John: Yep, we worked with a local organization that helps victims of domestic abuse. We raised awareness and funds at the event for the cause — it's unfortunate how many people suffer from it.\n[D29:11] Maria: Oof, John, that's really sad. Domestic abuse is horrible. You did great raising awareness and funds. It's important we support the organizations fighting against it.\n[D29:12] John: Thanks, Maria. It's a tough issue, but we've gotta do what we can. It's really wonderful to see people come together for such an important cause.\n[D29:13] Maria: Agree, John! It's great to see community power in action. Let's keep spreading awareness and supporting causes like this.\n[D29:14] John: Yeah Maria! I totally agree! Together, we can do so much. Let's keep spreading the good vibes and making our community better. \n[D29:14] Image caption (automatic): a photo of a man holding a stick and a giant cartoon figure\n[D29:15] Maria: You rock! Let's keep spreading positivity and making a difference. We got this!\n[D29:16] John: Yeah, we got this. Thanks for your help!\n[D29:17] Maria: Yeah, John! It's really cool to have a friend like you who's just as passionate and motivated. Let's talk again soon!\n[D29:18] John: Yeah Maria! Friends like you make a big difference. Talk to you later!\nSession date: 12:10 am on 11 August, 2023\n[D30:1] Maria: Hey John! Long time no talk! Guess what - I got a puppy two weeks ago! Her name's Coco and she's adorable.\n[D30:1] Image caption (automatic): a photo of a white dog laying in the grass with a baseball\n[D30:2] John: Wow, Maria! Coco looks so adorable! She seems so happy in that photo. How's it been having her around?\n[D30:3] Maria: Thanks, John! It really brings joy to my life; she's always there to greet me when I come home. It's definitely been an adjustment taking care of her, but it's totally worth it!\n[D30:4] John: That's great! Pets are the best for lifting our spirits. I'm always still thinking about Max- here's a pic of him.\n[D30:4] Image caption (automatic): a photo of a dog laying on the floor next to a person\n[D30:5] Maria: Aww, he looks so cute in that pic! He obviously brought you lots of joy. What's your best memory with him?\n[D30:6] John: Thanks, Maria! Max and I had a blast on our camping trip last summer. We hiked, swam, and made great memories. It was a really peaceful and awesome experience.\n[D30:6] Image caption (automatic): a photo of a dog and a person sitting by a campfire\n[D30:7] Maria: Wow, John, sounds like you and Max had a great time! Camping with pets can be so soul-nourishing, right?\n[D30:8] John: Definitely, Maria! It was so chill. Being out in nature, away from all the noise and taking some quality time was great. It was a nice break from the everyday hustle and bustle. \n[D30:8] Image caption (automatic): a photo of a tent in the woods with a blue tarp\n[D30:9] Maria: Wow, John! Sounds awesome! I can imagine that it felt good to tune out and get lost in nature!\n[D30:10] John: Yeah, it was like restarting my mind and spirit. It's amazing how peaceful and pretty it can be. It made me remember the little things in life and savor the peaceful moments.\n[D30:10] Image caption (automatic): a photo of a person sitting on a bench looking at the sunset\n[D30:11] Maria: Yeah, nature is amazing like that. It's like a reset for our souls and your photos capture it.\n[D30:12] John: Thanks, Maria! I'm glad my photos can capture that feeling. They help me take a step back and appreciate the little things in life - especially these days. There've been some tough times lately for me.\n[D30:13] Maria: Sorry to hear that, John. Is there anything on your mind lately?\n[D30:14] John: Lately, I've been stumped about something. Don't feel like I'm making much of an impact here, which has me questioning my decisions and goals.\n[D30:15] Maria: Hey John, I understand how you feel. It's tough when you start questioning that. But remember, even small things can make a difference. Why do you feel that way?\n[D30:16] John: Thanks for understanding. I just want to positively affect people and the world, but it feels like I'm stuck. I need to find a better way to focus my passion and enthusiasm.\n[D30:17] Maria: Yeah, it can be tough. Taking small steps can help. Have you thought about any ideas for how to channel your energy into something meaningful?\n[D30:18] John: Lately I've been exploring options. One idea I had was to join local organizations or volunteering programs. Maybe that's an option.\n[D30:19] Maria: Sounds like a great plan, John! That could definitely help you make a difference. You can meet like-minded people and contribute to causes that you care about. Why not do some research and explore the organizations you'd be interested in?\n[D30:20] John: Yeah, Maria, that's a good idea. I'll make a list of the ones that suit what I believe in and reach out for more info. Thanks!\n[D30:21] Maria: No worries, John. I'm happy to help. Let me know if you need anything else. Keep going, you can do it!\n[D30:22] John: Thanks for your kind words, Maria! I'll let you know if I need anything else. Keep being positive and kind, you're an inspiration!\n[D30:23] Maria: Thanks, John. Your words mean a lot. I'll definitely keep spreading positivity. Take care!\nSession date: 3:14 pm on 13 August, 2023\n[D31:1] John: Hi Maria, since we last chatted, I'm volunteering as a mentor for a local school. It's really rewarding to see how much I can help these students.\n[D31:1] Image caption (automatic): a photo of a group of people sitting around a table\n[D31:2] Maria: Wow, John! You're doing great things. Kudos for helping kids learn. On another note, I just adopted this cute pup from a shelter last week. She brings so much joy! I feel blessed to be able to give her a home.\n[D31:2] Image caption (automatic): a photography of a black puppy sitting in the grass looking at the camera\n[D31:3] John: Wow, Maria, how cute! What's her name? Do she and your other dog get along?\n[D31:4] Maria: Her name is Shadow! She's full of energy and always puts a smile on my face. She's been a great addition to my life. They get along great.\n[D31:4] Image caption (automatic): a photo of a dog sitting in the grass with a leash\n[D31:5] John: Aww, that sounds adorable! Animals really bring a lot of joy and love, don't they? Did you have any pets growing up?\n[D31:6] Maria: No, I didn't. But having a furry pal definitely brightens my days.\n[D31:7] John: They sure do!  I'll have to look into shelters near me soon, it would be great to have a new pup in the house.\n[D31:8] Maria: Yeah, John! Pets are great at making you feel loved. It's awesome having them around, they bring so much joy! How's everything going with the mentoring program? Are the students making progress?\n\n[2] LoCoMo conv-41 history chunk 4\nSession date: 8:55 pm on 25 February, 2023\n[D7:14] John: I totally agree, Maria! Let's keep helping each other and make the world a better place.\n\n\n[D7:14] Image caption (automatic): a photo of a man holding a child on his shoulders\n[D7:15] Maria: Sounds cool, John! Let's make some positive change and brighten up that place. Do you have anything fun coming up soon?\n[D7:16] John: Let's do it, Maria! Together, we can make a real difference and bring a brighter future. And nothing too soon, but my colleague Rob invited me to a beginner's yoga class.\n[D7:17] Maria: Sounds fun! I hope you have a good time. In the meantime, let's work together to make things better for our community.\nSession date: 6:03 pm on 6 March, 2023\n[D8:1] Maria: Hey John, I haven't talked to you in a while. Last week, my grandma passed away and it's been really hard. I'm trying to stay positive, but it's tough. How're you doing?\n[D8:1] Image caption (automatic): a photo of a bride and groom walking down the street\n[D8:2] John: So sorry to hear about your loss, Maria. I'm here for you if you need anything. I'm doing well, I just had a picnic with the wife and kids.\n[D8:2] Image caption (automatic): a photo of a family sitting on the grass with a baby\n[D8:3] Maria: Thanks for your support, John. How's your family doing? That baby in the pic is adorable! What's their name?\n[D8:4] John: Thanks, Maria! They're doing great. Our one-year-old is so cute, his name is Kyle!\n[D8:5] Maria: Sounds like parenting has been a wonderful experience for you - what has it been like?\n[D8:5] Image caption (automatic): a photo of a person walking on the beach with a surfboard\n[D8:6] John: It's definitely been a wild ride! It's full of ups and downs, but the love and happiness outweigh it all.\n[D8:6] Image caption (automatic): a photography of two children playing on a playground equipment\n[D8:7] Maria: Parenting can be tough but rewarding. Do you take your kid to the park often?\n[D8:8] John: Yeah, we go a few times a week. It's great for family bonding and letting the kids run around. We had a great time last weekend - they really enjoyed the carefree joy.\n\n[D8:8] Image caption (automatic): a photography of a young girl and a young boy on a swing\n[D8:9] Maria: Looks like a blast! Did everyone get a chance to try it? Glad you're all having a great time!\n[D8:10] John: Yeah, everyone got a chance to swing. It's always fun coming up with activities for my family to enjoy.\n[D8:11] Maria: Wow, John, that's amazing! How do you come up with these ideas?\n[D8:12] John: I just try to find things that we'll have fun with, like a walk or picnic in the park, or finding events in our town and beyond. Just last week, I found a violin concert that we all enjoyed. It's all about making memories together.\n[D8:13] Maria: Wow, John, that's great! Making memories together is so valuable. I loved doing something similar with my siblings when I was young - it's amazing how something so simple can make such lasting memories.\n[D8:13] Image caption (automatic): a photo of a picture of a castle in a shadow box\n[D8:14] John: That pic is so cool! It looks like something from a storybook. What gave you the idea for this?\n[D8:15] Maria: Thanks, John! I got the idea from that trip to England a few years ago - I was mesmerized by the castles. I wanted to bring that same magic to my home, like a reminder of the world's beauty. I made a painting too!\n[D8:15] Image caption (automatic): a photography of a painting of a castle on a hill\n[D8:16] John: Wow, that looks great! Where in England was it?\n[D8:17] Maria: It was in London. The architecture there was so captivating that I wanted to recreate some of that charm in my own space. It's a reminder of London's history and grace.\n[D8:18] John: Wow, having symbols of travel memories in our homes is so cool! Last week I retook the aptitude test with some great results, and I feel drawn to serving my country in this way.\n[D8:18] Image caption (automatic): a photo of a wooden sign with a flag and eagle\n[D8:19] Maria: Wow, that's really cool! Have you discussed it with anyone yet?\n[D8:20] John: Yeah, I chatted with my family and friends about it. They've been supportive and understand why I want to volunteer. I'm really proud to have this opportunity!\n[D8:21] Maria: Glad you have a good support system, John. It's been great having people behind me while volunteering at the homeless shelter. Positive influences make a big impact.\n\n[D8:21] Image caption (automatic): a photo of a group of people standing around a table with food\n[D8:22] John: Cool, Maria! You've built some awesome connections and you're making a big impact at the homeless shelter - nice work! How did you manage to do that?\n[D8:23] Maria: Thanks, John! It took time and effort, but I slowly formed connections by listening and showing compassion. It's all about building trust and forming real relationships.\n[D8:24] John: Wow, Maria! I see, so that's the key to making a difference.\n[D8:25] Maria: Yeah, building those real connections and getting people to trust us is key. It's usually the little things, like taking the time to hear what they're saying, that make the biggest impact.\n[D8:26] John: Yeah, Maria, I agree. That can really make a difference. It's important to make people feel noticed and listened to.\n[D8:26] Image caption (automatic): a photo of a group of people sitting at a table with plates of food\nSession date: 9:36 am on 2 April, 2023\n[D9:1] Maria: Hey John, long time no see! I've been taking a poetry class lately to help me put my feelings into words. It's been a rough ride, but it's been good. How have you been?\n[D9:2] John: Hey Maria! Awesome to hear from you. Sounds like a great way to delve into your feelings. Since we spoke last, I've had quite the adventure!\n\n[D9:2] Image caption (automatic): a photo of a certificate of completion of a university degree\n[D9:3] Maria: Congrats on finishing your degree, John! It must have been quite the adventure. How did it feel when you achieved such a big goal?\n[D9:4] John: Thanks, Maria! It was quite a journey, but definitely worth it. I graduated last week!\n[D9:5] Maria: I bet! What are your plans for the future?\n[D9:6] John: Thanks! I'm considering going into policymaking because of my degree and my passion for making a positive impact. There are many opportunities to make improvements.\n[D9:7] Maria: Sounds great, John! That seems perfect for you with your passion and dedication. Are there any specific areas you're particularly interested in?\n[D9:8] John: Thanks, Maria! Improving education and infrastructure is particularly interesting to me. It's important for our community.\n[D9:9] Maria: Yeah, I remember you mentioning those areas. How have your experiences in the community meeting and involvement shaped your views on them?\n[D9:10] John: Going to community meetings and getting involved in my community has given me a better understanding of the challenges our education and infrastructure systems face. It has also shown me the impact these issues have on our neighbors, highlighting the need for us to work towards finding solutions.\n[D9:11] Maria: Way to go, John! You're really showing dedication and commitment. Gaining first-hand experience and working to find solutions is awesome!\n[D9:12] John: Thanks Maria! It's important to me to put my words into action and find solutions. Even though it can be hard, it's so rewarding to know I'm making a difference!\n[D9:13] Maria: Agreed, John! Yeah, it can be tough, but it's really satisfying and worthwhile. Keep it up!\n[D9:14] John: Maria, thanks a lot! Your support is really encouraging - I appreciate having you in my corner!\n[D9:15] Maria: No problem, John. Let me know if you need any help. We work well together!\n[D9:16] John: Thanks, Maria! Will do. Working together would be great!\n\n[3] LoCoMo conv-41 history chunk 8\nSession date: 7:38 pm on 20 May, 2023\n[D15:4] Maria: Wow, John! What a kind gesture. It's really cool seeing you making a difference.\n[D15:5] John: Thanks, Maria. It sure has taken a lot of work, but I think it's worth it. Just want to let them know their hard work is appreciated.\n[D15:6] Maria: Wow, John, that's awesome! Your project is going to be great for them!\n[D15:7] John: Yeah, I hope so. They've given so much and deserve our backing. I want to help make their lives better.\n[D15:8] Maria: That's great, John! It's awesome that you're doing that.\n[D15:9] John: I'm really passionate about making sure veterans are supported and valued in our community, so let's make it happen!\n[D15:10] Maria: Count me in, John! I'm in to help out with that. Let's make a difference together.\n[D15:11] John: Awesome, Maria! I knew you'd be on board. With your help, we can make a real impact. Thank you so much! Here's a pic from last Friday with some veterans who are really excited about this. Their support keeps me motivated.\n[D15:11] Image caption (automatic): a photography of a man shaking hands with a soldier in uniform\n[D15:12] Maria: Wow, John, that looks great! What did you do to make them so happy?\n[D15:13] John: Thanks, Maria! We had a great time throwing a small party and inviting some veterans to share their stories. It was awesome seeing them make connections and find camaraderie. All the smiles and new friendships made it really heartwarming.\n[D15:14] Maria: Wow, John, that's really heartwarming! Stories and connections can truly make a difference.\n[D15:15] John: Yeah, Maria. It reminded me of that sense of community and togetherness. It made me realize how important it is to help veterans.\n[D15:16] Maria: Yeah John! It's great to see how your project is making a difference for them. The sense of community and support really matters. Keep doing what you're doing; I'm here to back you up!\n[D15:17] John: Thanks, Maria! Your support means a lot. Together, we can make a difference for our veterans!\n[D15:18] Maria: Yep, John! Keep going and we'll make a difference! I'm currently planning a ring-toss tournament for the homeless shelter's fundraiser later this month, I can't wait to see the impact it will make. \n[D15:19] John: Wow, sounds fun! I can't wait to hear more about it. Talk to you soon!\nSession date: 1:24 pm on 25 May, 2023\n[D16:1] John: Hey Maria, I've been busy doing the petition I started - it's tricky but it's been cool getting back in touch with my buddies and gaining support. I got this picture of my workmates when we went on a hiking trip, they really make me keep going! What have you been up to? Anything new with your charity?\n[D16:1] Image caption (automatic): a photo of a group of people and a dog standing in front of a waterfall\n[D16:2] Maria: Hey John! Cool that it's going well - you and your friends look like a great team! I'm busy at the shelter getting ready for a fundraiser next week. Hopefully, I can raise enough to cover basic needs for the homeless.\n[D16:2] Image caption (automatic): a photo of a red trash can with clothes in it\n[D16:3] John: Wow, Maria! Raising money is crucial for those in need. Is there any way I can help out with your fundraiser?\n[D16:3] Image caption (automatic): a photo of a poster for a chili cook off event\n[D16:4] Maria: Thanks, John! Appreciate your help. We need to get the word out about the chili cook-off at the fundraiser. Here's the poster!\n[D16:4] Image caption (automatic): a photo of a poster for a chili cook off event\n[D16:5] John: Wow, it looks awesome! I'll make sure to spread the word about it. Is there anything else I can do to assist?\n[D16:6] Maria: Thanks, John! Your help is really appreciated. If you know anyone who might be interested in volunteering for the event, let me know. We can do this!\n[D16:7] John: Yep, Maria! I'll ask around to see if anyone I know wants to help. We'll find some awesome people for the cause. Let's make a change!\n[D16:8] Maria: Way to go, John! Let's help those in need. Thanks for your support!\n[D16:9] John: No problem, Maria! Working together with passionate people like you is awesome! Let's make a difference.\n[D16:10] Maria: Yeah, working with passionate people like you is really motivating.\n[D16:11] John: Yeah, Maria! We're making a difference and we'll keep it up! Here's a pic of my fam at the beach.\n[D16:11] Image caption (automatic): a photo of a couple walking into the ocean at sunset\n[D16:12] Maria: Wow, John, that pic is gorgeous! It really gives me hope to appreciate the little moments.\n[D16:13] John: Thanks, Maria! It's moments like these that give me hope too.\n[D16:14] Maria: Yeah, John! They give me peace and make me appreciate life.\n[D16:15] John: Glad the photo made you feel that way, Maria. Cherish those little moments!\n[D16:16] Maria: Thanks, John. I definitely will!\n[D16:17] John: Thanks for letting me help, Maria. It's moments like these that make life worth living.\n[D16:18] Maria: Yep, John. These reminders help us stay motivated to make a positive impact. Well, talk to you soon!\n[D16:19] John: Yeah, Maria! We're really making progress towards making a positive impact. I believe in us! See ya!\nSession date: 11:51 am on 3 June, 2023\n[D17:1] John: Hey Maria, long time no talk! Life's been pretty wild lately. The toughest thing to deal with is that we had to say goodbye to Max. He was such an important part of our family for 10 years and it's so hard to think he's not here wagging that tail anymore.\n[D17:2] Maria: John, I'm sorry to hear about Max. It can be tough to lose a pet - they're like family. How have you been coping?\n[D17:3] John: Hey Maria, thanks for the kind words. We're all still sad about it, but have been comforted by the good times we had and the memories we have. It's tough, but we'll keep doing our best.\n[D17:4] Maria: Good to hear that you're finding comfort in the good times you had with Max. Pets really have a way of touching our hearts. Do you have any pictures you'd like to share?\n[D17:5] John: Let's make sure we make progress in the coming weeks to ensure that we honor the memories of our loved ones. Here's a picture of him that I cherish. \n\n[D17:5] Image caption (automatic): a photo of a dog sitting in the grass with a leash\n[D17:6] Maria: Max looks so peaceful in that photo, just chilling in the backyard. It's nice to remember him like that. It's a great way to honor him.\n[D17:7] John: Yeah, that's how we'll think of him - peaceful and happy. He brought us so much joy. It's heartbreaking that he's gone but we're grateful to have had him as part of our family. He taught us a lot about love and loyalty.\n[D17:8] Maria: Max was truly awesome. Let's cherish the lessons he taught.\n[D17:9] John: He really taught us the importance of unconditional love and loyalty. I want my kids to learn that too. Our bond with him was so special and something I cherish.\n[D17:10] Maria: That's a great lesson to pass on to your kids, John. Both are really important for strong relationships. Any plans to give another pet a loving home?\n[D17:11] John: We're considering adopting a rescue dog - for love and to teach our kids responsibility and compassion.\n[D17:12] Maria: John, that's such a great idea! It gives the pup a loving home and teaches your kids important values. If you need any help, let me know! I just started volunteering at a local dog shelter once a month.\n[D17:13] John: Thanks for the offer, Maria! It's so awesome to have friends like you. If we need help, we'll let you know. Appreciate it!\n\n[4] LoCoMo conv-41 history chunk 2\nSession date: 8:30 pm on 1 January, 2023\n[D3:6] Maria: That sounds great, John. It's nice to see the difference you're making. Do you have any ideas for future projects?\n[D3:7] John: We're brainstorming some to help underserved communities get access to education, mentorship, job training, and resume building. The goal is to empower individuals in achieving their aspirations.\n[D3:8] Maria: That's great, John! Empowering individuals through education and mentorship is crucial for helping them reach their goals. Can't wait to see the initiatives you come up with!\n[D3:9] John: Thanks, Maria! I'm really excited about them too. I believe that providing the right assistance and resources can make a lasting impact.\n[D3:10] Maria: Yep John, a bit of support can make an amazing change. You're spot on about it, it really is powerful. Keep doing what you're doing, it's really inspiring!\n[D3:11] John: Thanks, Maria! I really appreciate your support, It means a lot to me. Especially after I failed the military aptitude test recently, I've been feeling a bit stressed out.\n[D3:12] Maria: No worries, John. I'm here for you and I got your back. Nature's beauty reminds me to slow down and enjoy the small stuff.\n[D3:12] Image caption (automatic): a photo of a sunset over the ocean with a wave coming in\n[D3:13] John: That's a chill pic! Where did you find it?\n[D3:14] Maria: I took it at the beach last month. Watching the sunset was so peaceful, it made me feel connected to nature and appreciate life's small moments.\n[D3:15] John: Wow, nature can be so beautiful! It reminds me of the film camera I had as a kid, I took plenty of beach pics. Thanks for sharing.\n[D3:16] Maria: Glad you enjoyed it, John! It's amazing how beautiful it can be.\n[D3:17] John: Yeah, it does. It helps us remember the small joys, especially when life gets busy.\n[D3:17] Image caption (automatic): a photo of a group of people standing around a field\nSession date: 7:06 pm on 9 January, 2023\n[D4:1] Maria: Hey John, great news - I'm now friends with one of my fellow volunteers! We both love helping others. How have you been since we last chatted?\n[D4:2] John: Hey Maria, I've been busy with work and family, but last week I had an unexpected incident on my way home. It reminded me how life can throw unexpected troubles our way.\n[D4:2] Image caption (automatic): a photo of a car with a broken windshield and a broken windshield\n[D4:3] Maria: Oh John, that sounds tough. I'm glad you're alright. Life does throw us some surprises, doesn't it?\n\n\n[D4:3] Image caption (automatic): a photo of a tattoo with a quote on it\n[D4:4] John: Thanks, Maria. This is a reminder to stay strong during tough times.\n[D4:5] Maria: Yeah John, when stuff like that happens, it's good to tap into our own inner strength. How did you handle it?\n[D4:6] John: I tried to stay calm and asked for assistance, which helped me handle the situation and make it back safely.\n[D4:7] Maria: Hey, John that's awesome! You really showed your resilience and resourcefulness. How did you feel afterwards?\n[D4:8] John: I felt relieved and grateful to make it through without incident.\n[D4:9] Maria: Yeah, it's tough. Appreciate what you've got. You got through it - stay strong. Are there any things you like to do to calm down during times like this?\n[D4:10] John: Thanks, Maria! I like to just take a look at the sunset- it reminds me to enjoy the small things in life.\n[D4:11] Maria: It's great to hear that you appreciate the beauty of sunsets! By the way, have there been any developments regarding your political goals?\n[D4:12] John: I've been keeping busy since we last talked! I've been looking into local politics, talking to community leaders, and getting to know the needs and hopes of our neighborhood. It's been super informative, and I'm feeling optimistic about it all.\n[D4:13] Maria: Wow, John! Your dedication to our community is amazing. Keep up the great work! I've been taking some notes about local politics in my notebook.\n[D4:13] Image caption (automatic): a photo of a notebook with a pencil and a notepad on a table\n[D4:14] John: Thanks, Maria! You're super helpful. That gives me some new ideas and plans for our community!\n[D4:15] Maria: Glad I could help, John. What's up next for you?\n[D4:16] John: Next week I have a community meeting coming up, we'll be discussing education and infrastructure upgrades.\n[D4:17] Maria: Good luck on that! Hope your ideas and concerns get heard.\n[D4:17] Image caption (automatic): a photo of a microphone, a charger, and a charger on a table\n[D4:18] John: Thanks, Maria! I'm hoping so. I'll definitely stick up for our community. Discussing it is important.\n[D4:19] Maria: Definitely, John! Talking and working together will make a great difference. You're really doing our community a service by speaking out. It's admirable and inspiring.\n[D4:20] John: Maria, thank you! Your support means a lot. Let's make some change in our community!\n[D4:20] Image caption (automatic): a photo of a group of people sitting around a table with a laptop\n[D4:21] Maria: Yeah, let's do it, John! Working together, we can bring positive changes to the neighborhood as a team.\n[D4:22] John: Yeah, Maria! We can achieve great things if we join forces together.\n[D4:22] Image caption (automatic): a photography of a man and a woman shaking hands\n[D4:23] Maria: Agreed, John! Uniting is essential for making a difference. if we stand together we can tackle any problems and build a great community.\n[D4:24] John: Yeah, Maria! I couldn't agree more. Thanks for being an awesome friend.\n[D4:25] Maria: No worries, John. It's really nice to help. We make a great team.\n[D4:26] John: Yup, we rock as a team! Glad to have you.\nSession date: 1:17 pm on 28 January, 2023\n[D5:1] John: Hey Maria, since we last spoke I went to that community mtg. It was really interesting hearing everyone's worries and how it affects our area. It made me realize how crucial the upgrades are, especially for the kids. I'm really upset seeing the state of our education. How do you think we can make things better?\n[D5:1] Image caption (automatic): a photo of a wooden floor with a white wall and a wooden floor\n[D5:2] Maria: Hey John, cool that you made it. You're right, it's really sad to see the state of education. We should fight for more money and resources for schools and raise awareness about the importance of education. It's not just for our kids, but for all of us too!\n[D5:3] John: Yup, education is essential for a successful society. I totally agree that we should fight for more money and resources for our schools. It breaks my heart that our kids don't have the proper stuff they need. They deserve better.\n[D5:4] Maria: Yeah, John. Our kids are our future; they should have the best. It kills me to think about all the kids without the proper stuff they need. It's just not right.\n[D5:5] John: It's definitely isn't, Maria. My kids have so much and others don't. We really need to do something about it.\n[D5:6] Maria: Sure, it's not right that some kids get all they need while others have nothing to help them succeed. We gotta do something! Last week I volunteered at a shelter during an event for kids, and it's been a great experience.\n[D5:6] Image caption (automatic): a photo of three women in green aprons holding pots and cups\n[D5:7] John: Wow, Maria! That's really making a big impact. What made you decide to get involved with that?\n[D5:8] Maria: I started volunteering to help make a difference. My aunt believed in volunteering, and used to help my family out when we were struggling, so I'm inspired by her. It makes me happy knowing I can brighten somebody's day.\n[D5:9] John: Wow, Maria. That's amazing! I can imagine it's incredibly rewarding. Is there a particular moment that stands out to you as the most impactful?\n\n[5] LoCoMo conv-41 history chunk 1\nSession date: 11:01 am on 17 December, 2022\n[D1:1] Maria: Hey John! Long time no see! What's up?\n[D1:2] John: Hey Maria! Good to see you. Just got back from a family road trip yesterday, it was fun! Anything exciting happening for you?\n[D1:3] Maria: Been busy volunteering at the homeless shelter and keeping fit. Just started doing aerial yoga, it's great. Have you tried any other cool workout classes?\n[D1:4] John: Woah, Maria, that sounds cool! I'm doing kickboxing and it's giving me so much energy.\n[D1:5] Maria: Cool, John. Kickboxing is a perfect way to stay in shape and de-stress. Do you have any goals you're working towards?\n[D1:6] John: Yeah Maria, I'm really hoping to get into local politics. I love helping the community and making it a better place.\n[D1:7] Maria: Woohoo, John! That's awesome! Any specific areas you want to tackle?\n[D1:8] John: I'm passionate about improving education and infrastructure in our community. Those are my main focuses.\n[D1:9] Maria: Wow, John! It's great to hear that. Could you tell me what got you interested in those topics?\n[D1:10] John: Growing up, I saw how lack of education and crumbling infrastructure affected my neighborhood. I don't want future generations to go through that, so I think schools and infrastructure should be funded properly. Here's a pic of a school last year, after they got the funding.\n[D1:10] Image caption (automatic): a photo of a group of men working on a building\n[D1:11] Maria: Looks good! How did the extra funding help with building the school?\n[D1:12] John: It enabled needed repairs and renovations, making the learning environment safer and more modern for students.\n[D1:13] Maria: Wow John, it really made a difference for schools and students! It must have been great to be involved. What's your next move in politics?\n[D1:14] John: I'm gonna chat with local leaders and organizations, get support and gather ideas for my next move.\n[D1:15] Maria: Sounds good, John. Let's get support and great ideas from local leaders and organizations. Keep me posted on how your campaign is going.\n[D1:16] John: Got it! Thanks, Maria. I definitely will.\nSession date: 6:10 pm on 22 December, 2022\n[D2:1] Maria: Hey John, been a few days since we chatted. In the meantime, I donated my old car to a homeless shelter I volunteer at yesterday. How's the campaign going? I'm keen to hearabout it.\n[D2:2] John: Hi Maria! It's been an interesting ride so far. I've been networking with some people to get their input.\n[D2:3] Maria: That's awesome, John! Networking is great for gaining new perspectives and insights. Have you had any interesting conversations or revelations so far?\n[D2:4] John: I just talked to someone who shared some amazing stories. It really fired up my passion to make education better in our area.\n[D2:5] Maria: Wow, John! Hearing that can really make an impact and get us fired up to make a difference. It's great to hear that you're feeling motivated to make improvements to our community's education!\n[D2:6] John: Definitely, Maria. Investing in our future generations is key, giving them the right tools for success. It's the foundation of progress and opportunity.\n[D2:7] Maria: Yeah, John. It's amazing how even minor tweaks to the system can make a big difference for lots of people. I'm really impressed with your enthusiasm and commitment to it!\n[D2:8] John: Thanks, Maria. Your encouragement means a lot to me. It's true that with effort and support, we can make a real difference in our community.\n[D2:9] Maria: You got this, John! I believe in your power to make a positive difference. Your passion inspires me. Keep going - I'm here for you.\n[D2:10] John: Thanks a lot, Maria. Your help is really motivating and makes me more determined. Here's a pic of my family - they're the reason why I never give up. Their love gives me strength.\n[D2:10] Image caption (automatic): a photography of a family having a picnic in the park\n[D2:11] Maria: Wow, John, that's a great pic! Your family looks so cheerful and loving. It's wonderful to have such a supportive and loving family.\n[D2:12] John: Thanks, Maria. They really help me stay centered. They remind me why I'm so passionate about making a positive impact.\n[D2:13] Maria: Family's love really grounds us and gives us strength. Their support certainly boosts your motivation.\n[D2:14] John: Yeah, they are my rock in tough times and always cheer me on. I'm really thankful for their love. Family time means a lot to me.\n[D2:14] Image caption (automatic): a photography of a family enjoying a ride on a swing\n[D2:15] Maria: Wow, John, that playground looks cool! What kind of stuff do you and your family do there?\n[D2:16] John: Thanks, Maria! We love climbing, sliding, and playing games. It's an awesome way to connect and have a blast. What do you enjoy doing with your family?\n[D2:17] Maria: My fam's small, but I love spending time with the friends I have. We usually watch movies, hike, and have game nights at my place. Quality connections matter most to me.\n[D2:18] John: Sounds nice, Maria! Spending time with loved ones is important.\n[D2:19] Maria: Definitely, John. They bring us joy, support, and a feeling of being part of something special. We should cherish every moment with them.\n[D2:20] John: Yeah Maria, making memories with family is priceless! Life is so much more meaningful when we spend time together. Here's a pic of us at dinner.\n[D2:20] Image caption (automatic): a photo of a group of people standing around a kitchen table\n[D2:21] Maria: Woah, that's a nice pic, John! You all obviously had a blast at dinner. Nothing beats getting together with loved ones for a good meal - it makes some awesome memories!\n[D2:22] John: Thanks, Maria! Meal times are always fun. Good food, laughs, and chats help us stay close.\n[D2:23] Maria: Yeah, John! It definitely builds a strong bond. Those shared meals really make life enjoyable and meaningful. What did you make?\n[D2:23] Image caption (automatic): a photo of a table with pizzas and salads on it\n[D2:24] John: We made pizza! We had so much fun making them together. It was great picking out toppings and sharing a tasty meal with family. Have you made anything lately?\n[D2:25] Maria: I can picture you all laughing and having a blast making your own pizzas - a great way to bond! I made some peach cobbler recently, it was great.\n[D2:26] John: Yeah Maria, it's awesome! We get our creative on and have a blast together.\n[D2:27] Maria: Sure, John! It's those moments of creativity and laughter that bring us closer. Let's make happy memories with our family and keep them close.\n[D2:28] John:  Yep, let's keep making great memories with our loved ones and cherishing the time we have. I'm off to do some taekwondo!\nSession date: 8:30 pm on 1 January, 2023\n[D3:1] John: Hey Maria, great to chat again! I joined a service-focused online group last week and it's been an emotional ride. Everyone there is incredible with their own inspiring stories. They've opened my eyes to new perspectives, and I'm feeling a sense of connection and purpose with them.\n[D3:1] Image caption (automatic): a photo of a man sitting on a bed using a laptop\n[D3:2] Maria: Wow, John! That's amazing news. It's great to see you finding such a supportive community that is making a difference.\n[D3:3] John: Thanks, Maria! It's great to have a group of people with the same passion for serving. It's been really inspiring sharing stories, advice, and encouragement.\n[D3:4] Maria: That's great to hear! It's always inspiring to share thos things with like-minded individuals. By the way, have you had the chance to meet any of them in person?\n\n[D3:4] Image caption (automatic): a photo of a poster on a table with a santa clause\n[D3:5] John: We held some events and got to meet some people. We went to a homeless shelter to give out food and supplies. Seeing the smiles on their faces, we knew we made a real difference. We also organized a toy drive for kids in need. It was amazing seeing the community come together to spread some joy.\n\nQUESTION: What are Maria's dogs' names?"
+          }
+        ],
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/f954717656930018d3fbfb2367f73eea5a14ecb9e0328aa4fa9bb0b589f86a62.json"
+    }
+  ],
+  "retrieval_hash": "67397876d94e756bb1a9637444b7d2fd33c6ce918551b3d704b31839abfa70a8",
+  "memory_hash": "ff44f42468fd6b866d6cd40ff2850c71fae8b4c874888416ff24c6c3dc57b4ce",
+  "condition": "evidence",
+  "reader": "proof"
+}

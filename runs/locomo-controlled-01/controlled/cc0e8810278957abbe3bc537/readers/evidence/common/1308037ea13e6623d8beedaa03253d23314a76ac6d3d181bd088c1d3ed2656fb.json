@@ -1,0 +1,466 @@
+{
+  "qid": "locomo:conv-47:qa149",
+  "dataset": "locomo",
+  "metodo": "witnessrag",
+  "pergunta": "What is the name of John's cousin's dog?",
+  "respostas_ouro": [
+    "Luna"
+  ],
+  "passagens_ouro": [
+    "p-a4ffba3bb4945a68e696ee1b"
+  ],
+  "n_hops": 1,
+  "n_hops_fonte": "support_count_proxy",
+  "tipo": "single-hop",
+  "recuperadas": [
+    "p-fccd81a8661d276f0ee91fd0",
+    "p-a43d3be71159853e29beb95e",
+    "p-a4ffba3bb4945a68e696ee1b",
+    "p-90f2edf968df1f1c418c3bd4",
+    "p-1f79d9f5f480cc58e6553b3d"
+  ],
+  "scores": [
+    1.0,
+    0.5,
+    0.333333,
+    0.25,
+    0.2
+  ],
+  "resposta": "Luna",
+  "em": 1.0,
+  "f1": 1.0,
+  "recall@2": 0.0,
+  "recall@5": 1.0,
+  "all_recall@5": 1.0,
+  "cobertura_testemunha": NaN,
+  "cobertura_extremos_relaxada": NaN,
+  "em_estrutural": 0.0,
+  "testemunha_no_contexto": false,
+  "abstencao": false,
+  "risco": 1.0,
+  "risco_bruto": 99.0,
+  "forma_consulta": null,
+  "resposta_estrutural": "",
+  "filtrada": false,
+  "latencia_recuperacao_s": 3.44,
+  "latencia_leitura_s": 0.74,
+  "diagnosticos": {
+    "pesquisa_provas": {
+      "fronteira": [
+        "p-fccd81a8661d276f0ee91fd0",
+        "p-a43d3be71159853e29beb95e",
+        "p-a4ffba3bb4945a68e696ee1b",
+        "p-90f2edf968df1f1c418c3bd4",
+        "p-a1ca107d8aed464ab3521b3d",
+        "p-1f79d9f5f480cc58e6553b3d",
+        "p-efa7a69c19cc8524e8e5e867"
+      ],
+      "sondas": [
+        "What is the name of John's cousin's dog?",
+        "John's cousin dog of",
+        "John cousin dog name"
+      ],
+      "acoes": [],
+      "buscas_dirigidas": 0,
+      "replanejamentos": 1,
+      "rejeicoes": 0
+    },
+    "planos_compilados": [
+      {
+        "indice": 0,
+        "rodada_criacao": 0,
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "dog of",
+              "subject": "John's cousin",
+              "object": "?x"
+            }
+          ],
+          "expected_type": "other",
+          "aggregation": "none",
+          "shape": "single-hop",
+          "source": "llm-plan-vocabulario",
+          "fallback": "John cousin dog name",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false
+        },
+        "executavel": true,
+        "fechou": false,
+        "profundidade": 0,
+        "candidatos_por_atomo": [
+          0
+        ],
+        "obrigacoes": {
+          "cobre_pergunta": false,
+          "faltas": [
+            "John's cousin's dog name"
+          ],
+          "motivo": "The query should specify that the dog is of John's cousin, not just use 'John's cousin' as the subject in the relation 'dog of'. The correct structure should directly link the dog to John's cousin.",
+          "checado": true
+        }
+      }
+    ],
+    "planejamento": {
+      "orcamento_planos": 5,
+      "planos_distintos": 1,
+      "chamadas": 2,
+      "replanejamentos": 1
+    },
+    "plano_escolhido": null,
+    "n_testemunhas": 0,
+    "testemunha_no_contexto": false,
+    "classe_prova": "nenhuma",
+    "fallback": "denso (pesquisa sem prova suficiente)",
+    "contexto_alterado_pelo_witness": true,
+    "risco": 1.0,
+    "risco_bruto": 99.0,
+    "risco_calibrado": false,
+    "resposta_estrutural": "",
+    "candidatos_explorados": 14,
+    "documentos_entregues": 5,
+    "orcamento_leitor": 5
+  },
+  "uso_llm": {
+    "total": {
+      "chamadas": 4,
+      "tokens_resposta": 207,
+      "em_cache": 1,
+      "tokens_prompt": 12908,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 11578,
+      "tokens_resposta_sem_cache": 141
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 1,
+        "tokens_resposta": 8,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 8,
+        "latencia_s": 0.7400000000000091,
+        "filtradas": 0,
+        "tokens_prompt": 9773,
+        "tokens_prompt_sem_cache": 9773
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 66,
+        "em_cache": 1,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 1.670000000000016,
+        "filtradas": 0,
+        "tokens_prompt": 1330,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 1,
+        "tokens_resposta": 67,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 67,
+        "latencia_s": 1.6799999999999926,
+        "filtradas": 0,
+        "tokens_prompt": 252,
+        "tokens_prompt_sem_cache": 252
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 1,
+        "tokens_resposta": 66,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 66,
+        "latencia_s": 1.6899999999999977,
+        "filtradas": 0,
+        "tokens_prompt": 1553,
+        "tokens_prompt_sem_cache": 1553
+      }
+    }
+  },
+  "f1_locomo": 1.0,
+  "em_locomo": 1.0,
+  "categoria_locomo": 4,
+  "uso_leitor": {
+    "total": {
+      "chamadas": 1,
+      "tokens_resposta": 8,
+      "em_cache": 0,
+      "tokens_prompt": 9773,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 9773,
+      "tokens_resposta_sem_cache": 8
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 1,
+        "tokens_resposta": 8,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 8,
+        "latencia_s": 0.7400000000000091,
+        "filtradas": 0,
+        "tokens_prompt": 9773,
+        "tokens_prompt_sem_cache": 9773
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      }
+    }
+  },
+  "uso_recuperacao": {
+    "total": {
+      "chamadas": 3,
+      "tokens_resposta": 199,
+      "em_cache": 1,
+      "tokens_prompt": 3135,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 1805,
+      "tokens_resposta_sem_cache": 133
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 66,
+        "em_cache": 1,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 1.670000000000016,
+        "filtradas": 0,
+        "tokens_prompt": 1330,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 1,
+        "tokens_resposta": 67,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 67,
+        "latencia_s": 1.6799999999999926,
+        "filtradas": 0,
+        "tokens_prompt": 252,
+        "tokens_prompt_sem_cache": 252
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 1,
+        "tokens_resposta": 66,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 66,
+        "latencia_s": 1.6899999999999977,
+        "filtradas": 0,
+        "tokens_prompt": 1553,
+        "tokens_prompt_sem_cache": 1553
+      }
+    }
+  },
+  "reader_calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You answer questions using only the passages provided. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Answer the question using only the passages below.\n\nGive the shortest answer that is complete: a name, a date, a number or a short noun\nphrase. Do not write a sentence.\n\nSome questions ask for a SET: everything a person did, made, visited, read, owns,\nwas given, or took part in, possibly mentioned on different days. For those, list\nEVERY item the passages support, separated by commas, and nothing else. Answering\nwith one item is complete only when the passages support exactly one. Never add an\nitem the passages do not state, and never repeat the same item twice.\n\nIf the passages do not contain the answer, answer with \"insufficient information\".\n\nAnswer with JSON exactly in this shape:\n{\"answer\": \"...\"}\n\n### INPUT\n[1] LoCoMo conv-47 history chunk 7\nSession date: 5:07 pm on 16 June, 2022\n[D14:12] John: Glad you're giving these books a try! I'm obsessed with the way they create a magical world you can escape into - plus the characters feel really real. By the way, what's the name of the dog in this picture from your Facebook? It`s so cute!\n[D14:12] Image caption (automatic): a photo of a dog sitting on a couch in a living room\n[D14:13] James: This is Max – he's so lovable and playful. He brings me so much joy, especially in tough times.\n[D14:13] Image caption (automatic): a photo of a dog chewing on a shoe on a person's lap\n[D14:14] John: Aww, he's adorable! I can tell Max brings you a lot of happiness. Pets are always such a great source of joy and love.\n[D14:15] James: Yeah, Max is great - he always cheers me up when I'm feeling down. Enjoying those cuddles with him!\n[D14:15] Image caption (automatic): a photo of a dog standing in front of a pool\n[D14:16] John: Does he enjoy swimming?\n[D14:17] James: Yeah, he loves it! We usually hit the beach or lake, and he loves playing in the water. He's a pro swimmer!\n[D14:18] John: Max must be having so much fun swimming and playing - it's the best!\n[D14:19] James: He has a blast! Always a joy to see him so happy and carefree in his favorite activity.\n[D14:20] John: He looks so happy - this is a great achievement of yours!\n[D14:21] James: Thanks, John! I love making him happy.\n[D14:21] Image caption (automatic): a photo of a dog running in a field with a frisbee\n[D14:22] John: Does Max have any special talents? He seems like quite the go-getter!\n[D14:23] James: Max is a real go-getter! He's awesome at catching frisbees in mid-air - never misses!\n[D14:23] Image caption (automatic): a photo of a dog laying in the grass with a frisbee\n[D14:24] John: Wow, Max loves playing fetch! Does he also enjoy long walks?\n[D14:25] James: Yep! We love them; they're great exercise and give us fresh air. Here is a photo of us from a recent walk in the forest.\n[D14:25] Image caption (automatic): a photo of a man walking a dog on a trail\n[D14:26] John: Where's that spot where you could take a stroll? Bet Max loves all those hikes.\n[D14:27] James: Max and I love taking walks on this nearby trail. It's a mile from my house. It's so tranquil and a great way to relax and connect with nature.\n[D14:27] Image caption (automatic): a photo of a dirt path in a field with trees\n[D14:28] John: Wow, that looks awesome! Going for a nature walk is so refreshing, don't you think?\n[D14:29] James: Yeah, John! It's so relaxing and refreshing. It helps me think straight and find my inner peace.\n[D14:29] Image caption (automatic): a photo of a park with a bench and trees in the fall\n[D14:30] John: That park is so peaceful. What do you do when you're there alone?\n[D14:31] James: When I'm there, I usually bring a book and just chill. It's like an escape from reality.\n[D14:32] John: Sounds great, James! Taking breaks and switching up the scenery is a great way to feel recharged. Keep it up.\n[D14:33] James: Definitely! Taking breaks is important for recharging. Thanks for the support!\n[D14:34] John: No problem, always here to have your back. Take care of yourself!\nSession date: 9:59 pm on 19 June, 2022\n[D15:1] James: Hey John, since our last chat, something awesome happened. Last Friday, I started introducing Max, Daisy and the new pup Ned. It was hard at first, but they're slowly adapting. It's sweet to watch them bond and have fun together.\n[D15:2] John: Wow, that's cool, James! Seeing them bonding and having a great time is so sweet. Do you have a picture of them together?\n[D15:3] James: Yep, I got a great pic last night. Check it out!\n[D15:3] Image caption (automatic): a photography of three dogs in a field of grass with trees in the background\n[D15:4] John: Wow, they look so cute! I can almost feel the love and joy in this photo. These last few days really got me thinking about my own future.\n[D15:4] Image caption (automatic): a photo of a dog and a cat cuddling on a couch\n[D15:5] James: What's been on your mind regarding the future?\n[D15:6] John: Lately, I've been thinking about my career and where I want to be in the future. I'm driven and passionate, and I also want to make a positive impact on the world.\n[D15:7] James: Gotcha, John. Finding a way to make a difference matters. Have you thought about any ideas on how to do that?\n[D15:8] John: Yeah, I have. I've been looking into volunteering and thinking of going into non-profit work. I want to put my passions and abilities to use for causes I really care about.\n[D15:9] James: Wow, John that sounds great! I'm sure with your skills and passion, you could do some really cool things with nonprofits. Here's a pic I took when I volunteered last month. It was really rewarding to see how little gifts can do so much!\n[D15:9] Image caption (automatic): a photo of a group of people standing outside of a building\n[D15:10] John: That's awesome, James! Was it cool to see the impact of the gifts? Can you tell me more about the organization you volunteered with?\n[D15:11] James: It was great to see how much a simple act of kindness can mean to someone in need. I volunteered with an organization that provides necessary items to those who are less fortunate. It felt so rewarding to help, even if it was in a small way.\n[D15:12] John: I think this is exactly what I need. Can you take me there this weekend?\n[D15:12] Image caption (automatic): a photo of a young boy standing outside of a yellow building\n[D15:13] James: Of course I can! I think there are still some of the previous staff there and I can even introduce you to them.\n[D15:14] John: Thank you very much! Will there be some kind of interview required?\n[D15:15] James: No, this is not necessary. All you need is to be a friendly and polite person, and also have a great desire to help people. I'm sure you will succeed!\n[D15:16] John: Thanks for your support! I want to make this world a better place, and with your help I will definitely achieve my goal.\n[D15:17] James: We can do this together!\n[D15:18] John: Thanks, James. Your support means a lot to me. I'm determined to make a positive impact.\n[D15:19] James: You got this! Stay focused on your dreams and don't give up.\nSession date: 5:13 pm on 9 July, 2022\n[D16:1] James: Hey John! Long time no talk - hope you're doing well. Guess what? Last week I actually won an online gaming tournament! It was such an exciting experience and it blew my mind when I won. Winning felt so good and it really motivated me to keep improving.\n[D16:2] John: Hey James! Congrats on winning the online gaming tournament! It's super fulfilling to see your hard work pay off. So happy for you!\n[D16:3] James: Thanks! It was really fulfilling to see my hard work pay off with a victory in the tournament. How are you?\n[D16:4] John: Feeling the tug of emotion lately. Determined and passionate on one hand, but feeling overwhelmed and stressed on the other. Balancing personal and professional is kind of a challenge. How have you been?\n[D16:5] James: Yeah, staying balanced can be tough. I'm trying to take breaks from my hobbies and do other things. Lately I've become interested in extreme sports. Yesterday, for example, I was doing rope jumping. The highest height I jumped from was 150 meters!\n[D16:6] John: Wow, how cool! What other extreme sport have you tried?\n\n[2] LoCoMo conv-47 history chunk 10\nSession date: 3:57 pm on 21 August, 2022\n[D20:15] John: Me and my siblings don't hang out much since we live far apart, but when we do we always try to plan a gaming night.\n[D20:16] James: Sounds great, John! Family time is the best. Are you planning any gaming nights in the near future?\n[D20:17] John: Yep, I'm organizing one with my siblings next month. We're stoked! Can't wait!\n[D20:18] James: Wow, John! Family game nights are so much fun. Have a great time!\n[D20:19] John: Thanks, James! Can't wait! It was nice catching up - talk soon!\n[D20:20] James: Hey John! Good to talk to you. Have fun at family game night! Talk to you later.\n[D20:21] John: Thanks, James! Gonna have a great time. Talk to you later.\n[D20:22] James: Take it easy. Have fun and let's chat soon. Have a good night!\nSession date: 9:18 pm on 26 August, 2022\n[D21:1] James: Hey John! Look how cute it is. My dog came to me today while I was playing on the console. What is new?\n[D21:1] Image caption (automatic): a photo of a person holding a dog on a couch\n[D21:2] John:  Your pup is so cute, remind me what's their name? I've been helping my younger siblings out with programming since they joined the programming course. It's really cool to see them get into it.\n[D21:3] James:  His name's Ned and he's been awesome since I adopted him. I can't imagine life without him. It's great to hear that your siblings signed up for programming.\n[D21:4] John: That's right, his name is Ned, how could I forget?!\n[D21:5] James: Regarding your siblings, are you already working on anything cool with them?\n[D21:6] John: Yeah! We're working on a cool project together that involves coding. It's a game and it's helping them learn.\n[D21:7] James: Wow, learning and gaming sounds like a fantastic combination for coding education! Can you share more details about the game?\n[D21:8] John: Yeah, they're playing a simple, text-based adventure game, working on their coding skills and having fun. I'm so proud of them! Maybe they'll even create their own video games, huh? Any new game designs on your mind?\n[D21:9] James: Wow, sounds cool John! Learning coding with a text-based adventure game is impressive stuff. As for me, I've been trying out different genres of games and now I'm dying to create a strategy game like Civilization - love how complicated and in-depth they are. Fingers crossed, one day I'll make my own awesome strategy game!\n[D21:10] John: Wow, James, that's impressive! It's gonna be awesome. Can't wait to see what you come up with!\n[D21:11] James:  Are you free tomorrow?\n[D21:12] John: Yes, tomorrow is my day off. Do you have any suggestions on how to spend tomorrow?\n[D21:13] James: Yes, we can go to Starbucks for coffee if you want.\n[D21:13] Image caption (automatic): a photo of a laptop computer with a colorful keyboard on a table\n[D21:14] John: I don't mind meeting up, but why Starbucks? Maybe we can have a beer somewhere?\n[D21:15] James: Well, how about we go to McGee's pub then? I heard they serve a great stout there!\n[D21:16] John: Great idea, except I don't like dark beer. Maybe there's something else there?\n[D21:17] James: Of course, there are also light beers!\n[D21:18] John: Great, then I agree! See you tomorrow at McGee's Pub!\n[D21:19] James: See you John, bye!\nSession date: 6:53 pm on 1 September, 2022\n[D22:1] James: Hey John! Been a while, but hope you're doing well. My Unity strategy game is finally finished—it took loads of time and effort, but I'm really proud. Your support and encouragement made a real difference. Thanks for believing in me!\n[D22:1] Image caption (automatic): a photography of a screenshot of a stone building with a giant creature\n[D22:2] John: Hey James! Congrats on finishing your game! It looks amazing and I'm so proud of you for all the hard work you put in. Can I see more of it? Got any other screenshots to show me?\n[D22:3] James: I appreciate your support. Check out this screenshot from it.\n[D22:3] Image caption (automatic): a photo of a video game screen showing a person on a horse\n[D22:4] John: This game looks great! What inspired you to create it?\n[D22:5] James: I've always loved playing strategy games like Civilization and Total War, so I decided to challenge myself and create one of my own.\n[D22:6] John: That's awesome! I love those games too. It must have been quite an experience making your own. Did you face any difficulties during development?\n[D22:7] James: It was a bit challenging to get everything right, balancing mechanics and ensuring fairness. But with some trial and error, I managed to get it to where I wanted it.\n[D22:8] John: Wow, that must have been a challenge, especially since you had to make sure the game was enjoyable and balanced. Congratulations on completing it! What were some key takeaways from the experience?\n[D22:9] James: Thanks, John! It was definitely a learning experience. Perseverance and patience are key, and I'm proud of what I created after sticking with it. Also, feedback and collaboration are essential, and the help from others really made the game better. It was great!\n[D22:10] John: Awesome that you learned those lessons! Collaboration and feedback make a huge impact on any project. I've been teaching my siblings coding. It's been a fulfilling experience and they're already creating their own programs - amazing!\n[D22:11] James: Wow, John! Cool seeing others learn with your help. What kind of programs are they making?\n[D22:12] John: They're starting small, making basic games and stories. It's inspiring how fast they learn and the good time they're having.\n[D22:13] James: Wow! It's inspiring how fast they learn and the good time they're having. I bet they'll be creating their own complex projects soon!\n[D22:14] John: I'm excited to see how far they can go! With their passion for video games like me, hopefully they can use those coding skills to make something cool. I'm so proud of them, can't wait to see what they come up with!\n[D22:15] James: I'm proud of them too! Seeing the next generation pick up coding and making their own games is awesome. Can't wait to see what they create!\n[D22:16] John: Thanks, James, for the support. I really appreciate it.\n[D22:17] James: Yeah, you're the best! I'm here for you, no doubt.\n[D22:18] John:  Your friendship really means a lot. I'm going through some difficult times now and it's really good to know I've got someone like you.\n[D22:19] James: Just know I'm here if you need someone to talk or vent to. It might help alleviate some of the difficult times you're going through.\nSession date: 9:23 pm on 4 September, 2022\n[D23:1] James: Hey John, it's been a few days since we talked. So much has gone on, both good and bad. Yesterday, when we were at the theater, Samantha loves theater, I asked her to become my girlfriend, and she agreed. We have gone through a lot in this short period. There were good and bad, but I'm happy with her. All that ups and downs were a bit overwhelming, but it's part of life. What about you? Anything interesting lately?\n[D23:2] John: Hey James, this is great news! Where else have you been besides the theater? My parents just started learning coding from me - it's been a learning experience, but I'm glad to help them out. It binds us a little closer. Look at this photo, this is my father coding his own program for the first time.\n \n[D23:2] Image caption (automatic): a photography of a man sitting at a desk with a computer\n[D23:3] James: That's great, John! Looks like he's having a good time in the pic. Samantha and I were also at McGee's bar. It turned out that she loves a good lager beer. She and I have so much in common!\n\n[3] LoCoMo conv-47 history chunk 14\nSession date: 5:20 pm on 5 November, 2022\n[D30:9] James: Cool! It's all about studying the game to gain the edge. Do you have any tips for improving?\n[D30:10] John: Yeah, studying opening moves and strategies can really help. It sets the tone and builds a strong foundation. Learning from experienced players and analyzing past games is important too. Plus the chess advice you gave me earlier also helped. Would you like some resources on chess openings?\n[D30:11] James: Sure, I'd love to check out some resources on chess openings. Thank you!\n[D30:12] John: I've got you covered on that. Here's a helpful resource for chess openings. Happy to help!\n[D30:12] Image caption (automatic): a photo of a book with a list of the different games\n[D30:13] James: Thanks for the suggestion, John. What games are you currently playing? I'm always looking for new recommendations.\n[D30:14] John: I'm hooked on this great game called FIFA 23. This is a great football game with the ability to play online with other players from all over the world! Enjoy!\n[D30:15] James: Wow, that sounds awesome! I just wanted to try a new gaming genre, so why not try the sports genre.\n[D30:16] John: You need to practice a little first, and then we can play together.\n[D30:17] James: Great idea! I hope it's easy to control.\n[D30:18] John: Not at all, all you need is a gamepad and a sense of timing.\n[D30:19] James: Great! Well, I'll go train!\nSession date: 8:57 pm on 7 November, 2022\n[D31:1] James: Hey John! Guess what? Me and my family are currently on the road trip! We`ve already visited my friends Josh and Mark and had such a great time!\n[D31:1] Image caption (automatic): a photo of a group of people posing for a picture\n[D31:2] John: Hey James! That sounds awesome! I had a super fun weekend - I worked with a game developer on a project and it was great to see my ideas come to life. It was an incredible experience! \n[D31:2] Image caption (automatic): a photo of a wooden board game with four pieces of wood and four pieces of colored balls\n[D31:3] James: That sounds amazing. What was the project you worked on?\n[D31:4] John: I collaborated with a game developer to create an online board game - it's a fun and unique experience!\n[D31:5] James:  I can imagine how proud you must feel seeing your ideas come to life in a game. Has it been released for others to try yet?\n[D31:6] John: We're about to release a demo soon so others can try it out. Can't wait for their feedback and suggestions.\n[D31:7] James: Can't wait to try it. Keep me posted when it's out - I wanna support you and give my thoughts.\n[D31:8] John: Appreciate your support. I'll definitely let you know when it's out and I'm really excited to hear your thoughts.\n[D31:9] James: By the way, we did one good thing on the way to Mark and Josh.\n[D31:10] John: What is this? Looking forward to hearing your story!\n[D31:11] James: We visited an animal sanctuary on the road trip - there were so many cute rescue dogs! I thought of our love of furry pals.\n[D31:11] Image caption (automatic): a photo of a man kneeling down next to a dog\n[D31:12] John: Cool! What was it like visiting the animal sanctuary? Did you feel tempted to bring any furry pals home?\n[D31:13] James: Those rescue dogs were so cute, I wanted to take them all home, but I remembered that I already have three dogs at home. I think having more than three dogs is too much.\n[D31:14] John: You are right! I still haven’t gotten a dog, but I still really want one. What is it like to have a dog?\n[D31:15] James: Having furry friends around brings so much joy and friendship. Life wouldn't be the same without them. Every day's better with them around.\n[D31:16] John: Yep, they bring so much joy and love. They're always there for us! It's like having sunshine on a cloudy day.\n[D31:17] James: My dogs are like that too - they even make dark days better. Don't know what I'd do without them. They're the best buddies.\n[D31:18] John: Yeah, dogs are awesome for sure! They make us feel so loved and cheerful, don't they?\n[D31:19] James: Yeah, they definitely do. Dogs always cheer us up, wagging their tails and giving us unconditional love. It's like having a dose of positivity and happiness every day. They're amazing!\n[D31:20] John: Definitely, James! Dogs are amazing. They bring so much joy and positivity. They accept us without judgement, just love and happiness. I appreciate the daily dose of positivity they bring to my life. Special buddies for sure. By the way, here is my cousin's dog.\n[D31:20] Image caption (automatic): a photo of a dog sitting on a rug in front of a couch\n[D31:21] James: This pup is so adorable! What's their name?\n[D31:22] John: Their name is Luna. \n[D31:22] Image caption (automatic): a photo of two people standing in front of a giant head\n[D31:23] James: Luna's a great name!\n[D31:24] John: Thanks, gonna go, sorry. Cheers! Bye!\n[D31:25] James: Later! Take care!\n\n[4] LoCoMo conv-47 history chunk 2\nSession date: 9:26 pm on 20 March, 2022\n[D2:17] James: They can do tricks like sit, stay, paw, and rollover. Here's a picture of Daisy waiting for a treat. I've done lots of training and they've picked it up fast. They're like my family.\n[D2:17] Image caption (automatic): a photo of a dog laying on a bed with a name tag\n[D2:18] John: Aww, they're adorable! Pets are the best - they must make life so much better. I want one so bad, but I'm not there yet. Someday!\n[D2:19] James: A pet would truly be great for you! They bring so much love and companionship. If you're interested, I can help find the perfect one for you - you'd make a great pet parent!\n[D2:20] John: Cheers, James! Yeah, I'll keep that in mind. Appreciate the offer.\n[D2:21] James: No problem, John! Let me know whenever you need assistance. Take care!\nSession date: 12:40 am on 27 March, 2022\n[D3:1] John: Hey James, long time no see! I had a big win in my game last week - finally advanced to the next level! It was a huge confidence booster and felt like I'd really achieved something.\n[D3:2] James: Hey John, congrats on your win! Games can really boost confidence, huh? I'm challenging myself too - I'm learning this instrument, which has been quite the journey.\n\n[D3:2] Image caption (automatic): a photography of a drum kit with a white drum and a black drum\n[D3:3] John: Thanks, James! I play drums too! Here's a pic of my set.\n[D3:3] Image caption (automatic): a photo of a drum kit sitting on top of a table\n[D3:4] James: Wow, looking good! How long have you been playing?\n[D3:5] John: I've been playing for a month now, it's been tough but fun. How about you, how's it going?\n[D3:6] James: This is going great! I started a few days ago, so I'm still picking it up. Been at it daily and seeing improvements. It's tough but rewarding at the same time!\n[D3:7] John: Nice work! Looks like you're doing great. Anything new in general that you'd recommend?\n[D3:8] James: Thanks! I just got a new cutting-edge gaming system and the graphics are incredible. I've been playing all kinds of new games and it's been a great way to relax after work. Plus, I can connect with friends who share my passion for gaming.\n[D3:9] John: Cool, James! Gaming is great for chilling out. Btw, since we last spoke, I had the chance to go to a gaming convention - it was amazing! Tried out loads of games, met developers, and even took part in a tournament - unreal! Check out this pic I took!\n[D3:9] Image caption (automatic): a photography of a crowded convention hall with a large crowd of people\n[D3:10] James: Wow, that's awesome! What game was it for? Sounds like a dream!\n[D3:11] John: I played my favorite CS:GO game in an intense tournament. It was awesome to see all the skilled players competing.\n[D3:12] James: Wow, that sounds cool! Gaming is awesome with all the competition. Must have been thrilling to watch those skilled players!\n[D3:13] John: It was indeed amazing! Watching those skilled players really inspired me to improve my own gaming skills.\n[D3:14] James: Nice one, John! Learning from experienced gamers can really help you level up your skills. Keep it up!\n[D3:15] John: I'm always looking to up my game and hit new goals. That same commitment is true for my hobbies and other stuff. What have you been doing to stay motivated?\n[D3:16] James: Setting small goals and tracking my progress helps me stay motivated and focused.\n[D3:17] John: Nice one! Setting small goals and tracking progress is a great way to stay motivated - it helps you stay on track and celebrates progress. Anything specific you're working on or upcoming challenges you're pumped about?\n[D3:18] James: I'm getting into different types of games now, like RPGs and strategy games. It's really exciting!\n[D3:19] John: Cool, James! That sounds exciting. Have fun exploring different genres of games!\n[D3:20] James:  I'm super hyped to explore different game genres. Let's see what's in store!\n[D3:21] John: Definitely! Trying new genres is always exciting. I can't wait to hear about your journey with them. Please let me know how it goes!\n[D3:22] James: Got it, John! I'll keep you updated on my gaming adventures with the new genres. Have a good day!\n[D3:23] John: Thanks! Can't wait to hear about it. Bye!\nSession date: 2:13 pm on 4 April, 2022\n[D4:1] John: Hey James! Long time no chat. What's up? Been playing any new games lately?\n[D4:2] James: Hey John! Yeah, it's been a while. I've been busy, but I joined an online gaming tournament yesterday. It was so intense and fun! Here is a photo report.\n[D4:2] Image caption (automatic): a photo of a group of people posing for a picture\n[D4:3] John: That online gaming tournament looks awesome! Glad you had a blast. How did it go for you?\n[D4:4] James: It was so much fun! I did pretty well in the tournament; I made it to the semis and won some rounds. It was such a rush! Here's a screenshot of my character.\n[D4:4] Image caption (automatic): a photo of a man in a costume standing in front of a sign\n[D4:5] John: Wow, awesome! Congrats on your performance and making it to the semifinals. How did the final rounds turn out?\n[D4:6] James: Thanks John! The final rounds were tough. I tried my best but didn't make it. It was close, though, and I had a blast competing with talented players. Looking forward to the next tournament!\n[D4:6] Image caption (automatic): a photo of a man in a costume holding a sword\n[D4:7] John: Met any famous player there?\n[D4:8] James: I met the whole team! It’s a pity I didn’t get a chance to take a photo with them, but one of them even gave me a couple of gaming tips.\n[D4:8] Image caption (automatic): a photo of a man sitting in a chair playing a video game\n[D4:9] John: Cool! I'm sure his advice will help you develop in the game.\n[D4:10] James: Yes, I'm sure of that too. Also, the whole team gave me autographs. I was very happy about this!\n[D4:10] Image caption (automatic): a photo of a notepad with a pen and a glass of water\n[D4:11] John: How cool is this! What advice do you remember most?\n[D4:12] James: The most important thing I remember is that you always need to communicate correctly with the team and never put your ego above team success.\n[D4:12] Image caption (automatic): a photo of a group of people standing around a table\n[D4:13] John: Yeah, comms and teamwork are super important in gaming. When everyone works together, it's incredible what can be accomplished in a match. How do you usually communicate with your team?\n[D4:14] James: I usually use voice chat to communicate with my team. It's fast and helps us work together effectively.\n[D4:15] John: Sounds like a good plan. It really helps with communication. What game do you like playing with your team?\n[D4:16] James: I've been playing my favourite game called Apex Legends with my team and it's intense! Check out this screenshot of us playing!\n[D4:16] Image caption (automatic): a photo of a video game screen showing a robot and a robot\n[D4:17] John: Man, Apex Legends looks tough! The graphics are unreal. How does it stack up against other games?\n[D4:18] James: Apex Legends has awesome graphics and super fast-paced gameplay. It definitely stands out among other games.\n[D4:19] John: Hmm, the speed of it definitely makes it fun! Are there any new games that you're looking forward to trying out?\n[D4:20] James: Yeah, I'm always excited to try new games. Thinking of trying RPGs like that or MOBAs. Sounds cool!\n[D4:20] Image caption (automatic): a photo of a video game cover of a video game\n[D4:21] John: RPGs and MOBAs can be awesome to experience an engaging story or have epic multiplayer fights. Let me know how you like them!\n\n[5] LoCoMo conv-47 history chunk 3\nSession date: 2:13 pm on 4 April, 2022\n[D4:22] James: Sure thing, John! Can't wait to try out some new genres. I'll definitely let you know my thoughts once I give them a try.\n[D4:23] John: Love hearing about it. Let's chat soon!\n[D4:24] James: Sure John, I'll keep you updated on all the new games. Talk to you soon! Bye for now!\n[D4:25] John: Let me know how it goes. Stay safe. Talk to you soon. Bye!\nSession date: 9:52 am on 12 April, 2022\n[D5:1] James: Hey John! Long time no chat - I adopted a pup from a shelter in Stamford last week and my days have been so much happier with him in the fam. I named it Ned. Any progress on your gaming goals?\n[D5:1] Image caption (automatic): a photo of a dog and a cat sitting on a dog bed\n[D5:2] John: Hey James! Congrats on getting a pup! They really do make days brighter. I haven't made much progress with gaming lately, life's been busy with work and stuff but it's always nice to remember how happy gaming makes me. It's a good way to forget the stresses of life.\n[D5:3] James: Thanks, John! Gaming really does help forget about the stresses of life. It's like heading into another world! Have you played any interesting games lately?\n[D5:4] John: I'm playing this new RPG that has a really cool story and world. It's kinda like getting transported to a futuristic dystopia.\n[D5:4] Image caption (automatic): a photo of a city at night with a view of the city\n[D5:5] James: Sounds great! Will I like it? I'm always up for trying new games.\n[D5:6] John: You'll love it! It has a fun story and an awesome world. Plus, it has some tough gameplay. However, the game is a little laggy and sometimes produces errors. Here is one of them that I came across yesterday.\n[D5:6] Image caption (automatic): a photo of a computer screen with a game on it\n[D5:7] James: The game must still be raw. I'd rather wait until the bugs are completely fixed, and then I'll try it out.\n[D5:8] John: Even with minor bugs, the game still looks great. The graphics are awesome and the gameplay is super immersive. I'm sure you should try it out now. I can send you a link.\n[D5:9] James: Okay, you convinced me. Well, I'll wait for the link then, thanks!\n[D5:10] John: Cool, I'll send it to you. Let me know what you think after you check it out!\n[D5:11] James: Cool, John! I'll check it out and let you know what I think. I'm excited to give it a try.\n[D5:12] John: Thanks, James! Excited to hear your thoughts. Have a great time!\n[D5:13] James: Cheers! Will do. Enjoy the gaming! Bye!\n[D5:14] John: Bye for now!\n[D5:15] James: See ya! Take care!\n[D5:16] John: Take care!\nSession date: 9:32 pm on 20 April, 2022\n[D6:1] John: Hey James! Long time no see! I have great news! Last Tuesday I met three cool new friends in my programming course, they share the same passion as me and it's cool to grow my social circle. Have you had any fun surprises lately?\n[D6:2] James: Hey John! Glad you had a great week meeting new people! Something awesome happened to me last Thursday – I got to work with one of my gaming pals on a programming project! We combined programming and gaming, and created this virtual world inspired by Witcher 3. It was awesome to see our ideas come to life!\n[D6:3] John: It must've felt great to put your skills to work on that project! Do you have any screenshots of the world you made? It must've been so awesome to see it all come together!\n[D6:3] Image caption (automatic): a photo of a video game screen with a man on it\n[D6:4] James: It was quite the experience. Unfortunately, I don't have a screenshot of the full virtual world, but I do have a screenshot of the game character I created. It was a lot of work but so rewarding when it all came together. Super satisfying!\n[D6:4] Image caption (automatic): a photo of a woman dressed in armor kneeling on a rock\n[D6:5] John: Wow, James! This is amazing. I can really feel the atmosphere here. Did you get the inspiration for this from something?\n[D6:6] James: Thanks, I'm glad you can feel the atmosphere. I got the idea from a walk with my dogs two weeks ago. We were walking around our neighborhood, and a stranger was walking towards us. I had never seen her nearby before. Her eyes and appearance amazed me so much, it seemed to me that I fell in love at first sight. It’s a pity that I didn’t approach her to get to know her, but at least I remembered her appearance and embodied it in the game.\n[D6:7] John: That's awesome. Real-life experiences can be so inspiring. It's like the virtual world is connected to the real world. By the way, two days ago I wanted to be alone with nature. This is the canyon I found in the surrounding area. Very calming view.\n[D6:7] Image caption (automatic): a photo of a river running through a canyon surrounded by mountains\n[D6:8] James: That's so cool you had a similar experience. I bet you felt inspired seeing it in person.\n[D6:9] John: Capturing that view was amazing. It was like connecting the real and the imaginary. It really sparked my creativity and motivation.\n[D6:10] James: Cool! What else gives you motivation?\n[D6:11] John: I adhere to the principle that only those who rest well work well. Therefore, chilling with friends and traveling always give me motivation to work further.\n[D6:12] James: I agree with you, I also love to travel. Last year I visited Italy, for example. A very beautiful country with delicious food.\n[D6:13] John: Oh, Italy! I always dreamed of visiting there. What other countries have you been to?\n[D6:14] James: In fact, I haven't visited many countries. Besides Italy, I was also in Turkey and Mexico. What was the last country you visited?\n[D6:15] John: This was Japan. The megacities of this country impress me, everything there is so technologically advanced, the huge screens on the buildings are mesmerizing. And, of course, very tasty street food.\n[D6:15] Image caption (automatic): a photo of a busy city street at night with people walking\n[D6:16] James: It would be cool to go somewhere together next year, don't you think?\n[D6:17] John: Of course, I hope everything works out for us, I will believe in it!\n[D6:18] James: Great, then I'll start looking for a country where we can go!\n[D6:19] John: Keep me posted, James! Let me know if you need help.\nSession date: 11:04 am on 23 April, 2022\n[D7:1] John: Hey James! How's it going?\n[D7:2] James: Hey John! Good to hear from ya. Yeah, been crazy. Last Thursday I took my dogs out for a hike. Was quite the adventure! Explored some nice trails and enjoyed fresh air.\n[D7:3] John: Wow, sounds like quite an adventure! Do you have any pictures from that day?\n[D7:4] James: Yeah, I have one. It was great! They loved it - so many trails to discover and amazing views. So fun!\n[D7:4] Image caption (automatic): a photo of a man walking two dogs on a path in the woods\n[D7:5] John: Wow, that looks like a cool place you took them! Why'd you pick that spot?\n[D7:6] James: I picked that spot because it had great views and lots of trails. It was perfect for them to explore nature and have fun. Plus, there's nothing like being surrounded by lush greenery and clean air.\n[D7:7] John: Agreed! It is a great way to escape the everyday. Wish I could spend more time in nature!\n[D7:8] James: Love hearing the crunch of leaves under my feet and the peacefulness. It helps me clear my head and chill.\n[D7:9] John: I need some chill vibes too because it's been crazy for me lately.\n[D7:10] James: What's been going on? Is there anything you want to talk about? I'm here for you.\n[D7:11] John: Thanks, James. Yeah, been super busy at work. Deadlines all over the place and so much to do. It's just been really hectic lately.\n\nPERGUNTA: What is the name of John's cousin's dog?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 512,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "qa",
+      "key": "18070f3e513e040d1d23f5b60b55880a912f10d581a0d76c6a57dd4629a724dd",
+      "result": {
+        "text": "{\"answer\": \"Luna\"}",
+        "prompt_tokens": 9773,
+        "completion_tokens": 8,
+        "latency_s": 0.7395875733345747,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You answer questions using only the passages provided. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Answer the question using only the passages below.\n\nGive the shortest answer that is complete: a name, a date, a number or a short noun\nphrase. Do not write a sentence.\n\nSome questions ask for a SET: everything a person did, made, visited, read, owns,\nwas given, or took part in, possibly mentioned on different days. For those, list\nEVERY item the passages support, separated by commas, and nothing else. Answering\nwith one item is complete only when the passages support exactly one. Never add an\nitem the passages do not state, and never repeat the same item twice.\n\nIf the passages do not contain the answer, answer with \"insufficient information\".\n\nAnswer with JSON exactly in this shape:\n{\"answer\": \"...\"}\n\n### INPUT\n[1] LoCoMo conv-47 history chunk 7\nSession date: 5:07 pm on 16 June, 2022\n[D14:12] John: Glad you're giving these books a try! I'm obsessed with the way they create a magical world you can escape into - plus the characters feel really real. By the way, what's the name of the dog in this picture from your Facebook? It`s so cute!\n[D14:12] Image caption (automatic): a photo of a dog sitting on a couch in a living room\n[D14:13] James: This is Max – he's so lovable and playful. He brings me so much joy, especially in tough times.\n[D14:13] Image caption (automatic): a photo of a dog chewing on a shoe on a person's lap\n[D14:14] John: Aww, he's adorable! I can tell Max brings you a lot of happiness. Pets are always such a great source of joy and love.\n[D14:15] James: Yeah, Max is great - he always cheers me up when I'm feeling down. Enjoying those cuddles with him!\n[D14:15] Image caption (automatic): a photo of a dog standing in front of a pool\n[D14:16] John: Does he enjoy swimming?\n[D14:17] James: Yeah, he loves it! We usually hit the beach or lake, and he loves playing in the water. He's a pro swimmer!\n[D14:18] John: Max must be having so much fun swimming and playing - it's the best!\n[D14:19] James: He has a blast! Always a joy to see him so happy and carefree in his favorite activity.\n[D14:20] John: He looks so happy - this is a great achievement of yours!\n[D14:21] James: Thanks, John! I love making him happy.\n[D14:21] Image caption (automatic): a photo of a dog running in a field with a frisbee\n[D14:22] John: Does Max have any special talents? He seems like quite the go-getter!\n[D14:23] James: Max is a real go-getter! He's awesome at catching frisbees in mid-air - never misses!\n[D14:23] Image caption (automatic): a photo of a dog laying in the grass with a frisbee\n[D14:24] John: Wow, Max loves playing fetch! Does he also enjoy long walks?\n[D14:25] James: Yep! We love them; they're great exercise and give us fresh air. Here is a photo of us from a recent walk in the forest.\n[D14:25] Image caption (automatic): a photo of a man walking a dog on a trail\n[D14:26] John: Where's that spot where you could take a stroll? Bet Max loves all those hikes.\n[D14:27] James: Max and I love taking walks on this nearby trail. It's a mile from my house. It's so tranquil and a great way to relax and connect with nature.\n[D14:27] Image caption (automatic): a photo of a dirt path in a field with trees\n[D14:28] John: Wow, that looks awesome! Going for a nature walk is so refreshing, don't you think?\n[D14:29] James: Yeah, John! It's so relaxing and refreshing. It helps me think straight and find my inner peace.\n[D14:29] Image caption (automatic): a photo of a park with a bench and trees in the fall\n[D14:30] John: That park is so peaceful. What do you do when you're there alone?\n[D14:31] James: When I'm there, I usually bring a book and just chill. It's like an escape from reality.\n[D14:32] John: Sounds great, James! Taking breaks and switching up the scenery is a great way to feel recharged. Keep it up.\n[D14:33] James: Definitely! Taking breaks is important for recharging. Thanks for the support!\n[D14:34] John: No problem, always here to have your back. Take care of yourself!\nSession date: 9:59 pm on 19 June, 2022\n[D15:1] James: Hey John, since our last chat, something awesome happened. Last Friday, I started introducing Max, Daisy and the new pup Ned. It was hard at first, but they're slowly adapting. It's sweet to watch them bond and have fun together.\n[D15:2] John: Wow, that's cool, James! Seeing them bonding and having a great time is so sweet. Do you have a picture of them together?\n[D15:3] James: Yep, I got a great pic last night. Check it out!\n[D15:3] Image caption (automatic): a photography of three dogs in a field of grass with trees in the background\n[D15:4] John: Wow, they look so cute! I can almost feel the love and joy in this photo. These last few days really got me thinking about my own future.\n[D15:4] Image caption (automatic): a photo of a dog and a cat cuddling on a couch\n[D15:5] James: What's been on your mind regarding the future?\n[D15:6] John: Lately, I've been thinking about my career and where I want to be in the future. I'm driven and passionate, and I also want to make a positive impact on the world.\n[D15:7] James: Gotcha, John. Finding a way to make a difference matters. Have you thought about any ideas on how to do that?\n[D15:8] John: Yeah, I have. I've been looking into volunteering and thinking of going into non-profit work. I want to put my passions and abilities to use for causes I really care about.\n[D15:9] James: Wow, John that sounds great! I'm sure with your skills and passion, you could do some really cool things with nonprofits. Here's a pic I took when I volunteered last month. It was really rewarding to see how little gifts can do so much!\n[D15:9] Image caption (automatic): a photo of a group of people standing outside of a building\n[D15:10] John: That's awesome, James! Was it cool to see the impact of the gifts? Can you tell me more about the organization you volunteered with?\n[D15:11] James: It was great to see how much a simple act of kindness can mean to someone in need. I volunteered with an organization that provides necessary items to those who are less fortunate. It felt so rewarding to help, even if it was in a small way.\n[D15:12] John: I think this is exactly what I need. Can you take me there this weekend?\n[D15:12] Image caption (automatic): a photo of a young boy standing outside of a yellow building\n[D15:13] James: Of course I can! I think there are still some of the previous staff there and I can even introduce you to them.\n[D15:14] John: Thank you very much! Will there be some kind of interview required?\n[D15:15] James: No, this is not necessary. All you need is to be a friendly and polite person, and also have a great desire to help people. I'm sure you will succeed!\n[D15:16] John: Thanks for your support! I want to make this world a better place, and with your help I will definitely achieve my goal.\n[D15:17] James: We can do this together!\n[D15:18] John: Thanks, James. Your support means a lot to me. I'm determined to make a positive impact.\n[D15:19] James: You got this! Stay focused on your dreams and don't give up.\nSession date: 5:13 pm on 9 July, 2022\n[D16:1] James: Hey John! Long time no talk - hope you're doing well. Guess what? Last week I actually won an online gaming tournament! It was such an exciting experience and it blew my mind when I won. Winning felt so good and it really motivated me to keep improving.\n[D16:2] John: Hey James! Congrats on winning the online gaming tournament! It's super fulfilling to see your hard work pay off. So happy for you!\n[D16:3] James: Thanks! It was really fulfilling to see my hard work pay off with a victory in the tournament. How are you?\n[D16:4] John: Feeling the tug of emotion lately. Determined and passionate on one hand, but feeling overwhelmed and stressed on the other. Balancing personal and professional is kind of a challenge. How have you been?\n[D16:5] James: Yeah, staying balanced can be tough. I'm trying to take breaks from my hobbies and do other things. Lately I've become interested in extreme sports. Yesterday, for example, I was doing rope jumping. The highest height I jumped from was 150 meters!\n[D16:6] John: Wow, how cool! What other extreme sport have you tried?\n\n[2] LoCoMo conv-47 history chunk 10\nSession date: 3:57 pm on 21 August, 2022\n[D20:15] John: Me and my siblings don't hang out much since we live far apart, but when we do we always try to plan a gaming night.\n[D20:16] James: Sounds great, John! Family time is the best. Are you planning any gaming nights in the near future?\n[D20:17] John: Yep, I'm organizing one with my siblings next month. We're stoked! Can't wait!\n[D20:18] James: Wow, John! Family game nights are so much fun. Have a great time!\n[D20:19] John: Thanks, James! Can't wait! It was nice catching up - talk soon!\n[D20:20] James: Hey John! Good to talk to you. Have fun at family game night! Talk to you later.\n[D20:21] John: Thanks, James! Gonna have a great time. Talk to you later.\n[D20:22] James: Take it easy. Have fun and let's chat soon. Have a good night!\nSession date: 9:18 pm on 26 August, 2022\n[D21:1] James: Hey John! Look how cute it is. My dog came to me today while I was playing on the console. What is new?\n[D21:1] Image caption (automatic): a photo of a person holding a dog on a couch\n[D21:2] John:  Your pup is so cute, remind me what's their name? I've been helping my younger siblings out with programming since they joined the programming course. It's really cool to see them get into it.\n[D21:3] James:  His name's Ned and he's been awesome since I adopted him. I can't imagine life without him. It's great to hear that your siblings signed up for programming.\n[D21:4] John: That's right, his name is Ned, how could I forget?!\n[D21:5] James: Regarding your siblings, are you already working on anything cool with them?\n[D21:6] John: Yeah! We're working on a cool project together that involves coding. It's a game and it's helping them learn.\n[D21:7] James: Wow, learning and gaming sounds like a fantastic combination for coding education! Can you share more details about the game?\n[D21:8] John: Yeah, they're playing a simple, text-based adventure game, working on their coding skills and having fun. I'm so proud of them! Maybe they'll even create their own video games, huh? Any new game designs on your mind?\n[D21:9] James: Wow, sounds cool John! Learning coding with a text-based adventure game is impressive stuff. As for me, I've been trying out different genres of games and now I'm dying to create a strategy game like Civilization - love how complicated and in-depth they are. Fingers crossed, one day I'll make my own awesome strategy game!\n[D21:10] John: Wow, James, that's impressive! It's gonna be awesome. Can't wait to see what you come up with!\n[D21:11] James:  Are you free tomorrow?\n[D21:12] John: Yes, tomorrow is my day off. Do you have any suggestions on how to spend tomorrow?\n[D21:13] James: Yes, we can go to Starbucks for coffee if you want.\n[D21:13] Image caption (automatic): a photo of a laptop computer with a colorful keyboard on a table\n[D21:14] John: I don't mind meeting up, but why Starbucks? Maybe we can have a beer somewhere?\n[D21:15] James: Well, how about we go to McGee's pub then? I heard they serve a great stout there!\n[D21:16] John: Great idea, except I don't like dark beer. Maybe there's something else there?\n[D21:17] James: Of course, there are also light beers!\n[D21:18] John: Great, then I agree! See you tomorrow at McGee's Pub!\n[D21:19] James: See you John, bye!\nSession date: 6:53 pm on 1 September, 2022\n[D22:1] James: Hey John! Been a while, but hope you're doing well. My Unity strategy game is finally finished—it took loads of time and effort, but I'm really proud. Your support and encouragement made a real difference. Thanks for believing in me!\n[D22:1] Image caption (automatic): a photography of a screenshot of a stone building with a giant creature\n[D22:2] John: Hey James! Congrats on finishing your game! It looks amazing and I'm so proud of you for all the hard work you put in. Can I see more of it? Got any other screenshots to show me?\n[D22:3] James: I appreciate your support. Check out this screenshot from it.\n[D22:3] Image caption (automatic): a photo of a video game screen showing a person on a horse\n[D22:4] John: This game looks great! What inspired you to create it?\n[D22:5] James: I've always loved playing strategy games like Civilization and Total War, so I decided to challenge myself and create one of my own.\n[D22:6] John: That's awesome! I love those games too. It must have been quite an experience making your own. Did you face any difficulties during development?\n[D22:7] James: It was a bit challenging to get everything right, balancing mechanics and ensuring fairness. But with some trial and error, I managed to get it to where I wanted it.\n[D22:8] John: Wow, that must have been a challenge, especially since you had to make sure the game was enjoyable and balanced. Congratulations on completing it! What were some key takeaways from the experience?\n[D22:9] James: Thanks, John! It was definitely a learning experience. Perseverance and patience are key, and I'm proud of what I created after sticking with it. Also, feedback and collaboration are essential, and the help from others really made the game better. It was great!\n[D22:10] John: Awesome that you learned those lessons! Collaboration and feedback make a huge impact on any project. I've been teaching my siblings coding. It's been a fulfilling experience and they're already creating their own programs - amazing!\n[D22:11] James: Wow, John! Cool seeing others learn with your help. What kind of programs are they making?\n[D22:12] John: They're starting small, making basic games and stories. It's inspiring how fast they learn and the good time they're having.\n[D22:13] James: Wow! It's inspiring how fast they learn and the good time they're having. I bet they'll be creating their own complex projects soon!\n[D22:14] John: I'm excited to see how far they can go! With their passion for video games like me, hopefully they can use those coding skills to make something cool. I'm so proud of them, can't wait to see what they come up with!\n[D22:15] James: I'm proud of them too! Seeing the next generation pick up coding and making their own games is awesome. Can't wait to see what they create!\n[D22:16] John: Thanks, James, for the support. I really appreciate it.\n[D22:17] James: Yeah, you're the best! I'm here for you, no doubt.\n[D22:18] John:  Your friendship really means a lot. I'm going through some difficult times now and it's really good to know I've got someone like you.\n[D22:19] James: Just know I'm here if you need someone to talk or vent to. It might help alleviate some of the difficult times you're going through.\nSession date: 9:23 pm on 4 September, 2022\n[D23:1] James: Hey John, it's been a few days since we talked. So much has gone on, both good and bad. Yesterday, when we were at the theater, Samantha loves theater, I asked her to become my girlfriend, and she agreed. We have gone through a lot in this short period. There were good and bad, but I'm happy with her. All that ups and downs were a bit overwhelming, but it's part of life. What about you? Anything interesting lately?\n[D23:2] John: Hey James, this is great news! Where else have you been besides the theater? My parents just started learning coding from me - it's been a learning experience, but I'm glad to help them out. It binds us a little closer. Look at this photo, this is my father coding his own program for the first time.\n \n[D23:2] Image caption (automatic): a photography of a man sitting at a desk with a computer\n[D23:3] James: That's great, John! Looks like he's having a good time in the pic. Samantha and I were also at McGee's bar. It turned out that she loves a good lager beer. She and I have so much in common!\n\n[3] LoCoMo conv-47 history chunk 14\nSession date: 5:20 pm on 5 November, 2022\n[D30:9] James: Cool! It's all about studying the game to gain the edge. Do you have any tips for improving?\n[D30:10] John: Yeah, studying opening moves and strategies can really help. It sets the tone and builds a strong foundation. Learning from experienced players and analyzing past games is important too. Plus the chess advice you gave me earlier also helped. Would you like some resources on chess openings?\n[D30:11] James: Sure, I'd love to check out some resources on chess openings. Thank you!\n[D30:12] John: I've got you covered on that. Here's a helpful resource for chess openings. Happy to help!\n[D30:12] Image caption (automatic): a photo of a book with a list of the different games\n[D30:13] James: Thanks for the suggestion, John. What games are you currently playing? I'm always looking for new recommendations.\n[D30:14] John: I'm hooked on this great game called FIFA 23. This is a great football game with the ability to play online with other players from all over the world! Enjoy!\n[D30:15] James: Wow, that sounds awesome! I just wanted to try a new gaming genre, so why not try the sports genre.\n[D30:16] John: You need to practice a little first, and then we can play together.\n[D30:17] James: Great idea! I hope it's easy to control.\n[D30:18] John: Not at all, all you need is a gamepad and a sense of timing.\n[D30:19] James: Great! Well, I'll go train!\nSession date: 8:57 pm on 7 November, 2022\n[D31:1] James: Hey John! Guess what? Me and my family are currently on the road trip! We`ve already visited my friends Josh and Mark and had such a great time!\n[D31:1] Image caption (automatic): a photo of a group of people posing for a picture\n[D31:2] John: Hey James! That sounds awesome! I had a super fun weekend - I worked with a game developer on a project and it was great to see my ideas come to life. It was an incredible experience! \n[D31:2] Image caption (automatic): a photo of a wooden board game with four pieces of wood and four pieces of colored balls\n[D31:3] James: That sounds amazing. What was the project you worked on?\n[D31:4] John: I collaborated with a game developer to create an online board game - it's a fun and unique experience!\n[D31:5] James:  I can imagine how proud you must feel seeing your ideas come to life in a game. Has it been released for others to try yet?\n[D31:6] John: We're about to release a demo soon so others can try it out. Can't wait for their feedback and suggestions.\n[D31:7] James: Can't wait to try it. Keep me posted when it's out - I wanna support you and give my thoughts.\n[D31:8] John: Appreciate your support. I'll definitely let you know when it's out and I'm really excited to hear your thoughts.\n[D31:9] James: By the way, we did one good thing on the way to Mark and Josh.\n[D31:10] John: What is this? Looking forward to hearing your story!\n[D31:11] James: We visited an animal sanctuary on the road trip - there were so many cute rescue dogs! I thought of our love of furry pals.\n[D31:11] Image caption (automatic): a photo of a man kneeling down next to a dog\n[D31:12] John: Cool! What was it like visiting the animal sanctuary? Did you feel tempted to bring any furry pals home?\n[D31:13] James: Those rescue dogs were so cute, I wanted to take them all home, but I remembered that I already have three dogs at home. I think having more than three dogs is too much.\n[D31:14] John: You are right! I still haven’t gotten a dog, but I still really want one. What is it like to have a dog?\n[D31:15] James: Having furry friends around brings so much joy and friendship. Life wouldn't be the same without them. Every day's better with them around.\n[D31:16] John: Yep, they bring so much joy and love. They're always there for us! It's like having sunshine on a cloudy day.\n[D31:17] James: My dogs are like that too - they even make dark days better. Don't know what I'd do without them. They're the best buddies.\n[D31:18] John: Yeah, dogs are awesome for sure! They make us feel so loved and cheerful, don't they?\n[D31:19] James: Yeah, they definitely do. Dogs always cheer us up, wagging their tails and giving us unconditional love. It's like having a dose of positivity and happiness every day. They're amazing!\n[D31:20] John: Definitely, James! Dogs are amazing. They bring so much joy and positivity. They accept us without judgement, just love and happiness. I appreciate the daily dose of positivity they bring to my life. Special buddies for sure. By the way, here is my cousin's dog.\n[D31:20] Image caption (automatic): a photo of a dog sitting on a rug in front of a couch\n[D31:21] James: This pup is so adorable! What's their name?\n[D31:22] John: Their name is Luna. \n[D31:22] Image caption (automatic): a photo of two people standing in front of a giant head\n[D31:23] James: Luna's a great name!\n[D31:24] John: Thanks, gonna go, sorry. Cheers! Bye!\n[D31:25] James: Later! Take care!\n\n[4] LoCoMo conv-47 history chunk 2\nSession date: 9:26 pm on 20 March, 2022\n[D2:17] James: They can do tricks like sit, stay, paw, and rollover. Here's a picture of Daisy waiting for a treat. I've done lots of training and they've picked it up fast. They're like my family.\n[D2:17] Image caption (automatic): a photo of a dog laying on a bed with a name tag\n[D2:18] John: Aww, they're adorable! Pets are the best - they must make life so much better. I want one so bad, but I'm not there yet. Someday!\n[D2:19] James: A pet would truly be great for you! They bring so much love and companionship. If you're interested, I can help find the perfect one for you - you'd make a great pet parent!\n[D2:20] John: Cheers, James! Yeah, I'll keep that in mind. Appreciate the offer.\n[D2:21] James: No problem, John! Let me know whenever you need assistance. Take care!\nSession date: 12:40 am on 27 March, 2022\n[D3:1] John: Hey James, long time no see! I had a big win in my game last week - finally advanced to the next level! It was a huge confidence booster and felt like I'd really achieved something.\n[D3:2] James: Hey John, congrats on your win! Games can really boost confidence, huh? I'm challenging myself too - I'm learning this instrument, which has been quite the journey.\n\n[D3:2] Image caption (automatic): a photography of a drum kit with a white drum and a black drum\n[D3:3] John: Thanks, James! I play drums too! Here's a pic of my set.\n[D3:3] Image caption (automatic): a photo of a drum kit sitting on top of a table\n[D3:4] James: Wow, looking good! How long have you been playing?\n[D3:5] John: I've been playing for a month now, it's been tough but fun. How about you, how's it going?\n[D3:6] James: This is going great! I started a few days ago, so I'm still picking it up. Been at it daily and seeing improvements. It's tough but rewarding at the same time!\n[D3:7] John: Nice work! Looks like you're doing great. Anything new in general that you'd recommend?\n[D3:8] James: Thanks! I just got a new cutting-edge gaming system and the graphics are incredible. I've been playing all kinds of new games and it's been a great way to relax after work. Plus, I can connect with friends who share my passion for gaming.\n[D3:9] John: Cool, James! Gaming is great for chilling out. Btw, since we last spoke, I had the chance to go to a gaming convention - it was amazing! Tried out loads of games, met developers, and even took part in a tournament - unreal! Check out this pic I took!\n[D3:9] Image caption (automatic): a photography of a crowded convention hall with a large crowd of people\n[D3:10] James: Wow, that's awesome! What game was it for? Sounds like a dream!\n[D3:11] John: I played my favorite CS:GO game in an intense tournament. It was awesome to see all the skilled players competing.\n[D3:12] James: Wow, that sounds cool! Gaming is awesome with all the competition. Must have been thrilling to watch those skilled players!\n[D3:13] John: It was indeed amazing! Watching those skilled players really inspired me to improve my own gaming skills.\n[D3:14] James: Nice one, John! Learning from experienced gamers can really help you level up your skills. Keep it up!\n[D3:15] John: I'm always looking to up my game and hit new goals. That same commitment is true for my hobbies and other stuff. What have you been doing to stay motivated?\n[D3:16] James: Setting small goals and tracking my progress helps me stay motivated and focused.\n[D3:17] John: Nice one! Setting small goals and tracking progress is a great way to stay motivated - it helps you stay on track and celebrates progress. Anything specific you're working on or upcoming challenges you're pumped about?\n[D3:18] James: I'm getting into different types of games now, like RPGs and strategy games. It's really exciting!\n[D3:19] John: Cool, James! That sounds exciting. Have fun exploring different genres of games!\n[D3:20] James:  I'm super hyped to explore different game genres. Let's see what's in store!\n[D3:21] John: Definitely! Trying new genres is always exciting. I can't wait to hear about your journey with them. Please let me know how it goes!\n[D3:22] James: Got it, John! I'll keep you updated on my gaming adventures with the new genres. Have a good day!\n[D3:23] John: Thanks! Can't wait to hear about it. Bye!\nSession date: 2:13 pm on 4 April, 2022\n[D4:1] John: Hey James! Long time no chat. What's up? Been playing any new games lately?\n[D4:2] James: Hey John! Yeah, it's been a while. I've been busy, but I joined an online gaming tournament yesterday. It was so intense and fun! Here is a photo report.\n[D4:2] Image caption (automatic): a photo of a group of people posing for a picture\n[D4:3] John: That online gaming tournament looks awesome! Glad you had a blast. How did it go for you?\n[D4:4] James: It was so much fun! I did pretty well in the tournament; I made it to the semis and won some rounds. It was such a rush! Here's a screenshot of my character.\n[D4:4] Image caption (automatic): a photo of a man in a costume standing in front of a sign\n[D4:5] John: Wow, awesome! Congrats on your performance and making it to the semifinals. How did the final rounds turn out?\n[D4:6] James: Thanks John! The final rounds were tough. I tried my best but didn't make it. It was close, though, and I had a blast competing with talented players. Looking forward to the next tournament!\n[D4:6] Image caption (automatic): a photo of a man in a costume holding a sword\n[D4:7] John: Met any famous player there?\n[D4:8] James: I met the whole team! It’s a pity I didn’t get a chance to take a photo with them, but one of them even gave me a couple of gaming tips.\n[D4:8] Image caption (automatic): a photo of a man sitting in a chair playing a video game\n[D4:9] John: Cool! I'm sure his advice will help you develop in the game.\n[D4:10] James: Yes, I'm sure of that too. Also, the whole team gave me autographs. I was very happy about this!\n[D4:10] Image caption (automatic): a photo of a notepad with a pen and a glass of water\n[D4:11] John: How cool is this! What advice do you remember most?\n[D4:12] James: The most important thing I remember is that you always need to communicate correctly with the team and never put your ego above team success.\n[D4:12] Image caption (automatic): a photo of a group of people standing around a table\n[D4:13] John: Yeah, comms and teamwork are super important in gaming. When everyone works together, it's incredible what can be accomplished in a match. How do you usually communicate with your team?\n[D4:14] James: I usually use voice chat to communicate with my team. It's fast and helps us work together effectively.\n[D4:15] John: Sounds like a good plan. It really helps with communication. What game do you like playing with your team?\n[D4:16] James: I've been playing my favourite game called Apex Legends with my team and it's intense! Check out this screenshot of us playing!\n[D4:16] Image caption (automatic): a photo of a video game screen showing a robot and a robot\n[D4:17] John: Man, Apex Legends looks tough! The graphics are unreal. How does it stack up against other games?\n[D4:18] James: Apex Legends has awesome graphics and super fast-paced gameplay. It definitely stands out among other games.\n[D4:19] John: Hmm, the speed of it definitely makes it fun! Are there any new games that you're looking forward to trying out?\n[D4:20] James: Yeah, I'm always excited to try new games. Thinking of trying RPGs like that or MOBAs. Sounds cool!\n[D4:20] Image caption (automatic): a photo of a video game cover of a video game\n[D4:21] John: RPGs and MOBAs can be awesome to experience an engaging story or have epic multiplayer fights. Let me know how you like them!\n\n[5] LoCoMo conv-47 history chunk 3\nSession date: 2:13 pm on 4 April, 2022\n[D4:22] James: Sure thing, John! Can't wait to try out some new genres. I'll definitely let you know my thoughts once I give them a try.\n[D4:23] John: Love hearing about it. Let's chat soon!\n[D4:24] James: Sure John, I'll keep you updated on all the new games. Talk to you soon! Bye for now!\n[D4:25] John: Let me know how it goes. Stay safe. Talk to you soon. Bye!\nSession date: 9:52 am on 12 April, 2022\n[D5:1] James: Hey John! Long time no chat - I adopted a pup from a shelter in Stamford last week and my days have been so much happier with him in the fam. I named it Ned. Any progress on your gaming goals?\n[D5:1] Image caption (automatic): a photo of a dog and a cat sitting on a dog bed\n[D5:2] John: Hey James! Congrats on getting a pup! They really do make days brighter. I haven't made much progress with gaming lately, life's been busy with work and stuff but it's always nice to remember how happy gaming makes me. It's a good way to forget the stresses of life.\n[D5:3] James: Thanks, John! Gaming really does help forget about the stresses of life. It's like heading into another world! Have you played any interesting games lately?\n[D5:4] John: I'm playing this new RPG that has a really cool story and world. It's kinda like getting transported to a futuristic dystopia.\n[D5:4] Image caption (automatic): a photo of a city at night with a view of the city\n[D5:5] James: Sounds great! Will I like it? I'm always up for trying new games.\n[D5:6] John: You'll love it! It has a fun story and an awesome world. Plus, it has some tough gameplay. However, the game is a little laggy and sometimes produces errors. Here is one of them that I came across yesterday.\n[D5:6] Image caption (automatic): a photo of a computer screen with a game on it\n[D5:7] James: The game must still be raw. I'd rather wait until the bugs are completely fixed, and then I'll try it out.\n[D5:8] John: Even with minor bugs, the game still looks great. The graphics are awesome and the gameplay is super immersive. I'm sure you should try it out now. I can send you a link.\n[D5:9] James: Okay, you convinced me. Well, I'll wait for the link then, thanks!\n[D5:10] John: Cool, I'll send it to you. Let me know what you think after you check it out!\n[D5:11] James: Cool, John! I'll check it out and let you know what I think. I'm excited to give it a try.\n[D5:12] John: Thanks, James! Excited to hear your thoughts. Have a great time!\n[D5:13] James: Cheers! Will do. Enjoy the gaming! Bye!\n[D5:14] John: Bye for now!\n[D5:15] James: See ya! Take care!\n[D5:16] John: Take care!\nSession date: 9:32 pm on 20 April, 2022\n[D6:1] John: Hey James! Long time no see! I have great news! Last Tuesday I met three cool new friends in my programming course, they share the same passion as me and it's cool to grow my social circle. Have you had any fun surprises lately?\n[D6:2] James: Hey John! Glad you had a great week meeting new people! Something awesome happened to me last Thursday – I got to work with one of my gaming pals on a programming project! We combined programming and gaming, and created this virtual world inspired by Witcher 3. It was awesome to see our ideas come to life!\n[D6:3] John: It must've felt great to put your skills to work on that project! Do you have any screenshots of the world you made? It must've been so awesome to see it all come together!\n[D6:3] Image caption (automatic): a photo of a video game screen with a man on it\n[D6:4] James: It was quite the experience. Unfortunately, I don't have a screenshot of the full virtual world, but I do have a screenshot of the game character I created. It was a lot of work but so rewarding when it all came together. Super satisfying!\n[D6:4] Image caption (automatic): a photo of a woman dressed in armor kneeling on a rock\n[D6:5] John: Wow, James! This is amazing. I can really feel the atmosphere here. Did you get the inspiration for this from something?\n[D6:6] James: Thanks, I'm glad you can feel the atmosphere. I got the idea from a walk with my dogs two weeks ago. We were walking around our neighborhood, and a stranger was walking towards us. I had never seen her nearby before. Her eyes and appearance amazed me so much, it seemed to me that I fell in love at first sight. It’s a pity that I didn’t approach her to get to know her, but at least I remembered her appearance and embodied it in the game.\n[D6:7] John: That's awesome. Real-life experiences can be so inspiring. It's like the virtual world is connected to the real world. By the way, two days ago I wanted to be alone with nature. This is the canyon I found in the surrounding area. Very calming view.\n[D6:7] Image caption (automatic): a photo of a river running through a canyon surrounded by mountains\n[D6:8] James: That's so cool you had a similar experience. I bet you felt inspired seeing it in person.\n[D6:9] John: Capturing that view was amazing. It was like connecting the real and the imaginary. It really sparked my creativity and motivation.\n[D6:10] James: Cool! What else gives you motivation?\n[D6:11] John: I adhere to the principle that only those who rest well work well. Therefore, chilling with friends and traveling always give me motivation to work further.\n[D6:12] James: I agree with you, I also love to travel. Last year I visited Italy, for example. A very beautiful country with delicious food.\n[D6:13] John: Oh, Italy! I always dreamed of visiting there. What other countries have you been to?\n[D6:14] James: In fact, I haven't visited many countries. Besides Italy, I was also in Turkey and Mexico. What was the last country you visited?\n[D6:15] John: This was Japan. The megacities of this country impress me, everything there is so technologically advanced, the huge screens on the buildings are mesmerizing. And, of course, very tasty street food.\n[D6:15] Image caption (automatic): a photo of a busy city street at night with people walking\n[D6:16] James: It would be cool to go somewhere together next year, don't you think?\n[D6:17] John: Of course, I hope everything works out for us, I will believe in it!\n[D6:18] James: Great, then I'll start looking for a country where we can go!\n[D6:19] John: Keep me posted, James! Let me know if you need help.\nSession date: 11:04 am on 23 April, 2022\n[D7:1] John: Hey James! How's it going?\n[D7:2] James: Hey John! Good to hear from ya. Yeah, been crazy. Last Thursday I took my dogs out for a hike. Was quite the adventure! Explored some nice trails and enjoyed fresh air.\n[D7:3] John: Wow, sounds like quite an adventure! Do you have any pictures from that day?\n[D7:4] James: Yeah, I have one. It was great! They loved it - so many trails to discover and amazing views. So fun!\n[D7:4] Image caption (automatic): a photo of a man walking two dogs on a path in the woods\n[D7:5] John: Wow, that looks like a cool place you took them! Why'd you pick that spot?\n[D7:6] James: I picked that spot because it had great views and lots of trails. It was perfect for them to explore nature and have fun. Plus, there's nothing like being surrounded by lush greenery and clean air.\n[D7:7] John: Agreed! It is a great way to escape the everyday. Wish I could spend more time in nature!\n[D7:8] James: Love hearing the crunch of leaves under my feet and the peacefulness. It helps me clear my head and chill.\n[D7:9] John: I need some chill vibes too because it's been crazy for me lately.\n[D7:10] James: What's been going on? Is there anything you want to talk about? I'm here for you.\n[D7:11] John: Thanks, James. Yeah, been super busy at work. Deadlines all over the place and so much to do. It's just been really hectic lately.\n\nPERGUNTA: What is the name of John's cousin's dog?"
+          }
+        ],
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/df6085153ab894b66e093c6ae60072896aa376317a38864b22f6f2bbc2ace0ea.json"
+    }
+  ],
+  "retrieval_hash": "197d3665e7bc32fabf155a9faa7bf1ed85aaa1acff4c6563b7369f1f674d6832",
+  "memory_hash": "487c758cb2871cdde89667a92fe42e7aaf921e77e930cd1f118766464bf0e6ad",
+  "condition": "evidence",
+  "reader": "common"
+}

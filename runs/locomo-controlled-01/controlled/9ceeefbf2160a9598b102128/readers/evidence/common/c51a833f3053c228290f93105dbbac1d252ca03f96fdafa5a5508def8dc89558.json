@@ -1,0 +1,504 @@
+{
+  "qid": "locomo:conv-49:qa126",
+  "dataset": "locomo",
+  "metodo": "witnessrag",
+  "pergunta": "What gift did Evan receive from a close friend?",
+  "respostas_ouro": [
+    "1968 Kustom K-200A vintage guitar"
+  ],
+  "passagens_ouro": [
+    "p-3131f5527a92c3cfdbce3d6f"
+  ],
+  "n_hops": 1,
+  "n_hops_fonte": "support_count_proxy",
+  "tipo": "single-hop",
+  "recuperadas": [
+    "p-ed94427f583014e674e1a3aa",
+    "p-3131f5527a92c3cfdbce3d6f",
+    "p-a263d82fa0cfbc6706ab0e5d",
+    "p-27f830486d048cffb4f2b4a6",
+    "p-418fe2174a7052f5229dcb1b"
+  ],
+  "scores": [
+    1.0,
+    0.5,
+    0.333333,
+    0.25,
+    0.2
+  ],
+  "resposta": "a 1968 Kustom K-200A vintage guitar",
+  "em": 1.0,
+  "f1": 1.0,
+  "recall@2": 1.0,
+  "recall@5": 1.0,
+  "all_recall@5": 1.0,
+  "cobertura_testemunha": NaN,
+  "cobertura_extremos_relaxada": NaN,
+  "em_estrutural": 0.0,
+  "testemunha_no_contexto": false,
+  "abstencao": false,
+  "risco": 1.0,
+  "risco_bruto": 99.0,
+  "forma_consulta": null,
+  "resposta_estrutural": "",
+  "filtrada": false,
+  "latencia_recuperacao_s": 7.995,
+  "latencia_leitura_s": 0.663,
+  "diagnosticos": {
+    "pesquisa_provas": {
+      "fronteira": [
+        "p-ed94427f583014e674e1a3aa",
+        "p-3131f5527a92c3cfdbce3d6f",
+        "p-a263d82fa0cfbc6706ab0e5d",
+        "p-27f830486d048cffb4f2b4a6",
+        "p-418fe2174a7052f5229dcb1b",
+        "p-6c48b79c1628e692413a190e",
+        "p-826a162645e0c00d8410971b",
+        "p-bb99bb34c28c8f8b017bb753"
+      ],
+      "sondas": [
+        "What gift did Evan receive from a close friend?",
+        "Evan receive from close friend",
+        "Evan gift close friend"
+      ],
+      "acoes": [],
+      "buscas_dirigidas": 0,
+      "replanejamentos": 2,
+      "rejeicoes": 0
+    },
+    "planos_compilados": [
+      {
+        "indice": 0,
+        "rodada_criacao": 0,
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "receive from close friend",
+              "subject": "Evan",
+              "object": "?x"
+            }
+          ],
+          "expected_type": "other",
+          "aggregation": "none",
+          "shape": "single-hop",
+          "source": "llm-plan-vocabulario",
+          "fallback": "Evan gift close friend",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false
+        },
+        "executavel": true,
+        "fechou": true,
+        "profundidade": 1,
+        "candidatos_por_atomo": [
+          24
+        ],
+        "obrigacoes": {
+          "cobre_pergunta": false,
+          "faltas": [
+            "gift qualifier"
+          ],
+          "motivo": "The query uses a broad relation 'receive from close friend' without specifying that the item received is a gift.",
+          "checado": true
+        }
+      },
+      {
+        "indice": 1,
+        "rodada_criacao": 1,
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "receive gift from close friend",
+              "subject": "Evan",
+              "object": "?x"
+            }
+          ],
+          "expected_type": "other",
+          "aggregation": "none",
+          "shape": "single-hop",
+          "source": "llm-replan-vocabulario",
+          "fallback": "Evan gift close friend",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false
+        },
+        "executavel": true,
+        "fechou": true,
+        "profundidade": 1,
+        "candidatos_por_atomo": [
+          8
+        ],
+        "obrigacoes": {
+          "cobre_pergunta": false,
+          "faltas": [
+            "relation direction",
+            "qualifier"
+          ],
+          "motivo": "The query does not specify the direction of the relation correctly and lacks the qualifier that the gift is received from a close friend rather than given to a close friend.",
+          "checado": true
+        }
+      }
+    ],
+    "planejamento": {
+      "orcamento_planos": 5,
+      "planos_distintos": 2,
+      "chamadas": 3,
+      "replanejamentos": 2
+    },
+    "plano_escolhido": null,
+    "n_testemunhas": 0,
+    "testemunha_no_contexto": false,
+    "classe_prova": "nenhuma",
+    "fallback": "denso (pesquisa sem prova suficiente)",
+    "contexto_alterado_pelo_witness": true,
+    "risco": 1.0,
+    "risco_bruto": 99.0,
+    "risco_calibrado": false,
+    "resposta_estrutural": "",
+    "candidatos_explorados": 11,
+    "documentos_entregues": 5,
+    "orcamento_leitor": 5
+  },
+  "uso_llm": {
+    "total": {
+      "chamadas": 6,
+      "tokens_resposta": 324,
+      "em_cache": 0,
+      "tokens_prompt": 15549,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 15549,
+      "tokens_resposta_sem_cache": 324
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 1,
+        "tokens_resposta": 22,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 22,
+        "latencia_s": 0.660000000000025,
+        "filtradas": 0,
+        "tokens_prompt": 10411,
+        "tokens_prompt_sem_cache": 10411
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 68,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 68,
+        "latencia_s": 1.7199999999999989,
+        "filtradas": 0,
+        "tokens_prompt": 1332,
+        "tokens_prompt_sem_cache": 1332
+      },
+      "witness.obligations": {
+        "chamadas": 2,
+        "tokens_resposta": 96,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 96,
+        "latencia_s": 2.4200000000000017,
+        "filtradas": 0,
+        "tokens_prompt": 508,
+        "tokens_prompt_sem_cache": 508
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 2,
+        "tokens_resposta": 138,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 138,
+        "latencia_s": 3.5600000000000023,
+        "filtradas": 0,
+        "tokens_prompt": 3298,
+        "tokens_prompt_sem_cache": 3298
+      }
+    }
+  },
+  "f1_locomo": 1.0,
+  "em_locomo": 1.0,
+  "categoria_locomo": 4,
+  "uso_leitor": {
+    "total": {
+      "chamadas": 1,
+      "tokens_resposta": 22,
+      "em_cache": 0,
+      "tokens_prompt": 10411,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 10411,
+      "tokens_resposta_sem_cache": 22
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 1,
+        "tokens_resposta": 22,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 22,
+        "latencia_s": 0.660000000000025,
+        "filtradas": 0,
+        "tokens_prompt": 10411,
+        "tokens_prompt_sem_cache": 10411
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      }
+    }
+  },
+  "uso_recuperacao": {
+    "total": {
+      "chamadas": 5,
+      "tokens_resposta": 302,
+      "em_cache": 0,
+      "tokens_prompt": 5138,
+      "filtradas": 0,
+      "tokens_prompt_sem_cache": 5138,
+      "tokens_resposta_sem_cache": 302
+    },
+    "por_estagio": {
+      "index.ner": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "index.openie": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "qa": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.acquire": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.compile": {
+        "chamadas": 1,
+        "tokens_resposta": 68,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 68,
+        "latencia_s": 1.7199999999999989,
+        "filtradas": 0,
+        "tokens_prompt": 1332,
+        "tokens_prompt_sem_cache": 1332
+      },
+      "witness.obligations": {
+        "chamadas": 2,
+        "tokens_resposta": 96,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 96,
+        "latencia_s": 2.4200000000000017,
+        "filtradas": 0,
+        "tokens_prompt": 508,
+        "tokens_prompt_sem_cache": 508
+      },
+      "witness.obligations.soft": {
+        "chamadas": 0,
+        "tokens_resposta": 0,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 0,
+        "latencia_s": 0.0,
+        "filtradas": 0,
+        "tokens_prompt": 0,
+        "tokens_prompt_sem_cache": 0
+      },
+      "witness.replan": {
+        "chamadas": 2,
+        "tokens_resposta": 138,
+        "em_cache": 0,
+        "tokens_resposta_sem_cache": 138,
+        "latencia_s": 3.5600000000000023,
+        "filtradas": 0,
+        "tokens_prompt": 3298,
+        "tokens_prompt_sem_cache": 3298
+      }
+    }
+  },
+  "reader_calls": [
+    {
+      "messages": [
+        {
+          "role": "system",
+          "content": "You answer questions using only the passages provided. You always answer with a single JSON object and nothing else."
+        },
+        {
+          "role": "user",
+          "content": "Answer the question using only the passages below.\n\nGive the shortest answer that is complete: a name, a date, a number or a short noun\nphrase. Do not write a sentence.\n\nSome questions ask for a SET: everything a person did, made, visited, read, owns,\nwas given, or took part in, possibly mentioned on different days. For those, list\nEVERY item the passages support, separated by commas, and nothing else. Answering\nwith one item is complete only when the passages support exactly one. Never add an\nitem the passages do not state, and never repeat the same item twice.\n\nIf the passages do not contain the answer, answer with \"insufficient information\".\n\nAnswer with JSON exactly in this shape:\n{\"answer\": \"...\"}\n\n### INPUT\n[1] LoCoMo conv-49 history chunk 9\nSession date: 6:48 pm on 17 December, 2023\n[D20:9] Evan: Yeah, I understand it can be challenging. But remember, it's important to believe in yourself and take it one day at a time, Sam. Your worth is not defined by your weight.\n[D20:10] Sam: Cheers, Evan. Appreciate the help. It's tough breaking out of my comfort zone.\n[D20:11] Evan: Stepping out of your comfort zone can be intimidating, but it's totally worth it. Just challenge yourself to try something new, even if it's just a little thing. You got this!\n[D20:12] Sam: Thanks, Evan. I'll take your advice. Trying new things can be difficult.\n[D20:13] Evan: Yeah, trying something new and succeeding gives a great feeling of accomplishment. Give it a go, even if it's just a little thing. You'll be amazed!\n[D20:13] Image caption (automatic): a photo of a woman standing in front of a painting\n[D20:14] Sam: She looks so confident! What kind of painting is that in the background?\n[D20:15] Evan: \nThis is a contemporary figurative painting that I've finished few days ago, emphasizing the emotional state through expressive brushwork and vibrant color choices. It captures a moment of introspection, where the subject is deeply immersed in thought. Very proud of it!\n[D20:16] Sam: That's amazing work, who's the girl standing next to painting?\n[D20:17] Evan: That's a close friend of mine who helped me get this painting published in the exhibition!\nSession date: 4:25 pm on 26 December, 2023\n[D21:1] Sam: Hey Evan! Long time no see, how's it going?\n[D21:2] Evan: Hey Sam! Long time no see! Been up and down lately, got married last week - how about you?\n[D21:2] Image caption (automatic): a photography of a bride and groom kissing in front of a tree\n[D21:3] Sam: Congratulations, Evan! Is that the woman from Canada?\n[D21:4] Evan: Yes, that's her, I don't know why we didn't get married before, because I was in love with her at first sight!\n[D21:5] Sam: Wow, Evan! Love at first sight? That sounds like something straight out of a fairy tale. What are your thoughts on it? Do you believe in love at first sight?\n[D21:6] Evan: I totally believe in it. It was like time stopped and I felt like a spark lit inside me - it was so right.\n[D21:7] Sam: That's awesome, Evan! Finding that kind of connection must feel really liberating. Love can be so powerful, huh?\n[D21:8] Evan: Yeah, Sam, love is truly amazing. It brings so much happiness and fulfillment, like a beautiful sunset that lights up our lives and brings peace. Incredible!\n[D21:8] Image caption (automatic): a photo of a person sitting on a rock near the water\n[D21:9] Sam: Wish I could feel the same about love, but I've started to enjoy running in the mornings, and it's been a great way to clear my head. What can you do, right?\n[D21:10] Evan: Yeah, I get it. Life's all about finding what works for you. Like your morning runs, they're a step towards something good, right? Keep trying new things, Sam, and you might find your own version of love in the most unexpected places. Embrace the journey — it’s full of surprises!\n[D21:10] Image caption (automatic): a photo of a painting with a white background and a blue, orange, and black painting\n[D21:11] Sam: Such a minimalistic and stunning piece of work, I wonder what inspired the artist to create it.\n[D21:12] Evan: The painting is mine, I made it when I was a mix of emotions - sad, mad, and hopeful. Art is amazing how it can portray feelings without words.\n[D21:13] Sam: Wow, Evan! Art is really amazing at expressing emotions - it's truly fascinating.\n[D21:14] Evan: It's amazing how art can express emotions so well. It really helps me recognize and handle my own feelings. This painting is giving me a massive rush of joy!\n[D21:14] Image caption (automatic): a photo of a painting with a bird flying over it\n[D21:15] Sam: That's stunning! What emotions did you create this painting with?\n[D21:16] Evan: I painted this with a sense of joy and freedom. The spontaneous strokes and bold colors reflect a playful and liberated mood, embracing the creative process without restraint.\n[D21:17] Sam: Wow, Evan, this is amazing! You've got serious talent and creativity. Making this must have been so satisfying! Here's a painting that inspired me when I went to an exhibit few days ago.\n[D21:17] Image caption (automatic): a photo of a woman holding flowers in front of her face\n[D21:18] Evan: \nThanks, Sam! I appreciate the compliment. This painting has such an inspiring vibe; you really have a knack for understanding art! How about you? How long have you been painting?\n[D21:19] Sam: \nI do sketch occasionally, but I haven't created anything remarkable yet. I have a feeling I'll have something to show off before long! Seeing your passion for it is inspiring.\n[D21:20] Evan: Thanks, Sam! Glad I could motivate you. If you ever want to give it a go, I'm happy to help get you started. Speaking of which, you know what? I lost my keys again, it's become a weekly ritual for me!\n[D21:21] Sam: Ooh, Evan, I'd put a GPS sensor on your keys!\n[D21:22] Evan: Great idea, I think I'll do that as soon as I find it!\nSession date: 11:00 am on 31 December, 2023\n[D22:1] Sam: Hey Evan! I’m really getting into this healthier lifestyle—just took my friends on an epic hiking trip last Friday!\n[D22:1] Image caption (automatic): a photography of a man standing on a rock looking out over a valley\n[D22:2] Evan: Hey Sam! That’s fantastic—nothing like a good hike to feel alive. We took the Prius for a long drive to the mountains last weekend. It was perfect until we got into a little scrape on the way back.\n[D22:2] Image caption (automatic): a photo of a small stream running through a lush green forest\n[D22:3] Sam: Oh no, were you guys okay after the accident?\n[D22:4] Evan: Yeah, we were fine, thanks. Just a minor accident, but it put a bit of a damper on telling my work friends about getting married. They’ve been a great support, though.\n[D22:5] Sam: I bet they were thrilled to hear about your marriage, despite the mishap!\n[D22:6] Evan: Absolutely, it's been a whirlwind of emotions. Good thing the accident was minor. Just a reminder to take it easy on the road, I guess.\n[D22:7] Sam: True, it’s important to stay safe. Glad you can still enjoy the peaceful moments after something like that.\n[D22:8] Evan: Definitely, nature brings peace and clarity - it's a great experience.\n[D22:9] Sam: Nature can make everything else seem small and help us find peace inside. It reminds us of the bigger picture, you know?\n[D22:10] Evan: For sure, and nature has been a great healer. Speaking of which, I’ve got to share some of these new healthy snacks I’ve been trying.\n[D22:10] Image caption (automatic): a photo of a woman sitting at a table with plates and glasses\n[D22:11] Sam: They look healthy and delicious! Perfect for after a hike or, I guess, post-accident recovery, huh?\n[D22:12] Evan: Exactly! They’re packed with nutrients and really easy to make. You also need to try these cookies, they are awesome! I’ll send you the recipes.\n[D22:12] Image caption (automatic): a photo of a bunch of cookies on a cooling rack\n[D22:13] Sam: Thanks, I’d appreciate that. It’s good to find new ways to stay healthy. Do you have any healthier snack ideas?\n[D22:14] Evan: Yeah, I've been trying to eat healthier too. Check out this cool recipe I discovered for these energy balls.\n[D22:14] Image caption (automatic): a photo of a bowl of coconut balls and a bowl of oats\n[D22:15] Sam: Do you like them? I know they can be an acquired taste.\n[D22:16] Evan: I enjoy the taste of these. They're energizing and a healthy way to satisfy your sweet tooth.\n\n[2] LoCoMo conv-49 history chunk 7\nSession date: 2:56 pm on 25 October, 2023\n[D15:11] Sam: That's impressive, Evan. It's inspiring to see how you transformed by changing your mindset.\n[D15:12] Evan: Thanks, Sam. Letting go of unrealistic expectations was liberating, both physically and mentally.\n[D15:13] Sam: You're really doing great, Evan! I want to feel that same sense of freedom.\n[D15:14] Evan: Thanks, Sam. Just take it one day at a time. Celebrate small victories.\n[D15:15] Sam: Thanks, Evan! Focusing on small wins sounds like a plan. I'll take it one day at a time.\n[D15:16] Evan: Exactly! Congrats on every little victory. Keep it up, I'm here for you.\n[D15:17] Sam: Your support means everything. Here's to moving forward!\n[D15:18] Evan: Anytime, Sam! Let's keep pushing ahead. I'm here to help you. Take care!\nSession date: 9:13 pm on 9 November, 2023\n[D16:1] Sam: Hey Evan! Hope you're doing good. Got some good news to share - I'm a Weight Watchers coach in my group now! It's a pretty big accomplishment for me, feel really proud.\n[D16:2] Evan: Congrats Sam! That's awesome! I'm super proud of you. Becoming a Weight Watchers coach is a big deal. Keep going!\n[D16:3] Sam: Thanks, Evan! Appreciate your support. It's been a journey, and being chosen as a coach is a great step in my quest for better health.\n[D16:4] Evan: Wow, Sam! You've come such a long way. It's exciting to see what comes next for you in your quest for better health.\n[D16:5] Sam: Thanks, Evan! It feels great to see progress. Being a coach will hopefully keep me motivated and help others stay committed too. It's a big challenge, but I'm ready for it!\n[D16:6] Evan: That's awesome, Sam! Helping others stay committed and motivated is so rewarding. You really inspire us. Keep up the great work!\n[D16:7] Sam: Thanks, Evan! Your kind words mean a lot. It's been a difficult road, but I'm determined to continue making a positive impact.\n[D16:8] Evan: Sorry about missing any events, I've had some personal challenges since we last spoke. Still here for you though - do you need any support or want to share anything? Btw look what i got!\n[D16:8] Image caption (automatic): a photo of a guitar laying on the floor with a guitar strap\n[D16:9] Sam: Hey, it looks so vintage and cool! What model is it? How've you been doing lately? I'm here if you wanna chat.\n[D16:10] Evan: It's a 1968 Kustom K-200A vintage guitar and I got it as a gift from a close friend. It's been a tough time for me since we last caught up; I lost my job last month, which has been pretty rough. But I really appreciate your support through all this.\n[D16:11] Sam: Sorry to hear about your job, Evan. What happened?\n[D16:12] Evan: It's been a bit of a rough patch lately. The company downsized, and I was part of that. I'm currently on the hunt for a new job, which hasn't been easy, but I'm keeping my spirits up and staying hopeful.\n[D16:13] Sam: Sorry about your job, Evan. It's tough when it comes out of nowhere, but I'm proud of how you're handling it. Let me know if you need someone to talk to or if I can do anything to help. You'll get through this.\n[D16:14] Evan: Thanks, Sam. Your support means a lot. It's been quite a ride, but I really appreciate having someone like you to talk to. I'll definitely reach out if I need anything.\n[D16:15] Sam: For sure, Evan! I'm here for ya. Life can be tough sometimes, but we got this. Stay positive and it'll all work out. Just know that I'm here if you need someone to talk to.\n[D16:16] Evan: Thanks, Sam. Your kind words and support mean a lot. It's great to have you here. I'm gonna stay positive and keep going. Cheers!\n[D16:16] Image caption (automatic): a photo of a person walking on the beach with a surfboard\n[D16:17] Sam: Wow, that sunset is stunning! It's so soothing just to see it. Is that a special spot you go to watch sunsets?\n[D16:18] Evan: Yeah, it's this peaceful place close to my home. I often go there to relax and unwind.\n[D16:19] Sam: That sounds wonderful, Evan! I'd love to check it out with you sometime.\n[D16:20] Evan: Oh, I wish I could bring you along. That picture was actually taken last Friday at my favorite spot by the beach. Watching the waves and the sunset colors really helps me find peace, especially during tough times. It's a beautiful reminder of nature's resilience. We should definitely plan to go together someday.\n[D16:21] Sam: No worries, Evan. And yes, we should make a plan to go. That photo is just mesmerizing!\n[D16:22] Evan: I'm glad you like it! It's a really calming place. Let's make a point to visit it together soon.\n[D16:23] Sam: Absolutely, Evan! A trip there sounds like the perfect way to de-stress.\n[D16:24] Evan: Awesome, let's do it! Let's plan it for next month, I'm already excited about exploring it together!\nSession date: 7:30 pm on 21 November, 2023\n[D17:1] Sam: Hey Ev! Long time no chat. How's it going? Hope all is well.\n[D17:2] Evan: Hey Sam, good to hear from you! Life's been a wild ride lately. Last week, I had a health scare and had to go to the hospital. They found something suspicious during a check-up, which freaked me out. Thankfully, it was all a misunderstanding, but it made me realize how important it is to keep an eye on my health. How've you been?\n[D17:3] Sam: Woah, Evan, that must've been scary! Phew, it was just a misunderstanding. A health scare can really make you re-evaluate what's important. As for me, I've been dealing with some discomfort and it's been limiting my movement. I've been trying to make changes diet-wise, but it can be hard.\n[D17:4] Evan: That sucks, Sam. It's tough when our health holds us back. I believe in you – just taking small steps can help. Have you tried any new hobbies recently to take your mind off it?\n[D17:5] Sam: Thanks, Evan. I haven't tried much new lately, but I did get this yesterday. It's been my go-to 'feel good' flick. So, you said you had a health scare - how're you now?\n[D17:5] Image caption (automatic): a photo of a book with a picture of a man on it\n[D17:6] Evan: That movie sounds interesting! I'm doing well now. Doctors said everything is fine, but it taught me the value of life. Just trying to enjoy the moment.\n[D17:7] Sam: That's awesome, Evan! Let's make it a habit to appreciate something each day. It really helps us enjoy life more. What do you think?\n[D17:8] Evan: Sounds good, Sam! Let's take the time to appreciate the little things in life.\n[D17:9] Sam: Thanks for always being there, Evan. It means a lot.\n[D17:10] Evan: Sure, Sam. I'm here for you. We gotta stick together, especially now.\n[D17:11] Sam: Yeah, Evan. Life can be tough sometimes, but having supportive people like you makes it way easier.\n[D17:12] Evan: Yeah, Sam. Tough times are way easier with friends we can rely on. We've got each other!\n[D17:12] Image caption (automatic): a photography of a group of people sitting around a fire pit\n[D17:13] Sam: Looks like you're having a blast! I was wondering, what do you do to stay fit and healthy?\n[D17:14] Evan: That was wild! I stay in shape by hitting the gym and taking my car out for a spin. Gotta keep it up! How are you doing on your fitness goals, Sam?\n[D17:15] Sam: Fitness goals have been hard to reach, but hey, that's life!\n\n[3] LoCoMo conv-49 history chunk 10\nSession date: 11:00 am on 31 December, 2023\n[D22:17] Sam: Awesome! Always on the lookout for healthy snacks, thanks for the tip!\n[D22:18] Evan: Glad to help - hope you enjoy it!\n[D22:19] Sam: Thanks, Evan! I'll give these a try. They look yum. Your help means a lot to me. Btw you know what? I went to the store again and, unsurprisingly, had issues with the self-checkout. It's becoming a regular annoyance.\n[D22:20] Evan: That's very strange, I've never had a problem with it once!\n[D22:21] Sam: Apparently I attract that to me, if you ever want to be in that situation, call me at the store with you!\nSession date: 1:32 pm on 6 January, 2024\n[D23:1] Evan: Hey Sam, guess what? My partner and I told our extended fam about our marriage yesterday – it was so special! We've been totally overwhelmed by all their love and support.\n[D23:1] Image caption (automatic): a photo of a man and a woman standing on a rocky beach\n[D23:2] Sam: Congrats on the news, Evan! You two look so happy in the pic. These moments make life so wonderful; super stoked for you!\n[D23:3] Evan: Thanks, Sam! It was an awesome moment, and I feel really lucky to have found someone who gets me. Plus, our families are really happy for us - that's the best part!\n[D23:4] Sam: Wow, Evan. It's awesome that you've found someone who gets you! Having your family's support must feel great.\n[D23:5] Evan: Definitely, family support is so important. Knowing they're happy about our marriage is awesome and so comforting.\n[D23:6] Sam: Yeah, it's awesome to have that support. It definitely brings more happiness and joy.\n[D23:7] Evan: Yeah Sam, that means a lot to me. Our bond just keeps getting stronger and it brings such a good feeling to our lives. Family really is everything.\n[D23:8] Sam: Agree, Evan! Family is everything - they bring so much love and happiness. They're always there for us no matter what. I'm grateful for their support and love.\n[D23:9] Evan: For sure, Sam. That's what makes family so special. They bring so much love and happiness. It's great having their support and knowing they're always there for us. I feel really fortunate to have their never-ending love and support.\n[D23:10] Sam: Yeah, definitely, Evan. We both have amazing families that are always there for us. Always a blessing.\n[D23:11] Evan: Yeah, Sam. Our families give us so much joy, support, and love. They're a real blessing! I don't know what I'd do without them.\n[D23:12] Sam: Hey, Evan. My family has been my rock through everything. Don't know what I'd do without them.\n[D23:13] Evan: Yeah, they are our rock. We're blessed to have them.\n[D23:13] Image caption (automatic): a photo of a group of people sitting at a table with food\n[D23:14] Sam: Wow, you guys are awesome! What's cooking tonight?\n[D23:15] Evan: Thanks, Sam! We're having a family get-together tonight and enjoying some homemade lasagna. Super excited! By the way, I've started a new diet—limiting myself to just two ginger snaps a day. What's on your menu tonight?\t\n[D23:16] Sam: That's a great discipline, Evan! We're keeping it light tonight, just some homemade lasagna. Can't compete with your ginger snap limit though!\n[D23:16] Image caption (automatic): a photo of a plate of food with bread and meat\n[D23:17] Evan: Oh this must be very hearty and delicious, well I'll have to stick to the diet plan, even with the family gathering!\n[D23:18] Sam: Yeah, the lasagna was pretty awesome, but check out what I had for dessert, I'm sure you're drooling!\n[D23:18] Image caption (automatic): a photo of a pie with raspberries and limes on top\n[D23:19] Evan: Looks yummy! Did you make that?\n[D23:20] Sam: No, I didn't make it. This is actually a pic from my cousin's wedding. It's super special.\n[D23:21] Evan: Wow Sam! Weddings are indeed special. This looks great, yum!\n[D23:21] Image caption (automatic): a photo of a wedding cake with candles and flowers on a table\n[D23:22] Sam: Ooh, nice cake! Reminds me of special occasions. Do you have any upcoming plans?\n[D23:23] Evan: Thanks Sam! We're off to Canada next month for our honeymoon. So excited to create some awesome memories. Looking forward to exploring the beautiful snowy landscapes there.\n[D23:23] Image caption (automatic): a photo of a stream running through a snowy forest filled with snow\n[D23:24] Sam: Wow, that looks great! What are your plans for the trip?\n[D23:25] Evan: We're planning to ski, try the local cuisine, and enjoy the beautiful views. We're really excited!\n[D23:26] Sam: Sounds amazing, Ev! Skiing, trying local dishes, and enjoying the breathtaking views - the perfect honeymoon. Have an incredible time creating unforgettable memories!\n[D23:26] Image caption (automatic): a photo of a container of french fries covered in caramel\n[D23:27] Evan: Yeah, Sam! Gonna try some poutine while we're there - can't wait!\n[D23:28] Sam: Never tried it? Can't say I blame you, it's kind of a Canadian thing. Let me know how you like it!\n[D23:29] Evan: Sure thing, Sam! Let's see if it lives up to the hype. I'll let you know what happens!\n[D23:30] Sam: Yeah, Evan! Let me know all about it. Don't forget the details!\n[D23:31] Evan: Cool, Sam. I'll keep you posted. Talk soon!\n[D23:32] Sam: Awesome, Evan! Catch you soon. Have a great trip!\n[D23:33] Evan: Thanks, Sam! Catch you later. Have a great one!\nSession date: 12:17 am on 10 January, 2024\n[D24:1] Evan: Hey Sam, hope you're doing good. Something funny happened last night.\n[D24:2] Sam: Hey Evan, what's up? What happened? Let me know.\n[D24:3] Evan: Yesterday I went out with my friends and had a bit too much to drink. I ended up doing something I regret and it involved someone's roses.\n[D24:4] Sam: What's up with that incident? All good now?\n[D24:5] Evan: Oof, Sam, so embarrassing! I had a pee accident near some roses - can you believe it? I'm so sorry about that.\n[D24:6] Sam: Uh oh, Evan! That's awkward. Did anyone get mad at you? Are you okay?\n[D24:7] Evan: I was so embarrassed when I saw what happened the next morning, so I apologized and luckily they were understanding. Yeah, I was out of control--guess I gotta be more careful next time.\n[D24:8] Sam: They were understanding? Phew! We all mess up sometimes, we're human after all.\n[D24:9] Evan: Yeah, they were understanding, which was great. But it's a good reminder to be more careful. We all make mistakes, but it's important to learn from them. Speaking of, my partner and I tried snowshoeing this weekend. It was part of a new adventure for us and surprisingly fun.\n[D24:10] Sam: Yeah, Evan, you're right. Mistakes happen, but it's good to learn from them. Snowshoeing sounds like a great way to stay active during the winter. I've been thinking and I made a meal plan and workout schedule. I'm getting motivated by something I saw, so starting today I'm gonna do my best to stay on track.\n[D24:10] Image caption (automatic): a photo of a white board with a bunch of writing on it\n[D24:11] Evan: Good work, Sam! You've got a plan and you're dedicated to staying healthy - have you asked your doctor for advice? They could probably give you even more diet and exercise tips.\n[D24:12] Sam: Thanks, Evan! Haven't seen a doctor in a while, but it's probably a good idea to get some advice. I'm going to make an appointment soon.\n[D24:12] Image caption (automatic): a photo of a red and orange card with a yellow sun\n\n[4] LoCoMo conv-49 history chunk 1\nSession date: 1:47 pm on 18 May, 2023\n[D1:1] Sam: Hey Evan, good to see you! What's new since we last met? Anything cool happening?\n[D1:2] Evan: Hey Sam! Good to see you! Yeah, I just got back from a trip with my family in my new Prius.\n[D1:3] Sam: Wow, not bad, what happened to the old one? Where'd you go, by the way?\n[D1:3] Image caption (automatic): a photo of a person's feet on a car dashboard as the sun sets\n[D1:4] Evan: My old prius broke down, decided to get it repaired and sell it. Glad you asked, we went to Rockies, check it out.\n[D1:4] Image caption (automatic): a photo of a lake with rocks and mountains in the background\n[D1:5] Sam: Wow! Looks amazing. When did you get to go there?\n[D1:6] Evan: We all hiked the trails last week - the views were amazing!\n[D1:7] Sam: Wow, that's cool. I love hiking, but it's been ages since I've done it. I did this hike with my dad way back when I was ten. Going hiking together was great fun, and really special for us.\n[D1:7] Image caption (automatic): a photography of a man and a child walking through a forest\n[D1:8] Evan: Aww, that's cute. How far did you two hike?\n[D1:9] Sam: We hiked a good distance - quite a feat for me back then. It's definitely a great memory.\n[D1:10] Evan: What other hobbies have you found for yourself?\n[D1:11] Sam: Nothing so far, but I was thinking about trying painting. Do you have any hobbies you love?\n[D1:11] Image caption (automatic): a photo of a person holding a paint set in a store\n[D1:12] Evan: Cool idea, Sam! I love it. Have you tried it before?\n[D1:13] Sam: Not yet, but I'm keen to give it a go. It looks like a nice way to chill and get creative.\n[D1:14] Evan: Yep, it's a great stress-buster. I started doing this a few years back.\n[D1:14] Image caption (automatic): a photo of a painting of a cactus in the desert\n[D1:15] Sam: Wow, that's impressive! How did you get into watercolor painting?\n[D1:16] Evan: My friend got me into it and gave me some advice, and I was hooked right away!\n[D1:17] Sam: Wow! I hope I can find something I'm as passionate about as you are with watercolor painting.\n[D1:18] Evan: You'll find it, just keep trying new things until something sparks your excitement.\n[D1:19] Sam: Thanks, Evan! I'm excited to try new things, should be fun!\n[D1:20] Evan: No worries, Sam! Super pumped for you! Let's catch up soon and see how you're enjoying your new hobbies!\n[D1:21] Sam: Yeah, I'll keep you posted. See you soon!\n[D1:22] Evan: Take it easy, Evan! Can't wait to see you. Have a good one!\nSession date: 7:11 pm on 24 May, 2023\n[D2:1] Evan: Hey Sam, good to hear from you! Since we last talked, lots has been happening! Last weekend, I took my family on a road trip to Jasper. It was amazing! We drove through the Icefields Parkway and the glaciers and lakes were gorgeous. I got a shot of a glacier, check it out!\n[D2:1] Image caption (automatic): a photo of a person holding a book in front of a lake\n[D2:2] Sam: Hey Evan, looks amazing! I've never been to Jasper, but it looks breathtaking. Tell me more about your road trip. Was it relaxing?\n[D2:3] Evan: Hey Sam, thanks for asking! It was great - fresh air, peacefulness and a cozy cabin surrounded by mountains and forests made it feel like a real retreat.\n[D2:4] Sam: That sounds great, Evan! It's so important to take time for ourselves and find peace, especially after a hard week. Mine's been tough.\n[D2:5] Evan: Sorry to hear that, Sam. Is there anything I can do to help?\n[D2:6] Sam: Thanks, Evan. Appreciate the offer, but had a check-up with my doctor a few days ago and, yikes, the weight wasn't great. It was pretty eye-opening.\n[D2:7] Evan: That must have been a challenging experience, Sam. It's tough when we have to confront our own health challenges. Remember, it's never too late to make positive changes for a healthier lifestyle. Is there anything I can do to support you in this journey?\n[D2:8] Sam: Thanks, Evan. Breaking old habits isn't easy. Do you have any tips for starting the process?\n[D2:9] Evan: Yeah, what worked for me was finding a fitness routine I really enjoy. It's my go-to, I love the feeling of being healthy and strong. Making it fun and finding little ways to make smarter choices in my diet really added up. Don't forget, you got this!\n[D2:10] Sam: Thanks, Evan. Like you said, I've been looking for a hobby to stay motivated. I've been thinking about trying painting. Do you think it will help me de-stress?\n[D2:11] Evan: Of course, Sam! Painting is a great way to relieve stress and be creative. It gives you the freedom to explore colors and textures and express feelings. I've been doing it for a few years now and it helps me find peace. But unfortunately it won't help you with your weight problem, besides painting I recommend exercising!\n[D2:12] Sam: Thanks, Evan! Appreciate the encouragement. I'll give it a go and let you know how it turns out.\n[D2:13] Evan: Awesome, Sam! Have fun with it and don't put too much pressure on yourself. Can't wait to hear how it's going!\n[D2:14] Sam: Cheers, Evan! I won't stress - just gonna enjoy it.\n[D2:15] Evan: Alright Sam, have fun with it! Keep me updated!\n[D2:16] Sam: Thanks, Evan! Will do. Bye for now.\n[D2:17] Evan: Take care, Sam! I'll catch up with you later.\nSession date: 3:55 pm on 6 June, 2023\n[D3:1] Evan: Hey Sam! Long time no talk! How're you doing? Life's been quite the rollercoaster lately. I had a health scare last week – a sudden heart palpitation incident that really shook me up. It's been a serious wake-up call about my lifestyle.\n[D3:1] Image caption (automatic): a photo of a person holding a bottle of medicine in their hand\n[D3:2] Sam: Hey Evan, great hearing from you! Sorry about that, glad you're feeling better now. Trying to eat healthier these days.\n[D3:2] Image caption (automatic): a photo of a plate of vegetables and a glass of milk\n[D3:3] Evan: That salad looks yummy! I'm being extra careful with my health lately. I'm trying to eat less processed food and sugary snacks, even though I love ginger snaps. Have you made any changes to your diet recently?\n[D3:4] Sam: Nah, no changes for me. Still enjoying my soda and candy, although I know it's not the best habit to have.\n[D3:5] Evan: Yeah, breaking habits can be tough. Making small changes can have a big impact later on. Have you considered swapping soda for flavored seltzer water? It's still bubbly and tasty, but without the sugar. And instead of candy, you could try dark chocolate with high cocoa content - it's a healthier option. What do you think?\n[D3:6] Sam: Yeah, good idea! I'll give it a try.\n[D3:7] Evan: Awesome, Sam! Let me know how it goes. Making small changes can really help you live a healthier life. Don't forget - every step matters!\n[D3:8] Sam: Hey Evan, thanks! Appreciate it. I'll definitely keep you posted.\n[D3:9] Evan: I'm here for you, Sam. Let's continue supporting each other on our health journeys. It's important to remember that progress takes time.\n[D3:10] Sam: Yeah, you're right. It takes time, but I'm up for keep trying and making those tiny changes.\n[D3:11] Evan: C'mon, keep it up! Every little bit counts, you'll get there!\n[D3:12] Sam: Thanks, Evan! I appreciate your support, it means a lot to me to have you in my corner.\n\n[5] LoCoMo conv-49 history chunk 2\nSession date: 3:55 pm on 6 June, 2023\n[D3:13] Evan: Yes, Sam! I'm here for you. Let's rock our workouts and reach our goals! Exercise clears the mind - it's amazing!\n[D3:13] Image caption (automatic): a photography of a man with a beard holding a dumbble\n[D3:14] Sam: Wow, that's awesome! Could you give me a hand with getting started?\n[D3:15] Evan: Sure Sam, I'd be glad to help. Let's get together and I'll show you some basic exercises. We'll reach our goals!\n[D3:16] Sam: Cool, can't wait! Thank you. By the way, I'm coming from the shop and I had a frustrating issue at the supermarket. The self-checkout machines were all broken, my mood is terrible now!\n[D3:17] Evan: Sorry you were in that situation, hopefully it won't happen again!\n[D3:18] Sam: Yeah, I hope so, take care of yourself.\nSession date: 10:52 am on 27 July, 2023\n[D4:1] Sam: Hey Evan, I need to talk to you. My friends were mocking my weight last Friday and it hurt. That made me realize I need to make changes.\n[D4:2] Evan: Hey Sam, sorry about that. Don't worry, progress takes time. Let's work on it together.\n[D4:3] Sam: Thanks for the support, Evan. I'm working on my health and getting active!\n[D4:4] Evan: That's great, Sam! I struggled with my health a few years ago, but stuck with it. Here's a reminder of my commitment - my gym membership card. It's not just about exercise, diet and lifestyle changes also play a big role.\n[D4:4] Image caption (automatic): a photo of a set of five cards with the words let it shine\n[D4:5] Sam: That's awesome, Evan! What do you think made the biggest impact on your health journey?\n[D4:6] Evan: I made some dietary changes, like cutting down on sugary snacks and eating more veggies and fruit, and it made a big impact on my health. Have you considered any changes?\n[D4:6] Image caption (automatic): a photo of a table full of fresh produce and vegetables\n[D4:7] Sam: Yep, I'm reducing my soda and candy intake. It's tough, but I'm determined to make a change.\n[D4:8] Evan: Go for it, Sam! It's tough at first, but you got this. Try flavored seltzer water instead. It can be a great alternative to soda. Btw I can't stop thinking about that new mystery novel I started. It's so gripping!\n[D4:8] Image caption (automatic): a photo of a table with a variety of sodas and water bottles\n[D4:9] Sam: Sounds good, Evan. I've tried it before and it was nice. Do you have any ideas for low-calorie snacks to pair with it? And what's the novel?\n[D4:10] Evan: Definitely, how about some flavored seltzer with some air-popped popcorn or fruit? It's yum and healthy! The novel I'm reading is \"The Great Gatsby\".\n[D4:10] Image caption (automatic): a photo of a table with bowls of fruit and a bottle of alcohol\n[D4:11] Sam: Yum, that sounds good! Thanks! And I'll definitely read that novel sometime.\n[D4:12] Evan: No worries, Sam! Focus on healthy swaps and taking small steps. Stay upbeat!\n[D4:12] Image caption (automatic): a photography of a book with a green apple next to it\n[D4:13] Sam: That reminder is inspiring. Thanks for reminding me to focus on progress, not perfection.\n[D4:14] Evan: By the way, have you thought about exercising? Trust me, it's just as important as eating right.\n[D4:14] Image caption (automatic): a photo of a woman with a backpack on a mountain\n[D4:15] Sam: Starting tomorrow, I will go to the gym and exercise regularly. The sooner I start, the sooner I will see the rewards of this activity.\n[D4:16] Evan: That's awesome, Sam! It's such a rewarding and tough activity - keep going and have fun!\n[D4:17] Sam: Thanks, Evan! Your support means a lot. I really appreciate it.\n[D4:18] Evan: No worries, you've got this!\n[D4:19] Sam: Thanks, Evan. I really appreciate it.\n[D4:20] Evan: No worries, Sam. I'm here if you need me. Keep going!\nSession date: 7:52 pm on 7 August, 2023\n[D5:1] Evan: Hey Sam, how's it going? Last week I went on a trip to Canada and something unreal happened - I met this awesome Canadian woman and it was like something out of a movie. She's incredible and being with her makes me feel alive.\n[D5:1] Image caption (automatic): a photography of a couple walking through the snow holding hands\n[D5:2] Sam: Congrats Evan! She must be something special! Being with someone who makes you feel alive is amazing. I'm sorry to hear that you're dealing with health issues lately, it can be really tough. It's hard to fully enjoy things sometimes.\n[D5:2] Image caption (automatic): a photo of a person walking on the beach with a surfboard\n[D5:3] Evan: Woah. such a nice view! Thanks, Sam! She's definitely great. Every moment with her is really fun and energizing. It's a nice change, especially after dealing with health issues. But you never know what life's gonna throw at you. Btw look what life has thrown for me right now haha.\n[D5:3] Image caption (automatic): a photo of a container of cookies on a counter\n[D5:4] Sam: Looks good to eat! Dealing with health problems can be challenging and take away from enjoyable experiences.\n[D5:5] Evan: Ginger snaps are my weakness for sure! Dealing with health issues has been tough, but it's made me appreciate the good moments more. These are the ones who bring lots of joy even through the hard times.\n[D5:5] Image caption (automatic): a photo of a woman and a child playing on a swing set\n[D5:6] Sam: It looks like your kids are having a great time! And how long have you been prioritizing your health?\n[D5:7] Evan: Yes, they bring me such joy. My healthy road has been a long one. I've been working on it for two years now, so there have been ups and downs, but I'm doing my best.\n[D5:7] Image caption (automatic): a photo of a box with a fitness watch on it\n[D5:8] Sam: I wish your motivation never goes anywhere! I'm thinking of ordering myself some similar ones too, what do you think, are they worth it?\n[D5:9] Evan: Thanks Sam! My family motivates me to stay healthy. Well, it helps a lot with my health goals. It tracks my progress really well and serves as a constant reminder to keep going.\n[D5:9] Image caption (automatic): a photo of a person's wrist with a smart watch on it\n[D5:10] Sam: Cool! It sounds like a really good tool to stay on track. How has it been working out for you?\n[D5:11] Evan: It's been awesome, Sam! That visual reminder has been really motivating.\n[D5:12] Sam: Thanks for the recommendation, what else motivates you?\n[D5:13] Evan: I'm motivated by a thirst for adventure on interesting hikes, that's pretty cool!\n[D5:13] Image caption (automatic): a photo of a small island with a lone boat in the water\n[D5:14] Sam: What an amazing view! The key is to find something that keeps you motivated.\n[D5:15] Evan: Yep, that's it. Find something that motivates you and makes you happy, whether it's large or tiny. It'll help us conquer the struggles we encounter.\n[D5:15] Image caption (automatic): a photo of a bonsai tree in a black vase on a wooden table\n[D5:16] Sam: Nice! What made you decide to get that?\n[D5:17] Evan: I got this because it symbolizes strength and resilience. Taking care of it motivates me to keep going through tough times.\n[D5:18] Sam: Wow, it's amazing! So powerful yet so simple.\n[D5:19] Evan: Thanks, Sam. It's a reminder that even in little things, we can be tough.\n[D5:20] Sam: Little stuff matters - it builds our resilience over time.\n[D5:21] Evan: Yeah, every little thing we do for ourselves helps us in the long run.\n[D5:22] Sam: Yep, small steps add up. Stay consistent and don't give up!\n[D5:23] Evan: Yep, Sam! Consistency and perseverance will get us far. Great chat!\n\nPERGUNTA: What gift did Evan receive from a close friend?"
+        }
+      ],
+      "params": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "max_tokens": 512,
+        "seed": 42,
+        "json_mode": true
+      },
+      "stage": "qa",
+      "key": "32f787270f3ad8dbd69d841e44e1016d7a5cef03c1efa3c033ec5fae41aa9bc7",
+      "result": {
+        "text": "{\"answer\": \"a 1968 Kustom K-200A vintage guitar\"}",
+        "prompt_tokens": 10411,
+        "completion_tokens": 22,
+        "latency_s": 0.6626205313950777,
+        "finish_reason": "stop",
+        "filtered": false,
+        "exhausted": false,
+        "cached": false,
+        "error": ""
+      },
+      "effective_request": {
+        "model": "Qwen/Qwen2.5-14B-Instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You answer questions using only the passages provided. You always answer with a single JSON object and nothing else."
+          },
+          {
+            "role": "user",
+            "content": "Answer the question using only the passages below.\n\nGive the shortest answer that is complete: a name, a date, a number or a short noun\nphrase. Do not write a sentence.\n\nSome questions ask for a SET: everything a person did, made, visited, read, owns,\nwas given, or took part in, possibly mentioned on different days. For those, list\nEVERY item the passages support, separated by commas, and nothing else. Answering\nwith one item is complete only when the passages support exactly one. Never add an\nitem the passages do not state, and never repeat the same item twice.\n\nIf the passages do not contain the answer, answer with \"insufficient information\".\n\nAnswer with JSON exactly in this shape:\n{\"answer\": \"...\"}\n\n### INPUT\n[1] LoCoMo conv-49 history chunk 9\nSession date: 6:48 pm on 17 December, 2023\n[D20:9] Evan: Yeah, I understand it can be challenging. But remember, it's important to believe in yourself and take it one day at a time, Sam. Your worth is not defined by your weight.\n[D20:10] Sam: Cheers, Evan. Appreciate the help. It's tough breaking out of my comfort zone.\n[D20:11] Evan: Stepping out of your comfort zone can be intimidating, but it's totally worth it. Just challenge yourself to try something new, even if it's just a little thing. You got this!\n[D20:12] Sam: Thanks, Evan. I'll take your advice. Trying new things can be difficult.\n[D20:13] Evan: Yeah, trying something new and succeeding gives a great feeling of accomplishment. Give it a go, even if it's just a little thing. You'll be amazed!\n[D20:13] Image caption (automatic): a photo of a woman standing in front of a painting\n[D20:14] Sam: She looks so confident! What kind of painting is that in the background?\n[D20:15] Evan: \nThis is a contemporary figurative painting that I've finished few days ago, emphasizing the emotional state through expressive brushwork and vibrant color choices. It captures a moment of introspection, where the subject is deeply immersed in thought. Very proud of it!\n[D20:16] Sam: That's amazing work, who's the girl standing next to painting?\n[D20:17] Evan: That's a close friend of mine who helped me get this painting published in the exhibition!\nSession date: 4:25 pm on 26 December, 2023\n[D21:1] Sam: Hey Evan! Long time no see, how's it going?\n[D21:2] Evan: Hey Sam! Long time no see! Been up and down lately, got married last week - how about you?\n[D21:2] Image caption (automatic): a photography of a bride and groom kissing in front of a tree\n[D21:3] Sam: Congratulations, Evan! Is that the woman from Canada?\n[D21:4] Evan: Yes, that's her, I don't know why we didn't get married before, because I was in love with her at first sight!\n[D21:5] Sam: Wow, Evan! Love at first sight? That sounds like something straight out of a fairy tale. What are your thoughts on it? Do you believe in love at first sight?\n[D21:6] Evan: I totally believe in it. It was like time stopped and I felt like a spark lit inside me - it was so right.\n[D21:7] Sam: That's awesome, Evan! Finding that kind of connection must feel really liberating. Love can be so powerful, huh?\n[D21:8] Evan: Yeah, Sam, love is truly amazing. It brings so much happiness and fulfillment, like a beautiful sunset that lights up our lives and brings peace. Incredible!\n[D21:8] Image caption (automatic): a photo of a person sitting on a rock near the water\n[D21:9] Sam: Wish I could feel the same about love, but I've started to enjoy running in the mornings, and it's been a great way to clear my head. What can you do, right?\n[D21:10] Evan: Yeah, I get it. Life's all about finding what works for you. Like your morning runs, they're a step towards something good, right? Keep trying new things, Sam, and you might find your own version of love in the most unexpected places. Embrace the journey — it’s full of surprises!\n[D21:10] Image caption (automatic): a photo of a painting with a white background and a blue, orange, and black painting\n[D21:11] Sam: Such a minimalistic and stunning piece of work, I wonder what inspired the artist to create it.\n[D21:12] Evan: The painting is mine, I made it when I was a mix of emotions - sad, mad, and hopeful. Art is amazing how it can portray feelings without words.\n[D21:13] Sam: Wow, Evan! Art is really amazing at expressing emotions - it's truly fascinating.\n[D21:14] Evan: It's amazing how art can express emotions so well. It really helps me recognize and handle my own feelings. This painting is giving me a massive rush of joy!\n[D21:14] Image caption (automatic): a photo of a painting with a bird flying over it\n[D21:15] Sam: That's stunning! What emotions did you create this painting with?\n[D21:16] Evan: I painted this with a sense of joy and freedom. The spontaneous strokes and bold colors reflect a playful and liberated mood, embracing the creative process without restraint.\n[D21:17] Sam: Wow, Evan, this is amazing! You've got serious talent and creativity. Making this must have been so satisfying! Here's a painting that inspired me when I went to an exhibit few days ago.\n[D21:17] Image caption (automatic): a photo of a woman holding flowers in front of her face\n[D21:18] Evan: \nThanks, Sam! I appreciate the compliment. This painting has such an inspiring vibe; you really have a knack for understanding art! How about you? How long have you been painting?\n[D21:19] Sam: \nI do sketch occasionally, but I haven't created anything remarkable yet. I have a feeling I'll have something to show off before long! Seeing your passion for it is inspiring.\n[D21:20] Evan: Thanks, Sam! Glad I could motivate you. If you ever want to give it a go, I'm happy to help get you started. Speaking of which, you know what? I lost my keys again, it's become a weekly ritual for me!\n[D21:21] Sam: Ooh, Evan, I'd put a GPS sensor on your keys!\n[D21:22] Evan: Great idea, I think I'll do that as soon as I find it!\nSession date: 11:00 am on 31 December, 2023\n[D22:1] Sam: Hey Evan! I’m really getting into this healthier lifestyle—just took my friends on an epic hiking trip last Friday!\n[D22:1] Image caption (automatic): a photography of a man standing on a rock looking out over a valley\n[D22:2] Evan: Hey Sam! That’s fantastic—nothing like a good hike to feel alive. We took the Prius for a long drive to the mountains last weekend. It was perfect until we got into a little scrape on the way back.\n[D22:2] Image caption (automatic): a photo of a small stream running through a lush green forest\n[D22:3] Sam: Oh no, were you guys okay after the accident?\n[D22:4] Evan: Yeah, we were fine, thanks. Just a minor accident, but it put a bit of a damper on telling my work friends about getting married. They’ve been a great support, though.\n[D22:5] Sam: I bet they were thrilled to hear about your marriage, despite the mishap!\n[D22:6] Evan: Absolutely, it's been a whirlwind of emotions. Good thing the accident was minor. Just a reminder to take it easy on the road, I guess.\n[D22:7] Sam: True, it’s important to stay safe. Glad you can still enjoy the peaceful moments after something like that.\n[D22:8] Evan: Definitely, nature brings peace and clarity - it's a great experience.\n[D22:9] Sam: Nature can make everything else seem small and help us find peace inside. It reminds us of the bigger picture, you know?\n[D22:10] Evan: For sure, and nature has been a great healer. Speaking of which, I’ve got to share some of these new healthy snacks I’ve been trying.\n[D22:10] Image caption (automatic): a photo of a woman sitting at a table with plates and glasses\n[D22:11] Sam: They look healthy and delicious! Perfect for after a hike or, I guess, post-accident recovery, huh?\n[D22:12] Evan: Exactly! They’re packed with nutrients and really easy to make. You also need to try these cookies, they are awesome! I’ll send you the recipes.\n[D22:12] Image caption (automatic): a photo of a bunch of cookies on a cooling rack\n[D22:13] Sam: Thanks, I’d appreciate that. It’s good to find new ways to stay healthy. Do you have any healthier snack ideas?\n[D22:14] Evan: Yeah, I've been trying to eat healthier too. Check out this cool recipe I discovered for these energy balls.\n[D22:14] Image caption (automatic): a photo of a bowl of coconut balls and a bowl of oats\n[D22:15] Sam: Do you like them? I know they can be an acquired taste.\n[D22:16] Evan: I enjoy the taste of these. They're energizing and a healthy way to satisfy your sweet tooth.\n\n[2] LoCoMo conv-49 history chunk 7\nSession date: 2:56 pm on 25 October, 2023\n[D15:11] Sam: That's impressive, Evan. It's inspiring to see how you transformed by changing your mindset.\n[D15:12] Evan: Thanks, Sam. Letting go of unrealistic expectations was liberating, both physically and mentally.\n[D15:13] Sam: You're really doing great, Evan! I want to feel that same sense of freedom.\n[D15:14] Evan: Thanks, Sam. Just take it one day at a time. Celebrate small victories.\n[D15:15] Sam: Thanks, Evan! Focusing on small wins sounds like a plan. I'll take it one day at a time.\n[D15:16] Evan: Exactly! Congrats on every little victory. Keep it up, I'm here for you.\n[D15:17] Sam: Your support means everything. Here's to moving forward!\n[D15:18] Evan: Anytime, Sam! Let's keep pushing ahead. I'm here to help you. Take care!\nSession date: 9:13 pm on 9 November, 2023\n[D16:1] Sam: Hey Evan! Hope you're doing good. Got some good news to share - I'm a Weight Watchers coach in my group now! It's a pretty big accomplishment for me, feel really proud.\n[D16:2] Evan: Congrats Sam! That's awesome! I'm super proud of you. Becoming a Weight Watchers coach is a big deal. Keep going!\n[D16:3] Sam: Thanks, Evan! Appreciate your support. It's been a journey, and being chosen as a coach is a great step in my quest for better health.\n[D16:4] Evan: Wow, Sam! You've come such a long way. It's exciting to see what comes next for you in your quest for better health.\n[D16:5] Sam: Thanks, Evan! It feels great to see progress. Being a coach will hopefully keep me motivated and help others stay committed too. It's a big challenge, but I'm ready for it!\n[D16:6] Evan: That's awesome, Sam! Helping others stay committed and motivated is so rewarding. You really inspire us. Keep up the great work!\n[D16:7] Sam: Thanks, Evan! Your kind words mean a lot. It's been a difficult road, but I'm determined to continue making a positive impact.\n[D16:8] Evan: Sorry about missing any events, I've had some personal challenges since we last spoke. Still here for you though - do you need any support or want to share anything? Btw look what i got!\n[D16:8] Image caption (automatic): a photo of a guitar laying on the floor with a guitar strap\n[D16:9] Sam: Hey, it looks so vintage and cool! What model is it? How've you been doing lately? I'm here if you wanna chat.\n[D16:10] Evan: It's a 1968 Kustom K-200A vintage guitar and I got it as a gift from a close friend. It's been a tough time for me since we last caught up; I lost my job last month, which has been pretty rough. But I really appreciate your support through all this.\n[D16:11] Sam: Sorry to hear about your job, Evan. What happened?\n[D16:12] Evan: It's been a bit of a rough patch lately. The company downsized, and I was part of that. I'm currently on the hunt for a new job, which hasn't been easy, but I'm keeping my spirits up and staying hopeful.\n[D16:13] Sam: Sorry about your job, Evan. It's tough when it comes out of nowhere, but I'm proud of how you're handling it. Let me know if you need someone to talk to or if I can do anything to help. You'll get through this.\n[D16:14] Evan: Thanks, Sam. Your support means a lot. It's been quite a ride, but I really appreciate having someone like you to talk to. I'll definitely reach out if I need anything.\n[D16:15] Sam: For sure, Evan! I'm here for ya. Life can be tough sometimes, but we got this. Stay positive and it'll all work out. Just know that I'm here if you need someone to talk to.\n[D16:16] Evan: Thanks, Sam. Your kind words and support mean a lot. It's great to have you here. I'm gonna stay positive and keep going. Cheers!\n[D16:16] Image caption (automatic): a photo of a person walking on the beach with a surfboard\n[D16:17] Sam: Wow, that sunset is stunning! It's so soothing just to see it. Is that a special spot you go to watch sunsets?\n[D16:18] Evan: Yeah, it's this peaceful place close to my home. I often go there to relax and unwind.\n[D16:19] Sam: That sounds wonderful, Evan! I'd love to check it out with you sometime.\n[D16:20] Evan: Oh, I wish I could bring you along. That picture was actually taken last Friday at my favorite spot by the beach. Watching the waves and the sunset colors really helps me find peace, especially during tough times. It's a beautiful reminder of nature's resilience. We should definitely plan to go together someday.\n[D16:21] Sam: No worries, Evan. And yes, we should make a plan to go. That photo is just mesmerizing!\n[D16:22] Evan: I'm glad you like it! It's a really calming place. Let's make a point to visit it together soon.\n[D16:23] Sam: Absolutely, Evan! A trip there sounds like the perfect way to de-stress.\n[D16:24] Evan: Awesome, let's do it! Let's plan it for next month, I'm already excited about exploring it together!\nSession date: 7:30 pm on 21 November, 2023\n[D17:1] Sam: Hey Ev! Long time no chat. How's it going? Hope all is well.\n[D17:2] Evan: Hey Sam, good to hear from you! Life's been a wild ride lately. Last week, I had a health scare and had to go to the hospital. They found something suspicious during a check-up, which freaked me out. Thankfully, it was all a misunderstanding, but it made me realize how important it is to keep an eye on my health. How've you been?\n[D17:3] Sam: Woah, Evan, that must've been scary! Phew, it was just a misunderstanding. A health scare can really make you re-evaluate what's important. As for me, I've been dealing with some discomfort and it's been limiting my movement. I've been trying to make changes diet-wise, but it can be hard.\n[D17:4] Evan: That sucks, Sam. It's tough when our health holds us back. I believe in you – just taking small steps can help. Have you tried any new hobbies recently to take your mind off it?\n[D17:5] Sam: Thanks, Evan. I haven't tried much new lately, but I did get this yesterday. It's been my go-to 'feel good' flick. So, you said you had a health scare - how're you now?\n[D17:5] Image caption (automatic): a photo of a book with a picture of a man on it\n[D17:6] Evan: That movie sounds interesting! I'm doing well now. Doctors said everything is fine, but it taught me the value of life. Just trying to enjoy the moment.\n[D17:7] Sam: That's awesome, Evan! Let's make it a habit to appreciate something each day. It really helps us enjoy life more. What do you think?\n[D17:8] Evan: Sounds good, Sam! Let's take the time to appreciate the little things in life.\n[D17:9] Sam: Thanks for always being there, Evan. It means a lot.\n[D17:10] Evan: Sure, Sam. I'm here for you. We gotta stick together, especially now.\n[D17:11] Sam: Yeah, Evan. Life can be tough sometimes, but having supportive people like you makes it way easier.\n[D17:12] Evan: Yeah, Sam. Tough times are way easier with friends we can rely on. We've got each other!\n[D17:12] Image caption (automatic): a photography of a group of people sitting around a fire pit\n[D17:13] Sam: Looks like you're having a blast! I was wondering, what do you do to stay fit and healthy?\n[D17:14] Evan: That was wild! I stay in shape by hitting the gym and taking my car out for a spin. Gotta keep it up! How are you doing on your fitness goals, Sam?\n[D17:15] Sam: Fitness goals have been hard to reach, but hey, that's life!\n\n[3] LoCoMo conv-49 history chunk 10\nSession date: 11:00 am on 31 December, 2023\n[D22:17] Sam: Awesome! Always on the lookout for healthy snacks, thanks for the tip!\n[D22:18] Evan: Glad to help - hope you enjoy it!\n[D22:19] Sam: Thanks, Evan! I'll give these a try. They look yum. Your help means a lot to me. Btw you know what? I went to the store again and, unsurprisingly, had issues with the self-checkout. It's becoming a regular annoyance.\n[D22:20] Evan: That's very strange, I've never had a problem with it once!\n[D22:21] Sam: Apparently I attract that to me, if you ever want to be in that situation, call me at the store with you!\nSession date: 1:32 pm on 6 January, 2024\n[D23:1] Evan: Hey Sam, guess what? My partner and I told our extended fam about our marriage yesterday – it was so special! We've been totally overwhelmed by all their love and support.\n[D23:1] Image caption (automatic): a photo of a man and a woman standing on a rocky beach\n[D23:2] Sam: Congrats on the news, Evan! You two look so happy in the pic. These moments make life so wonderful; super stoked for you!\n[D23:3] Evan: Thanks, Sam! It was an awesome moment, and I feel really lucky to have found someone who gets me. Plus, our families are really happy for us - that's the best part!\n[D23:4] Sam: Wow, Evan. It's awesome that you've found someone who gets you! Having your family's support must feel great.\n[D23:5] Evan: Definitely, family support is so important. Knowing they're happy about our marriage is awesome and so comforting.\n[D23:6] Sam: Yeah, it's awesome to have that support. It definitely brings more happiness and joy.\n[D23:7] Evan: Yeah Sam, that means a lot to me. Our bond just keeps getting stronger and it brings such a good feeling to our lives. Family really is everything.\n[D23:8] Sam: Agree, Evan! Family is everything - they bring so much love and happiness. They're always there for us no matter what. I'm grateful for their support and love.\n[D23:9] Evan: For sure, Sam. That's what makes family so special. They bring so much love and happiness. It's great having their support and knowing they're always there for us. I feel really fortunate to have their never-ending love and support.\n[D23:10] Sam: Yeah, definitely, Evan. We both have amazing families that are always there for us. Always a blessing.\n[D23:11] Evan: Yeah, Sam. Our families give us so much joy, support, and love. They're a real blessing! I don't know what I'd do without them.\n[D23:12] Sam: Hey, Evan. My family has been my rock through everything. Don't know what I'd do without them.\n[D23:13] Evan: Yeah, they are our rock. We're blessed to have them.\n[D23:13] Image caption (automatic): a photo of a group of people sitting at a table with food\n[D23:14] Sam: Wow, you guys are awesome! What's cooking tonight?\n[D23:15] Evan: Thanks, Sam! We're having a family get-together tonight and enjoying some homemade lasagna. Super excited! By the way, I've started a new diet—limiting myself to just two ginger snaps a day. What's on your menu tonight?\t\n[D23:16] Sam: That's a great discipline, Evan! We're keeping it light tonight, just some homemade lasagna. Can't compete with your ginger snap limit though!\n[D23:16] Image caption (automatic): a photo of a plate of food with bread and meat\n[D23:17] Evan: Oh this must be very hearty and delicious, well I'll have to stick to the diet plan, even with the family gathering!\n[D23:18] Sam: Yeah, the lasagna was pretty awesome, but check out what I had for dessert, I'm sure you're drooling!\n[D23:18] Image caption (automatic): a photo of a pie with raspberries and limes on top\n[D23:19] Evan: Looks yummy! Did you make that?\n[D23:20] Sam: No, I didn't make it. This is actually a pic from my cousin's wedding. It's super special.\n[D23:21] Evan: Wow Sam! Weddings are indeed special. This looks great, yum!\n[D23:21] Image caption (automatic): a photo of a wedding cake with candles and flowers on a table\n[D23:22] Sam: Ooh, nice cake! Reminds me of special occasions. Do you have any upcoming plans?\n[D23:23] Evan: Thanks Sam! We're off to Canada next month for our honeymoon. So excited to create some awesome memories. Looking forward to exploring the beautiful snowy landscapes there.\n[D23:23] Image caption (automatic): a photo of a stream running through a snowy forest filled with snow\n[D23:24] Sam: Wow, that looks great! What are your plans for the trip?\n[D23:25] Evan: We're planning to ski, try the local cuisine, and enjoy the beautiful views. We're really excited!\n[D23:26] Sam: Sounds amazing, Ev! Skiing, trying local dishes, and enjoying the breathtaking views - the perfect honeymoon. Have an incredible time creating unforgettable memories!\n[D23:26] Image caption (automatic): a photo of a container of french fries covered in caramel\n[D23:27] Evan: Yeah, Sam! Gonna try some poutine while we're there - can't wait!\n[D23:28] Sam: Never tried it? Can't say I blame you, it's kind of a Canadian thing. Let me know how you like it!\n[D23:29] Evan: Sure thing, Sam! Let's see if it lives up to the hype. I'll let you know what happens!\n[D23:30] Sam: Yeah, Evan! Let me know all about it. Don't forget the details!\n[D23:31] Evan: Cool, Sam. I'll keep you posted. Talk soon!\n[D23:32] Sam: Awesome, Evan! Catch you soon. Have a great trip!\n[D23:33] Evan: Thanks, Sam! Catch you later. Have a great one!\nSession date: 12:17 am on 10 January, 2024\n[D24:1] Evan: Hey Sam, hope you're doing good. Something funny happened last night.\n[D24:2] Sam: Hey Evan, what's up? What happened? Let me know.\n[D24:3] Evan: Yesterday I went out with my friends and had a bit too much to drink. I ended up doing something I regret and it involved someone's roses.\n[D24:4] Sam: What's up with that incident? All good now?\n[D24:5] Evan: Oof, Sam, so embarrassing! I had a pee accident near some roses - can you believe it? I'm so sorry about that.\n[D24:6] Sam: Uh oh, Evan! That's awkward. Did anyone get mad at you? Are you okay?\n[D24:7] Evan: I was so embarrassed when I saw what happened the next morning, so I apologized and luckily they were understanding. Yeah, I was out of control--guess I gotta be more careful next time.\n[D24:8] Sam: They were understanding? Phew! We all mess up sometimes, we're human after all.\n[D24:9] Evan: Yeah, they were understanding, which was great. But it's a good reminder to be more careful. We all make mistakes, but it's important to learn from them. Speaking of, my partner and I tried snowshoeing this weekend. It was part of a new adventure for us and surprisingly fun.\n[D24:10] Sam: Yeah, Evan, you're right. Mistakes happen, but it's good to learn from them. Snowshoeing sounds like a great way to stay active during the winter. I've been thinking and I made a meal plan and workout schedule. I'm getting motivated by something I saw, so starting today I'm gonna do my best to stay on track.\n[D24:10] Image caption (automatic): a photo of a white board with a bunch of writing on it\n[D24:11] Evan: Good work, Sam! You've got a plan and you're dedicated to staying healthy - have you asked your doctor for advice? They could probably give you even more diet and exercise tips.\n[D24:12] Sam: Thanks, Evan! Haven't seen a doctor in a while, but it's probably a good idea to get some advice. I'm going to make an appointment soon.\n[D24:12] Image caption (automatic): a photo of a red and orange card with a yellow sun\n\n[4] LoCoMo conv-49 history chunk 1\nSession date: 1:47 pm on 18 May, 2023\n[D1:1] Sam: Hey Evan, good to see you! What's new since we last met? Anything cool happening?\n[D1:2] Evan: Hey Sam! Good to see you! Yeah, I just got back from a trip with my family in my new Prius.\n[D1:3] Sam: Wow, not bad, what happened to the old one? Where'd you go, by the way?\n[D1:3] Image caption (automatic): a photo of a person's feet on a car dashboard as the sun sets\n[D1:4] Evan: My old prius broke down, decided to get it repaired and sell it. Glad you asked, we went to Rockies, check it out.\n[D1:4] Image caption (automatic): a photo of a lake with rocks and mountains in the background\n[D1:5] Sam: Wow! Looks amazing. When did you get to go there?\n[D1:6] Evan: We all hiked the trails last week - the views were amazing!\n[D1:7] Sam: Wow, that's cool. I love hiking, but it's been ages since I've done it. I did this hike with my dad way back when I was ten. Going hiking together was great fun, and really special for us.\n[D1:7] Image caption (automatic): a photography of a man and a child walking through a forest\n[D1:8] Evan: Aww, that's cute. How far did you two hike?\n[D1:9] Sam: We hiked a good distance - quite a feat for me back then. It's definitely a great memory.\n[D1:10] Evan: What other hobbies have you found for yourself?\n[D1:11] Sam: Nothing so far, but I was thinking about trying painting. Do you have any hobbies you love?\n[D1:11] Image caption (automatic): a photo of a person holding a paint set in a store\n[D1:12] Evan: Cool idea, Sam! I love it. Have you tried it before?\n[D1:13] Sam: Not yet, but I'm keen to give it a go. It looks like a nice way to chill and get creative.\n[D1:14] Evan: Yep, it's a great stress-buster. I started doing this a few years back.\n[D1:14] Image caption (automatic): a photo of a painting of a cactus in the desert\n[D1:15] Sam: Wow, that's impressive! How did you get into watercolor painting?\n[D1:16] Evan: My friend got me into it and gave me some advice, and I was hooked right away!\n[D1:17] Sam: Wow! I hope I can find something I'm as passionate about as you are with watercolor painting.\n[D1:18] Evan: You'll find it, just keep trying new things until something sparks your excitement.\n[D1:19] Sam: Thanks, Evan! I'm excited to try new things, should be fun!\n[D1:20] Evan: No worries, Sam! Super pumped for you! Let's catch up soon and see how you're enjoying your new hobbies!\n[D1:21] Sam: Yeah, I'll keep you posted. See you soon!\n[D1:22] Evan: Take it easy, Evan! Can't wait to see you. Have a good one!\nSession date: 7:11 pm on 24 May, 2023\n[D2:1] Evan: Hey Sam, good to hear from you! Since we last talked, lots has been happening! Last weekend, I took my family on a road trip to Jasper. It was amazing! We drove through the Icefields Parkway and the glaciers and lakes were gorgeous. I got a shot of a glacier, check it out!\n[D2:1] Image caption (automatic): a photo of a person holding a book in front of a lake\n[D2:2] Sam: Hey Evan, looks amazing! I've never been to Jasper, but it looks breathtaking. Tell me more about your road trip. Was it relaxing?\n[D2:3] Evan: Hey Sam, thanks for asking! It was great - fresh air, peacefulness and a cozy cabin surrounded by mountains and forests made it feel like a real retreat.\n[D2:4] Sam: That sounds great, Evan! It's so important to take time for ourselves and find peace, especially after a hard week. Mine's been tough.\n[D2:5] Evan: Sorry to hear that, Sam. Is there anything I can do to help?\n[D2:6] Sam: Thanks, Evan. Appreciate the offer, but had a check-up with my doctor a few days ago and, yikes, the weight wasn't great. It was pretty eye-opening.\n[D2:7] Evan: That must have been a challenging experience, Sam. It's tough when we have to confront our own health challenges. Remember, it's never too late to make positive changes for a healthier lifestyle. Is there anything I can do to support you in this journey?\n[D2:8] Sam: Thanks, Evan. Breaking old habits isn't easy. Do you have any tips for starting the process?\n[D2:9] Evan: Yeah, what worked for me was finding a fitness routine I really enjoy. It's my go-to, I love the feeling of being healthy and strong. Making it fun and finding little ways to make smarter choices in my diet really added up. Don't forget, you got this!\n[D2:10] Sam: Thanks, Evan. Like you said, I've been looking for a hobby to stay motivated. I've been thinking about trying painting. Do you think it will help me de-stress?\n[D2:11] Evan: Of course, Sam! Painting is a great way to relieve stress and be creative. It gives you the freedom to explore colors and textures and express feelings. I've been doing it for a few years now and it helps me find peace. But unfortunately it won't help you with your weight problem, besides painting I recommend exercising!\n[D2:12] Sam: Thanks, Evan! Appreciate the encouragement. I'll give it a go and let you know how it turns out.\n[D2:13] Evan: Awesome, Sam! Have fun with it and don't put too much pressure on yourself. Can't wait to hear how it's going!\n[D2:14] Sam: Cheers, Evan! I won't stress - just gonna enjoy it.\n[D2:15] Evan: Alright Sam, have fun with it! Keep me updated!\n[D2:16] Sam: Thanks, Evan! Will do. Bye for now.\n[D2:17] Evan: Take care, Sam! I'll catch up with you later.\nSession date: 3:55 pm on 6 June, 2023\n[D3:1] Evan: Hey Sam! Long time no talk! How're you doing? Life's been quite the rollercoaster lately. I had a health scare last week – a sudden heart palpitation incident that really shook me up. It's been a serious wake-up call about my lifestyle.\n[D3:1] Image caption (automatic): a photo of a person holding a bottle of medicine in their hand\n[D3:2] Sam: Hey Evan, great hearing from you! Sorry about that, glad you're feeling better now. Trying to eat healthier these days.\n[D3:2] Image caption (automatic): a photo of a plate of vegetables and a glass of milk\n[D3:3] Evan: That salad looks yummy! I'm being extra careful with my health lately. I'm trying to eat less processed food and sugary snacks, even though I love ginger snaps. Have you made any changes to your diet recently?\n[D3:4] Sam: Nah, no changes for me. Still enjoying my soda and candy, although I know it's not the best habit to have.\n[D3:5] Evan: Yeah, breaking habits can be tough. Making small changes can have a big impact later on. Have you considered swapping soda for flavored seltzer water? It's still bubbly and tasty, but without the sugar. And instead of candy, you could try dark chocolate with high cocoa content - it's a healthier option. What do you think?\n[D3:6] Sam: Yeah, good idea! I'll give it a try.\n[D3:7] Evan: Awesome, Sam! Let me know how it goes. Making small changes can really help you live a healthier life. Don't forget - every step matters!\n[D3:8] Sam: Hey Evan, thanks! Appreciate it. I'll definitely keep you posted.\n[D3:9] Evan: I'm here for you, Sam. Let's continue supporting each other on our health journeys. It's important to remember that progress takes time.\n[D3:10] Sam: Yeah, you're right. It takes time, but I'm up for keep trying and making those tiny changes.\n[D3:11] Evan: C'mon, keep it up! Every little bit counts, you'll get there!\n[D3:12] Sam: Thanks, Evan! I appreciate your support, it means a lot to me to have you in my corner.\n\n[5] LoCoMo conv-49 history chunk 2\nSession date: 3:55 pm on 6 June, 2023\n[D3:13] Evan: Yes, Sam! I'm here for you. Let's rock our workouts and reach our goals! Exercise clears the mind - it's amazing!\n[D3:13] Image caption (automatic): a photography of a man with a beard holding a dumbble\n[D3:14] Sam: Wow, that's awesome! Could you give me a hand with getting started?\n[D3:15] Evan: Sure Sam, I'd be glad to help. Let's get together and I'll show you some basic exercises. We'll reach our goals!\n[D3:16] Sam: Cool, can't wait! Thank you. By the way, I'm coming from the shop and I had a frustrating issue at the supermarket. The self-checkout machines were all broken, my mood is terrible now!\n[D3:17] Evan: Sorry you were in that situation, hopefully it won't happen again!\n[D3:18] Sam: Yeah, I hope so, take care of yourself.\nSession date: 10:52 am on 27 July, 2023\n[D4:1] Sam: Hey Evan, I need to talk to you. My friends were mocking my weight last Friday and it hurt. That made me realize I need to make changes.\n[D4:2] Evan: Hey Sam, sorry about that. Don't worry, progress takes time. Let's work on it together.\n[D4:3] Sam: Thanks for the support, Evan. I'm working on my health and getting active!\n[D4:4] Evan: That's great, Sam! I struggled with my health a few years ago, but stuck with it. Here's a reminder of my commitment - my gym membership card. It's not just about exercise, diet and lifestyle changes also play a big role.\n[D4:4] Image caption (automatic): a photo of a set of five cards with the words let it shine\n[D4:5] Sam: That's awesome, Evan! What do you think made the biggest impact on your health journey?\n[D4:6] Evan: I made some dietary changes, like cutting down on sugary snacks and eating more veggies and fruit, and it made a big impact on my health. Have you considered any changes?\n[D4:6] Image caption (automatic): a photo of a table full of fresh produce and vegetables\n[D4:7] Sam: Yep, I'm reducing my soda and candy intake. It's tough, but I'm determined to make a change.\n[D4:8] Evan: Go for it, Sam! It's tough at first, but you got this. Try flavored seltzer water instead. It can be a great alternative to soda. Btw I can't stop thinking about that new mystery novel I started. It's so gripping!\n[D4:8] Image caption (automatic): a photo of a table with a variety of sodas and water bottles\n[D4:9] Sam: Sounds good, Evan. I've tried it before and it was nice. Do you have any ideas for low-calorie snacks to pair with it? And what's the novel?\n[D4:10] Evan: Definitely, how about some flavored seltzer with some air-popped popcorn or fruit? It's yum and healthy! The novel I'm reading is \"The Great Gatsby\".\n[D4:10] Image caption (automatic): a photo of a table with bowls of fruit and a bottle of alcohol\n[D4:11] Sam: Yum, that sounds good! Thanks! And I'll definitely read that novel sometime.\n[D4:12] Evan: No worries, Sam! Focus on healthy swaps and taking small steps. Stay upbeat!\n[D4:12] Image caption (automatic): a photography of a book with a green apple next to it\n[D4:13] Sam: That reminder is inspiring. Thanks for reminding me to focus on progress, not perfection.\n[D4:14] Evan: By the way, have you thought about exercising? Trust me, it's just as important as eating right.\n[D4:14] Image caption (automatic): a photo of a woman with a backpack on a mountain\n[D4:15] Sam: Starting tomorrow, I will go to the gym and exercise regularly. The sooner I start, the sooner I will see the rewards of this activity.\n[D4:16] Evan: That's awesome, Sam! It's such a rewarding and tough activity - keep going and have fun!\n[D4:17] Sam: Thanks, Evan! Your support means a lot. I really appreciate it.\n[D4:18] Evan: No worries, you've got this!\n[D4:19] Sam: Thanks, Evan. I really appreciate it.\n[D4:20] Evan: No worries, Sam. I'm here if you need me. Keep going!\nSession date: 7:52 pm on 7 August, 2023\n[D5:1] Evan: Hey Sam, how's it going? Last week I went on a trip to Canada and something unreal happened - I met this awesome Canadian woman and it was like something out of a movie. She's incredible and being with her makes me feel alive.\n[D5:1] Image caption (automatic): a photography of a couple walking through the snow holding hands\n[D5:2] Sam: Congrats Evan! She must be something special! Being with someone who makes you feel alive is amazing. I'm sorry to hear that you're dealing with health issues lately, it can be really tough. It's hard to fully enjoy things sometimes.\n[D5:2] Image caption (automatic): a photo of a person walking on the beach with a surfboard\n[D5:3] Evan: Woah. such a nice view! Thanks, Sam! She's definitely great. Every moment with her is really fun and energizing. It's a nice change, especially after dealing with health issues. But you never know what life's gonna throw at you. Btw look what life has thrown for me right now haha.\n[D5:3] Image caption (automatic): a photo of a container of cookies on a counter\n[D5:4] Sam: Looks good to eat! Dealing with health problems can be challenging and take away from enjoyable experiences.\n[D5:5] Evan: Ginger snaps are my weakness for sure! Dealing with health issues has been tough, but it's made me appreciate the good moments more. These are the ones who bring lots of joy even through the hard times.\n[D5:5] Image caption (automatic): a photo of a woman and a child playing on a swing set\n[D5:6] Sam: It looks like your kids are having a great time! And how long have you been prioritizing your health?\n[D5:7] Evan: Yes, they bring me such joy. My healthy road has been a long one. I've been working on it for two years now, so there have been ups and downs, but I'm doing my best.\n[D5:7] Image caption (automatic): a photo of a box with a fitness watch on it\n[D5:8] Sam: I wish your motivation never goes anywhere! I'm thinking of ordering myself some similar ones too, what do you think, are they worth it?\n[D5:9] Evan: Thanks Sam! My family motivates me to stay healthy. Well, it helps a lot with my health goals. It tracks my progress really well and serves as a constant reminder to keep going.\n[D5:9] Image caption (automatic): a photo of a person's wrist with a smart watch on it\n[D5:10] Sam: Cool! It sounds like a really good tool to stay on track. How has it been working out for you?\n[D5:11] Evan: It's been awesome, Sam! That visual reminder has been really motivating.\n[D5:12] Sam: Thanks for the recommendation, what else motivates you?\n[D5:13] Evan: I'm motivated by a thirst for adventure on interesting hikes, that's pretty cool!\n[D5:13] Image caption (automatic): a photo of a small island with a lone boat in the water\n[D5:14] Sam: What an amazing view! The key is to find something that keeps you motivated.\n[D5:15] Evan: Yep, that's it. Find something that motivates you and makes you happy, whether it's large or tiny. It'll help us conquer the struggles we encounter.\n[D5:15] Image caption (automatic): a photo of a bonsai tree in a black vase on a wooden table\n[D5:16] Sam: Nice! What made you decide to get that?\n[D5:17] Evan: I got this because it symbolizes strength and resilience. Taking care of it motivates me to keep going through tough times.\n[D5:18] Sam: Wow, it's amazing! So powerful yet so simple.\n[D5:19] Evan: Thanks, Sam. It's a reminder that even in little things, we can be tough.\n[D5:20] Sam: Little stuff matters - it builds our resilience over time.\n[D5:21] Evan: Yeah, every little thing we do for ourselves helps us in the long run.\n[D5:22] Sam: Yep, small steps add up. Stay consistent and don't give up!\n[D5:23] Evan: Yep, Sam! Consistency and perseverance will get us far. Great chat!\n\nPERGUNTA: What gift did Evan receive from a close friend?"
+          }
+        ],
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "seed": 42,
+        "response_format": {
+          "type": "json_object"
+        }
+      },
+      "cache_path": "/home/rodrigo.flexa/WitnessRAG/runs/locomo-controlled-01/cache/openai/83fe228fd10efdce/1eb3f6326aad7642f43281310e661219108086b148ea243e46b8b714c33d44b5.json"
+    }
+  ],
+  "retrieval_hash": "9cdba65143bbb896d912b0add1ae479546b372f4f4412114d7610317ab7a51ae",
+  "memory_hash": "0588999dd305d9dd4b731bfa331b8296bd060c042d330fe4f56d3805293ed034",
+  "condition": "evidence",
+  "reader": "common"
+}
