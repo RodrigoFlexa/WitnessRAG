@@ -224,6 +224,11 @@ class WitnessConfig:
     active_operators: bool = False
     soft_obligations: bool = False
     proof_reader: bool = False
+    # Experimental recovery of failed plans. Kept separate from the established
+    # controller so the historical baseline remains reproducible.
+    plan_repair: bool = False
+    # LLM calls for replanning are distinct from the budget of valid plans.
+    max_replan_calls: int = 4
     active_frontier_queries: int = 5
     active_frontier_passages: int = 30
 
@@ -297,6 +302,7 @@ class QAConfig:
     answer_set: bool = False
     operator_reader: bool = False
     proof_reader: bool = False
+    answer_guard: bool = False
 
 
 @dataclass

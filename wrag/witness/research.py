@@ -59,6 +59,7 @@ class PlanAssessment:
     checked: bool = True
     tier: str = ""
     attempts: list[dict[str, Any]] | None = None
+    contract: str = "soft-v2"
 
     def to_dict(self) -> dict[str, Any]:
         result = {"cobre_pergunta": self.covers, "faltas": self.missing,
@@ -66,7 +67,7 @@ class PlanAssessment:
         if self.tier:
             result["grau"] = self.tier
         if self.attempts is not None:
-            result["contrato"] = "soft-v2"
+            result["contrato"] = self.contract
             result["tentativas"] = self.attempts
         return result
 
@@ -96,6 +97,70 @@ def assess_plan(llm, question, query: ConjunctiveQuery, dataset: str,
         covers = False
         missing.append("operador_de_contagem_ausente")
     return PlanAssessment(covers, missing, str(data.get("reason") or "")[:240])
+
+
+REPAIR_PLAN_TEMPLATE = """Determine whether QUERY preserves every requirement of QUESTION.
+Check entities, relation direction, time, location, qualifiers, intersection,
+and the requested answer operation. `atoms` are graph operations;
+`source_conditions` are requirements preserved for later checking against
+literal passages. Count a requirement as preserved if it is explicitly present
+in either place; do not assume a source condition has already been verified.
+A graph match alone does not establish coverage. Do not answer the question.
+Return a JSON object with exactly:
+covers_question (boolean), missing (list of concrete requirements), reason
+(short string). When coverage is complete, missing must be empty. When coverage
+is incomplete, name the exact missing requirement from the question. Do not
+copy field names or instructions as requirements. If uncertain, set
+covers_question to false and explain the uncertainty in missing.
+QUESTION: {question}
+QUERY: {query}"""
+
+
+def assess_plan_repair(llm, question, query: ConjunctiveQuery, dataset: str,
+                       method: str) -> PlanAssessment:
+    """Versioned strict checker with a bounded retry on inconsistent output."""
+    prompt = REPAIR_PLAN_TEMPLATE.format(question=question.question, query=query.to_dict())
+    attempts = []
+    for attempt in range(2):
+        result = llm.chat(
+            prompt, system=PLAN_SYSTEM,
+            params=GenParams(temperature=0.0, max_tokens=500, json_mode=True),
+            stage="witness.obligations.repair" if attempt else "witness.obligations.v3")
+        data = result.json()
+        valid = (result.ok and not result.error and not result.exhausted and
+                 isinstance(data, dict) and type(data.get("covers_question")) is bool and
+                 isinstance(data.get("missing"), list) and
+                 all(isinstance(x, str) and x.strip() for x in data["missing"]))
+        if valid:
+            missing = [x.strip()[:160] for x in data["missing"][:8]]
+            valid = (not (data["covers_question"] and missing) and
+                     not (not data["covers_question"] and not missing) and
+                     not any(x.casefold() in {"short requirement", "short condition"}
+                             for x in missing))
+        attempts.append({"valid": valid, "error": result.error or ""})
+        if valid or result.filtered:
+            break
+        prompt = (REPAIR_PLAN_TEMPLATE.format(question=question.question,
+                                              query=query.to_dict()) +
+                  "\nThe previous output violated the JSON contract. Assess anew. "
+                  "Never turn an invalid missing list into complete coverage.")
+    if not valid:
+        if result.filtered:
+            LEDGER.add("obligations", dataset, method, question.qid,
+                       "checagem de cobertura bloqueada")
+        return PlanAssessment(False, ["checagem_indisponivel"],
+                              "contrato inválido ou indisponível", checked=False,
+                              tier="unavailable", attempts=attempts, contract="strict-v3")
+    covers = data["covers_question"]
+    if query.aggregation == "count" and not re.search(r"\bhow many\b", question.question, re.I):
+        covers = False
+        missing.append("operador_de_contagem_indevido")
+    if re.search(r"\bhow many\b", question.question, re.I) and query.aggregation != "count":
+        covers = False
+        missing.append("operador_de_contagem_ausente")
+    return PlanAssessment(covers, missing, str(data.get("reason") or "")[:240],
+                          tier="full" if covers else "partial", attempts=attempts,
+                          contract="strict-v3")
 
 
 def assess_plan_soft(llm, question, query: ConjunctiveQuery, dataset: str,

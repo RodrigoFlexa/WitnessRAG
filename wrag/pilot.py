@@ -79,6 +79,8 @@ def parser():
                    help="planos parciais podem oferecer contexto, sem serem certificados")
     p.add_argument("--proof-reader", action="store_true",
                    help="leitor confere hipóteses do grafo nas passagens selecionadas")
+    p.add_argument("--plan-repair", action="store_true",
+                   help="diagnostica junções e busca/replaneja obrigações não cobertas")
     p.add_argument("--hybrid-fallback", action="store_true",
                    help="fallback por fusão recíproca de postos (denso + BM25)")
     p.add_argument("--witness-candidate-pool", type=int, default=20,
@@ -104,6 +106,8 @@ def make_plan(args, output):
         raise ValueError("--max-query-plans deve ser >= 1")
     if args.soft_obligations and not args.active_obligations:
         raise ValueError("--soft-obligations exige --active-obligations")
+    if args.plan_repair and not (args.query_plans and args.active_obligations and args.active_frontier):
+        raise ValueError("--plan-repair exige --query-plans, --active-obligations e --active-frontier")
     if args.questions is None and args.dataset != "locomo":
         args.questions = 100
     if args.methods is None:
@@ -171,7 +175,21 @@ def make_plan(args, output):
         command += ["--revision", args.model_revision, "--tokenizer-revision", args.model_revision]
     if args.quantization:
         command += ["--quantization", args.quantization]
+    frozen_source = os.environ.get("WRAG_FROZEN_MEMORY_SOURCE")
+    frozen_identity = None
+    if frozen_source:
+        source = Path(frozen_source).resolve()
+        manifests = sorted((source / "controlled").glob("*/memory.json"))
+        if not manifests:
+            raise FileNotFoundError(f"No frozen memory manifests under {source}")
+        digest = hashlib.sha256()
+        for manifest in manifests:
+            digest.update(manifest.parent.name.encode("utf-8"))
+            digest.update(manifest.read_bytes())
+        frozen_identity = {"source": str(source), "manifests": len(manifests),
+                           "sha256": digest.hexdigest()}
     return {"output": str(output), "env": env, "server_command": command, "methods": methods,
+            "frozen_memory": frozen_identity,
             "settings": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
             "scope": ("LoCoMo: conversa completa, QA single-hop/multi-hop, adaptação textual"
                       if args.dataset == "locomo" else
@@ -306,8 +324,10 @@ def _run_config(settings, n_questions):
     cfg.witness.active_operators = settings.get("active_operators", False)
     cfg.witness.soft_obligations = settings.get("soft_obligations", False)
     cfg.witness.proof_reader = settings.get("proof_reader", False)
+    cfg.witness.plan_repair = settings.get("plan_repair", False)
     cfg.qa.operator_reader = cfg.witness.active_operators
     cfg.qa.proof_reader = cfg.witness.proof_reader
+    cfg.qa.answer_guard = cfg.witness.plan_repair
     cfg.witness.hybrid_fallback = settings.get("hybrid_fallback", False)
     cfg.witness.candidate_pool_k = settings.get("witness_candidate_pool", 20)
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
@@ -545,7 +565,7 @@ def _validate_resume(old, new):
               "locomo_ie_window_tokens", "seed", "top_k", "witness_candidate_pool",
               "answer_set", "vocab_compile", "query_plans", "max_query_plans",
               "active_frontier", "active_obligations", "active_context", "active_operators",
-              "soft_obligations", "proof_reader",
+              "soft_obligations", "proof_reader", "plan_repair",
               "hybrid_fallback", "dialogue_ie",
               "no_relation_family_merge",
               "binding_aware_grounding", "verify_witnesses", "no_acquisition")
@@ -554,6 +574,8 @@ def _validate_resume(old, new):
                       (new.get("settings", {}).get(name) or 0)]
     if old.get("methods") != new.get("methods"):
         differences.append("methods")
+    if old.get("frozen_memory") != new.get("frozen_memory"):
+        differences.append("frozen_memory")
     if differences:
         raise ValueError("--resume incompatível; mudou: " + ", ".join(differences))
 

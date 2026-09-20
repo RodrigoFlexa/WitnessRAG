@@ -311,6 +311,8 @@ def _answer_standard(name: str, retriever, corpus: Corpus, question: Question,
         "recuperadas": retrieval.pids,
         "scores": [round(float(s), 6) for s in retrieval.scores],
         "resposta": reading.answer,
+        "resposta_sem_guarda": reading.raw_answer if reading.guard else None,
+        "guarda_resposta": reading.guard,
         "em": M.exact_match(reading.answer, question.answers),
         "f1": M.token_f1(reading.answer, question.answers),
         "recall@2": M.recall_at_k(retrieval.pids, question.gold_pids, 2) if run_cfg.top_k >= 2 else float("nan"),
@@ -341,11 +343,17 @@ def _answer_standard(name: str, retriever, corpus: Corpus, question: Question,
         from wrag.eval import locomo_official as LO
         from wrag.eval.counts import numeric_diagnostic
         from wrag.eval.diagnostics import stop_reason
-        record["diagnosticos"]["motivo_parada"] = stop_reason(diagnostics)
+        # Preserve the controller's explicit terminal reason when available.
+        # The legacy classifier remains the fallback for older retrievers.
+        record["diagnosticos"]["motivo_parada"] = (
+            diagnostics.get("motivo_parada") or stop_reason(diagnostics))
         record["acerto_numerico"] = numeric_diagnostic(
             question.question, reading.answer, question.answers[0])
         if LO.available():
             record.update(LO.score_record(record))
+            if reading.guard and reading.guard.get("aplicavel"):
+                raw_record = {**record, "resposta": reading.raw_answer}
+                record["f1_locomo_sem_guarda"] = LO.score_record(raw_record)["f1_locomo"]
     return record
 
 
@@ -359,7 +367,8 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
     if len(text) <= max_chars:
         return diagnostics
     keep = {k: diagnostics[k] for k in
-            ("consulta", "forma", "planos_compilados", "plano_escolhido", "planejamento",
+            ("consulta", "forma", "planos_compilados", "historico_planos",
+             "classe_falha_plano", "motivo_parada", "plano_escolhido", "planejamento",
              "lacuna", "fallback", "rodadas_aquisicao",
              "profundidade_alcancada", "risco", "risco_bruto", "score_estrutural", "n_testemunhas",
              "n_testemunhas_propostas", "agregacao_executada",

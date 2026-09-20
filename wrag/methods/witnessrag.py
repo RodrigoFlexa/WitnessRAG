@@ -30,10 +30,10 @@ from wrag.witness import budget as budget_mod
 from wrag.witness.memory import MemoryView
 from wrag.witness.provenance import (AnswerCandidate, answer_set, rank_passages,
                                      score_answers)
-from wrag.witness.query import ConjunctiveQuery, compile_query, compile_query_plans
+from wrag.witness.query import Atom, ConjunctiveQuery, compile_query, compile_query_plans
 from wrag.witness.search import (Gap, SearchResult, WitnessSearcher, cover_answers,
                                  executable_aggregations)
-from wrag.witness.research import (assess_plan, assess_plan_soft, collect_frontier,
+from wrag.witness.research import (assess_plan, assess_plan_soft, assess_plan_repair, collect_frontier,
                                    frontier_probes, gap_candidates, proof_hints,
                                    select_evidence)
 
@@ -42,8 +42,65 @@ log = get_logger("wrag.methods.witnessrag")
 
 def _plan_signature(query: ConjunctiveQuery) -> tuple:
     return (query.answer_var, query.aggregation,
+            tuple(canonical_symbol(c) for c in query.conditions),
             tuple((canonical_symbol(atom.subject), canonical_symbol(atom.relation),
                    canonical_symbol(atom.object)) for atom in query.atoms))
+
+
+def _coverage_gap(plan: ConjunctiveQuery, missing: list[str]) -> Gap | None:
+    """Turn a failed coverage check into a search probe, never into a proof.
+
+    The original atom retains its direction and constants. The missing condition
+    enriches only the text probe sent to passage search and targeted extraction.
+    """
+    if not plan.atoms or not missing:
+        return None
+    condition = next((m.strip() for m in missing if m.strip() and
+                      not m.startswith(("checagem_", "operador_"))), "")
+    if not condition:
+        return None
+    terms = set(canonical_symbol(condition).split())
+    index = max(range(len(plan.atoms)), key=lambda i: len(
+        terms & set(canonical_symbol(plan.atoms[i].verbalize()).split())))
+    atom = plan.atoms[index]
+    return Gap(index, atom,
+               bound_subject="" if atom.subject_is_var else atom.subject,
+               bound_object="" if atom.object_is_var else atom.object,
+               source_condition=condition[:120])
+
+
+def _compact_plan_feedback(plan_log: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Give the planner every attempted plan and its observed failure.
+
+    Full traces stay in diagnostics. This bounded view keeps later plans from
+    disappearing behind a prompt-length truncation of the first trace.
+    """
+    output = []
+    for item in plan_log:
+        counts = item.get("candidatos_por_atomo") or []
+        obligations = item.get("obrigacoes") or {}
+        trace = item.get("trilha_juncao") or {}
+        if not item.get("executavel"):
+            reason = "invalid_or_unsupported"
+        elif item.get("fechou") and not obligations.get("cobre_pergunta", True):
+            reason = "closed_but_missing_requirement"
+        elif any(n == 0 for n in counts):
+            reason = "atom_without_candidate"
+        elif not item.get("fechou"):
+            reason = "variable_join_failed_or_cut"
+        else:
+            reason = "graph_join_and_coverage_passed"
+        output.append({"index": item["indice"], "plan": item["consulta"],
+                       "failure": reason, "missing": obligations.get("faltas", []),
+                       "candidates_per_atom": counts, "gap": item.get("lacuna"),
+                       "truncations": item.get("cortes", []),
+                       "top_facts_per_atom": [candidates[:1] for candidates in
+                                              trace.get("top_candidates", [])],
+                       "join_stages": [{"atom": stage["atom_index"],
+                                        "binding_rejections": stage["binding_rejections"],
+                                        "states_after": stage["states_after"]}
+                                       for stage in trace.get("stages", [])]})
+    return output
 
 
 def _merge_verification(target: dict[str, Any], block: dict[str, Any]) -> None:
@@ -498,7 +555,9 @@ class WitnessRAGRetriever(Retriever):
                     method=self.name, vocabulary=refreshed, feedback=feedback)
                 planning_calls += 1
                 seen = {_plan_signature(plan) for plan in plans}
-                novel = [plan for plan in proposed if _plan_signature(plan) not in seen]
+                novel = [plan for plan in proposed if _plan_signature(plan) not in seen
+                         and (not cfg.plan_repair or (plan.atoms and
+                              plan.aggregation in executable_aggregations(cfg.answer_set)))]
                 novel = novel[:remaining_slots]
                 replans.append({"chamada": planning_calls, "novos": len(novel),
                                 "apos_aquisicao": bool(acquired_feedback),
@@ -617,7 +676,8 @@ class WitnessRAGRetriever(Retriever):
                                         max_atoms=cfg.max_atoms, max_plans=min(2, budget),
                                         temperature=cfg.compile_temperature,
                                         dataset=self.ctx.dataset, method=self.name,
-                                        vocabulary=vocabulary)
+                                        vocabulary=vocabulary,
+                                        source_conditions=cfg.plan_repair)
         else:
             plans = [compile_query(self.ctx.llm, question, mode=self.compile_mode,
                                    max_atoms=cfg.max_atoms,
@@ -633,6 +693,7 @@ class WitnessRAGRetriever(Retriever):
         used_pages: set[str] = set()
         assessments: dict[tuple, Any] = {}
         plan_log: list[dict[str, Any]] = []
+        plan_history: list[dict[str, Any]] = []
         actions_log: list[dict[str, Any]] = []
         rejected: set[tuple] = set()
         chosen = None
@@ -640,7 +701,10 @@ class WitnessRAGRetriever(Retriever):
                         "rejeicoes_por_tipo": {}, "decisoes": []}
         searches = 0
         replan_calls = 0
+        replan_history: list[dict[str, Any]] = []
         breadth_attempted = False
+        repair_attempted: set[tuple] = set()
+        stop_reason = "budget_exhausted"
         provisional: list[tuple[int, ConjunctiveQuery, SearchResult]] = []
         proof_status = "full"
         # A finite controller: each cycle consumes an acquisition, a new plan,
@@ -654,7 +718,8 @@ class WitnessRAGRetriever(Retriever):
                 result = self.searcher.join(plan) if supported else SearchResult()
                 signature = _plan_signature(plan)
                 if supported and cfg.active_obligations and signature not in assessments:
-                    checker = assess_plan_soft if cfg.soft_obligations else assess_plan
+                    checker = (assess_plan_repair if cfg.plan_repair else
+                               assess_plan_soft if cfg.soft_obligations else assess_plan)
                     assessments[signature] = checker(self.ctx.llm, question, plan,
                                                      self.ctx.dataset, self.name)
                 check = assessments.get(signature)
@@ -666,10 +731,24 @@ class WitnessRAGRetriever(Retriever):
                                  "executavel": supported, "fechou": result.complete,
                                  "profundidade": result.depth_reached,
                                  "candidatos_por_atomo": result.n_candidates,
+                                 "lacuna": result.gap.to_dict() if result.gap else None,
+                                 "cortes": result.truncations,
+                                 **({"trilha_juncao": result.trace} if cfg.plan_repair else {}),
                                  "obrigacoes": check.to_dict() if check else None})
                 attempts.append((index, plan, result, usable, full_coverage))
             complete = [(i, q, r) for i, q, r, _, full in attempts
                         if r.complete and full and _plan_signature(q) not in rejected]
+            if cfg.plan_repair:
+                plan_history.append({"ciclo": len(plan_history),
+                                     "planos": [{"indice": item["indice"],
+                                                 "fechou": item["fechou"],
+                                                 "candidatos_por_atomo": item["candidatos_por_atomo"],
+                                                 "cobre_pergunta": (item["obrigacoes"] or {}).get(
+                                                     "cobre_pergunta"),
+                                                 "faltas": (item["obrigacoes"] or {}).get(
+                                                     "faltas", []),
+                                                 "lacuna": item["lacuna"]}
+                                                for item in plan_log]})
             provisional = ([(i, q, r) for i, q, r, _, _ in attempts if r.complete and
                             (check := assessments.get(_plan_signature(q))) is not None and
                             check.tier == "partial" and _plan_signature(q) not in rejected]
@@ -685,11 +764,15 @@ class WitnessRAGRetriever(Retriever):
                              not breadth_attempted and searches == 0 and
                              any(q.aggregation in {"set", "count"} for _, q, _ in complete))
             if complete and not needs_breadth:
-                if cfg.verify_witnesses:
+                if cfg.verify_witnesses or (cfg.plan_repair and
+                                            any(q.conditions for _, q, _ in complete)):
                     from wrag.witness.verification import verify_witnesses
                     remaining = cfg.verification_max_witnesses - verification["avaliadas"]
                     for index, plan, result in complete:
                         if remaining <= 0:
+                            break
+                        if not cfg.verify_witnesses and not plan.conditions:
+                            chosen = (index, plan, result)
                             break
                         fitting = [w for w in result.witnesses if len(set(w.pids)) <= k]
                         if cfg.answer_set:
@@ -707,32 +790,55 @@ class WitnessRAGRetriever(Retriever):
                 else:
                     chosen = complete[0]
                 if chosen is not None:
+                    stop_reason = "proof_accepted"
                     break
             progress = False
             if (cfg.active_frontier and cfg.enable_acquisition and
                     searches < cfg.acquisition_rounds):
-                # Prioritize missing joins; broaden complete set/count queries
-                # once, since membership does not certify exhaustiveness.
+                # Closed-but-uncovered plans have candidates already; give one
+                # acquisition round to their concrete missing condition before
+                # spending every round on a different unfinished join.
                 partial = [(i, q, r) for i, q, r, usable, _ in attempts
                            if usable and not r.complete and r.gap is not None]
-                if partial:
+                uncovered = ([(i, q, assessments.get(_plan_signature(q)))
+                              for i, q, r, _, full in attempts
+                              if r.complete and not full and
+                              _plan_signature(q) not in repair_attempted]
+                             if cfg.plan_repair else [])
+                uncovered.sort(key=lambda x: (-x[1].n_atoms, x[0]))
+                gap = None
+                target_index = None
+                action_kind = ""
+                for i, q, assessment in uncovered:
+                    repair_attempted.add(_plan_signature(q))
+                    gap = _coverage_gap(q, assessment.missing if assessment else [])
+                    if gap is not None:
+                        target_index = i
+                        action_kind = "coverage_gap"
+                        break
+                if gap is None and partial:
                     partial.sort(key=lambda item: (-item[2].depth_reached /
                                        max(1, item[1].n_atoms), item[0]))
                     target_index, _, target_result = partial[0]
                     gap = target_result.gap
-                elif needs_breadth:
+                    action_kind = "join_gap"
+                if gap is None and needs_breadth:
                     breadth_attempted = True
                     target_index, plan, _ = complete[0]
                     atom = plan.atoms[0]
                     gap = Gap(0, atom,
                               bound_subject="" if atom.subject_is_var else atom.subject,
                               bound_object="" if atom.object_is_var else atom.object)
-                else:
-                    gap = None
-                    target_index = None
+                    action_kind = "breadth"
                 if gap is not None:
-                    pages = gap_candidates(gap, frontier, self.corpus, used_pages,
-                                           cfg.acquisition_passages)
+                    if cfg.plan_repair:
+                        # The initial frontier was built before this particular
+                        # failure was known. Query for the failed atom/condition.
+                        pages = [a.pid for a in self._plan_acquisition(gap, question)
+                                 if a.pid not in used_pages][:cfg.acquisition_passages]
+                    else:
+                        pages = gap_candidates(gap, frontier, self.corpus, used_pages,
+                                               cfg.acquisition_passages)
                     if not pages:
                         pages = [a.pid for a in self._plan_acquisition(gap, question)
                                  if a.pid not in used_pages][:cfg.acquisition_passages]
@@ -747,32 +853,118 @@ class WitnessRAGRetriever(Retriever):
                         searches += 1
                         progress = True  # revisit the still-complete plan after breadth
                         actions_log.append({"plano": target_index, "lacuna": gap.to_dict(),
+                                            "tipo": action_kind,
                                             "passagens": pages, "fatos_novos": added})
                     elif needs_breadth:
                         # An empty reread cannot invalidate an otherwise complete
                         # witness; evaluate it on the next controller cycle.
                         progress = True
-            if cfg.query_plans and len(plans) < budget:
-                feedback = {"attempts": plan_log[-len(plans):],
+            if (cfg.query_plans and len(plans) < budget and
+                    (not cfg.plan_repair or replan_calls < cfg.max_replan_calls)):
+                feedback = {"attempts": (_compact_plan_feedback(plan_log)
+                                         if cfg.plan_repair else plan_log[-len(plans):]),
                             "acquisition": actions_log[-1:]}
                 refreshed = self._vocabulary(question, json.dumps(feedback, ensure_ascii=False))
                 proposed = compile_query_plans(
                     self.ctx.llm, question, mode=self.compile_mode,
-                    max_atoms=cfg.max_atoms, max_plans=1,
+                    max_atoms=cfg.max_atoms,
+                    max_plans=min(3, budget - len(plans)) if cfg.plan_repair else 1,
                     temperature=cfg.compile_temperature,
                     dataset=self.ctx.dataset, method=self.name,
                     vocabulary=refreshed,
-                    feedback="\nSEARCH FEEDBACK (untrusted candidates, not answers): "
-                             + json.dumps(feedback, ensure_ascii=False)[:3500])
+                    source_conditions=cfg.plan_repair,
+                    feedback=("\nSEARCH FEEDBACK (untrusted candidates, not answers). "
+                              "Do not repeat any previous plan. If a join closed but "
+                              "coverage failed, preserve the missing condition in a "
+                              "different graph-executable plan. If no atom candidates "
+                              "exist, use a relation visible in the vocabulary without "
+                              "discarding the original qualifier; if bindings conflict, "
+                              "change the intermediate link or relation, not entity "
+                              "identity. Return distinct valid alternatives: "
+                              if cfg.plan_repair else
+                              "\nSEARCH FEEDBACK (untrusted candidates, not answers): ")
+                             + json.dumps(feedback, ensure_ascii=False)[:5500 if cfg.plan_repair else 3500])
                 replan_calls += 1
                 seen = {_plan_signature(plan) for plan in plans}
-                novel = [plan for plan in proposed if _plan_signature(plan) not in seen]
+                novel = [plan for plan in proposed if _plan_signature(plan) not in seen
+                         and (not cfg.plan_repair or (plan.atoms and
+                              plan.aggregation in executable_aggregations(cfg.answer_set)))]
+                if cfg.plan_repair:
+                    replan_history.append({
+                        "call": replan_calls, "novel": len(novel),
+                        "repeated": [p.to_dict() for p in proposed
+                                     if _plan_signature(p) in seen],
+                        "invalid": [p.to_dict() for p in proposed if not p.atoms]})
+                if (cfg.plan_repair and not novel and
+                        replan_calls < cfg.max_replan_calls):
+                    # A duplicate is not evidence of no alternative. The agent
+                    # sees the exact previous plans, failures and candidates,
+                    # and receives one bounded request to repair its repetition.
+                    repair_feedback = {
+                        "excluded_plans": [p.to_dict() for p in plans],
+                        "previous_response": [p.to_dict() for p in proposed],
+                        "failure_analysis": feedback,
+                        "instruction": "Your previous response repeated an excluded plan or was invalid. "
+                                       "Diagnose why the graph relation, entity binding, or "
+                                       "coverage failed. Return a DIFFERENT executable plan. "
+                                       "Move non-graph qualifiers to source_conditions; "
+                                       "preserve every requirement. If the graph cannot express "
+                                       "the question, return an empty plans list."}
+                    proposed = compile_query_plans(
+                        self.ctx.llm, question, mode=self.compile_mode,
+                        max_atoms=cfg.max_atoms, max_plans=min(3, budget - len(plans)),
+                        temperature=cfg.compile_temperature,
+                        dataset=self.ctx.dataset, method=self.name,
+                        vocabulary=refreshed,
+                        feedback="\nREPAIR AFTER DUPLICATE: " +
+                                 json.dumps(repair_feedback, ensure_ascii=False)[:7500],
+                        source_conditions=True)
+                    replan_calls += 1
+                    novel = [p for p in proposed if _plan_signature(p) not in seen
+                             and p.atoms and
+                             p.aggregation in executable_aggregations(cfg.answer_set)]
+                    replan_history.append({"call": replan_calls, "repair_of_duplicate": True,
+                                           "novel": len(novel),
+                                           "repeated": [p.to_dict() for p in proposed
+                                                        if _plan_signature(p) in seen]})
                 if novel:
                     plans.extend(novel[:budget - len(plans)])
                     plan_round.extend([replan_calls] * min(len(novel), budget - len(plan_round)))
                     progress = True
             if not progress:
+                stop_reason = ("no_novel_plan_or_acquisition" if cfg.query_plans else
+                               "no_acquisition")
                 break
+        if chosen is None and cfg.plan_repair:
+            # A graph plan may omit a qualifier yet point to a useful source.
+            # Quote-check every unmet condition on a bound candidate. This
+            # promotes context only, never a logical full proof or a count.
+            from wrag.witness.verification import verify_witnesses
+            remaining = cfg.verification_max_witnesses - verification["avaliadas"]
+            for index, plan, result, _usable, full in attempts:
+                if remaining <= 0:
+                    break
+                check = assessments.get(_plan_signature(plan))
+                if not result.complete or full or check is None or not check.checked:
+                    continue
+                conditions = list(dict.fromkeys(plan.conditions + check.missing))
+                if not conditions or any(item.startswith(("checagem_", "operador_"))
+                                         for item in conditions):
+                    continue
+                fitting = [w for w in result.witnesses if len(set(w.pids)) <= max(1, k - 1)]
+                fitting = cover_answers(fitting, remaining) if cfg.answer_set else fitting[:remaining]
+                accepted, block = verify_witnesses(
+                    self.ctx.llm, self.corpus, self.memory, question, plan,
+                    fitting, remaining, self.ctx.dataset,
+                    required_conditions=conditions)
+                _merge_verification(verification, block)
+                remaining = cfg.verification_max_witnesses - verification["avaliadas"]
+                if accepted:
+                    result.witnesses = accepted
+                    chosen = (index, plan, result)
+                    proof_status = "provisional"
+                    stop_reason = "source_conditions_checked_context"
+                    break
         if chosen is None and provisional:
             # An underspecified logical plan may still point to useful text.
             # Reserve one reader slot for the established hybrid fallback and
@@ -792,22 +984,45 @@ class WitnessRAGRetriever(Retriever):
                 result.witnesses = witnesses
                 chosen = (index, plan, result)
                 proof_status = "provisional"
+                stop_reason = "provisional_context"
+        if chosen is None:
+            if any(p.get("fechou") and p.get("obrigacoes") and
+                   not p["obrigacoes"].get("cobre_pergunta") for p in plan_log):
+                failure_class = "closed_coverage_rejected"
+            elif any(0 in p.get("candidatos_por_atomo", []) for p in plan_log):
+                failure_class = "zero_atom_candidates"
+            elif any(p.get("executavel") and not p.get("fechou") and
+                     all(n > 0 for n in p.get("candidatos_por_atomo", []))
+                     for p in plan_log):
+                failure_class = "binding_conflict_or_beam_cut"
+            elif any(not p.get("executavel") for p in plan_log):
+                failure_class = "invalid_or_unsupported_plan"
+            else:
+                failure_class = "no_verified_witness"
+        else:
+            failure_class = "none"
         diagnostics: dict[str, Any] = {
             "pesquisa_provas": {"fronteira": frontier, "sondas": probes,
                                 "acoes": actions_log, "buscas_dirigidas": searches,
                                 "replanejamentos": replan_calls,
-                                "rejeicoes": len(rejected)},
+                                "rejeicoes": len(rejected),
+                                "reparos_cobertura_tentados": len(repair_attempted)},
             "planos_compilados": plan_log,
+            **({"historico_planos": plan_history} if cfg.plan_repair else {}),
             "planejamento": {"orcamento_planos": budget,
                              "planos_distintos": len(plans),
                              "chamadas": 1 + replan_calls,
-                             "replanejamentos": replan_calls},
+                             "replanejamentos": replan_calls,
+                             **({"historico_replanejamento": replan_history}
+                                if cfg.plan_repair else {})},
             "plano_escolhido": chosen[0] if chosen else None,
             "n_testemunhas": len(chosen[2].witnesses) if chosen else 0,
             "testemunha_no_contexto": False,
             "classe_prova": proof_status if chosen else "nenhuma",
+            "motivo_parada": stop_reason,
+            "classe_falha_plano": failure_class,
         }
-        if cfg.verify_witnesses:
+        if cfg.verify_witnesses or cfg.plan_repair:
             diagnostics["verificacao"] = verification
         if chosen is None:
             diagnostics["fallback"] = "denso (pesquisa sem prova suficiente)"
@@ -871,7 +1086,7 @@ class WitnessRAGRetriever(Retriever):
             diagnostics["conjunto_resposta"] = answers.to_dict(self.memory)
             if proof_status == "provisional":
                 diagnostics["resposta_estrutural"] = ""
-            elif query.aggregation == "count" and cfg.active_operators:
+            elif query.aggregation == "count" and (cfg.active_operators or cfg.plan_repair):
                 diagnostics["limite_inferior_contagem"] = len(answers.items)
                 diagnostics["resposta_estrutural"] = ""
             else:

@@ -21,8 +21,13 @@ Check identity across passages, direction, qualifiers and the expected answer ty
 Reject if uncertain. Never repair or replace the answer.
 For each atom, cite at least one verbatim source quote supporting that grounded
 atom. Quotes must come from the listed passages; use their exact pid identifiers.
+For each source condition in the input, cite a verbatim quote that supports that
+condition for THIS bound answer. A quote merely mentioning the person or topic
+does not suffice. Use condition indices starting at zero. If any condition is
+not explicitly supported, set supported or answers_question to false.
 Return {{"supported": true|false, "answers_question": true|false,
 "evidence": [{{"atom": 0, "pid": "...", "quote": "verbatim quote"}}],
+"condition_evidence": [{{"condition": 0, "pid": "...", "quote": "verbatim quote"}}],
 "failure_type": "supported|missing_atom|wrong_identity|wrong_relation|wrong_direction|wrong_answer_type|incomplete_answer|not_explicit|other",
 "reason": "short explanation"}}. Atom indices start at zero.
 
@@ -41,19 +46,39 @@ def _quote_in_source(quote: str, source: str) -> bool:
     return compact(quote) in compact(source)
 
 
-def verify_witnesses(llm, corpus, memory, question, query, witnesses, limit, dataset):
+def _condition_quote_plausible(condition: str, quote: str) -> bool:
+    """Cheap guard against citations that mention only the bound entity.
+
+    Semantic entailment still belongs to the verifier; this merely requires
+    concrete words from a claimed condition to occur in its cited text.
+    """
+    stop = {"the", "that", "with", "from", "about", "after", "before", "into",
+            "concerns", "related", "condition", "answer", "person", "event",
+            "this", "which", "what", "where", "when", "must", "same"}
+    words = {w for w in re.findall(r"[a-z0-9]+", condition.casefold())
+             if len(w) >= 3 and w not in stop}
+    if not words:
+        return True
+    cited = set(re.findall(r"[a-z0-9]+", quote.casefold()))
+    return len(words & cited) >= (2 if len(words) >= 3 else 1)
+
+
+def verify_witnesses(llm, corpus, memory, question, query, witnesses, limit, dataset,
+                     required_conditions=None):
     """Falha fechada: saída inválida, bloqueada ou sem citações não promove prova.
 
     Nenhuma anotação ouro é enviada. A checagem local só valida origem/cobertura
     das citações; implicação semântica continua sendo julgamento falível do LLM.
     """
     accepted, decisions = [], []
+    conditions = list(query.conditions if required_conditions is None else required_conditions)
     for witness in witnesses[:max(0, limit)]:
         sources = {pid: corpus.get(pid).full for pid in witness.pids}
         payload = {
             "question": question.question, "query": query.to_dict(),
             "bindings": witness.bindings, "answer": witness.answer,
             "facts": [list(memory.facts[i].triple) for i in witness.facts],
+            "source_conditions": conditions,
             "passages": sources,
         }
         if query.aggregation in {"set", "count"}:
@@ -93,6 +118,25 @@ def verify_witnesses(llm, corpus, memory, question, query, witnesses, limit, dat
                 covered.add(ai)
                 citations.append(item)
             valid = valid and covered == set(range(len(query.atoms)))
+            if valid and conditions:
+                condition_citations = data.get("condition_evidence")
+                valid = isinstance(condition_citations, list)
+                condition_covered = set()
+                for item in condition_citations if isinstance(condition_citations, list) else []:
+                    if not isinstance(item, dict):
+                        valid = False
+                        break
+                    ci, pid, quote = item.get("condition"), item.get("pid"), item.get("quote")
+                    if (type(ci) is not int or not 0 <= ci < len(conditions)
+                            or not isinstance(pid, str) or pid not in sources
+                            or not isinstance(quote, str) or len(quote.strip()) < 8
+                            or not _quote_in_source(quote, sources[pid])
+                            or not _condition_quote_plausible(conditions[ci], quote)):
+                        valid = False
+                        break
+                    condition_covered.add(ci)
+                    citations.append(item)
+                valid = valid and condition_covered == set(range(len(conditions)))
         if result.filtered:
             failure_type = "filtered"
         elif not isinstance(data, dict):

@@ -44,10 +44,15 @@ def conversation_dir(corpus):
     return root() / "controlled" / corpus.stats()["corpus_hash"][:24]
 
 
-def frozen_graph(ctx, builder):
+def frozen_graph(ctx, builder, source_root=None):
     """Freeze graph + vectors + extraction, and refuse incompatible resumes."""
-    folder = conversation_dir(ctx.corpus)
-    folder.mkdir(parents=True, exist_ok=True)
+    folder = ((Path(source_root) / "controlled" /
+               ctx.corpus.stats()["corpus_hash"][:24]) if source_root else
+              conversation_dir(ctx.corpus))
+    if source_root and not folder.exists():
+        raise FileNotFoundError(f"Frozen memory missing for this corpus: {folder}")
+    if not source_root:
+        folder.mkdir(parents=True, exist_ok=True)
     identity = {"version": VERSION, "corpus": ctx.corpus.stats(),
                 "ie": asdict(ctx.run.ie), "graph": asdict(ctx.run.graph),
                 "embedder": ctx.embedder.cache_key(),
@@ -64,6 +69,8 @@ def frozen_graph(ctx, builder):
         ctx.kg, ctx.extraction = pickle.loads(raw)
         ctx.kg.corpus = ctx.corpus
     else:
+        if source_root:
+            raise FileNotFoundError(f"Frozen memory manifest missing: {manifest}")
         builder(ctx, with_passage_nodes=True)
         raw = pickle.dumps((ctx.kg, ctx.extraction), protocol=pickle.HIGHEST_PROTOCOL)
         temporary = payload.with_suffix(".tmp")

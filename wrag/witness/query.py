@@ -109,6 +109,9 @@ class ConjunctiveQuery:
     filtered: bool = False       # a compilação foi bloqueada pelo filtro
     validation_error: str = ""
     repairs: list[str] = field(default_factory=list)
+    # Requirements checked against literal source passages after graph joining.
+    # They are not graph predicates and cannot make an incomplete join complete.
+    conditions: list[str] = field(default_factory=list)
 
     def __bool__(self) -> bool:
         return bool(self.atoms)
@@ -173,13 +176,16 @@ class ConjunctiveQuery:
         return "chain"
 
     def to_dict(self) -> dict[str, Any]:
-        return {"answer_var": self.answer_var, "atoms": [a.to_dict() for a in self.atoms],
+        result = {"answer_var": self.answer_var, "atoms": [a.to_dict() for a in self.atoms],
                 "expected_type": self.expected_type, "aggregation": self.aggregation,
                 "shape": self.shape(), "source": self.source, "fallback": self.fallback,
                 "validation_error": self.validation_error,
                 "repairs": list(self.repairs),
                 # O vocabulário vem do grafo extraído, não de anotação do dataset.
                 "uses_annotations": not self.source.startswith("llm")}
+        if self.conditions:
+            result["source_conditions"] = list(self.conditions)
+        return result
 
 
 # ---------------------------------------------------------------------------
@@ -212,14 +218,16 @@ def compile_with_llm(llm: LLM, question: Question, max_atoms: int = 4,
 def compile_plans_with_llm(llm: LLM, question: Question, max_atoms: int = 4,
                            max_plans: int = 3, temperature: float = 0.0,
                            dataset: str = "", method: str = "witnessrag",
-                           vocabulary: str = "", feedback: str = "") -> list[ConjunctiveQuery]:
+                           vocabulary: str = "", feedback: str = "",
+                           source_conditions: bool = False) -> list[ConjunctiveQuery]:
     """Compila interpretações alternativas em uma chamada de LLM.
 
     Os planos são hipóteses ordenadas, não programas confiáveis. O retriever os
     valida contra o índice e mantém no diagnóstico tudo que foi tentado.
     """
     result = llm.chat(
-        prompts.COMPILE_PLANS_TEMPLATE.format(
+        (prompts.COMPILE_PLANS_REPAIR_TEMPLATE if source_conditions else
+         prompts.COMPILE_PLANS_TEMPLATE).format(
             question=question.question, max_atoms=max_atoms,
             max_plans=max(1, max_plans), vocabulary=vocabulary,
             planning_feedback=feedback),
@@ -247,7 +255,8 @@ def compile_plans_with_llm(llm: LLM, question: Question, max_atoms: int = 4,
             continue
         plan = _query_from_data(raw, question, max_atoms, source)
         signature = tuple((normalize(a.subject), normalize(a.relation), normalize(a.object))
-                          for a in plan.atoms) + ((plan.answer_var, plan.aggregation),)
+                          for a in plan.atoms) + ((plan.answer_var, plan.aggregation),
+                                                  tuple(normalize(c) for c in plan.conditions))
         if signature not in seen:
             seen.add(signature)
             plans.append(plan)
@@ -273,6 +282,15 @@ def _query_from_data(data: dict[str, Any], question: Question, max_atoms: int,
         fallback=str(data.get("fallback") or question.question),
         source=source,
     )
+    raw_conditions = data.get("source_conditions", [])
+    if isinstance(raw_conditions, list) and len(raw_conditions) <= 6 and all(
+            isinstance(item, str) and 0 < len(item.strip()) <= 160
+            for item in raw_conditions):
+        query.conditions = list(dict.fromkeys(item.strip() for item in raw_conditions))
+    elif raw_conditions:
+        query.validation_error = "condicoes_textuais_invalidas"
+        query.atoms = []
+        return query
     # JSON already has separate subject/object fields. A model occasionally
     # repeats Prolog-like arguments inside ``relation`` (for example,
     # ``create(Melanie, ?x)``). Treating that whole string as a predicate makes
@@ -459,7 +477,7 @@ def compile_query_plans(llm: LLM, question: Question, mode: str = "llm",
                         max_atoms: int = 4, max_plans: int = 3,
                         temperature: float = 0.0, dataset: str = "",
                         method: str = "witnessrag", vocabulary: str = "",
-                        feedback: str = "") -> list[ConjunctiveQuery]:
+                        feedback: str = "", source_conditions: bool = False) -> list[ConjunctiveQuery]:
     if mode != "llm":
         return [compile_query(llm, question, mode=mode, max_atoms=max_atoms,
                               temperature=temperature, dataset=dataset,
@@ -467,4 +485,5 @@ def compile_query_plans(llm: LLM, question: Question, mode: str = "llm",
     return compile_plans_with_llm(llm, question, max_atoms=max_atoms,
                                   max_plans=max_plans, temperature=temperature,
                                   dataset=dataset, method=method, vocabulary=vocabulary,
-                                  feedback=feedback)
+                                  feedback=feedback,
+                                  source_conditions=source_conditions)

@@ -73,17 +73,20 @@ class Gap:
     bound_subject: str = ""
     bound_object: str = ""
     depth_reached: int = 0
+    source_condition: str = ""
 
     def anchor(self) -> str:
         return self.bound_subject or self.bound_object or ""
 
     def probe(self) -> str:
         """Consulta textual para achar a passagem que provavelmente fecha o buraco."""
-        return " ".join(x for x in (self.bound_subject, self.atom.relation, self.bound_object) if x)
+        return " ".join(x for x in (self.bound_subject, self.atom.relation,
+                                   self.bound_object, self.source_condition) if x)
 
     def to_dict(self) -> dict[str, Any]:
         return {"atomo": self.atom.to_dict(), "sujeito_ligado": self.bound_subject,
-                "objeto_ligado": self.bound_object, "profundidade": self.depth_reached}
+                "objeto_ligado": self.bound_object, "profundidade": self.depth_reached,
+                "condicao_textual": self.source_condition}
 
 
 @dataclass
@@ -95,6 +98,7 @@ class SearchResult:
     exhaustive: bool = False
     truncations: list[str] = field(default_factory=list)
     grounding_mode: str = "exact"
+    trace: dict[str, Any] = field(default_factory=dict)
 
     @property
     def complete(self) -> bool:
@@ -126,6 +130,7 @@ class WitnessSearcher:
         if min(self.cfg.beam_width, self.cfg.candidates_per_atom, self.cfg.max_witnesses) < 0:
             raise ValueError("limites devem ser >= 0; zero significa sem corte")
         self._ground_truncated = False
+        self._ground_details: list[dict[str, Any]] = []
         # Fatos indexados por CLUSTER, não por nó: a variável compartilhada de
         # uma consulta conjuntiva casa por identidade de entidade, e duas grafias
         # da mesma entidade precisam casar ou a testemunha nunca fecha.
@@ -202,6 +207,7 @@ class WitnessSearcher:
         kg = self.kg
         cfg = self.cfg
         self._ground_truncated = False
+        self._ground_details = []
         if not query.atoms or not kg.facts:
             return [[] for _ in query.atoms]
 
@@ -221,6 +227,9 @@ class WitnessSearcher:
                     self._ground_truncated = True
                     candidates = candidates[:cfg.candidates_per_atom]
                 out.append(candidates)
+                if cfg.plan_repair:
+                    self._ground_details.append({"mode": "exact", "kept": len(candidates),
+                                                 "candidate_cut": self._ground_truncated})
             return out
 
         # Um lote de embeddings por consulta: relações, verbalizações e
@@ -245,6 +254,12 @@ class WitnessSearcher:
 
         forward: set[int] = set()
         backward: set[int] = set()
+        detail: dict[str, Any] = {"constant_matches": {
+            term: len(constant_clusters.get(term, [])) for term in (atom.subject, atom.object)
+            if not is_var(term)}, "dense_prefilter": False,
+            "pool_size": 0, "rejected_relation": 0,
+            "rejected_argument": 0, "candidate_cut": 0,
+            "top_rejected": []}
 
         def pool_for(constant: str, as_subject: bool) -> None:
             for cluster, _sim in constant_clusters.get(constant, []):
@@ -262,11 +277,17 @@ class WitnessSearcher:
             # Átomo sem constante (ou constante que não casou com nó nenhum):
             # o único acesso é o índice denso sobre a verbalização dos fatos.
             if kg.fact_vectors.size == 0:
+                if cfg.plan_repair:
+                    detail["no_fact_vectors"] = True
+                    self._ground_details.append(detail)
                 return []
             limit = cfg.candidates_per_atom * 2 if cfg.candidates_per_atom else len(kg.facts)
             idx, _ = cosine_topk(verb_vector, kg.fact_vectors, limit)
             self._ground_truncated |= len(idx) < len(kg.facts)
             forward = {int(i) for i in idx}
+            detail["dense_prefilter"] = len(idx) < len(kg.facts)
+
+        detail["pool_size"] = len(forward | backward)
 
         if self.allowed is not None:
             # Fatos adquiridos em tempo de consulta (índice ≥ tamanho da memória
@@ -276,7 +297,7 @@ class WitnessSearcher:
             backward = {i for i in backward if self._permitted(i)}
 
         scored: list[Grounding] = []
-        for fid in forward | backward:
+        for fid in sorted(forward | backward):
             fact = kg.facts[fid]
             base = self._score_fact(atom, fact, fid, rel_vector, verb_vector, constant_clusters,
                                     reversed_=False) if fid in forward else 0.0
@@ -286,11 +307,33 @@ class WitnessSearcher:
                 scored.append(Grounding(fid, base, reversed=False))
             elif rev > 0:
                 scored.append(Grounding(fid, rev, reversed=True))
+            elif cfg.plan_repair:
+                rel_sim = (float(np.dot(rel_vector, kg.relation_vectors[fact.rel_id]))
+                           if fact.rel_id >= 0 and kg.relation_vectors.size else 0.0)
+                if normalize(atom.relation) == normalize(fact.relation):
+                    rel_sim = 1.0
+                reason = ("relation_threshold" if rel_sim < cfg.relation_match_threshold
+                          else "argument_or_entity_match")
+                detail["rejected_relation" if reason == "relation_threshold"
+                       else "rejected_argument"] += 1
+                detail["top_rejected"].append({"fact_id": fid,
+                                                "triple": list(fact.triple),
+                                                "relation_similarity": round(rel_sim, 4),
+                                                "reason": reason})
 
         scored.sort(key=lambda g: -g.score)
+        if cfg.plan_repair:
+            detail["top_rejected"] = sorted(
+                detail["top_rejected"],
+                key=lambda item: (-item["relation_similarity"], item["fact_id"]))[:3]
         if cfg.candidates_per_atom and len(scored) > cfg.candidates_per_atom:
             self._ground_truncated = True
+            detail["candidate_cut"] = len(scored) - cfg.candidates_per_atom
+            if cfg.plan_repair:
+                self._ground_details.append(detail)
             return scored[:cfg.candidates_per_atom]
+        if cfg.plan_repair:
+            self._ground_details.append(detail)
         return scored
 
     def _score_fact(self, atom: Atom, fact: Fact, fid: int, rel_vector: np.ndarray,
@@ -336,7 +379,8 @@ class WitnessSearcher:
 
     def _bound_groundings(self, atom: Atom, state: _State,
                           vectors: tuple[np.ndarray, np.ndarray],
-                          constants: dict[str, list[tuple[int, float]]]) -> list[Grounding] | None:
+                          constants: dict[str, list[tuple[int, float]]],
+                          trace: dict[str, Any] | None = None) -> list[Grounding] | None:
         """Aplica a ligação ANTES do top-k; não refaz identidade por cosseno.
 
         None significa que o estado ainda não liga variável deste átomo.
@@ -352,6 +396,11 @@ class WitnessSearcher:
         if not pools:
             return None
         pool = set.intersection(*pools)
+        if trace is not None:
+            trace.update({"bound_variables": dict(state.surfaces),
+                          "neighbor_facts": len(pool), "relation_rejected": 0,
+                          "argument_rejected": 0, "binding_rejected": 0,
+                          "kept": 0})
         scored = []
         for fid in sorted(pool):
             if not self._permitted(fid):
@@ -362,11 +411,22 @@ class WitnessSearcher:
             # Restrições repetidas (?x R ?x) também precedem o corte.
             if score > 0 and self._extend(state, atom, grounding) is not None:
                 scored.append(grounding)
+            elif trace is not None:
+                fact = self.kg.facts[fid]
+                rel_sim = (float(np.dot(vectors[0], self.kg.relation_vectors[fact.rel_id]))
+                           if fact.rel_id >= 0 and self.kg.relation_vectors.size else 0.0)
+                if normalize(atom.relation) == normalize(fact.relation):
+                    rel_sim = 1.0
+                reason = ("relation_rejected" if rel_sim < self.cfg.relation_match_threshold
+                          else "argument_rejected" if score <= 0 else "binding_rejected")
+                trace[reason] += 1
         scored.sort(key=lambda g: (-g.score, g.fact_index))
         limit = self.cfg.candidates_per_atom
         if limit and len(scored) > limit:
             self._ground_truncated = True
             scored = scored[:limit]
+        if trace is not None:
+            trace["kept"] = len(scored)
         return scored
 
     def join(self, query: ConjunctiveQuery,
@@ -385,6 +445,14 @@ class WitnessSearcher:
         if len(groundings) != len(query.atoms):
             raise ValueError("é necessária uma lista de candidatos por átomo")
         n_candidates = [len(g) for g in groundings]
+        trace: dict[str, Any] = {}
+        if cfg.plan_repair:
+            trace["grounding"] = [] if external_groundings else list(self._ground_details)
+            trace["top_candidates"] = [
+                [{"fact_id": g.fact_index, "triple": list(kg.facts[g.fact_index].triple),
+                  "pid": kg.facts[g.fact_index].pid, "score": round(g.score, 4)}
+                 for g in candidates[:3]] for candidates in groundings]
+            trace["stages"] = []
 
         # Ordem: mais constantes primeiro (menos ramificação), depois menos
         # candidatos. Para uma cadeia ancorada isto é a caminhada por camadas do
@@ -398,6 +466,7 @@ class WitnessSearcher:
             verb_vectors = self.embedder.encode([a.verbalize() for a in query.atoms])
             constants = {c: self.match_entity(c) for c in query.constants()}
         bound_cache: dict[tuple, list[Grounding] | None] = {}
+        bound_diagnostics: dict[tuple, dict[str, Any]] = {}
 
         states = [_State({}, {}, (), 0.0, frozenset())]
         depth_reached = 0
@@ -424,26 +493,40 @@ class WitnessSearcher:
             candidates = groundings[ai]
             nxt: list[_State] = []
             seen: dict[tuple, _State] = {}
+            tried = rejected_bindings = 0
             for state in states:
                 local = candidates
                 if adaptive:
                     key = (ai, tuple((var_name(t), state.clusters.get(var_name(t)))
                                      for t in (atom.subject, atom.object) if is_var(t)))
                     if key not in bound_cache:
+                        detail = {} if cfg.plan_repair else None
                         bound_cache[key] = self._bound_groundings(
-                            atom, state, (rel_vectors[ai], verb_vectors[ai]), constants)
+                            atom, state, (rel_vectors[ai], verb_vectors[ai]), constants,
+                            trace=detail)
+                        if detail:
+                            bound_diagnostics[key] = detail
                     conditioned = bound_cache[key]
                     if conditioned is not None:
                         local = conditioned
                 for grounding in local:
+                    tried += 1
                     extended = self._extend(state, atom, grounding)
                     if extended is None:
+                        rejected_bindings += 1
                         continue
                     key = (tuple(sorted(set(extended.facts))), tuple(sorted(extended.clusters.items())))
                     previous = seen.get(key)
                     if previous is None or extended.log_score > previous.log_score:
                         seen[key] = extended
             nxt = list(seen.values())
+            if cfg.plan_repair:
+                trace["stages"].append({"atom_index": ai, "states_before": len(states),
+                                         "candidates_tried": tried,
+                                         "binding_rejections": rejected_bindings,
+                                         "states_after": len(nxt),
+                                         "bound_samples": [d for key, d in bound_diagnostics.items()
+                                                           if key[0] == ai][:3]})
             if adaptive and self._ground_truncated and "candidatos" not in truncations:
                 truncations.append("candidatos")
 
@@ -463,7 +546,8 @@ class WitnessSearcher:
         if depth_reached < len(query.atoms):
             return SearchResult(witnesses=[], gap=gap, n_candidates=n_candidates,
                                 depth_reached=depth_reached, exhaustive=exhaustive,
-                                truncations=truncations, grounding_mode=cfg.grounding_mode)
+                                truncations=truncations, grounding_mode=cfg.grounding_mode,
+                                trace=trace)
 
         witnesses = self._to_witnesses(query, states)
         if cfg.max_witnesses and len(witnesses) > cfg.max_witnesses:
@@ -476,7 +560,8 @@ class WitnessSearcher:
             truncations.append("testemunhas")
         return SearchResult(witnesses=witnesses, gap=None, n_candidates=n_candidates,
                             depth_reached=depth_reached, exhaustive=exhaustive,
-                            truncations=truncations, grounding_mode=cfg.grounding_mode)
+                            truncations=truncations, grounding_mode=cfg.grounding_mode,
+                            trace=trace)
 
     def _extend(self, state: _State, atom: Atom, grounding: Grounding) -> _State | None:
         kg = self.kg

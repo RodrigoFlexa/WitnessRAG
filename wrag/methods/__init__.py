@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Callable
+import os
 import time
 
 from wrag import config as C
@@ -63,7 +64,10 @@ def build_methods(ctx: IndexContext, names: list[str]) -> dict[str, Retriever]:
         before = ctx.llm.usage.snapshot()
         started = time.perf_counter()
         from wrag.eval import controlled
-        if controlled.root():
+        source_memory = os.environ.get("WRAG_FROZEN_MEMORY_SOURCE")
+        if source_memory:
+            controlled.frozen_graph(ctx, ensure_graph, source_root=source_memory)
+        elif controlled.root():
             controlled.frozen_graph(ctx, ensure_graph)
         else:
             ensure_graph(ctx, with_passage_nodes=True)

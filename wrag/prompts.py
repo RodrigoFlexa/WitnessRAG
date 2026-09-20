@@ -485,6 +485,37 @@ Return the shortest complete answer, with no explanation, as JSON:
 PERGUNTA: {question}"""
 
 
+# Versioned plan/controller interface. The graph executes only short directed
+# predicates; additional requirements must survive as explicit source checks.
+COMPILE_PLANS_REPAIR_TEMPLATE = COMPILE_PLANS_TEMPLATE.replace(
+    'Keep\n   qualifiers such as "recently", "after the accident" or "during the workshop"\n   inside that relation phrase. Never remove a person, time, place, reason or\n   other condition merely because a broader atom is easier to match.',
+    'Keep the graph predicate short. Put time, place, reason, type and other\n   qualifiers that cannot be executed by one graph atom in source_conditions.\n   Never remove a requirement from the plan.')
+COMPILE_PLANS_REPAIR_TEMPLATE = COMPILE_PLANS_REPAIR_TEMPLATE.replace(
+    'only the `plans` field and the\nplan fields shown above',
+    'the `plans` field and plan fields shown above, plus source_conditions')
+_REPAIR_EXTENSION = """
+
+For this experiment, each plan may also include `source_conditions`: a list of
+requirements from the QUESTION that must be verified with verbatim quotes in
+source passages after the graph join. Use a short graph relation that exists in
+the suggested vocabulary when an entire time/place/type/recipient qualifier
+would make the graph predicate unmatchable. Keep every removed qualifier in
+`source_conditions`; never silently drop a requirement. Example structure:
+{{"plans":[{{"answer_var":"x","atoms":[{{"relation":"goals",
+"subject":"John","object":"?x"}}],"source_conditions":
+["goal concerns John's basketball career"],"aggregation":"set",
+"expected_type":"other","fallback":"..."}}]}}
+The graph match only proposes a candidate; every source condition requires a
+literal supporting quote. A source condition must be a concrete fact to check,
+not a generic label such as "relevance" or "answer the question". For count,
+`source_conditions` should specify the concrete membership criterion for one
+event/item; deduplication and collection completeness are handled separately.
+Do not claim exhaustiveness of a set or count from one matched member.
+"""
+COMPILE_PLANS_REPAIR_TEMPLATE = COMPILE_PLANS_REPAIR_TEMPLATE.replace(
+    "\n### INPUT\n{question}", _REPAIR_EXTENSION + "\n### INPUT\n{question}")
+
+
 def format_vocabulary(relations: Sequence[str], entities: Sequence[str]) -> str:
     """Bloco de vocabulário para a compilação. Vazio quando a ablação está desligada.
 
