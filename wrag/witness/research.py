@@ -42,8 +42,11 @@ Classify the plan, without answering the question:
 
 For a count, an explicit count relation may directly return a number. A query
 enumerating members may only establish a lower bound until source text is read.
-Return JSON only: {{"tier":"full|partial|mismatch", "missing":["short condition"],
-"reason":"brief explanation"}}.
+Return JSON only with keys tier, missing, reason. tier must be full, partial, or
+mismatch. missing must be a list of concrete unmet requirements from QUESTION.
+For full, missing MUST be empty. Never copy schema labels as requirements.
+Example of the FORMAT for a full assessment:
+{{"tier":"full", "missing":[], "reason":"All requested conditions are preserved."}}
 QUESTION: {question}
 QUERY: {query}"""
 
@@ -55,12 +58,16 @@ class PlanAssessment:
     reason: str
     checked: bool = True
     tier: str = ""
+    attempts: list[dict[str, Any]] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         result = {"cobre_pergunta": self.covers, "faltas": self.missing,
                   "motivo": self.reason, "checado": self.checked}
         if self.tier:
             result["grau"] = self.tier
+        if self.attempts is not None:
+            result["contrato"] = "soft-v2"
+            result["tentativas"] = self.attempts
         return result
 
 
@@ -94,28 +101,35 @@ def assess_plan(llm, question, query: ConjunctiveQuery, dataset: str,
 def assess_plan_soft(llm, question, query: ConjunctiveQuery, dataset: str,
                      method: str) -> PlanAssessment:
     """Preserve useful incomplete plans as hypotheses, never as certified proofs."""
-    result = llm.chat(
-        SOFT_PLAN_TEMPLATE.format(question=question.question, query=query.to_dict()),
-        system=PLAN_SYSTEM,
-        params=GenParams(temperature=0.0, max_tokens=500, json_mode=True),
-        stage="witness.obligations.soft",
-    )
+    prompt = SOFT_PLAN_TEMPLATE.format(question=question.question, query=query.to_dict())
+    attempts = []
+    for attempt in range(2):
+        result = llm.chat(prompt, system=PLAN_SYSTEM,
+                          params=GenParams(temperature=0.0, max_tokens=500, json_mode=True),
+                          stage="witness.obligations.soft" if not attempt else
+                                "witness.obligations.soft.repair")
+        data = result.json()
+        error = _soft_contract_error(data)
+        if not result.ok or result.error or result.exhausted:
+            error = "invalid_response"
+        attempts.append({"raw": result.text, "error": error})
+        if result.filtered or not error:
+            break
+        prompt = (SOFT_PLAN_TEMPLATE.format(question=question.question, query=query.to_dict())
+                  + "\nYour previous response was invalid (" + error + "). Reassess the "
+                  "question and query. Return concrete missing requirements or an empty list "
+                  "when full. Do not infer full merely by deleting invalid requirements.")
     if result.filtered:
         LEDGER.add("obligations", dataset, method, question.qid,
                    "checagem gradual de obrigações bloqueada")
         return PlanAssessment(False, ["checagem_filtrada"], "saída filtrada",
-                              checked=False, tier="unavailable")
+                              checked=False, tier="unavailable", attempts=attempts)
     data = result.json()
-    if not result.ok or result.error or result.exhausted or not isinstance(data, dict):
+    if error:
         return PlanAssessment(False, ["checagem_indisponivel"], "saída inválida",
-                              checked=False, tier="unavailable")
-    tier = data.get("tier")
-    if tier not in {"full", "partial", "mismatch"}:
-        tier = "unavailable"
-    raw = data.get("missing")
-    missing = [str(x)[:160] for x in raw[:8] if isinstance(x, str)] if isinstance(raw, list) else []
-    if tier == "full" and missing:
-        tier = "partial"
+                              checked=False, tier="unavailable", attempts=attempts)
+    tier = data["tier"]
+    missing = [x[:160] for x in data["missing"][:8]]
     # A operação é parte da semântica executável; não deixe o verificador
     # promover uma contagem estrutural para uma pergunta que não pede contagem.
     if query.aggregation == "count" and not re.search(r"\bhow many\b", question.question, re.I):
@@ -127,7 +141,24 @@ def assess_plan_soft(llm, question, query: ConjunctiveQuery, dataset: str,
         missing.append("operador_de_contagem_nao_compilado")
     return PlanAssessment(tier == "full", missing,
                           str(data.get("reason") or "")[:240],
-                          checked=tier != "unavailable", tier=tier)
+                          checked=tier != "unavailable", tier=tier, attempts=attempts)
+
+
+def _soft_contract_error(data) -> str:
+    if not isinstance(data, dict) or data.get("tier") not in {"full", "partial", "mismatch"}:
+        return "invalid_tier"
+    missing = data.get("missing")
+    if not isinstance(missing, list) or not all(isinstance(x, str) and x.strip() for x in missing):
+        return "invalid_missing"
+    placeholders = {"short condition", "short requirement", "condition", "requirement",
+                    "missing condition", "brief explanation"}
+    if any(x.strip().casefold().rstrip(".") in placeholders for x in missing):
+        return "placeholder"
+    if data["tier"] == "full" and missing:
+        return "full_with_missing"
+    if data["tier"] != "full" and not missing:
+        return "incomplete_without_requirement"
+    return ""
 
 
 def proof_hints(candidates: Sequence[AnswerCandidate], memory, pids: Sequence[str],

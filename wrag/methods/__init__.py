@@ -62,7 +62,11 @@ def build_methods(ctx: IndexContext, names: list[str]) -> dict[str, Retriever]:
         # HippoRAG 1 fatia o bloco de frases para não usá-los.
         before = ctx.llm.usage.snapshot()
         started = time.perf_counter()
-        ensure_graph(ctx, with_passage_nodes=True)
+        from wrag.eval import controlled
+        if controlled.root():
+            controlled.frozen_graph(ctx, ensure_graph)
+        else:
+            ensure_graph(ctx, with_passage_nodes=True)
         ctx.shared_index_cost = {"seconds": time.perf_counter() - started,
                                  "usage": usage_delta(ctx.llm.usage.snapshot(), before)}
 

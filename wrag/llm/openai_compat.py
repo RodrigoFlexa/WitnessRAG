@@ -29,6 +29,12 @@ class OpenAICompatLLM(AzureLLM):
         return kwargs
 
     def cache_identity(self):
+        # Explicit experiment namespace: transport ports must not redefine the
+        # model or the frozen extraction. Ordinary runs keep the legacy identity.
+        experiment = os.environ.get("WRAG_EXPERIMENT_CACHE_ID")
+        if experiment:
+            return sha(self.name, self.deployment, "controlled-v1", experiment,
+                       os.environ.get("WRAG_MODEL_REVISION", ""))
         return sha(self.name, self.deployment, os.environ.get("OPENAI_BASE_URL", ""),
                    os.environ.get("WRAG_MODEL_REVISION", ""))
 

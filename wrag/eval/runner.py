@@ -119,6 +119,11 @@ def run_dataset(
     }
 
     write_json(paths.dataset_dir(dataset) / "summary.json", summary)
+    from wrag.eval import controlled
+    if controlled.root():
+        if list(retrievers) != ["witnessrag"]:
+            raise ValueError("Controlled experiment requires witnessrag only")
+        controlled.preflight(retrievers["witnessrag"], corpus, run_cfg)
     if run_cfg.interleave_methods:
         try:
             _run_interleaved(retrievers, corpus, run_cfg, paths, resume, summary, original)
@@ -272,6 +277,14 @@ def _run_method(
 
 def _answer_one(name: str, retriever, corpus: Corpus, question: Question,
                 run_cfg: C.RunConfig) -> dict[str, Any]:
+    from wrag.eval import controlled
+    if controlled.root():
+        return controlled.answer(name, retriever, corpus, question, run_cfg, _answer_standard)
+    return _answer_standard(name, retriever, corpus, question, run_cfg)
+
+
+def _answer_standard(name: str, retriever, corpus: Corpus, question: Question,
+                     run_cfg: C.RunConfig) -> dict[str, Any]:
     before = retriever.ctx.llm.usage.snapshot()
     retrieval = retriever.retrieve(question, run_cfg.top_k)
     reading = read(retriever.ctx.llm, corpus, question, retrieval.pids,
