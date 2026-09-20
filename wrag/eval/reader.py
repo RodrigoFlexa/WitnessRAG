@@ -45,22 +45,26 @@ def read(
     cfg: C.QAConfig | None = None,
     method: str = "",
     proof_context: dict[str, Any] | None = None,
+    passages_override: Sequence[tuple[str, str]] | None = None,
+    count_mode: bool = False,
 ) -> ReadResult:
     cfg = cfg or C.QAConfig()
     passages = []
-    for pid in pids[: cfg.top_k]:
+    for index, pid in enumerate(pids[: cfg.top_k]):
         try:
             passage = corpus.get(pid)
         except KeyError:
             continue
-        passages.append((passage.title, passage.text))
+        passages.append(passages_override[index] if passages_override is not None else
+                        (passage.title, passage.text))
 
     operator_question = bool(re.search(
         r"\b(how many|when|what date|what time|how long|before|after)\b",
         question.question, re.I))
     use_proof = bool(cfg.proof_reader and proof_context and
                      proof_context.get("hipoteses"))
-    template = (prompts.QA_PROOF_TEMPLATE if use_proof else
+    template = (prompts.QA_COUNT_TEMPLATE if count_mode and re.search(r"\bhow many\b", question.question, re.I) else
+                prompts.QA_PROOF_TEMPLATE if use_proof else
                 prompts.QA_OPERATOR_TEMPLATE if cfg.operator_reader and operator_question
                 else prompts.QA_SET_TEMPLATE if cfg.answer_set else prompts.QA_TEMPLATE)
     pending = ", ".join(str(x) for x in proof_context.get("condicoes_pendentes", [])[:4]) \

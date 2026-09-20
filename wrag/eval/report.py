@@ -100,7 +100,8 @@ def _dataset_block(dataset: str, records: dict[str, list[dict]], excluded: set[s
     corpus = summary.get("corpus", {})
     lines = [f"\n## {dataset}\n",
              f"{corpus.get('n_questions', '?')} perguntas · {corpus.get('n_passages', '?')} passagens · "
-             f"{corpus.get('hops_medio', '?')} hops em média · "
+             f"{corpus.get('hops_medio', '?')} "
+             f"{'apoios anotados' if dataset == 'locomo' else 'hops'} em média · "
              f"{len(excluded)} pergunta(s) excluída(s) por filtro de conteúdo em algum método\n"]
     reduced = dataset == "locomo" or summary.get('subset_corpus', False) or summary.get('corpus_scope', 'provided').startswith('pilot_')
     lines.append(f"Corpus reduzido/piloto: {reduced} · "
@@ -215,6 +216,7 @@ def _firing_block(records, excluded, data):
         "denso (compilação bloqueada)": "compilação bloqueada",
         "denso (sem testemunha completa)": "junção não fechou",
         "denso (nenhuma testemunha aprovada)": "verificação rejeitou",
+        "denso (pesquisa sem prova suficiente)": "prova insuficiente",
     }
     block = {}
     for method, rows in records.items():
@@ -229,12 +231,16 @@ def _firing_block(records, excluded, data):
             continue
         counts: dict[str, int] = {label: 0 for label in reasons.values()}
         counts["outro"] = 0
+        detailed: dict[str, int] = {}
         rejection_types: dict[str, int] = {}
         evaluated = accepted = 0
         for row in kept:
             diagnostics = row["diagnosticos"]
             label = reasons.get(diagnostics.get("fallback", "(sem fallback: testemunha usada)"))
             counts[label if label else "outro"] += 1
+            from wrag.eval.diagnostics import stop_reason
+            reason = diagnostics.get("motivo_parada") or stop_reason(diagnostics)
+            detailed[reason] = detailed.get(reason, 0) + 1
             verification = diagnostics.get("verificacao") or {}
             evaluated += int(verification.get("avaliadas", 0) or 0)
             accepted += int(verification.get("aceitas", 0) or 0)
@@ -247,6 +253,7 @@ def _firing_block(records, excluded, data):
                          "contextos_alterados": changed,
                          "taxa_de_intervencao": changed / len(kept),
                          "por_parada": counts, "testemunhas_avaliadas": evaluated,
+                         "por_etapa": detailed,
                          "testemunhas_aceitas": accepted,
                          "rejeicoes_por_tipo": rejection_types,
                          "taxa_de_aprovacao": (accepted / evaluated) if evaluated else float("nan")}
@@ -267,6 +274,12 @@ def _firing_block(records, excluded, data):
                      f"{_pct(values['taxa_de_intervencao'])} | {cells} | "
                      f"{values['testemunhas_avaliadas']} | {approval_cell} |")
     data["onde_parou"] = block
+    lines += ["\n#### Etapa de parada por pergunta\n",
+              "A classificação detalhada usa os planos registrados; categorias são mutuamente exclusivas.\n",
+              "| método | etapa | perguntas |", "|---|---|---:|"]
+    for method, values in block.items():
+        for stage, count in sorted(values["por_etapa"].items(), key=lambda item: (-item[1], item[0])):
+            lines.append(f"| {method} | {stage} | {count} |")
     if any(values["rejeicoes_por_tipo"] for values in block.values()):
         lines += ["\n#### Motivos de rejeição do verificador\n",
                   "Contagem por testemunha avaliada; uma pergunta pode produzir várias rejeições.\n",
@@ -389,9 +402,11 @@ def _by_shape(records: dict[str, list[dict]], excluded: set[str], data: dict) ->
     Se a diferença estiver espalhada uniformemente, a explicação provavelmente não
     é a estrutura lógica.
     """
-    lines = ["\n### Por número de hops (F1 / all-recall@5)\n"]
+    locomo = any(r.get("dataset") == "locomo" for rows in records.values() for r in rows)
+    unit = "apoios anotados" if locomo else "hops"
+    lines = [f"\n### Por número de {unit} (F1 / all-recall@5)\n"]
     hops = sorted({r.get("n_hops", 1) for rows in records.values() for r in rows})
-    lines.append("| método | " + " | ".join(f"{h} hop(s)" for h in hops) + " |")
+    lines.append("| método | " + " | ".join(f"{h} {unit}" for h in hops) + " |")
     lines.append("|" + "---|" * (len(hops) + 1))
     per_method: dict[str, dict] = {}
     for method, rows in records.items():

@@ -421,6 +421,21 @@ Answer with JSON exactly in this shape:
 PERGUNTA: {question}"""
 
 
+QA_COUNT_TEMPLATE = """Answer the question using only the original dialogue excerpts below.
+Identify the exact person, event, time and other conditions in the question.
+Count distinct matching events or items, not mentions, speakers or passages.
+Repeated discussion of one event counts once. An explicit total can be used only
+when it matches all conditions. A list of some events does not establish that
+there were no others. If the excerpts do not establish the answer, return
+"insufficient information". Return only a short JSON answer, without reasoning:
+{{"answer": "..."}}
+
+### INPUT
+{passages}
+
+PERGUNTA: {question}"""
+
+
 QA_PROOF_TEMPLATE = """Answer the question using only the source passages below.
 
 The evidence map lists possible graph joins extracted from those passages. It

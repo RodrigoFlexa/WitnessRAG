@@ -306,6 +306,7 @@ def _answer_standard(name: str, retriever, corpus: Corpus, question: Question,
         "passagens_ouro": question.gold_pids,
         "n_hops": question.n_hops,
         "n_hops_fonte": question.hop_source,
+        "n_apoios_anotados": len(question.gold_pids) if corpus.name == "locomo" else None,
         "tipo": question.qtype,
         "recuperadas": retrieval.pids,
         "scores": [round(float(s), 6) for s in retrieval.scores],
@@ -338,6 +339,11 @@ def _answer_standard(name: str, retriever, corpus: Corpus, question: Question,
     # sendo o número comparável entre datasets. Sem NLTK, a coluna não existe.
     if corpus.name == "locomo":
         from wrag.eval import locomo_official as LO
+        from wrag.eval.counts import numeric_diagnostic
+        from wrag.eval.diagnostics import stop_reason
+        record["diagnosticos"]["motivo_parada"] = stop_reason(diagnostics)
+        record["acerto_numerico"] = numeric_diagnostic(
+            question.question, reading.answer, question.answers[0])
         if LO.available():
             record.update(LO.score_record(record))
     return record
