@@ -325,9 +325,16 @@ def _run_config(settings, n_questions):
     cfg.witness.soft_obligations = settings.get("soft_obligations", False)
     cfg.witness.proof_reader = settings.get("proof_reader", False)
     cfg.witness.plan_repair = settings.get("plan_repair", False)
+    if cfg.witness.plan_repair:
+        # Conv00: later replans did not yield a selected proof, while repeated
+        # verification and targeted extraction dominated query latency.
+        cfg.witness.max_replan_calls = 1
+        cfg.witness.verification_max_witnesses = 2
+        cfg.witness.acquisition_rounds = 1
+        cfg.witness.acquisition_passages = 1
     cfg.qa.operator_reader = cfg.witness.active_operators
     cfg.qa.proof_reader = cfg.witness.proof_reader
-    cfg.qa.answer_guard = cfg.witness.plan_repair
+    cfg.qa.answer_guard = settings.get("answer_guard", False)
     cfg.witness.hybrid_fallback = settings.get("hybrid_fallback", False)
     cfg.witness.candidate_pool_k = settings.get("witness_candidate_pool", 20)
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)

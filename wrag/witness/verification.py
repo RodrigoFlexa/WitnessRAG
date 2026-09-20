@@ -81,6 +81,10 @@ def verify_witnesses(llm, corpus, memory, question, query, witnesses, limit, dat
             "source_conditions": conditions,
             "passages": sources,
         }
+        if query.aggregation == "count":
+            # The graph binds a member/event. `number` describes only the
+            # eventual aggregate and otherwise contradicts this verifier.
+            payload["query"]["expected_type"] = "member_before_count"
         if query.aggregation in {"set", "count"}:
             answer_rule = ("This query enumerates members before aggregation: "
                            "answers_question means that the bound answer is one correct member, "

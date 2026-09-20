@@ -228,7 +228,8 @@ class WitnessConfig:
     # controller so the historical baseline remains reproducible.
     plan_repair: bool = False
     # LLM calls for replanning are distinct from the budget of valid plans.
-    max_replan_calls: int = 4
+    max_replan_calls: int = 2
+    conditional_verification_max_witnesses: int = 1
     active_frontier_queries: int = 5
     active_frontier_passages: int = 30
 

@@ -395,7 +395,17 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
     # onde o método parou, e o relatório agrega exatamente esses campos.
     verification = diagnostics.get("verificacao")
     if isinstance(verification, dict):
-        keep["verificacao"] = {k: v for k, v in verification.items() if k != "decisoes"}
+        keep["verificacao"] = {
+            **{k: v for k, v in verification.items() if k != "decisoes"},
+            "amostra_decisoes": [
+                {"resposta": item.get("resposta"), "tipo_falha": item.get("tipo_falha"),
+                 "motivo": str(item.get("motivo", ""))[:220],
+                 "passagens": item.get("passagens", [])[:3],
+                 "citacoes": [{"pid": c.get("pid"),
+                               "quote": str(c.get("quote", ""))[:180]}
+                              for c in item.get("citacoes", [])[:3]]}
+                for item in verification.get("decisoes", [])[:5]],
+        }
     answers = diagnostics.get("conjunto_resposta")
     if isinstance(answers, dict):
         keep["conjunto_resposta"] = {

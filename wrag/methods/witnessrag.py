@@ -764,22 +764,21 @@ class WitnessRAGRetriever(Retriever):
                              not breadth_attempted and searches == 0 and
                              any(q.aggregation in {"set", "count"} for _, q, _ in complete))
             if complete and not needs_breadth:
-                if cfg.verify_witnesses or (cfg.plan_repair and
-                                            any(q.conditions for _, q, _ in complete)):
+                if cfg.verify_witnesses or cfg.plan_repair:
                     from wrag.witness.verification import verify_witnesses
                     remaining = cfg.verification_max_witnesses - verification["avaliadas"]
                     for index, plan, result in complete:
                         if remaining <= 0:
                             break
-                        if not cfg.verify_witnesses and not plan.conditions:
-                            chosen = (index, plan, result)
-                            break
                         fitting = [w for w in result.witnesses if len(set(w.pids)) <= k]
+                        limit = min(remaining, 2) if cfg.plan_repair else remaining
                         if cfg.answer_set:
-                            fitting = cover_answers(fitting, remaining)
+                            fitting = cover_answers(fitting, limit)
+                        else:
+                            fitting = fitting[:limit]
                         accepted, block = verify_witnesses(
                             self.ctx.llm, self.corpus, self.memory, question, plan,
-                            fitting, remaining, self.ctx.dataset)
+                            fitting, limit, self.ctx.dataset)
                         _merge_verification(verification, block)
                         remaining = cfg.verification_max_witnesses - verification["avaliadas"]
                         if accepted:
@@ -940,9 +939,11 @@ class WitnessRAGRetriever(Retriever):
             # Quote-check every unmet condition on a bound candidate. This
             # promotes context only, never a logical full proof or a count.
             from wrag.witness.verification import verify_witnesses
-            remaining = cfg.verification_max_witnesses - verification["avaliadas"]
+            conditional_remaining = min(
+                cfg.conditional_verification_max_witnesses,
+                cfg.verification_max_witnesses - verification["avaliadas"])
             for index, plan, result, _usable, full in attempts:
-                if remaining <= 0:
+                if conditional_remaining <= 0:
                     break
                 check = assessments.get(_plan_signature(plan))
                 if not result.complete or full or check is None or not check.checked:
@@ -952,13 +953,14 @@ class WitnessRAGRetriever(Retriever):
                                          for item in conditions):
                     continue
                 fitting = [w for w in result.witnesses if len(set(w.pids)) <= max(1, k - 1)]
-                fitting = cover_answers(fitting, remaining) if cfg.answer_set else fitting[:remaining]
+                fitting = (cover_answers(fitting, conditional_remaining) if cfg.answer_set
+                           else fitting[:conditional_remaining])
                 accepted, block = verify_witnesses(
                     self.ctx.llm, self.corpus, self.memory, question, plan,
-                    fitting, remaining, self.ctx.dataset,
+                    fitting, conditional_remaining, self.ctx.dataset,
                     required_conditions=conditions)
                 _merge_verification(verification, block)
-                remaining = cfg.verification_max_witnesses - verification["avaliadas"]
+                conditional_remaining -= block["avaliadas"]
                 if accepted:
                     result.witnesses = accepted
                     chosen = (index, plan, result)
@@ -1029,7 +1031,7 @@ class WitnessRAGRetriever(Retriever):
             pids = list(dense_pids[:k]) if cfg.dense_fallback else []
             # Diversified subquery evidence is useful even without a proof, but
             # the established fallback retains most of the context budget.
-            if cfg.active_frontier and cfg.dense_fallback and k > 1:
+            if cfg.active_frontier and cfg.dense_fallback and k > 1 and not cfg.plan_repair:
                 for pid in frontier:
                     if pid not in pids and pid not in used_pages:
                         pids[-1] = pid

@@ -64,6 +64,10 @@ def _guard_answer(llm, corpus, question, pids, answer):
                               question.question, re.I))
     if not (operator or looks_like_answer_set(question.question)) or not answer:
         return answer, {"aplicavel": False}, 0, 0, 0.0
+    if re.search(r"\bhow many\b", question.question, re.I):
+        # A few cited members cannot prove collection completeness. On the
+        # development conversation this guard changed a correct 2 to 1.
+        return answer, {"aplicavel": False, "motivo": "contagem_sem_completude"}, 0, 0, 0.0
     sources = {pid: corpus.get(pid).full for pid in pids}
     result = llm.chat(
         ANSWER_GUARD_TEMPLATE.format(

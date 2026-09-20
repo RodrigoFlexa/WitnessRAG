@@ -493,6 +493,9 @@ COMPILE_PLANS_REPAIR_TEMPLATE = COMPILE_PLANS_TEMPLATE.replace(
 COMPILE_PLANS_REPAIR_TEMPLATE = COMPILE_PLANS_REPAIR_TEMPLATE.replace(
     'only the `plans` field and the\nplan fields shown above',
     'the `plans` field and plan fields shown above, plus source_conditions')
+COMPILE_PLANS_REPAIR_TEMPLATE = COMPILE_PLANS_REPAIR_TEMPLATE.replace(
+    '"expected_type":"number","aggregation":"count"',
+    '"expected_type":"person","aggregation":"count"')
 _REPAIR_EXTENSION = """
 
 For this experiment, each plan may also include `source_conditions`: a list of
@@ -511,6 +514,8 @@ not a generic label such as "relevance" or "answer the question". For count,
 `source_conditions` should specify the concrete membership criterion for one
 event/item; deduplication and collection completeness are handled separately.
 Do not claim exhaustiveness of a set or count from one matched member.
+For a count query, expected_type describes one bound member (for example a
+person or event), never the final numeric total.
 """
 COMPILE_PLANS_REPAIR_TEMPLATE = COMPILE_PLANS_REPAIR_TEMPLATE.replace(
     "\n### INPUT\n{question}", _REPAIR_EXTENSION + "\n### INPUT\n{question}")

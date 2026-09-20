@@ -21,7 +21,7 @@ exec "$BENCH_PYTHON" -m wrag.pilot \
   --locomo-chunk-tokens 2048 --locomo-ie-window-tokens 512 \
   --top-k 5 --witness-candidate-pool 20 --binding-aware-grounding \
   --answer-set --vocab-compile --hybrid-fallback --dialogue-ie \
-  --query-plans --max-query-plans 5 --active-frontier \
+  --query-plans --max-query-plans 4 --active-frontier \
   --active-obligations --active-context --plan-repair \
   --gpu "$gpu" --port "$port" --hours "${HOURS:-18}" \
   --vllm-python "${VLLM_PYTHON:-$PWD/.venv-vllm/bin/python}" \

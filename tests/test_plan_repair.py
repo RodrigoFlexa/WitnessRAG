@@ -119,7 +119,7 @@ def test_answer_guard_never_counts_two_events_from_one_quote():
                    "evidence": [{"pid": "p0", "quote": "Ana visited museum"}]}),
         memory.corpus, Question("q", "How many visits did Ana make?", ["SECRET"]),
         ["p0"], "1")
-    assert answer == "1" and not audit["alterada"]
+    assert answer == "1" and audit["motivo"] == "contagem_sem_completude"
 
 
 def test_answer_guard_rejects_unsupported_list_item():
@@ -156,7 +156,9 @@ def test_controller_retries_duplicate_with_failure_feedback(monkeypatch):
                           enable_acquisition=False)
     run = C.RunConfig()
     run.witness = cfg
-    retriever = WitnessRAGRetriever(IndexContext(memory.corpus, Responses(),
+    verdict = {"supported": True, "answers_question": True,
+               "evidence": [{"atom": 0, "pid": "p0", "quote": "Ana works Atlas"}]}
+    retriever = WitnessRAGRetriever(IndexContext(memory.corpus, Responses(verdict),
                                                  embedder, run))
     retriever.memory = memory
     retriever.searcher = WitnessSearcher(memory, embedder, cfg)
