@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Paired follow-up: evidence baseline versus graded obligations + proof reader.
+# 2x2 factorial: evidence baseline crossed with graded obligations and the
+# proof reader, to separate the two factors and their interaction.
 # All ten conversations by default; re-run with the same output to resume.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -9,6 +10,10 @@ ROOT_OUT=${1:-"runs/locomo-soft-proof-$STAMP"}
 if [[ "$ROOT_OUT" != /* ]]; then ROOT_OUT="$PWD/$ROOT_OUT"; fi
 GPU=${GPU:-4}
 PORT=${PORT:-8089}
+EVIDENCE_PORT=${EVIDENCE_PORT:-$PORT}
+SOFT_PROOF_PORT=${SOFT_PROOF_PORT:-$((PORT + 1))}
+SOFT_ONLY_PORT=${SOFT_ONLY_PORT:-$((PORT + 2))}
+PROOF_ONLY_PORT=${PROOF_ONLY_PORT:-$((PORT + 3))}
 HOURS=${HOURS:-18}
 MAX_RESUMES=${MAX_RESUMES:-8}
 LOCOMO_CONVERSATION=${LOCOMO_CONVERSATION:-all}
@@ -39,10 +44,36 @@ common=(
   --binding-aware-grounding --answer-set --vocab-compile
   --hybrid-fallback --dialogue-ie --query-plans --max-query-plans 5
   --active-frontier --active-obligations --active-context
-  --gpu "$GPU" --port "$PORT" --vllm-python "$VLLM_PYTHON"
+  --gpu "$GPU" --vllm-python "$VLLM_PYTHON"
   --cache-dir "$CACHE_DIR" --hours "$HOURS"
 )
 if [[ "$EXISTING_SERVER" == 1 ]]; then common+=(--existing-server); fi
+
+port_in_use() {
+  local port=$1
+  if command -v ss >/dev/null 2>&1; then
+    ss -ltn "( sport = :$port )" 2>/dev/null | tail -n +2 | grep -q .
+    return
+  fi
+  if command -v lsof >/dev/null 2>&1; then
+    lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1
+    return
+  fi
+  return 1
+}
+
+pick_free_port() {
+  local base=$1
+  local candidate
+  for offset in $(seq 0 200); do
+    candidate=$((base + offset))
+    if ! port_in_use "$candidate"; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
 
 variant_done() {
   "$BENCH_PYTHON" - "$1" "$LOCOMO_CONVERSATION" <<'PY'
@@ -65,7 +96,9 @@ PY
 }
 
 run_variant() {
-  local name=$1; shift
+  local name=$1
+  local base_port=$2
+  shift 2
   local out="$ROOT_OUT/$name"
   local attempt=0
   if variant_done "$out"; then echo "== $name: concluído anteriormente =="; return; fi
@@ -73,8 +106,16 @@ run_variant() {
     attempt=$((attempt + 1))
     local resume=()
     if [[ -f "$out/pilot.json" ]]; then resume+=(--resume); fi
-    echo "== $name: tentativa $attempt/$MAX_RESUMES =="
+    local run_port=$base_port
+    if [[ "$EXISTING_SERVER" != 1 ]]; then
+      run_port=$(pick_free_port "$((base_port + attempt - 1))") || {
+        echo "Nenhuma porta livre encontrada perto de $base_port para $name" >&2
+        exit 1
+      }
+    fi
+    echo "== $name: tentativa $attempt/$MAX_RESUMES (porta $run_port) =="
     "$BENCH_PYTHON" -m wrag.pilot "${common[@]}" "$@" \
+      --port "$run_port" \
       --output "$out" "${resume[@]}" || true
     if variant_done "$out"; then return; fi
     "$BENCH_PYTHON" - "$out" <<'PY'
@@ -93,8 +134,11 @@ PY
   exit 1
 }
 
-run_variant evidence
-run_variant soft-proof --soft-obligations --proof-reader
+run_variant evidence "$EVIDENCE_PORT"
+run_variant soft-proof "$SOFT_PROOF_PORT" --soft-obligations --proof-reader
+# Single-factor cells: which of the two switches carries the effect.
+run_variant soft-only "$SOFT_ONLY_PORT" --soft-obligations
+run_variant proof-only "$PROOF_ONLY_PORT" --proof-reader
 "$BENCH_PYTHON" scripts/compare-active-research.py "$ROOT_OUT" \
-  --variants evidence soft-proof
+  --variants evidence soft-only proof-only soft-proof
 echo "Comparação pronta: $ROOT_OUT/ablation.md"
