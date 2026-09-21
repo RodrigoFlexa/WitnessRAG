@@ -27,14 +27,12 @@ Start the server in its own tmux on physical GPU 1:
 
 ```bash
 cd ~/WitnessRAG
-CUDA_VISIBLE_DEVICES=1 CUDA_DEVICE_ORDER=PCI_BUS_ID \
-  .venv-vllm/bin/python -m vllm.entrypoints.cli.main serve \
-  Qwen/Qwen2.5-14B-Instruct \
-  --served-model-name Qwen/Qwen2.5-14B-Instruct \
-  --host 127.0.0.1 --port 8095 --dtype bfloat16 \
-  --max-model-len 16384 --gpu-memory-utilization 0.85 \
-  --max-num-seqs 4 --tensor-parallel-size 1 --generation-config vllm
+GPU=1 PORT=8095 bash scripts/serve-qwen-vllm.sh
 ```
+
+The server script disables the FlashInfer sampler. On the current host,
+FlashInfer 0.6.18 otherwise invokes the older `/usr/bin/nvcc` with unsupported
+`--compress-mode=size` during JIT compilation. Greedy decoding is unaffected.
 
 Then run conversation 0 from a second tmux:
 
