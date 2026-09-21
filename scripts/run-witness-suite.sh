@@ -31,8 +31,8 @@ profile_flags() {
   case "$1" in
     base) echo "" ;;
     soft) echo "--soft-obligations" ;;
-    temporal) echo "--soft-obligations --temporal-memory" ;;
-    full) echo "--soft-obligations --temporal-memory --complementary-context" ;;
+    temporal|temporal-v2) echo "--soft-obligations --temporal-memory" ;;
+    full|full-v2) echo "--soft-obligations --temporal-memory --complementary-context" ;;
     *) echo "unknown profile: $1" >&2; exit 2 ;;
   esac
 }
@@ -75,6 +75,21 @@ PY
   # A comparison is meaningful only for arms that exist; the reporter already
   # pairs on completed question IDs and labels partial arms explicitly.
   "$BENCH_PYTHON" scripts/compare-witness-suite.py "$OUTPUT"
+elif [[ "$BENCHMARK" == multihopqa ]]; then
+  QUESTIONS=${MULTIHOP_QUESTIONS:-1000}
+  for DATASET in musique 2wikimultihopqa hotpotqa; do
+    OUT="$OUTPUT/$DATASET"
+    RESUME=()
+    [[ -f "$OUT/pilot.json" ]] && RESUME+=(--resume)
+    "$BENCH_PYTHON" -m wrag.pilot --existing-server --gpu "$GPU" --port "$PORT" \
+      --dataset "$DATASET" --methods witnessrag --questions "$QUESTIONS" \
+      --model "$MODEL" --embed-model BAAI/bge-m3 --embed-device "$EMBED_DEVICE" \
+      --top-k 5 --max-passages 100000 --full-corpus --witness-candidate-pool 20 \
+      --binding-aware-grounding --vocab-compile --hybrid-fallback --query-plans \
+      --max-query-plans 5 --active-frontier --active-obligations --active-context \
+      --soft-obligations --cache-dir "$CACHE_DIR" --hours "${HOURS:-48}" \
+      --output "$OUT" "${RESUME[@]}"
+  done
 elif [[ "$BENCHMARK" == hotpotqa ]]; then
   for TOKENS in 56000 224000 448000; do
     RESUME=()
@@ -103,7 +118,7 @@ elif [[ "$BENCHMARK" == narrativeqa ]]; then
     --output "$OUTPUT/full" --profile full --engine witnessrag-lite --model "$MODEL" \
     --context-tokens 0 --chunk-tokens 1024 --chunk-overlap 128 --top-k 5 --resume
 else
-  echo "benchmark must be locomo, hotpotqa, ruler, or narrativeqa" >&2
+  echo "benchmark must be locomo, multihopqa, hotpotqa, ruler, or narrativeqa" >&2
   exit 2
 fi
 

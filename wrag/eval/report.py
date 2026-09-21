@@ -28,6 +28,7 @@ log = get_logger("wrag.eval.report")
 MAIN_COLUMNS = [
     ("recall@2", "R@2"),
     ("recall@5", "R@5"),
+    ("all_recall@2", "AR@2"),
     ("all_recall@5", "AR@5"),
     ("em", "EM"),
     ("f1", "F1"),
@@ -128,14 +129,19 @@ def _dataset_block(dataset: str, records: dict[str, list[dict]], excluded: set[s
 
     for method, rows in records.items():
         kept = [r for r in compared[method] if r["qid"] not in excluded]
-        values = {key: M.aggregate(r[key] for r in kept) for key, _label in MAIN_COLUMNS}
+        # ``get`` keeps historical runs reportable after adding a metric.  New
+        # records always contain every main column; an old run shows n/a rather
+        # than failing during report regeneration.
+        values = {key: M.aggregate(r.get(key, float("nan")) for r in kept)
+                  for key, _label in MAIN_COLUMNS}
         abstention = M.aggregate(float(r.get("abstencao", False)) for r in kept)
         latency = M.aggregate(r.get("latencia_recuperacao_s", 0.0) for r in kept)
         n_filtered = sum(1 for r in rows if r.get("filtrada"))
         cells = " | ".join(_pct(values[key]) for key, _l in MAIN_COLUMNS)
         lines.append(f"| {method} | {cells} | {_pct(abstention)} | {n_filtered} | {latency:.2f} |")
 
-        ci = {key: M.bootstrap_ci([r[key] for r in kept if r[key] == r[key]])
+        ci = {key: M.bootstrap_ci([r.get(key, float("nan")) for r in kept
+                                   if r.get(key, float("nan")) == r.get(key, float("nan"))])
               for key, _l in MAIN_COLUMNS}
         data["metodos"][method] = {
             "n_avaliadas": len(kept), "n_filtradas": n_filtered,

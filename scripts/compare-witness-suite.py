@@ -1,4 +1,4 @@
-"""Paired report for base/soft/temporal/full suite arms."""
+"""Paired report for every available Witness suite arm."""
 from __future__ import annotations
 
 import argparse
@@ -15,7 +15,7 @@ from wrag.eval.metrics import bootstrap_ci
 from wrag.eval.locomo_official import score_record
 from wrag.util import write_json
 
-ARMS = ("base", "soft", "temporal", "full")
+KNOWN_ARMS = ("base", "soft", "temporal", "full", "temporal-v2", "full-v2")
 CATEGORIES = ("single-hop", "multi-hop", "temporal", "open-domain")
 
 
@@ -38,7 +38,10 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("root", type=Path)
     args = p.parse_args(argv)
-    arms = {name: load_arm(args.root, name) for name in ARMS}
+    available = [name for name in KNOWN_ARMS if (args.root / name).exists()]
+    if "base" not in available:
+        raise FileNotFoundError(f"base arm is required under {args.root}")
+    arms = {name: load_arm(args.root, name) for name in available}
     common = set.intersection(*(set(rows) for rows in arms.values()))
     report = {"paired_questions": len(common), "arms": {}, "against_base": {}}
     for arm, rows in arms.items():
@@ -66,7 +69,7 @@ def main(argv=None):
     lines = ["# Witness suite — paired ablation", "", f"Common questions: {len(common)}", "",
              "| arm | category | n | F1 | BLEU-1 | ΔF1 vs base | 95% question bootstrap |",
              "|---|---|---:|---:|---:|---:|---|"]
-    for arm in ARMS:
+    for arm in available:
         for category in CATEGORIES:
             value = report["arms"][arm][category]
             paired = report["against_base"].get(arm, {}).get(category, {})

@@ -374,7 +374,8 @@ def test_threshold_cannot_split_equal_risk():
 
 
 def metric_row(qid, score=1, filtered=False):
-    return {"qid": qid, "recall@2": score, "recall@5": score, "all_recall@5": score,
+    return {"qid": qid, "recall@2": score, "recall@5": score,
+            "all_recall@2": score, "all_recall@5": score,
             "em": score, "f1": score, "filtrada": filtered, "n_hops": 1}
 
 

@@ -72,7 +72,14 @@ def select_complement(corpus, question: str, baseline: list[str], diagnostics: d
     wanted = _terms(required_text)
     missing = wanted - protected_terms
     temporal_query = temporal and is_temporal_question(question)
-    if not missing and not temporal_query:
+    endpoint_query = temporal_query and bool(
+        re.search(r"\b(first|earliest|oldest|last|latest|recent|recently|newest|before|after)\b",
+                  normalize(question)))
+    # A generic "when" does not justify replacing a relevant fifth result with
+    # an arbitrary later passage about the same person.  That failure selected
+    # unrelated session dates in LoCoMo.  Require a missing lexical facet unless
+    # the question explicitly asks for a chronological endpoint.
+    if not missing and not endpoint_query:
         return Selection(base, False, reason="no_missing_facet")
 
     allowed = set(candidate_pids) if candidate_pids is not None else None
@@ -87,7 +94,7 @@ def select_complement(corpus, question: str, baseline: list[str], diagnostics: d
     for passage, words in docs:
         # Temporal endpoint selection may legitimately repeat the event/entity
         # terms already seen in an earlier passage; chronology is the novelty.
-        direct = words & (wanted if temporal_query else (missing or wanted))
+        direct = words & (wanted if endpoint_query else (missing or wanted))
         if not direct:
             continue
         lexical = sum(math.log((n + 1) / (df[t] + 1)) + 1.0 for t in direct)

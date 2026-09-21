@@ -145,6 +145,22 @@ def test_pilot_data_keeps_support_and_adds_distractors(tmp_path):
     assert meta["corpus_reduced"] is True
 
 
+def test_pilot_full_corpus_keeps_every_official_passage(tmp_path):
+    from wrag.data import load_dataset
+    args = parser().parse_args(["--gpu", "5", "--dataset", "sample", "-n", "1",
+                                "--full-corpus", "--max-passages", "10"])
+    plan = make_plan(args, tmp_path)
+    passages = [{"title": f"T{i}", "text": f"Entity {i} has a fact."} for i in range(5)]
+    questions = [{"id": "q1", "question": "What fact?", "answer": "fact",
+                  "paragraphs": [{**passages[0], "is_supporting": True}]}]
+    write_json(tmp_path / "source-data" / "sample.json", questions)
+    write_json(tmp_path / "source-data" / "sample_corpus.json", passages)
+    meta = prepare_data(plan)
+    corpus = load_dataset("sample", data_dir=tmp_path / "data")
+    assert len(corpus.passages) == 5
+    assert meta["full_corpus"] is True and meta["corpus_reduced"] is False
+
+
 def test_plots_use_common_ids_and_skip_missing_methods(tmp_path):
     pytest.importorskip("matplotlib")
     from wrag.eval.plots import plot_run

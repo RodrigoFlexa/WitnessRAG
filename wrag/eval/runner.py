@@ -300,7 +300,8 @@ def _write_live_report(paths: RunPaths, corpus: Corpus,
         groups: dict[str, list[dict]] = {}
         for row in rows:
             groups.setdefault(row.get("tipo") or "all", []).append(row)
-        metric_names = ["f1", "em", "recall@5", "all_recall@5"]
+        metric_names = ["f1", "em", "recall@2", "recall@5",
+                        "all_recall@2", "all_recall@5"]
         if corpus.name == "locomo":
             metric_names += ["f1_locomo", "bleu1_locomo", "em_locomo"]
         def summarize(items):
@@ -380,6 +381,7 @@ def _answer_standard(name: str, retriever, corpus: Corpus, question: Question,
         "f1": M.token_f1(reading.answer, question.answers),
         "recall@2": M.recall_at_k(retrieval.pids, question.gold_pids, 2) if run_cfg.top_k >= 2 else float("nan"),
         "recall@5": M.recall_at_k(retrieval.pids, question.gold_pids, 5) if run_cfg.top_k >= 5 else float("nan"),
+        "all_recall@2": M.all_recall_at_k(retrieval.pids, question.gold_pids, 2) if run_cfg.top_k >= 2 else float("nan"),
         "all_recall@5": M.all_recall_at_k(retrieval.pids, question.gold_pids, 5) if run_cfg.top_k >= 5 else float("nan"),
         "cobertura_testemunha": (M.witness_coverage(witness_facts, question.evidences)
                                   if "resposta_estrutural" in diagnostics else float("nan")),

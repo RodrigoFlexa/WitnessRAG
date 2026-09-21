@@ -53,6 +53,8 @@ def parser():
                    help="janelas OpenIE internas; 512 preserva fatos em chunks longos sem ampliar o leitor")
     p.add_argument("--locomo-file", type=Path, help="opcional: locomo10.json local, sem download")
     p.add_argument("--distractors", type=int, default=300, help="passagens aleatórias adicionais ao corpus candidato")
+    p.add_argument("--full-corpus", action="store_true",
+                   help="usa todo o corpus oficial; recomendado para resultados finais de QA")
     p.add_argument("--corpus-token-budget", type=int, default=0,
                    help="HotpotQA: expande o corpus candidato até 56k/224k/448k tokens")
     p.add_argument("--corpus-passages", type=int, default=0,
@@ -263,7 +265,12 @@ def prepare_data(plan):
         raise ValueError(f"corpus candidato tem {len(keep)} passagens > teto {cap}; reduza -n ou aumente --max-passages")
     extras = [p for p in full.passages if p.pid not in keep]
     random.Random(seed).shuffle(extras)
-    if settings.get("corpus_passages"):
+    if settings.get("full_corpus"):
+        if len(full.passages) > cap:
+            raise ValueError(f"corpus completo tem {len(full.passages)} passagens > teto {cap}")
+        chosen = list(full.passages)
+        tokens = None
+    elif settings.get("corpus_passages"):
         target = settings["corpus_passages"]
         if target < len(reduced.passages):
             raise ValueError(f"corpus-passages={target} menor que {len(reduced.passages)} apoios/candidatos")
@@ -300,6 +307,7 @@ def prepare_data(plan):
                 "corpus_tokens": tokens, "corpus_token_budget": settings.get("corpus_token_budget", 0),
                 "corpus_passage_budget": settings.get("corpus_passages", 0),
                 "questions": len(selected), "question_ids": sorted(ids),
+                "full_corpus": bool(settings.get("full_corpus")),
                 "corpus_reduced": len(chosen) < len(full.passages)}
     write_json(Path(plan["output"]) / "data_selection.json", metadata)
     return metadata
@@ -357,7 +365,9 @@ def _run_config(settings, n_questions):
     cfg = C.RunConfig(n_questions=settings["questions"] or n_questions, seed=settings["seed"],
                       top_k=settings.get("top_k", 5),
                       interleave_methods=True, corpus_scope=("locomo_full_selected_conversation"
-                      if settings["dataset"] == "locomo" else "pilot_candidates_plus_random_distractors"))
+                      if settings["dataset"] == "locomo" else
+                      "full_official_corpus" if settings.get("full_corpus") else
+                      "pilot_candidates_plus_random_distractors"))
     cfg.witness.enable_acquisition = not settings["no_acquisition"]
     cfg.witness.binding_aware_grounding = settings.get("binding_aware_grounding", False)
     cfg.witness.verify_witnesses = settings.get("verify_witnesses", False)
@@ -624,7 +634,7 @@ def _validate_resume(old, new):
     fields = ("model", "model_revision", "embed_model", "dataset", "questions",
               "locomo_conversation", "locomo_turns_per_passage", "locomo_chunk_tokens",
               "locomo_ie_window_tokens", "seed", "top_k", "witness_candidate_pool",
-              "corpus_token_budget", "corpus_passages",
+              "corpus_token_budget", "corpus_passages", "full_corpus",
               "answer_set", "vocab_compile", "query_plans", "max_query_plans",
               "active_frontier", "active_obligations", "active_context", "active_operators",
               "soft_obligations", "proof_reader", "plan_repair", "temporal_memory",
@@ -655,8 +665,10 @@ def print_locomo_aggregate(output, status, run_dirs):
 
     summary = aggregate_runs(run_dirs)
     official = summary.get("oficial_disponivel")
-    keys = (("f1_locomo", "bleu1_locomo", "em_locomo") if official else ()) + ("f1", "em", "recall@5", "all_recall@5")
-    labels = (("F1ofic", "BLEU1", "EMofic") if official else ()) + ("F1", "EM", "R@5", "AR@5")
+    keys = (("f1_locomo", "bleu1_locomo", "em_locomo") if official else ()) + \
+        ("f1", "em", "recall@2", "recall@5", "all_recall@2", "all_recall@5")
+    labels = (("F1ofic", "BLEU1", "EMofic") if official else ()) + \
+        ("F1", "EM", "R@2", "R@5", "AR@2", "AR@5")
 
     def pct(value):
         return f"{100 * value:.2f}" if isinstance(value, (int, float)) and math.isfinite(value) else "—"
@@ -719,8 +731,10 @@ def print_results(output, status):
                 # correto. Imprimir só o harness esconde exatamente o multi-hop.
                 official = dataset == "locomo" and any(
                     "f1_locomo" in v for m in categories.values() for v in m.values())
-                keys = (("f1_locomo", "bleu1_locomo", "em_locomo") if official else ()) + ("f1", "em", "recall@5", "all_recall@5")
-                labels = (("F1ofic", "BLEU1", "EMofic") if official else ()) + ("F1", "EM", "R@5", "AR@5")
+                keys = (("f1_locomo", "bleu1_locomo", "em_locomo") if official else ()) + \
+                    ("f1", "em", "recall@2", "recall@5", "all_recall@2", "all_recall@5")
+                labels = (("F1ofic", "BLEU1", "EMofic") if official else ()) + \
+                    ("F1", "EM", "R@2", "R@5", "AR@2", "AR@5")
                 print(f"\n{dataset} — métricas em %, perguntas previstas: {total}")
                 print(f"{'método / categoria':<35} {'n':>5} " + " ".join(f"{x:>8}" for x in labels))
                 for method, result in data.get("metodos", {}).items():

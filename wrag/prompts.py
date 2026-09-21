@@ -472,8 +472,12 @@ mentions of the same event are one event. Do not count the number of retrieved
 passages, graph facts or candidate answers. If evidence is incomplete, answer
 "insufficient information" rather than treating a partial list as complete.
 
-For dates, resolve relative expressions such as "yesterday" using the date of
-the same session, and respect the order of events. For questions asking for a
+For dates, a "Session date" applies to the dialogue lines after it, up to the
+next Session date. Resolve a relative expression from the session containing
+that exact event: yesterday is the preceding calendar day; last week means the
+week before that session; last Tuesday is the preceding Tuesday. Do not return
+the Session date itself when the event is stated as yesterday, last week, or
+last weekend. Respect the order of events. For questions asking for a
 set, include every distinct item supported by the passages, separated by commas.
 
 Return the shortest complete answer, with no explanation, as JSON:
@@ -491,9 +495,13 @@ This question asks for a cautious conclusion that may combine several explicit
 statements. Identify the same person in every relevant statement and choose the
 shortest conclusion directly supported by their stated interests, plans,
 preferences, or circumstances. Do not invent facts or use outside knowledge.
-Words such as "likely" and counterfactual questions permit a conservative
-inference, but the premises must occur in the passages. If they do not, answer
-"insufficient information". Return only JSON: {{"answer": "..."}}
+Words such as "likely", preference comparisons, and counterfactual questions
+explicitly request a conservative inference. When a stated preference, plan,
+interest, experience, or circumstance supports one, give the conclusion plus
+the shortest supporting reason (for example, "yes; she likes classical music").
+Do not demand that the conclusion itself appear verbatim. Use "insufficient
+information" only when no relevant premise occurs in the passages. Return only
+JSON: {{"answer": "..."}}
 
 ### INPUT
 {passages}
