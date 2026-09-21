@@ -1,7 +1,8 @@
 # WitnessRAG benchmark suite
 
-The suite fixes the generator to `Qwen/Qwen2.5-14B-Instruct`, the reader budget
-to five passages, seed 42, and physical GPU 1 by default.  Every run writes raw
+The suite uses an already-running `Qwen/Qwen2.5-14B-Instruct` vLLM endpoint,
+the reader budget of five passages, and seed 42. The benchmark launcher never
+starts or stops the model server. Every run writes raw
 JSONL predictions, a final `report.json`/`report.md`, and a `live_report.json`
 after every completed question.
 
@@ -22,10 +23,24 @@ source conditions, passage text, session date, and sequence.  It protects the
 first four passages and never changes a context containing a complete delivered
 witness.  It adds no LLM call.
 
-Run conversation 0 first:
+Start the server in its own tmux on physical GPU 1:
 
 ```bash
-GPU=1 bash scripts/run-witness-suite.sh locomo runs/witness-suite-locomo-conv00
+cd ~/WitnessRAG
+CUDA_VISIBLE_DEVICES=1 CUDA_DEVICE_ORDER=PCI_BUS_ID \
+  .venv-vllm/bin/python -m vllm.entrypoints.cli.main serve \
+  Qwen/Qwen2.5-14B-Instruct \
+  --served-model-name Qwen/Qwen2.5-14B-Instruct \
+  --host 127.0.0.1 --port 8095 --dtype bfloat16 \
+  --max-model-len 16384 --gpu-memory-utilization 0.85 \
+  --max-num-seqs 4 --tensor-parallel-size 1 --generation-config vllm
+```
+
+Then run conversation 0 from a second tmux:
+
+```bash
+GPU=1 PORT=8095 EMBED_DEVICE=cpu \
+  bash scripts/run-witness-suite.sh locomo runs/witness-suite-locomo-conv00
 ```
 
 Only after a paired gain is established, run all conversations by setting
