@@ -40,7 +40,24 @@ profile_flags() {
 if [[ "$BENCHMARK" == locomo ]]; then
   # Default is conv00: establish a paired gain before LOCOMO_CONVERSATION=all.
   CONVERSATION=${LOCOMO_CONVERSATION:-0}
-  for PROFILE in base soft temporal full; do
+  # Space-separated subset, useful when resuming a long suite.  The default
+  # preserves the registered four-arm experiment.
+  LOCOMO_PROFILES=${LOCOMO_PROFILES:-"base soft temporal full"}
+  for PROFILE in $LOCOMO_PROFILES; do
+    profile_flags "$PROFILE" >/dev/null  # validate before touching output
+    STATUS_FILE="$OUTPUT/$PROFILE/status.json"
+    if [[ -f "$STATUS_FILE" ]] && "$BENCH_PYTHON" - "$STATUS_FILE" <<'PY'
+import json, sys
+try:
+    complete = json.load(open(sys.argv[1], encoding="utf-8")).get("status") == "complete"
+except (OSError, ValueError, TypeError):
+    complete = False
+raise SystemExit(0 if complete else 1)
+PY
+    then
+      echo "Skipping completed LoCoMo profile: $PROFILE"
+      continue
+    fi
     FLAGS=$(profile_flags "$PROFILE")
     RESUME=()
     [[ -f "$OUTPUT/$PROFILE/pilot.json" ]] && RESUME+=(--resume)
@@ -55,6 +72,8 @@ if [[ "$BENCHMARK" == locomo ]]; then
       --cache-dir "$CACHE_DIR" --hours "${HOURS:-24}" --output "$OUTPUT/$PROFILE" \
       "${RESUME[@]}"
   done
+  # A comparison is meaningful only for arms that exist; the reporter already
+  # pairs on completed question IDs and labels partial arms explicitly.
   "$BENCH_PYTHON" scripts/compare-witness-suite.py "$OUTPUT"
 elif [[ "$BENCHMARK" == hotpotqa ]]; then
   for TOKENS in 56000 224000 448000; do
