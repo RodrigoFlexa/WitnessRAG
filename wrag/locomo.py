@@ -129,10 +129,12 @@ def convert(raw, conversation_index=0, turns_per_passage=8, n_questions=None, se
                     raise ValueError(f"QA {qi}: evidência desconhecida {dia_id!r}")
                 if dia_id not in evidence:
                     evidence.append(dia_id)
-        # Categories 1--4 in the released benchmark carry dialogue evidence.
-        # Reject malformed conversions so answer and retrieval denominators stay
-        # aligned and an upstream schema change cannot silently alter the run.
-        if not evidence:
+        # The pinned release contains a small number of category-3 inference
+        # questions without annotated dialogue evidence (for example QA 30 in
+        # conv00). They remain in answer evaluation, while retrieval recall is
+        # undefined. Categories 1, 2 and 4 require evidence; accepting an empty
+        # annotation there would silently corrupt their retrieval denominator.
+        if not evidence and category != 3:
             raise ValueError(f"QA {qi}: sem evidência; recall não pode ser avaliado")
         answer = qa.get("answer")
         if answer is None or isinstance(answer, (dict, list)):

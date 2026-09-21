@@ -89,6 +89,16 @@ def test_known_upstream_evidence_typo_is_repaired_and_audited():
     assert metadata["question_mapping"][questions[0]["id"]]["evidence_dialog_ids"] == ["D11:26"]
 
 
+def test_open_domain_without_annotated_evidence_stays_in_answer_denominator():
+    raw = sample()
+    raw[0]["qa"][2]["evidence"] = []
+    questions, _passages, metadata = convert(raw)
+    question = questions[2]
+    assert question["type"] == "open-domain"
+    assert question["paragraphs"] == []
+    assert metadata["question_mapping"][question["id"]]["evidence_dialog_ids"] == []
+
+
 def test_other_pilot_defaults_unchanged(tmp_path):
     plan = make_plan(parser().parse_args(["--gpu", "3"]), tmp_path)
     assert plan["settings"]["questions"] == 100
