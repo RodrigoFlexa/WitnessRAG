@@ -337,8 +337,17 @@ def worker(plan_path):
     if settings["dataset"] == "locomo" and settings.get("locomo_conversation") == "all":
         roots = _run_every_conversation(plan, settings)
     else:
+        resume_dir = None
+        if settings.get("resume"):
+            manifests = sorted((Path(plan["output"]) / "benchmark").glob("*/run.json"))
+            if len(manifests) > 1:
+                raise ValueError("retomada ambígua: mais de uma rodada em benchmark/")
+            if manifests:
+                resume_dir = manifests[0].parent
+                print(f"Retomando rodada parcial: {resume_dir}", flush=True)
         roots = [str(run([settings["dataset"]], plan["methods"],
-                         _run_config(settings, metadata["questions"]), tag="qwen-pilot"))]
+                         _run_config(settings, metadata["questions"]), tag="qwen-pilot",
+                         resume=True, resume_dir=resume_dir))]
     write_json(Path(plan["output"]) / "completed.json",
                {"run_dir": roots[0], "run_dirs": roots})
 
@@ -541,6 +550,10 @@ def launch(args):
     status = "failed"
     print(f"Saída: {output}\nGPU: {args.gpu}; prazo: {args.hours} h; modelo: {args.model}", flush=True)
     try:
+        # A resumed attempt must not report an exception left by an older
+        # attempt as its current failure cause.
+        for stale_name in ("worker-error.txt", "error.txt"):
+            (output / stale_name).unlink(missing_ok=True)
         try:
             hardware = subprocess.run(["nvidia-smi", "-i", args.gpu,
                                        "--query-gpu=name,memory.total,memory.free,driver_version", "--format=csv"],

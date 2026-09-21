@@ -78,7 +78,11 @@ def run_dataset(
 
     started = time.perf_counter()
     ctx.llm.usage.reset()
+    print(f"[stage] {dataset}: indexing {len(corpus.passages)} passages for "
+          f"{','.join(methods)}", flush=True)
     retrievers = build_methods(ctx, list(methods))
+    print(f"[stage] {dataset}: indexing complete in {time.perf_counter() - started:.1f}s; "
+          f"answering {len(corpus.questions)} questions", flush=True)
 
     # Demandas de treino para a seleção de memória sob orçamento. Só carregam se
     # alguém pediu orçamento < 1, porque construí-las custa uma busca por
@@ -172,6 +176,7 @@ def _run_interleaved(retrievers, corpus, cfg, paths, resume, summary, original):
             append_jsonl(paths.records(corpus.name, name), record)
             rows[name].append(record)
             done[name].add(question.qid)
+            _print_question_progress(corpus, name, question, record, rows[name])
             summary["metodos"][name] = {
                 "n_perguntas": len(corpus.questions),
                 "n_concluidas": len(rows[name]),
@@ -251,7 +256,8 @@ def _run_method(
     path = paths.records(corpus.name, name)
     if not resume:
         path.write_text("", encoding="utf-8")
-    done = {row["qid"] for row in read_jsonl(path)} if resume else set()
+    rows = read_jsonl(path) if resume else []
+    done = {row["qid"] for row in rows}
     if done:
         log.info("%s/%s: retomando, %d perguntas já feitas", corpus.name, name, len(done))
 
@@ -263,10 +269,11 @@ def _run_method(
                              desc=f"{corpus.name}/{name}"):
         record = _answer_one(name, retriever, corpus, question, run_cfg)
         append_jsonl(path, record)
-        _write_live_report(paths, corpus, {name: read_jsonl(path)})
+        rows.append(record)
+        _print_question_progress(corpus, name, question, record, rows)
+        _write_live_report(paths, corpus, {name: rows})
 
     elapsed = time.perf_counter() - started
-    rows = read_jsonl(path)
     return {
         "n_perguntas": len(corpus.questions),
         "tempo_consulta_s": round(sum(r.get("latencia_recuperacao_s", 0) + r.get("latencia_leitura_s", 0)
@@ -308,6 +315,27 @@ def _write_live_report(paths: RunPaths, corpus: Corpus,
                                             r.get("latencia_leitura_s", 0) for r in rows),
         }
     write_json(paths.dataset_dir(corpus.name) / "live_report.json", payload)
+
+
+def _print_question_progress(corpus: Corpus, method: str, question: Question,
+                             record: dict, rows: list[dict]) -> None:
+    """Durable one-line progress for redirected logs; never relies on tqdm."""
+    metric = "f1_locomo" if corpus.name == "locomo" else "f1"
+    category = question.qtype or "all"
+    same_category = [r for r in rows if (r.get("tipo") or "all") == category]
+    category_f1 = M.aggregate(r.get(metric, float("nan")) for r in same_category)
+    overall_f1 = M.aggregate(r.get(metric, float("nan")) for r in rows)
+    completed = len(rows)
+    # Historical per-question latency remains meaningful after --resume, while
+    # session wall time divided by the total completed count would understate ETA.
+    rate = M.aggregate(r.get("latencia_recuperacao_s", 0) +
+                       r.get("latencia_leitura_s", 0) for r in rows)
+    eta = rate * max(0, len(corpus.questions) - completed)
+    latency = record.get("latencia_recuperacao_s", 0) + record.get("latencia_leitura_s", 0)
+    print(f"[question] {corpus.name}/{method} {completed}/{len(corpus.questions)} "
+          f"{question.qid} category={category} item_f1={record.get(metric, float('nan')):.4f} "
+          f"category_f1={category_f1:.4f} overall_f1={overall_f1:.4f} "
+          f"latency={latency:.1f}s eta={eta / 60:.1f}m", flush=True)
 
 
 def _answer_one(name: str, retriever, corpus: Corpus, question: Question,
