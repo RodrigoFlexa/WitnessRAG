@@ -28,6 +28,12 @@ class Passage:
     pid: str
     title: str
     text: str
+    # Structured provenance is optional for document QA and populated by
+    # conversational/long-context adapters.  Keeping it out of ``full`` means
+    # retrieval and reader inputs remain byte-for-byte comparable in ablations.
+    session_time: str = ""
+    sequence: int = -1
+    source_ids: tuple[str, ...] = ()
 
     @property
     def full(self) -> str:
@@ -88,7 +94,8 @@ class Corpus:
             "com_evidencia_anotada": sum(1 for q in self.questions if q.evidences),
             "com_decomposicao": sum(1 for q in self.questions if q.decomposition),
             "question_ids": [q.qid for q in self.questions],
-            "corpus_hash": sha([(p.pid, p.title, p.text) for p in self.passages]),
+            "corpus_hash": sha([(p.pid, p.title, p.text, p.session_time,
+                                  p.sequence, p.source_ids) for p in self.passages]),
             "questions_hash": sha([(q.qid, q.question, q.answers, q.gold_pids,
                                      q.evidences, q.decomposition) for q in self.questions]),
         }
@@ -107,12 +114,15 @@ class _PassageIndex:
         self.by_title: dict[str, set[str]] = {}
         self.passages: list[Passage] = []
 
-    def add(self, title: str, text: str) -> str:
+    def add(self, title: str, text: str, *, session_time: str = "",
+            sequence: int = -1, source_ids: Iterable[str] = ()) -> str:
         key = sha(title.strip(), text.strip())
         if key in self.by_key:
             return self.by_key[key]
         pid = "p-" + key[:24]
-        passage = Passage(pid=pid, title=title.strip(), text=text.strip())
+        passage = Passage(pid=pid, title=title.strip(), text=text.strip(),
+                          session_time=str(session_time or ""), sequence=sequence,
+                          source_ids=tuple(str(x) for x in source_ids))
         self.passages.append(passage)
         self.by_key[key] = pid
         self.by_title.setdefault(normalize(title), set()).add(pid)
@@ -154,8 +164,11 @@ def load_dataset(
     raw_corpus = read_json(cpath, [])
 
     index = _PassageIndex()
-    for item in raw_corpus:
-        index.add(item.get("title", ""), item.get("text", ""))
+    for position, item in enumerate(raw_corpus):
+        index.add(item.get("title", ""), item.get("text", ""),
+                  session_time=item.get("session_time", ""),
+                  sequence=int(item.get("sequence", position)),
+                  source_ids=item.get("source_ids", ()))
     if not raw_corpus:
         for item in raw_questions:
             for title, text in _iter_candidates(name, item):

@@ -183,6 +183,7 @@ def _run_interleaved(retrievers, corpus, cfg, paths, resume, summary, original):
                 **original["methods"][name],
             }
             write_json(paths.dataset_dir(corpus.name) / "summary.json", summary)
+            _write_live_report(paths, corpus, rows)
         log.info("perguntas concluídas em todos os métodos: %d/%d", index + 1, len(questions))
         newly_completed += int(had_work)
         if newly_completed and newly_completed % 5 == 0:
@@ -262,6 +263,7 @@ def _run_method(
                              desc=f"{corpus.name}/{name}"):
         record = _answer_one(name, retriever, corpus, question, run_cfg)
         append_jsonl(path, record)
+        _write_live_report(paths, corpus, {name: read_jsonl(path)})
 
     elapsed = time.perf_counter() - started
     rows = read_jsonl(path)
@@ -273,6 +275,39 @@ def _run_method(
         "uso_consulta": sum_usage(r.get("uso_llm", {}) for r in rows),
         "custo_completo": all("uso_llm" in r for r in rows),
     }
+
+
+def _write_live_report(paths: RunPaths, corpus: Corpus,
+                       records: dict[str, list[dict]]) -> None:
+    """Small per-benchmark report updated after every completed prediction.
+
+    The final report remains authoritative.  This checkpoint is intentionally
+    cheap and lets a long run be monitored without parsing logs or waiting for
+    every method/question to finish.
+    """
+    payload: dict[str, Any] = {
+        "dataset": corpus.name, "updated_at": datetime.now(timezone.utc).isoformat(),
+        "expected_questions": len(corpus.questions), "methods": {},
+    }
+    for method, rows in records.items():
+        groups: dict[str, list[dict]] = {}
+        for row in rows:
+            groups.setdefault(row.get("tipo") or "all", []).append(row)
+        metric_names = ["f1", "em", "recall@5", "all_recall@5"]
+        if corpus.name == "locomo":
+            metric_names += ["f1_locomo", "bleu1_locomo", "em_locomo"]
+        def summarize(items):
+            return {"n": len(items), **{key: M.aggregate(r.get(key, float("nan")) for r in items)
+                                        for key in metric_names}}
+        payload["methods"][method] = {
+            "completed": len(rows), "overall": summarize(rows),
+            "by_category": {name: summarize(items) for name, items in sorted(groups.items())},
+            "mean_llm_calls": M.aggregate(sum(stage.get("chamadas", 0)
+                for stage in (r.get("uso_llm") or {}).values() if isinstance(stage, dict)) for r in rows),
+            "mean_latency_s": M.aggregate(r.get("latencia_recuperacao_s", 0) +
+                                            r.get("latencia_leitura_s", 0) for r in rows),
+        }
+    write_json(paths.dataset_dir(corpus.name) / "live_report.json", payload)
 
 
 def _answer_one(name: str, retriever, corpus: Corpus, question: Question,

@@ -17,6 +17,7 @@ from wrag.methods.graphrag import GraphRAGRetriever
 from wrag.methods.hipporag import HippoRAGRetriever, ensure_graph
 from wrag.methods.hipporag2 import HippoRAG2Retriever
 from wrag.methods.witnessrag import WitnessRAGOracleRetriever, WitnessRAGRetriever, WitnessRAGAnnotatedRetriever
+from wrag.methods.witnesslite import WitnessLiteRetriever
 from wrag.methods.relational import RelationalRetriever
 from wrag.util import get_logger
 
@@ -30,6 +31,7 @@ REGISTRY: dict[str, Callable[[IndexContext], Retriever]] = {
     "hipporag": HippoRAGRetriever,
     "hipporag2": HippoRAG2Retriever,
     "witnessrag": WitnessRAGRetriever,
+    "witnessrag-lite": WitnessLiteRetriever,
     "witnessrag-oracle": WitnessRAGOracleRetriever,
     "witnessrag-annotated": WitnessRAGAnnotatedRetriever,
     "relational": RelationalRetriever,

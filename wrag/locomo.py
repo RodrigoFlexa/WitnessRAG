@@ -1,4 +1,4 @@
-"""Adaptação textual do LoCoMo: uma conversa, categorias oficiais 1 e 4.
+"""Adaptação textual do LoCoMo: uma conversa, categorias oficiais 1--4.
 
 Prepara dados sem modelo/GPU: python -m wrag.locomo --output runs/locomo-data
 """
@@ -17,7 +17,7 @@ from wrag.util import write_json
 
 REVISION = "3eb6f2c585f5e1699204e3c3bdf7adc5c28cb376"
 URL = f"https://raw.githubusercontent.com/snap-research/locomo/{REVISION}/data/locomo10.json"
-CATEGORIES = {1: "multi-hop", 4: "single-hop"}
+CATEGORIES = {1: "multi-hop", 2: "temporal", 3: "open-domain", 4: "single-hop"}
 
 # The released snapshot contains four malformed evidence references. Keep the
 # repairs narrow and auditable: any other unknown id remains a hard error.
@@ -65,8 +65,11 @@ def convert(raw, conversation_index=0, turns_per_passage=8, n_questions=None, se
             if not current_ids:
                 return
             index = len(passages)
+            first_date = next((line.partition(":")[2].strip() for line in current_lines
+                               if line.startswith("Session date:")), "")
             passages.append({"title": f"LoCoMo {sample_id} history chunk {index + 1}",
-                             "text": "\n".join(current_lines)})
+                             "text": "\n".join(current_lines), "session_time": first_date,
+                             "sequence": index, "source_ids": list(current_ids)})
             for dia_id in current_ids:
                 turn_to_passage[dia_id] = index
             current_lines.clear()
@@ -102,7 +105,9 @@ def convert(raw, conversation_index=0, turns_per_passage=8, n_questions=None, se
                         raise ValueError(f"dia_id duplicado: {dia_id}")
                     turn_to_passage[dia_id] = len(passages)
                     lines.extend(turn_lines(turn))
-                passages.append({"title": title, "text": "\n".join(lines)})
+                passages.append({"title": title, "text": "\n".join(lines),
+                                 "session_time": date, "sequence": len(passages),
+                                 "source_ids": [str(turn["dia_id"]) for turn in block]})
     if not passages:
         raise ValueError("conversa vazia")
     questions, mapping, evidence_repairs = [], {}, []
@@ -124,6 +129,9 @@ def convert(raw, conversation_index=0, turns_per_passage=8, n_questions=None, se
                     raise ValueError(f"QA {qi}: evidência desconhecida {dia_id!r}")
                 if dia_id not in evidence:
                     evidence.append(dia_id)
+        # Categories 1--4 in the released benchmark carry dialogue evidence.
+        # Reject malformed conversions so answer and retrieval denominators stay
+        # aligned and an upstream schema change cannot silently alter the run.
         if not evidence:
             raise ValueError(f"QA {qi}: sem evidência; recall não pode ser avaliado")
         answer = qa.get("answer")
@@ -149,7 +157,7 @@ def convert(raw, conversation_index=0, turns_per_passage=8, n_questions=None, se
                 "tokenizer_revision": tokenizer_revision if chunk_tokens else None,
                 "corpus_scope": "locomo_full_selected_conversation", "seed": seed,
                 "text_policy": "speaker + dialog id + date + text + released BLIP captions; no summaries/personas/QA",
-                "metric_policy": "official LoCoMo F1/EM plus harness metrics; recall at passage-block level",
+                "metric_policy": "official LoCoMo F1/EM plus diagnostic BLEU-1 for categories 1-4; recall at passage-block level",
                 "evidence_repairs": evidence_repairs,
                 "question_mapping": {q["id"]: mapping[q["id"]] for q in questions}}
     return questions, passages, metadata

@@ -1,5 +1,7 @@
 # WitnessRAG: diagnóstico causal e piloto refutável na conv00
 
+> **Atualização após o piloto:** a recomendação H1 abaixo foi refutada e está retirada. O leitor citado obteve F1 multi-hop 0,243936 (controle 0,398074) e single-hop 0,577784 (controle 0,637681), com maior latência. Não executar as repetições/ampliação sugeridas abaixo para promover esta versão. Ver `reader-failure/postmortem.md` e os resultados reproduzidos por `scripts/audit_reader_cited.py`. O restante deste documento preserva a hipótese anterior para rastreabilidade.
+
 Auditoria local de 21/09/2026. Unidade: pergunta, ligada por `qid`. Conv00 do launcher é `conv-26` nos identificadores do dataset. Foram comparadas as mesmas 102 perguntas, 70 single-hop e 32 multi-hop oficiais. Os rótulos oficiais são usados para avaliação, não para acionar rotas. Há perguntas multi-hop com uma única passagem ouro: bloco de evidência não é hop lógico.
 
 **Recomendação:** manter o controlador reduzido e testar primeiro a substituição de sua chamada de leitura por uma enumeração citada de itens, em recuperação congelada. Não aumentar replanejamentos nem ligar `proof_reader`. Corrigir a instrumentação do verificador antes de tentar obter mais provas. Só depois testar uma troca seletiva de passagem baseada em membro útil, separadamente do leitor.

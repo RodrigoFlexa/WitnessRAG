@@ -33,10 +33,12 @@ def test_categories_complete_conversation_and_evidence_mapping(tmp_path):
     assert plan["methods"] == ["witnessrag"] and plan["settings"]["questions"] is None
     meta = prepare_data(plan)
     corpus = load_dataset("locomo", data_dir=tmp_path / "output/data")
-    assert [q.qtype for q in corpus.questions] == ["multi-hop", "single-hop"]
+    assert [q.qtype for q in corpus.questions] == [
+        "multi-hop", "temporal", "open-domain", "single-hop"]
     assert len(corpus.passages) == 2
     assert all(len(q.gold_pids) == 2 for q in corpus.questions)
-    assert meta["questions_by_type"] == {"multi-hop": 1, "single-hop": 1}
+    assert meta["questions_by_type"] == {
+        "multi-hop": 1, "temporal": 1, "open-domain": 1, "single-hop": 1}
     text = "\n".join(corpus.texts())
     assert "Ana: I work at Atlas." in text and "2023-05-01" in text and "A blue bird" in text
     assert "SECRET" not in text and "Question category" not in text
@@ -48,7 +50,7 @@ def test_sampling_never_removes_dialogue_and_ignores_qa_when_chunking():
     q, passages, _ = convert(raw, turns_per_passage=1)
     raw[0]["qa"][0]["answer"] = "different answer"
     one, other_passages, _ = convert(raw, turns_per_passage=1, n_questions=1)
-    assert len(one) == 1 and len(q) == 2 and passages == other_passages
+    assert len(one) == 1 and len(q) == 4 and passages == other_passages
     assert len(passages) == 3
 
 
@@ -76,7 +78,7 @@ def test_known_upstream_evidence_typo_is_repaired_and_audited():
     raw = [{"sample_id": "conv-43", "conversation": {"session_11": [
         {"dia_id": "D11:26", "speaker": "A", "text": "The book was The Alchemist."}
     ]}, "qa": [
-        {"question": "ignored", "answer": "x", "category": 2, "evidence": []}
+        {"question": "ignored", "answer": "x", "category": 5, "evidence": []}
         for _ in range(18)
     ] + [{"question": "Which book?", "answer": "The Alchemist", "category": 4,
           "evidence": ["D:11:26"]}]}]

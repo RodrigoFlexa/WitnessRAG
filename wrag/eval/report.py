@@ -370,23 +370,25 @@ def _locomo_block(records, excluded, data):
             "O número de blocos de apoio não define a categoria de hops.")
     if not official:
         note += " Coluna oficial ausente: instale `nltk` (o avaliador usa PorterStemmer)."
-    columns = ["F1", "EM"] + (["F1 ofic.", "EM ofic."] if official else []) + ["R@5", "AR@5"]
+    columns = ["F1", "EM"] + (["F1 ofic.", "BLEU-1", "EM ofic."] if official else []) + ["R@5", "AR@5"]
     lines = ["\n### LoCoMo: categorias oficiais\n", note + "\n",
              "| método | categoria | n | " + " | ".join(columns) + " |",
              "|" + "---|" * (len(columns) + 3)]
     data["por_categoria"] = {}
     for method, rows in records.items():
         data["por_categoria"][method] = {}
-        for category in ("single-hop", "multi-hop"):
+        for category in ("single-hop", "multi-hop", "temporal", "open-domain"):
             subset = [r for r in rows if r["qid"] not in excluded and r.get("tipo") == category]
             values = {k: M.aggregate(r[k] for r in subset)
                       for k in ("f1", "em", "recall@5", "all_recall@5")}
             if official:
-                scored = [r if "f1_locomo" in r else {**r, **LO.score_record(r)} for r in subset]
+                scored = [r if "f1_locomo" in r and "bleu1_locomo" in r
+                          else {**r, **LO.score_record(r)} for r in subset]
                 values["f1_locomo"] = M.aggregate(r["f1_locomo"] for r in scored)
+                values["bleu1_locomo"] = M.aggregate(r["bleu1_locomo"] for r in scored)
                 values["em_locomo"] = M.aggregate(r["em_locomo"] for r in scored)
             data["por_categoria"][method][category] = {"n": len(subset), **values}
-            order = ["f1", "em"] + (["f1_locomo", "em_locomo"] if official else []) + ["recall@5", "all_recall@5"]
+            order = ["f1", "em"] + (["f1_locomo", "bleu1_locomo", "em_locomo"] if official else []) + ["recall@5", "all_recall@5"]
             lines.append(f"| {method} | {category} | {len(subset)} | "
                          + " | ".join(_pct(values[k]) for k in order) + " |")
     if official:

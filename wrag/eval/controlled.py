@@ -153,7 +153,7 @@ def retrieval_signature(result):
 
 def snapshot(corpus, result):
     data = asdict(result)
-    data["passages"] = [asdict(corpus.get(pid)) for pid in result.pids]
+    data["passages"] = [_passage_dict(corpus.get(pid)) for pid in result.pids]
     data["hash"] = sha(data)
     return data
 
@@ -163,10 +163,17 @@ def thaw(corpus, data):
     checked = {k: v for k, v in data.items() if k != "hash"}
     if sha(checked) != data["hash"]:
         raise ValueError("Retrieval snapshot checksum mismatch")
-    if data["passages"] != [asdict(corpus.get(pid)) for pid in data["pids"]]:
+    if data["passages"] != [_passage_dict(corpus.get(pid)) for pid in data["pids"]]:
         raise ValueError("Reader source passages differ from frozen retrieval")
     return RetrievalResult(**{k: data[k] for k in
                               ("pids", "scores", "diagnostics", "filtered", "latency_s")})
+
+
+def _passage_dict(passage):
+    """JSON-stable passage snapshot (tuples otherwise reload as lists)."""
+    data = asdict(passage)
+    data["source_ids"] = list(data.get("source_ids") or [])
+    return data
 
 
 def sample_questions(corpus):

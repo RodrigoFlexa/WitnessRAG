@@ -41,9 +41,9 @@ def parser():
     p.add_argument("--existing-server", action="store_true", help="usa servidor já ativo em localhost:port")
     p.add_argument("--embed-model", default="BAAI/bge-base-en-v1.5")
     p.add_argument("--embed-device", default="cuda:0", help="cuda:0 é a GPU selecionada após remapeamento; ou cpu")
-    p.add_argument("--dataset", choices=["2wikimultihopqa", "musique", "hotpotqa", "sample", "locomo"], default="2wikimultihopqa")
+    p.add_argument("--dataset", choices=["2wikimultihopqa", "musique", "hotpotqa", "narrativeqa", "ruler", "sample", "locomo"], default="2wikimultihopqa")
     p.add_argument("-n", "--questions", type=int, default=None,
-                   help="padrão: 100; LoCoMo: todas as perguntas das categorias 1 e 4")
+                   help="padrão: 100; LoCoMo: todas as perguntas das categorias 1 a 4")
     p.add_argument("--locomo-conversation", default="0",
                    help="índice da conversa, começando em zero, ou 'all' para as dez em sequência")
     p.add_argument("--locomo-turns-per-passage", type=int, default=8)
@@ -53,6 +53,10 @@ def parser():
                    help="janelas OpenIE internas; 512 preserva fatos em chunks longos sem ampliar o leitor")
     p.add_argument("--locomo-file", type=Path, help="opcional: locomo10.json local, sem download")
     p.add_argument("--distractors", type=int, default=300, help="passagens aleatórias adicionais ao corpus candidato")
+    p.add_argument("--corpus-token-budget", type=int, default=0,
+                   help="HotpotQA: expande o corpus candidato até 56k/224k/448k tokens")
+    p.add_argument("--corpus-passages", type=int, default=0,
+                   help="tamanho exato do índice em passagens, incluindo apoios")
     p.add_argument("--max-passages", type=int, default=1500, help="falha se o corpus candidato exceder este teto")
     p.add_argument("--methods", default=None, help="LoCoMo: somente witnessrag; demais: todos os métodos")
     p.add_argument("--no-acquisition", action="store_true", help="ablação sem aquisição dirigida")
@@ -79,6 +83,10 @@ def parser():
                    help="planos parciais podem oferecer contexto, sem serem certificados")
     p.add_argument("--proof-reader", action="store_true",
                    help="leitor confere hipóteses do grafo nas passagens selecionadas")
+    p.add_argument("--temporal-memory", action="store_true",
+                   help="usa ordem/data estruturadas para completar contexto temporal, sem LLM")
+    p.add_argument("--complementary-context", action="store_true",
+                   help="troca no máximo a quinta passagem por uma faceta ausente, sem LLM")
     p.add_argument("--plan-repair", action="store_true",
                    help="diagnostica junções e busca/replaneja obrigações não cobertas")
     p.add_argument("--hybrid-fallback", action="store_true",
@@ -142,11 +150,15 @@ def make_plan(args, output):
         raise ValueError("top-k deve ser >= 1")
     if args.witness_candidate_pool < 1:
         raise ValueError("witness-candidate-pool deve ser >= 1")
+    if args.corpus_token_budget < 0:
+        raise ValueError("corpus-token-budget deve ser >= 0")
+    if args.corpus_passages < 0:
+        raise ValueError("corpus-passages deve ser >= 0")
     if args.embed_device not in {"cpu", "cuda", "cuda:0"}:
         raise ValueError("embed-device deve ser cpu ou cuda:0 na GPU remapeada")
     methods = [x.strip() for x in args.methods.split(",") if x.strip()]
     available = {"dense", "bm25", "hybrid", "graphrag", "hipporag", "hipporag2", "relational",
-                 "witnessrag", "witnessrag-annotated", "witnessrag-oracle"}
+                 "witnessrag", "witnessrag-lite", "witnessrag-annotated", "witnessrag-oracle"}
     if not methods or len(set(methods)) != len(methods) or set(methods) - available:
         raise ValueError("lista de métodos inválida ou duplicada")
     env = {
@@ -191,7 +203,7 @@ def make_plan(args, output):
     return {"output": str(output), "env": env, "server_command": command, "methods": methods,
             "frozen_memory": frozen_identity,
             "settings": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
-            "scope": ("LoCoMo: conversa completa, QA single-hop/multi-hop, adaptação textual"
+            "scope": ("LoCoMo: conversa completa, QA single/multi/temporal/open-domain, adaptação textual"
                       if args.dataset == "locomo" else
                       "piloto com corpus candidato reduzido e distratores; adaptações locais dos artigos")}
 
@@ -251,7 +263,32 @@ def prepare_data(plan):
         raise ValueError(f"corpus candidato tem {len(keep)} passagens > teto {cap}; reduza -n ou aumente --max-passages")
     extras = [p for p in full.passages if p.pid not in keep]
     random.Random(seed).shuffle(extras)
-    chosen = reduced.passages + extras[:min(settings["distractors"], cap - len(keep))]
+    if settings.get("corpus_passages"):
+        target = settings["corpus_passages"]
+        if target < len(reduced.passages):
+            raise ValueError(f"corpus-passages={target} menor que {len(reduced.passages)} apoios/candidatos")
+        if target > cap:
+            raise ValueError(f"corpus-passages={target} excede max-passages={cap}")
+        chosen = reduced.passages + extras[:target - len(reduced.passages)]
+        if len(chosen) != target:
+            raise ValueError(f"corpus possui somente {len(chosen)} passagens; solicitado {target}")
+        tokens = None
+    elif settings.get("corpus_token_budget"):
+        from transformers import AutoTokenizer
+        tokenizer = AutoTokenizer.from_pretrained(
+            settings["model"], revision=settings.get("model_revision") or None)
+        chosen = list(reduced.passages)
+        tokens = sum(len(tokenizer.encode(p.full, add_special_tokens=False)) for p in chosen)
+        for passage in extras:
+            if len(chosen) >= cap or tokens >= settings["corpus_token_budget"]:
+                break
+            chosen.append(passage)
+            tokens += len(tokenizer.encode(passage.full, add_special_tokens=False))
+        if tokens < settings["corpus_token_budget"]:
+            raise ValueError(f"corpus possui {tokens} tokens, abaixo do orçamento solicitado")
+    else:
+        chosen = reduced.passages + extras[:min(settings["distractors"], cap - len(keep))]
+        tokens = None
     ids = {q.qid for q in reduced.questions}
     raw = read_json(source / f"{name}.json")
     selected = [q for q in raw if str(q.get("id") or q.get("_id") or "") in ids]
@@ -260,6 +297,8 @@ def prepare_data(plan):
     metadata = {"source_sha256": sources, "source_repo": "https://github.com/OSU-NLP-Group/HippoRAG",
                 "seed": seed, "full_passages": len(full.passages), "candidate_passages": len(keep),
                 "additional_distractors": len(chosen) - len(keep), "selected_passages": len(chosen),
+                "corpus_tokens": tokens, "corpus_token_budget": settings.get("corpus_token_budget", 0),
+                "corpus_passage_budget": settings.get("corpus_passages", 0),
                 "questions": len(selected), "question_ids": sorted(ids),
                 "corpus_reduced": len(chosen) < len(full.passages)}
     write_json(Path(plan["output"]) / "data_selection.json", metadata)
@@ -324,6 +363,8 @@ def _run_config(settings, n_questions):
     cfg.witness.active_operators = settings.get("active_operators", False)
     cfg.witness.soft_obligations = settings.get("soft_obligations", False)
     cfg.witness.proof_reader = settings.get("proof_reader", False)
+    cfg.witness.temporal_memory = settings.get("temporal_memory", False)
+    cfg.witness.complementary_context = settings.get("complementary_context", False)
     cfg.witness.plan_repair = settings.get("plan_repair", False)
     if cfg.witness.plan_repair:
         # Conv00: later replans did not yield a selected proof, while repeated
@@ -570,9 +611,11 @@ def _validate_resume(old, new):
     fields = ("model", "model_revision", "embed_model", "dataset", "questions",
               "locomo_conversation", "locomo_turns_per_passage", "locomo_chunk_tokens",
               "locomo_ie_window_tokens", "seed", "top_k", "witness_candidate_pool",
+              "corpus_token_budget", "corpus_passages",
               "answer_set", "vocab_compile", "query_plans", "max_query_plans",
               "active_frontier", "active_obligations", "active_context", "active_operators",
-              "soft_obligations", "proof_reader", "plan_repair",
+              "soft_obligations", "proof_reader", "plan_repair", "temporal_memory",
+              "complementary_context",
               "hybrid_fallback", "dialogue_ie",
               "no_relation_family_merge",
               "binding_aware_grounding", "verify_witnesses", "no_acquisition")
@@ -599,8 +642,8 @@ def print_locomo_aggregate(output, status, run_dirs):
 
     summary = aggregate_runs(run_dirs)
     official = summary.get("oficial_disponivel")
-    keys = (("f1_locomo", "em_locomo") if official else ()) + ("f1", "em", "recall@5", "all_recall@5")
-    labels = (("F1ofic", "EMofic") if official else ()) + ("F1", "EM", "R@5", "AR@5")
+    keys = (("f1_locomo", "bleu1_locomo", "em_locomo") if official else ()) + ("f1", "em", "recall@5", "all_recall@5")
+    labels = (("F1ofic", "BLEU1", "EMofic") if official else ()) + ("F1", "EM", "R@5", "AR@5")
 
     def pct(value):
         return f"{100 * value:.2f}" if isinstance(value, (int, float)) and math.isfinite(value) else "—"
@@ -663,8 +706,8 @@ def print_results(output, status):
                 # correto. Imprimir só o harness esconde exatamente o multi-hop.
                 official = dataset == "locomo" and any(
                     "f1_locomo" in v for m in categories.values() for v in m.values())
-                keys = (("f1_locomo", "em_locomo") if official else ()) + ("f1", "em", "recall@5", "all_recall@5")
-                labels = (("F1ofic", "EMofic") if official else ()) + ("F1", "EM", "R@5", "AR@5")
+                keys = (("f1_locomo", "bleu1_locomo", "em_locomo") if official else ()) + ("f1", "em", "recall@5", "all_recall@5")
+                labels = (("F1ofic", "BLEU1", "EMofic") if official else ()) + ("F1", "EM", "R@5", "AR@5")
                 print(f"\n{dataset} — métricas em %, perguntas previstas: {total}")
                 print(f"{'método / categoria':<35} {'n':>5} " + " ".join(f"{x:>8}" for x in labels))
                 for method, result in data.get("metodos", {}).items():

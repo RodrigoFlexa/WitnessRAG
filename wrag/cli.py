@@ -138,6 +138,8 @@ def cmd_run(args: argparse.Namespace) -> int:
     cfg.witness.active_operators = args.active_operators
     cfg.witness.soft_obligations = args.soft_obligations
     cfg.witness.proof_reader = args.proof_reader
+    cfg.witness.temporal_memory = args.temporal_memory
+    cfg.witness.complementary_context = args.complementary_context
     cfg.qa.operator_reader = args.active_operators
     cfg.qa.proof_reader = args.proof_reader
     cfg.witness.hybrid_fallback = args.hybrid_fallback
@@ -245,6 +247,8 @@ def main(argv: list[str] | None = None) -> int:
     p_run.add_argument("--active-operators", action="store_true")
     p_run.add_argument("--soft-obligations", action="store_true")
     p_run.add_argument("--proof-reader", action="store_true")
+    p_run.add_argument("--temporal-memory", action="store_true")
+    p_run.add_argument("--complementary-context", action="store_true")
     p_run.add_argument("--hybrid-fallback", action="store_true",
                        help="fallback do WITNESS-RAG por fusão recíproca de postos (denso + BM25)")
     p_run.add_argument("--dialogue-ie", action="store_true",

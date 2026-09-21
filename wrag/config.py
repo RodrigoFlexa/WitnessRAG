@@ -224,6 +224,10 @@ class WitnessConfig:
     active_operators: bool = False
     soft_obligations: bool = False
     proof_reader: bool = False
+    # Zero-LLM context policies.  Each has an independent switch so the paired
+    # ablation identifies whether chronology or missing-facet coverage helped.
+    temporal_memory: bool = False
+    complementary_context: bool = False
     # Experimental recovery of failed plans. Kept separate from the established
     # controller so the historical baseline remains reproducible.
     plan_repair: bool = False

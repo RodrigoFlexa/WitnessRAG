@@ -485,6 +485,22 @@ Return the shortest complete answer, with no explanation, as JSON:
 PERGUNTA: {question}"""
 
 
+QA_INFERENCE_TEMPLATE = """Answer the question from the dialogue passages below.
+
+This question asks for a cautious conclusion that may combine several explicit
+statements. Identify the same person in every relevant statement and choose the
+shortest conclusion directly supported by their stated interests, plans,
+preferences, or circumstances. Do not invent facts or use outside knowledge.
+Words such as "likely" and counterfactual questions permit a conservative
+inference, but the premises must occur in the passages. If they do not, answer
+"insufficient information". Return only JSON: {{"answer": "..."}}
+
+### INPUT
+{passages}
+
+QUESTION: {question}"""
+
+
 # Versioned plan/controller interface. The graph executes only short directed
 # predicates; additional requirements must survive as explicit source checks.
 COMPILE_PLANS_REPAIR_TEMPLATE = COMPILE_PLANS_TEMPLATE.replace(

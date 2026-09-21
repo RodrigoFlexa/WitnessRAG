@@ -82,6 +82,7 @@ def main() -> None:
 
         entry = {"n": len(rows), "por_categoria": {}}
         entry["f1_locomo"] = mean([r["f1_locomo"] for r in rows])
+        entry["bleu1_locomo"] = mean([r["bleu1_locomo"] for r in rows])
         entry["em_locomo"] = mean([r["em_locomo"] for r in rows])
         entry["f1_harness"] = mean([r["f1"] for r in rows])
         entry["em_harness"] = mean([r["em"] for r in rows])
@@ -90,9 +91,10 @@ def main() -> None:
             entry["recall_evidencia"] = mean(recalls)
         for category, subset in sorted(per_category.items()):
             entry["por_categoria"][category] = {
-                "nome": {1: "multi-hop", 4: "single-hop"}.get(category, str(category)),
+                "nome": L.CATEGORY_NAME.get(category, str(category)),
                 "n": len(subset),
                 "f1_locomo": mean([r["f1_locomo"] for r in subset]),
+                "bleu1_locomo": mean([r["bleu1_locomo"] for r in subset]),
                 "em_locomo": mean([r["em_locomo"] for r in subset]),
                 "f1_harness": mean([r["f1"] for r in subset]),
                 "em_harness": mean([r["em"] for r in subset]),

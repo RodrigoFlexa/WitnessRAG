@@ -23,8 +23,10 @@ import regex
 
 from wrag.locomo import REVISION as LOCOMO_REVISION
 
-# Categorias oficiais; o harness só executa 1 e 4 (ver wrag/locomo.py).
-CATEGORY_BY_TYPE = {"multi-hop": 1, "single-hop": 4}
+# Answer categories from the pinned LoCoMo evaluator.  BLEU-1 below is an
+# additional requested diagnostic; upstream officially defines F1, not BLEU.
+CATEGORY_BY_TYPE = {"multi-hop": 1, "temporal": 2, "open-domain": 3, "single-hop": 4}
+CATEGORY_NAME = {1: "multi-hop", 2: "temporal", 3: "open-domain", 4: "single-hop", 5: "adversarial"}
 SOURCE = (f"https://github.com/snap-research/locomo/blob/{LOCOMO_REVISION}"
           "/task_eval/evaluation.py")
 
@@ -105,6 +107,33 @@ def exact_match_score(prediction: str, ground_truth: str) -> float:
     return float(pred == gold)
 
 
+def bleu1_score(prediction: str, ground_truth: str) -> float:
+    """Unigram BLEU with clipped precision and the standard brevity penalty.
+
+    This is dependency-free and deterministic.  For category 1 we mirror the
+    official multi-answer F1 convention: each gold comma-separated item takes
+    its best matching predicted item and extra predictions are not penalized.
+    """
+    import math
+    from collections import Counter
+    pred = _stem_tokens(prediction)
+    gold = _stem_tokens(ground_truth)
+    if not pred or not gold:
+        return 0.0
+    overlap = sum((Counter(pred) & Counter(gold)).values())
+    precision = overlap / len(pred)
+    if precision == 0:
+        return 0.0
+    brevity = 1.0 if len(pred) >= len(gold) else math.exp(1.0 - len(gold) / len(pred))
+    return brevity * precision
+
+
+def multi_answer_bleu1(prediction: str, ground_truth: str) -> float:
+    predictions = [p.strip() for p in (prediction or "").split(",")]
+    golds = [g.strip() for g in (ground_truth or "").split(",")]
+    return sum(max(bleu1_score(p, g) for p in predictions) for g in golds) / len(golds)
+
+
 def question_score(prediction: str, answer: str, category: int) -> float:
     """Despacho por categoria, como em `eval_question_answering`."""
     if category == 3:
@@ -140,7 +169,10 @@ def score_record(record: dict) -> dict[str, float]:
         raise ValueError(f"registro sem categoria oficial: {record.get('qid')!r}")
     gold = record["respostas_ouro"][0]
     prediction = record.get("resposta", "")
+    bleu_gold = gold.split(";")[0].strip() if category == 3 else gold
+    bleu = bleu1_score(prediction, bleu_gold)
     return {"f1_locomo": question_score(prediction, gold, category),
+            "bleu1_locomo": bleu,
             "em_locomo": exact_match_score(prediction, gold),
             "categoria_locomo": category}
 
@@ -181,7 +213,7 @@ def aggregate_runs(run_dirs: Sequence["Path"]) -> dict:
     out: dict = {"conversas": len(list(run_dirs)), "metodos": {}, "oficial_disponivel": scored}
     for method, rows in per_method.items():
         for row in rows:
-            if scored and "f1_locomo" not in row:
+            if scored and ("f1_locomo" not in row or "bleu1_locomo" not in row):
                 row.update(score_record(row))
 
         def block(subset: list[dict]) -> dict:
@@ -192,6 +224,7 @@ def aggregate_runs(run_dirs: Sequence["Path"]) -> dict:
                       "all_recall@5": _mean([r["all_recall@5"] for r in subset])}
             if scored:
                 values["f1_locomo"] = _mean([r["f1_locomo"] for r in subset])
+                values["bleu1_locomo"] = _mean([r["bleu1_locomo"] for r in subset])
                 values["em_locomo"] = _mean([r["em_locomo"] for r in subset])
             fired = ([r for r in subset if isinstance(r.get("diagnosticos"), dict)]
                      if method.startswith("witnessrag") or method == "relational" else [])
@@ -206,7 +239,7 @@ def aggregate_runs(run_dirs: Sequence["Path"]) -> dict:
         entry = block(rows)
         entry["por_categoria"] = {
             name: block([r for r in rows if r.get("tipo") == name])
-            for name in ("single-hop", "multi-hop")
+            for name in ("single-hop", "multi-hop", "temporal", "open-domain")
             if any(r.get("tipo") == name for r in rows)
         }
         entry["por_conversa"] = {

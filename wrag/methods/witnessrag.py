@@ -36,6 +36,7 @@ from wrag.witness.search import (Gap, SearchResult, WitnessSearcher, cover_answe
 from wrag.witness.research import (assess_plan, assess_plan_soft, assess_plan_repair, collect_frontier,
                                    frontier_probes, gap_candidates, proof_hints,
                                    select_evidence)
+from wrag.witness.context_selection import select_complement
 
 log = get_logger("wrag.methods.witnessrag")
 
@@ -369,6 +370,27 @@ class WitnessRAGRetriever(Retriever):
         before_events = len(LEDGER.events)
         try:
             result = self._retrieve_inner(question, k, dense_pids, dense_scores)
+            # Apply the cheap context policy only when the logical route did not
+            # deliver a complete proof.  This prevents a tail swap from silently
+            # removing a cited witness.  It consumes no LLM call and never reads
+            # gold answers, labels, or supporting-passage annotations.
+            incomplete = (not result.diagnostics.get("testemunha_no_contexto") or
+                          result.diagnostics.get("classe_prova") in {"nenhuma", "provisional"})
+            if incomplete and (cfg.temporal_memory or cfg.complementary_context) and result.pids:
+                selection = select_complement(
+                    self.corpus, question.question, result.pids, result.diagnostics, k,
+                    temporal=cfg.temporal_memory,
+                    complementary=cfg.complementary_context)
+                if selection.changed:
+                    result.pids = selection.pids
+                    result.scores = [1.0 / (i + 1) for i in range(len(selection.pids))]
+                result.diagnostics["selecao_contexto"] = {
+                    "alterou": selection.changed, "adicionada": selection.added,
+                    "removida": selection.removed, "motivo": selection.reason,
+                    "score": round(selection.score, 4),
+                    "temporal": cfg.temporal_memory,
+                    "complementar": cfg.complementary_context,
+                }
             result.filtered |= any(e.item_id == question.qid and e.method == self.name
                                    for e in LEDGER.events[before_events:])
             result.diagnostics.setdefault("risco", 1.0)
