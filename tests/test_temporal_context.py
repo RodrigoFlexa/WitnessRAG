@@ -2,7 +2,7 @@ from wrag.data import Corpus, Passage
 from wrag.eval.locomo_official import bleu1_score, multi_answer_bleu1
 from wrag.witness.context_selection import is_temporal_question, select_complement
 from wrag.pilot import _run_config
-from wrag.long_benchmark import _config as long_config, _normalize
+from wrag.long_benchmark import _config as long_config, _normalize, _ruler_score
 from wrag.methods import REGISTRY, GRAPH_METHODS
 
 
@@ -59,3 +59,13 @@ def test_long_context_adapter_and_aggregation_profile():
     cfg = long_config("full", 5, "agg")
     assert cfg.qa.answer_set and cfg.witness.complementary_context
     assert "witnessrag-lite" in REGISTRY and "witnessrag-lite" not in GRAPH_METHODS
+
+
+def test_ruler_official_combined_input_and_task_metrics():
+    qid, context, question, answers, _task = _normalize(
+        {"id": "r", "input": "noise and key value\n\nWhat is the key?",
+         "outputs": ["alpha", "beta"]}, 0, "ruler")
+    assert qid == "r" and context == "noise and key value"
+    assert question == "What is the key?" and answers == ["alpha", "beta"]
+    assert _ruler_score("Alpha only", answers, "qa") == 1.0
+    assert _ruler_score("Alpha only", answers, "mt") == .5

@@ -361,6 +361,15 @@ def test_tfidf_cache_tracks_tail_and_one_word_corpus():
     assert emb.encode(["word"]).shape == (1, 1)
 
 
+def test_passage_index_accepts_hotpot_sentence_spacing_but_not_ambiguous_title():
+    index = _PassageIndex()
+    expected = index.add("Unique", "First sentence. Second sentence.")
+    assert index.find("Unique", "First sentence.  Second sentence.") == expected
+    index.add("Duplicate", "version one")
+    index.add("Duplicate", "version two")
+    assert index.find("Duplicate", "different text") is None
+
+
 def test_witness_metric_requires_relation_and_direction():
     gold = [("Ana", "mother of", "Bruno")]
     assert M.witness_coverage([("Ana", "works with", "Bruno")], gold) == 0

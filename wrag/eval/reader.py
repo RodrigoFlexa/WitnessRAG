@@ -142,6 +142,7 @@ def read(
     use_proof = bool(cfg.proof_reader and proof_context and
                      proof_context.get("hipoteses"))
     template = (prompts.QA_INFERENCE_TEMPLATE if question.dataset == "locomo" and question.qtype == "open-domain" else
+                prompts.QA_TEMPORAL_MEMORY_TEMPLATE if question.dataset == "locomo" and question.qtype == "temporal" else
                 prompts.QA_COUNT_TEMPLATE if count_mode and re.search(r"\bhow many\b", question.question, re.I) else
                 prompts.QA_PROOF_TEMPLATE if use_proof else
                 prompts.QA_OPERATOR_TEMPLATE if cfg.operator_reader and operator_question

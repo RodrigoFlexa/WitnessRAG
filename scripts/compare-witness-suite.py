@@ -15,7 +15,8 @@ from wrag.eval.metrics import bootstrap_ci
 from wrag.eval.locomo_official import score_record
 from wrag.util import write_json
 
-KNOWN_ARMS = ("base", "soft", "temporal", "full", "temporal-v2", "full-v2")
+KNOWN_ARMS = ("base", "soft", "temporal", "full", "temporal-v2", "full-v2",
+              "reform", "reform-low-fallback")
 CATEGORIES = ("single-hop", "multi-hop", "temporal", "open-domain")
 
 

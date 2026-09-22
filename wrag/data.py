@@ -112,6 +112,7 @@ class _PassageIndex:
     def __init__(self) -> None:
         self.by_key: dict[str, str] = {}
         self.by_title: dict[str, set[str]] = {}
+        self.by_pid: dict[str, Passage] = {}
         self.passages: list[Passage] = []
 
     def add(self, title: str, text: str, *, session_time: str = "",
@@ -124,17 +125,29 @@ class _PassageIndex:
                           session_time=str(session_time or ""), sequence=sequence,
                           source_ids=tuple(str(x) for x in source_ids))
         self.passages.append(passage)
+        self.by_pid[pid] = passage
         self.by_key[key] = pid
         self.by_title.setdefault(normalize(title), set()).add(pid)
         return pid
 
     def find(self, title: str, text: str | None = None) -> str | None:
+        candidates = self.by_title.get(normalize(title), set())
         if text:
             key = sha(title.strip(), text.strip())
             if key in self.by_key:
                 return self.by_key[key]
-            return None  # texto distinto não pode ser substituído pelo primeiro título
-        candidates = self.by_title.get(normalize(title), set())
+            # HotpotQA's question file joins sentences with two spaces while
+            # its consolidated corpus uses one.  Match normalized text only
+            # within the same normalized title; never choose an arbitrary
+            # passage when several different texts still match.
+            normalized_text = normalize(text)
+            normalized_matches = [pid for pid in candidates
+                                  if normalize(self.by_pid[pid].text) == normalized_text]
+            if len(normalized_matches) == 1:
+                return normalized_matches[0]
+            # A unique title is the documented HotpotQA/2Wiki identifier.  It
+            # is safe even when harmless formatting differs across snapshots.
+            return next(iter(candidates)) if len(candidates) == 1 else None
         return next(iter(candidates)) if len(candidates) == 1 else None
 
 

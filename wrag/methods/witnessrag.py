@@ -1086,8 +1086,13 @@ class WitnessRAGRetriever(Retriever):
         delivered = [w for w in result.witnesses if set(w.pids) <= set(pids)]
         candidates = score_answers(delivered, self.memory, cfg)
         if proof_status == "provisional":
-            diagnostics["fallback"] = "hibrido_com_hipotese_nao_certificada"
             diagnostics["prova_provisoria"] = True
+            if cfg.admit_provisional_witnesses and delivered:
+                diagnostics["classe_prova"] = "qualified"
+                diagnostics["motivo_parada"] = "qualified_witness_context"
+                diagnostics["testemunha_qualificada"] = True
+            else:
+                diagnostics["fallback"] = "hibrido_com_hipotese_nao_certificada"
         diagnostics["consulta"] = query.to_dict()
         diagnostics["forma"] = query.shape()
         diagnostics["n_testemunhas_no_contexto"] = len(delivered)

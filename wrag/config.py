@@ -228,6 +228,7 @@ class WitnessConfig:
     # ablation identifies whether chronology or missing-facet coverage helped.
     temporal_memory: bool = False
     complementary_context: bool = False
+    admit_provisional_witnesses: bool = False
     # Experimental recovery of failed plans. Kept separate from the established
     # controller so the historical baseline remains reproducible.
     plan_repair: bool = False

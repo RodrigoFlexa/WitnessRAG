@@ -66,12 +66,31 @@ def _normalize(item: dict, index: int, benchmark: str) -> tuple[str, str, str, l
     if isinstance(question, dict):
         question = _field(question, "text", "question")
     question = str(question or _field(item, "query", "prompt"))
+    # Official RULER JSONL stores the generated context and final instruction
+    # together in ``input``. Recover the last non-empty paragraph as the query
+    # rather than embedding all 128k tokens as a retrieval query.
+    if benchmark == "ruler" and not question and context:
+        blocks = [part.strip() for part in str(context).split("\n\n") if part.strip()]
+        question = blocks[-1] if blocks else str(context).strip().splitlines()[-1]
+        if str(context).rstrip().endswith(question):
+            context = str(context).rstrip()[:-len(question)].rstrip()
     qid = str(_field(item, "id", "_id", "qid", default=f"{benchmark}-{index}"))
     task = str(_field(item, "task", "type", "subset", default=benchmark)).lower()
     answers = _answers(item)
     if not context or not question or not answers:
         raise ValueError(f"example {qid} lacks context, question, or answer")
     return qid, str(context), question, answers, task
+
+
+def _ruler_score(answer: str, references: list[str], task: str) -> float:
+    """NVIDIA RULER synthetic metric on a 0--1 scale."""
+    prediction = answer.strip().lower()
+    refs = [str(x).strip().lower() for x in references if str(x).strip()]
+    if not refs:
+        return 0.0
+    if task.lower() == "qa":
+        return float(any(ref in prediction for ref in refs))
+    return sum(ref in prediction for ref in refs) / len(refs)
 
 
 def _chunks(tokenizer, text: str, size: int, overlap: int, limit: int) -> list[str]:
@@ -151,6 +170,8 @@ def run(args) -> dict:
                    if args.context_tokens else len(tokenizer.encode(context, add_special_tokens=False)),
                "chunks": len(passages), "latency_s": time.perf_counter() - started,
                "diagnostics": retrieval.diagnostics}
+        if args.benchmark == "ruler":
+            row["ruler_score"] = _ruler_score(result.answer, answers, task)
         append_jsonl(records_path, row)
         _report(output, manifest, read_jsonl(records_path), len(raw))
     return _report(output, manifest, read_jsonl(records_path), len(raw))
@@ -161,17 +182,22 @@ def _report(output: Path, manifest: dict, rows: list[dict], expected: int) -> di
               for task in sorted({r["task"] for r in rows})}
     block = lambda values: {"n": len(values), "f1": mean(r["f1"] for r in values) if values else None,
                             "em": mean(r["em"] for r in values) if values else None,
+                            "ruler_score": mean(r["ruler_score"] for r in values)
+                                if values and "ruler_score" in values[0] else None,
                             "latency_s": mean(r["latency_s"] for r in values) if values else None}
     report = {"benchmark": manifest["benchmark"], "profile": manifest["profile"],
               "completed": len(rows), "expected": expected, "overall": block(rows),
               "by_task": {name: block(values) for name, values in groups.items()}}
     write_json(output / "report.json", report)
     lines = [f"# {manifest['benchmark']} — {manifest['profile']}", "",
-             f"Concluídos: {len(rows)}/{expected}", "", "| tarefa | n | F1 | EM | latência (s) |",
-             "|---|---:|---:|---:|---:|"]
+             f"Concluídos: {len(rows)}/{expected}", "",
+             "| tarefa | n | score RULER | F1 | EM | latência (s) |",
+             "|---|---:|---:|---:|---:|---:|"]
     for name, values in {"overall": rows, **groups}.items():
         b = block(values)
-        lines.append(f"| {name} | {b['n']} | {b['f1'] or 0:.4f} | {b['em'] or 0:.4f} | {b['latency_s'] or 0:.2f} |")
+        official = "—" if b["ruler_score"] is None else f"{b['ruler_score']:.4f}"
+        lines.append(f"| {name} | {b['n']} | {official} | {b['f1'] or 0:.4f} | "
+                     f"{b['em'] or 0:.4f} | {b['latency_s'] or 0:.2f} |")
     (output / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     return report
 

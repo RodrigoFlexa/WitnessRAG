@@ -33,6 +33,8 @@ profile_flags() {
     soft) echo "--soft-obligations" ;;
     temporal|temporal-v2) echo "--soft-obligations --temporal-memory" ;;
     full|full-v2) echo "--soft-obligations --temporal-memory --complementary-context" ;;
+    reform) echo "--soft-obligations --temporal-memory --complementary-context --temporal-annotations" ;;
+    reform-low-fallback) echo "--soft-obligations --temporal-memory --complementary-context --temporal-annotations --admit-provisional-witnesses" ;;
     *) echo "unknown profile: $1" >&2; exit 2 ;;
   esac
 }
@@ -96,11 +98,9 @@ elif [[ "$BENCHMARK" == hotpotqa ]]; then
     [[ -f "$OUTPUT/${TOKENS}/pilot.json" ]] && RESUME+=(--resume)
     "$BENCH_PYTHON" -m wrag.pilot --existing-server --gpu "$GPU" --port "$PORT" \
       --dataset hotpotqa --methods witnessrag-lite --questions "${HOTPOT_QUESTIONS:-1000}" \
-      --model "$MODEL" --embed-model BAAI/bge-m3 --embed-device "$EMBED_DEVICE" --top-k 5 --max-passages 448000 \
-      --corpus-passages "$TOKENS" --binding-aware-grounding --answer-set \
-      --vocab-compile --hybrid-fallback --query-plans --max-query-plans 5 \
-      --active-frontier --active-obligations --active-context --soft-obligations \
-      --temporal-memory --complementary-context --cache-dir "$CACHE_DIR" \
+      --model "$MODEL" --embed-model BAAI/bge-m3 --embed-device "$EMBED_DEVICE" \
+      --top-k 5 --max-passages 100000 --corpus-token-budget "$TOKENS" \
+      --witness-candidate-pool 20 --hybrid-fallback --complementary-context --cache-dir "$CACHE_DIR" \
       --hours "${HOURS:-48}" --output "$OUTPUT/${TOKENS}" "${RESUME[@]}"
   done
 elif [[ "$BENCHMARK" == ruler ]]; then

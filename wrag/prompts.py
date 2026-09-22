@@ -491,17 +491,43 @@ PERGUNTA: {question}"""
 
 QA_INFERENCE_TEMPLATE = """Answer the question from the dialogue passages below.
 
-This question asks for a cautious conclusion that may combine several explicit
-statements. Identify the same person in every relevant statement and choose the
-shortest conclusion directly supported by their stated interests, plans,
-preferences, or circumstances. Do not invent facts or use outside knowledge.
-Words such as "likely", preference comparisons, and counterfactual questions
-explicitly request a conservative inference. When a stated preference, plan,
-interest, experience, or circumstance supports one, give the conclusion plus
-the shortest supporting reason (for example, "yes; she likes classical music").
-Do not demand that the conclusion itself appear verbatim. Use "insufficient
-information" only when no relevant premise occurs in the passages. Return only
-JSON: {{"answer": "..."}}
+This category deliberately asks for a likely conclusion rather than a quoted
+fact. Combine the person's explicit interests, plans, experiences and stated
+values with ordinary category knowledge when needed (for example Vivaldi is
+classical music and Dr. Seuss wrote children's books). Counterfactual questions
+also require the most likely yes/no conclusion from the stated causal premise.
+
+Return the benchmark label, not an explanation:
+- yes/no question: "yes", "no", "likely yes", or "likely no";
+- choice question: only the chosen option;
+- political leaning: a conventional label such as "liberal" or "conservative";
+- fields or traits: only a short comma-separated list.
+Use "insufficient information" only when the passages contain no relevant fact.
+Return only JSON: {{"answer": "..."}}
+
+### INPUT
+{passages}
+
+QUESTION: {question}"""
+
+
+QA_TEMPORAL_MEMORY_TEMPLATE = """Answer the temporal question using only the dialogue below.
+
+Every dialogue turn may contain `date=...`, its session reference time. A line
+tagged `temporal` gives a deterministic normalization of a relative expression
+from that same turn. Use the normalized value for the event named in the
+question. Never use a date from another turn merely because it is later.
+
+Rules:
+- yesterday/two days ago: return the normalized calendar date;
+- last/next month or year: return the normalized month or year;
+- last week/weekend/weekday: preserve the interval form, such as "the week
+  before 9 June 2023" or "the Friday before 15 July 2023";
+- durations such as "for seven years" remain durations when asked how long;
+- return only the shortest normalized answer, without explanation or timestamp.
+
+If no passage describes the requested event, return "insufficient information".
+Return only JSON: {{"answer": "..."}}
 
 ### INPUT
 {passages}

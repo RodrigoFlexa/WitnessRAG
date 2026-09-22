@@ -89,6 +89,10 @@ def parser():
                    help="usa ordem/data estruturadas para completar contexto temporal, sem LLM")
     p.add_argument("--complementary-context", action="store_true",
                    help="troca no máximo a quinta passagem por uma faceta ausente, sem LLM")
+    p.add_argument("--temporal-annotations", action="store_true",
+                   help="normaliza tempo relativo usando a data da própria sessão LoCoMo")
+    p.add_argument("--admit-provisional-witnesses", action="store_true",
+                   help="usa testemunhas provisórias com proveniência como rota qualificada")
     p.add_argument("--plan-repair", action="store_true",
                    help="diagnostica junções e busca/replaneja obrigações não cobertas")
     p.add_argument("--hybrid-fallback", action="store_true",
@@ -227,7 +231,8 @@ def prepare_conversation(plan, index, output):
     return prepare(output, source, index, settings.get("locomo_turns_per_passage", 8),
                    settings.get("questions"), settings["seed"], settings["max_passages"],
                    settings.get("locomo_chunk_tokens") or None, settings["model"],
-                   settings.get("model_revision") or None)
+                   settings.get("model_revision") or None,
+                   settings.get("temporal_annotations", False))
 
 
 def prepare_data(plan):
@@ -241,7 +246,8 @@ def prepare_data(plan):
                        settings.get("locomo_conversation", 0), settings.get("locomo_turns_per_passage", 8),
                        settings.get("questions"), settings["seed"], settings["max_passages"],
                        settings.get("locomo_chunk_tokens") or None, settings["model"],
-                       settings.get("model_revision") or None)
+                       settings.get("model_revision") or None,
+                       settings.get("temporal_annotations", False))
     data = Path(plan["output"]) / "data"
     source = Path(plan["output"]) / "source-data"
     source.mkdir(parents=True, exist_ok=True)
@@ -384,6 +390,7 @@ def _run_config(settings, n_questions):
     cfg.witness.proof_reader = settings.get("proof_reader", False)
     cfg.witness.temporal_memory = settings.get("temporal_memory", False)
     cfg.witness.complementary_context = settings.get("complementary_context", False)
+    cfg.witness.admit_provisional_witnesses = settings.get("admit_provisional_witnesses", False)
     cfg.witness.plan_repair = settings.get("plan_repair", False)
     if cfg.witness.plan_repair:
         # Conv00: later replans did not yield a selected proof, while repeated
@@ -638,7 +645,7 @@ def _validate_resume(old, new):
               "answer_set", "vocab_compile", "query_plans", "max_query_plans",
               "active_frontier", "active_obligations", "active_context", "active_operators",
               "soft_obligations", "proof_reader", "plan_repair", "temporal_memory",
-              "complementary_context",
+              "complementary_context", "temporal_annotations", "admit_provisional_witnesses",
               "hybrid_fallback", "dialogue_ie",
               "no_relation_family_merge",
               "binding_aware_grounding", "verify_witnesses", "no_acquisition")

@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from wrag.data import load_dataset
-from wrag.locomo import convert
+from wrag.locomo import convert, _temporal_annotation
 from wrag.pilot import make_plan, parser, prepare_data
 from wrag.util import read_json
 
@@ -52,6 +52,16 @@ def test_sampling_never_removes_dialogue_and_ignores_qa_when_chunking():
     one, other_passages, _ = convert(raw, turns_per_passage=1, n_questions=1)
     assert len(one) == 1 and len(q) == 4 and passages == other_passages
     assert len(passages) == 3
+
+
+def test_temporal_annotation_uses_same_session_anchor():
+    line = _temporal_annotation("D6:4", "Yesterday I went to the museum.",
+                                "4:30 pm on 6 July, 2023")
+    assert "reference_time=2023-07-06" in line
+    assert '"yesterday"=5 July 2023' in line
+    friday = _temporal_annotation("D8:1", "I went last Friday.",
+                                  "noon on 15 July, 2023")
+    assert '"last friday"=14 July 2023' in friday
 
 
 def test_token_chunking_is_dialogue_only_and_maps_supports():
