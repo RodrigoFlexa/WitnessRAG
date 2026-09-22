@@ -348,6 +348,9 @@ def worker(plan_path):
     # Mantém os demais hiperparâmetros consolidados: sem corte oculto de tokens/fatos.
     if settings["dataset"] == "locomo" and settings.get("locomo_conversation") == "all":
         roots = _run_every_conversation(plan, settings)
+        if len(roots) != LOCOMO_CONVERSATIONS:
+            raise RuntimeError(f"LoCoMo incompleto: {len(roots)}/{LOCOMO_CONVERSATIONS} conversas; "
+                               "reexecute com --resume e o mesmo diretório")
     else:
         resume_dir = None
         if settings.get("resume"):
@@ -448,8 +451,15 @@ def _run_every_conversation(plan, settings):
         C.DATA_DIR = conversation / "data"
         C.RUNS_DIR = conversation / "benchmark"
         C.RUNS_DIR.mkdir(parents=True, exist_ok=True)
+        partial = sorted(C.RUNS_DIR.glob("*/run.json"))
+        if len(partial) > 1:
+            raise ValueError(f"retomada ambígua da conversa {index}: múltiplas rodadas")
+        resume_dir = partial[0].parent if partial else None
+        if resume_dir:
+            print(f"Retomando conversa {index}: {resume_dir}", flush=True)
         root = run([settings["dataset"]], plan["methods"],
-                   _run_config(settings, metadata["questions"]), tag=f"conv{index:02d}")
+                   _run_config(settings, metadata["questions"]), tag=f"conv{index:02d}",
+                   resume_dir=resume_dir)
         roots.append(str(root))
         done.append({"conversa": index, "sample_id": metadata["sample_id"],
                      "perguntas": metadata["questions"], "run_dir": str(root)})

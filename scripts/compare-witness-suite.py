@@ -41,11 +41,13 @@ def main(argv=None):
     p.add_argument("root", type=Path)
     args = p.parse_args(argv)
     available = [name for name in KNOWN_ARMS if (args.root / name).exists()]
-    if "base" not in available:
-        raise FileNotFoundError(f"base arm is required under {args.root}")
+    if not available:
+        raise FileNotFoundError(f"no suite arms under {args.root}")
     arms = {name: load_arm(args.root, name) for name in available}
+    reference = "reform-v2" if "reform-v2" in arms else "base" if "base" in arms else available[0]
     common = set.intersection(*(set(rows) for rows in arms.values()))
-    report = {"paired_questions": len(common), "arms": {}, "against_base": {}}
+    report = {"paired_questions": len(common), "reference_arm": reference,
+              "arms": {}, "against_base": {}}
     for arm, rows in arms.items():
         report["arms"][arm] = {}
         for category in CATEGORIES:
@@ -55,12 +57,12 @@ def main(argv=None):
                 "f1": mean(r["f1_locomo"] for r in subset) if subset else None,
                 "bleu1": mean(r["bleu1_locomo"] for r in subset) if subset else None,
             }
-        if arm == "base":
+        if arm == reference:
             continue
         report["against_base"][arm] = {}
         for category in CATEGORIES:
             qids = [qid for qid in common if rows[qid].get("tipo") == category]
-            delta = [rows[qid]["f1_locomo"] - arms["base"][qid]["f1_locomo"] for qid in qids]
+            delta = [rows[qid]["f1_locomo"] - arms[reference][qid]["f1_locomo"] for qid in qids]
             report["against_base"][arm][category] = {
                 "delta_f1": mean(delta) if delta else None,
                 "question_bootstrap_ci95": bootstrap_ci(delta, n_boot=5000) if len(delta) > 1 else [None, None],
@@ -69,7 +71,8 @@ def main(argv=None):
             }
     write_json(args.root / "ablation_report.json", report)
     lines = ["# Witness suite — paired ablation", "", f"Common questions: {len(common)}", "",
-             "| arm | category | n | F1 | BLEU-1 | ΔF1 vs base | 95% question bootstrap |",
+             f"Reference arm: {reference}", "",
+             f"| arm | category | n | F1 | BLEU-1 | ΔF1 vs {reference} | 95% question bootstrap |",
              "|---|---|---:|---:|---:|---:|---|"]
     for arm in available:
         for category in CATEGORIES:
