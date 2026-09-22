@@ -36,3 +36,11 @@ Common questions: 152
 | reform-low-fallback | multi-hop | 32 | 0.3668 | 0.2777 | -0.0829 | [-0.1877, 0.0095] |
 | reform-low-fallback | temporal | 37 | 0.6235 | 0.5680 | 0.4066 | [0.2548, 0.5473] |
 | reform-low-fallback | open-domain | 13 | 0.5304 | 0.4493 | 0.4063 | [0.1900, 0.6229] |
+| reform-v2 | single-hop | 70 | 0.6613 | 0.5929 | 0.0520 | [0.0037, 0.1072] |
+| reform-v2 | multi-hop | 32 | 0.4709 | 0.3635 | 0.0212 | [-0.0161, 0.0605] |
+| reform-v2 | temporal | 37 | 0.5643 | 0.5102 | 0.3474 | [0.2181, 0.4837] |
+| reform-v2 | open-domain | 13 | 0.5186 | 0.4493 | 0.3944 | [0.1734, 0.6154] |
+| reform-v2-low-fallback | single-hop | 70 | 0.6596 | 0.5864 | 0.0504 | [0.0037, 0.1051] |
+| reform-v2-low-fallback | multi-hop | 32 | 0.4709 | 0.3635 | 0.0212 | [-0.0161, 0.0605] |
+| reform-v2-low-fallback | temporal | 37 | 0.5643 | 0.5102 | 0.3474 | [0.2181, 0.4837] |
+| reform-v2-low-fallback | open-domain | 13 | 0.4801 | 0.4108 | 0.3560 | [0.1591, 0.5611] |
