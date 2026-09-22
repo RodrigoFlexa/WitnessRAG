@@ -35,6 +35,8 @@ profile_flags() {
     full|full-v2) echo "--soft-obligations --temporal-memory --complementary-context" ;;
     reform) echo "--soft-obligations --temporal-memory --complementary-context --temporal-annotations" ;;
     reform-low-fallback) echo "--soft-obligations --temporal-memory --complementary-context --temporal-annotations --admit-provisional-witnesses" ;;
+    reform-v2) echo "--soft-obligations --temporal-memory --complementary-context --temporal-annotations" ;;
+    reform-v2-low-fallback) echo "--soft-obligations --temporal-memory --complementary-context --temporal-annotations --admit-provisional-witnesses" ;;
     *) echo "unknown profile: $1" >&2; exit 2 ;;
   esac
 }

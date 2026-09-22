@@ -64,6 +64,14 @@ def test_temporal_annotation_uses_same_session_anchor():
     assert '"last friday"=14 July 2023' in friday
 
 
+def test_temporal_reader_view_does_not_modify_indexed_corpus():
+    from wrag.eval.reader import _temporal_reader_view
+    source = "Session date: 4:30 pm on 6 July, 2023\n[D6:4] Ana: Yesterday I went out."
+    rendered = _temporal_reader_view(source)
+    assert source == "Session date: 4:30 pm on 6 July, 2023\n[D6:4] Ana: Yesterday I went out."
+    assert '"yesterday"=5 July 2023' in rendered
+
+
 def test_token_chunking_is_dialogue_only_and_maps_supports():
     questions, passages, metadata = convert(
         sample(), chunk_tokens=12, token_counter=lambda text: len(text.split()))

@@ -17,6 +17,7 @@ from wrag.util import write_json
 
 KNOWN_ARMS = ("base", "soft", "temporal", "full", "temporal-v2", "full-v2",
               "reform", "reform-low-fallback")
+KNOWN_ARMS = KNOWN_ARMS + ("reform-v2", "reform-v2-low-fallback")
 CATEGORIES = ("single-hop", "multi-hop", "temporal", "open-domain")
 
 

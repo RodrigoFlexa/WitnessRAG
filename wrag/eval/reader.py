@@ -133,8 +133,12 @@ def read(
             passage = corpus.get(pid)
         except KeyError:
             continue
-        passages.append(passages_override[index] if passages_override is not None else
-                        (passage.title, passage.text))
+        title, text = (passages_override[index] if passages_override is not None else
+                       (passage.title, passage.text))
+        if (cfg.temporal_annotations and question.dataset == "locomo" and
+                question.qtype == "temporal"):
+            text = _temporal_reader_view(text)
+        passages.append((title, text))
 
     operator_question = bool(re.search(
         r"\b(how many|when|what date|what time|how long|before|after)\b",
@@ -186,3 +190,21 @@ def read(
     return ReadResult(answer=answer, prompt_tokens=prompt_tokens,
                       completion_tokens=completion_tokens, latency_s=latency,
                       raw_answer=raw_answer, guard=guard)
+
+
+def _temporal_reader_view(text: str) -> str:
+    """Annotate a retrieved passage without changing the indexed corpus."""
+    from wrag.locomo import _temporal_annotation
+    output, session_date = [], ""
+    for line in text.splitlines():
+        if line.startswith("Session date:"):
+            session_date = line.partition(":")[2].strip()
+            output.append(line)
+            continue
+        match = re.match(r"\[([^\]]+)\]\s+[^:]+:\s*(.*)", line)
+        output.append(line)
+        if match and session_date:
+            annotation = _temporal_annotation(match.group(1), match.group(2), session_date)
+            if annotation:
+                output.append(annotation)
+    return "\n".join(output)

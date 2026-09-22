@@ -309,6 +309,9 @@ class QAConfig:
     operator_reader: bool = False
     proof_reader: bool = False
     answer_guard: bool = False
+    # Render a temporal view only for temporal LoCoMo questions. The stored
+    # corpus, embeddings, OpenIE and graph remain identical to the control.
+    temporal_annotations: bool = False
 
 
 @dataclass

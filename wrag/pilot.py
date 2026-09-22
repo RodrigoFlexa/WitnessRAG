@@ -231,8 +231,7 @@ def prepare_conversation(plan, index, output):
     return prepare(output, source, index, settings.get("locomo_turns_per_passage", 8),
                    settings.get("questions"), settings["seed"], settings["max_passages"],
                    settings.get("locomo_chunk_tokens") or None, settings["model"],
-                   settings.get("model_revision") or None,
-                   settings.get("temporal_annotations", False))
+                   settings.get("model_revision") or None)
 
 
 def prepare_data(plan):
@@ -246,8 +245,7 @@ def prepare_data(plan):
                        settings.get("locomo_conversation", 0), settings.get("locomo_turns_per_passage", 8),
                        settings.get("questions"), settings["seed"], settings["max_passages"],
                        settings.get("locomo_chunk_tokens") or None, settings["model"],
-                       settings.get("model_revision") or None,
-                       settings.get("temporal_annotations", False))
+                       settings.get("model_revision") or None)
     data = Path(plan["output"]) / "data"
     source = Path(plan["output"]) / "source-data"
     source.mkdir(parents=True, exist_ok=True)
@@ -402,6 +400,7 @@ def _run_config(settings, n_questions):
     cfg.qa.operator_reader = cfg.witness.active_operators
     cfg.qa.proof_reader = cfg.witness.proof_reader
     cfg.qa.answer_guard = settings.get("answer_guard", False)
+    cfg.qa.temporal_annotations = settings.get("temporal_annotations", False)
     cfg.witness.hybrid_fallback = settings.get("hybrid_fallback", False)
     cfg.witness.candidate_pool_k = settings.get("witness_candidate_pool", 20)
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
