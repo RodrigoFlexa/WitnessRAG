@@ -27,6 +27,7 @@ EVIDENCE_REPAIRS = {
     ("conv-42", 88, "D"): "D1:16",
     ("conv-43", 18, "D:11:26"): "D11:26",
     ("conv-47", 38, "D4:36"): "D13:3",
+    ("conv-50", 69, "D30:05"): "D30:5",
 }
 
 
@@ -167,8 +168,10 @@ def convert(raw, conversation_index=0, turns_per_passage=8, n_questions=None, se
             continue
         evidence = []
         for ref in qa.get("evidence", []):
-            # A primeira conversa contém a anotação 'D8:6; D9:17'.
-            refs = [s.strip() for s in re.split(r"[;,]", ref) if s.strip()]
+            # A release alterna entre ponto e vírgula, vírgula e espaços para
+            # separar IDs (por exemplo, 'D9:1 D4:4 D4:6'). Separar apenas em
+            # delimitadores preserva os reparos pontuais de IDs malformados.
+            refs = [s for s in re.split(r"[;,\s]+", ref.strip()) if s]
             for dia_id in refs:
                 repaired = EVIDENCE_REPAIRS.get((sample_id, qi, dia_id))
                 if repaired is not None:

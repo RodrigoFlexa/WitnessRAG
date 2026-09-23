@@ -107,6 +107,29 @@ def test_known_upstream_evidence_typo_is_repaired_and_audited():
     assert metadata["question_mapping"][questions[0]["id"]]["evidence_dialog_ids"] == ["D11:26"]
 
 
+def test_space_separated_evidence_ids_in_released_snapshot():
+    raw = sample()
+    raw[0]["qa"][0]["evidence"] = ["D1:1 D1:2 D2:1"]
+    questions, _passages, metadata = convert(raw)
+    assert metadata["question_mapping"][questions[0]["id"]]["evidence_dialog_ids"] == [
+        "D1:1", "D1:2", "D2:1"]
+    assert len(questions[0]["paragraphs"]) == 2
+
+
+def test_leading_zero_evidence_typo_is_repaired_and_audited():
+    raw = [{"sample_id": "conv-50", "conversation": {"session_30": [
+        {"dia_id": "D30:5", "speaker": "Dave", "text": "I bought a camera."}
+    ]}, "qa": [
+        {"question": "ignored", "answer": "x", "category": 5, "evidence": []}
+        for _ in range(69)
+    ] + [{"question": "When?", "answer": "today", "category": 2,
+          "evidence": ["D30:05"]}]}]
+    questions, _passages, metadata = convert(raw)
+    assert len(questions) == 1
+    assert metadata["evidence_repairs"] == [
+        {"qa_index": 69, "original": "D30:05", "replacement": "D30:5"}]
+
+
 def test_open_domain_without_annotated_evidence_stays_in_answer_denominator():
     raw = sample()
     raw[0]["qa"][2]["evidence"] = []
