@@ -255,6 +255,11 @@ class AzureLLM(LLM):
         if response is not None:
             parts.append(str(getattr(response, "text", "") or ""))
         message = " ".join(parts)
+        # This 400 means the prompt omitted the literal word JSON. The
+        # response_format parameter is supported; dropping it would silently
+        # weaken every subsequent structured call in this process.
+        if "must contain the word 'json'" in message.casefold():
+            return False
         for name in OPTIONAL_PARAMS:
             if name in self._unsupported or name not in kwargs:
                 continue

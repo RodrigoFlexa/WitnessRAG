@@ -83,7 +83,7 @@ def cmd_diag_azure(args: argparse.Namespace) -> int:
     print(f"modo: {'reasoning' if llm.reasoning else 'chat'}")
     print(f"api-version: {C.AZURE_API_VERSION}")
     try:
-        result = llm.chat('Responda exatamente com {"ok": true}.',
+        result = llm.chat('Responda com um objeto JSON exatamente assim: {"ok": true}.',
                           params=GenParams(max_tokens=64, json_mode=True), stage="diag")
     except Exception as exc:  # noqa: BLE001
         print(f"FALHA na chamada: {type(exc).__name__}: {exc}")

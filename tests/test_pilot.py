@@ -41,6 +41,16 @@ def test_gpu_plan_isolated_from_parent_and_uses_hf_model(tmp_path, monkeypatch):
         make_plan(parser().parse_args(["--gpu", "5,6"]), tmp_path)
 
 
+def test_precreated_cache_is_not_mistaken_for_a_partial_run(tmp_path):
+    from wrag.pilot import _cache_only_output
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "paid-response.json").write_text("{}", encoding="utf-8")
+    assert _cache_only_output(list(tmp_path.iterdir()))
+    (tmp_path / "unrelated.txt").write_text("x", encoding="utf-8")
+    assert not _cache_only_output(list(tmp_path.iterdir()))
+
+
 def test_resume_rejects_metric_changing_configuration(tmp_path):
     from wrag.pilot import _validate_resume
     old = make_plan(parser().parse_args(["--gpu", "3", "--dataset", "locomo",

@@ -575,8 +575,12 @@ def launch(args):
         return 0
     if os.name != "posix" and args.backend == "vllm" and not args.existing_server:
         raise RuntimeError("execute o launcher no servidor Linux com NVIDIA/vLLM; use --dry-run para inspecionar")
-    if output.exists() and any(output.iterdir()) and not args.resume:
-        raise ValueError("--output deve ser novo ou vazio; use --resume para uma execução parcial")
+    if output.exists() and not args.resume:
+        entries = list(output.iterdir())
+        # The launcher may have prepared its cache before the pilot manifest.
+        # A cache-only directory is a fresh run, not a partial benchmark.
+        if entries and not _cache_only_output(entries):
+            raise ValueError("--output deve ser novo ou vazio; use --resume para uma execução parcial")
     if args.resume:
         old_plan_path = output / "pilot.json"
         if not old_plan_path.exists():
@@ -666,6 +670,10 @@ def launch(args):
     print(f"Estado: {status}. Resultados: {output}", flush=True)
     print_results(output, status)
     return 0 if status == "complete" else 2
+
+
+def _cache_only_output(entries: list[Path]) -> bool:
+    return len(entries) == 1 and entries[0].name == "cache" and entries[0].is_dir()
 
 
 def _validate_resume(old, new):

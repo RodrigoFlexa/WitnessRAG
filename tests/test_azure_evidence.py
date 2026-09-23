@@ -76,3 +76,17 @@ def test_azure_policy_filter_never_aborts_batch(tmp_path, monkeypatch):
     llm = AzureLLM(deployment="gpt-4-1-mini-petrobras")
     assert llm._filtered_result("content_filter", tmp_path / "unused").filtered
     assert llm._filtered_result("content_filter", tmp_path / "unused").filtered
+
+
+def test_json_word_error_does_not_disable_structured_mode(monkeypatch):
+    from wrag.llm.azure import AzureLLM
+    monkeypatch.setattr(AzureLLM, "_make_client", lambda self: None)
+    llm = AzureLLM(deployment="gpt-4-1-mini-petrobras")
+    class BadRequest(Exception):
+        status_code = 400
+    error = BadRequest("'messages' must contain the word 'json' in some form, "
+                       "to use 'response_format' of type 'json_object'.")
+    kwargs = {"response_format": {"type": "json_object"}}
+    assert not llm._maybe_drop_parameter(error, kwargs)
+    assert kwargs["response_format"] == {"type": "json_object"}
+    assert "response_format" not in llm._unsupported
