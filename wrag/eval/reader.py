@@ -136,7 +136,7 @@ def read(
         title, text = (passages_override[index] if passages_override is not None else
                        (passage.title, passage.text))
         if (cfg.temporal_annotations and question.dataset == "locomo" and
-                question.qtype == "temporal"):
+                (question.qtype == "temporal" or cfg.evidence_reader)):
             text = _temporal_reader_view(text)
         passages.append((title, text))
 
@@ -145,7 +145,8 @@ def read(
         question.question, re.I))
     use_proof = bool(cfg.proof_reader and proof_context and
                      proof_context.get("hipoteses"))
-    template = (prompts.QA_INFERENCE_TEMPLATE if question.dataset == "locomo" and question.qtype == "open-domain" else
+    template = (prompts.QA_EVIDENCE_TEMPLATE if cfg.evidence_reader and question.dataset == "locomo" else
+                prompts.QA_INFERENCE_TEMPLATE if question.dataset == "locomo" and question.qtype == "open-domain" else
                 prompts.QA_TEMPORAL_MEMORY_TEMPLATE if question.dataset == "locomo" and question.qtype == "temporal" else
                 prompts.QA_COUNT_TEMPLATE if count_mode and re.search(r"\bhow many\b", question.question, re.I) else
                 prompts.QA_PROOF_TEMPLATE if use_proof else

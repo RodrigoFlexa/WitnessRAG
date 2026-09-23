@@ -29,7 +29,11 @@ LOCOMO_CONVERSATIONS = 10   # locomo10.json; `--locomo-conversation all` roda as
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--gpu", required=True, help="índice físico NVIDIA ou UUID; ex.: 5")
+    p.add_argument("--backend", choices=["vllm", "azure"], default="vllm",
+                   help="azure usa o gateway configurado no ambiente, sem iniciar vLLM")
     p.add_argument("--model", default="Qwen/Qwen2.5-14B-Instruct", help="repo HF ou diretório de pesos HF")
+    p.add_argument("--tokenizer-model", default="Qwen/Qwen2.5-14B-Instruct",
+                   help="tokenizador fixo para segmentar o corpus, independente do deployment Azure")
     p.add_argument("--model-revision", default="", help="commit HF para fixar pesos/tokenizer")
     p.add_argument("--dtype", default="bfloat16", choices=["auto", "bfloat16", "half"])
     p.add_argument("--quantization", default="", help="opcional, conforme checkpoint e suporte vLLM")
@@ -91,6 +95,10 @@ def parser():
                    help="troca no máximo a quinta passagem por uma faceta ausente, sem LLM")
     p.add_argument("--temporal-annotations", action="store_true",
                    help="normaliza tempo relativo usando a data da própria sessão LoCoMo")
+    p.add_argument("--evidence-reader", action="store_true",
+                   help="leitor de uma chamada orientado pelo tipo de resposta e pelas evidências")
+    p.add_argument("--gap-context-rescue", action="store_true",
+                   help="uma busca textual sem LLM para a relação multi-hop faltante")
     p.add_argument("--admit-provisional-witnesses", action="store_true",
                    help="usa testemunhas provisórias com proveniência como rota qualificada")
     p.add_argument("--plan-repair", action="store_true",
@@ -169,11 +177,9 @@ def make_plan(args, output):
         raise ValueError("lista de métodos inválida ou duplicada")
     env = {
         "CUDA_VISIBLE_DEVICES": args.gpu, "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
-        "WRAG_LLM_BACKEND": "vllm", "OPENAI_MODEL": args.model,
-        "OPENAI_BASE_URL": f"http://127.0.0.1:{args.port}/v1", "OPENAI_API_KEY": "local-pilot",
+        "WRAG_LLM_BACKEND": args.backend,
         "WRAG_MODEL_REVISION": args.model_revision,
-        "WRAG_AZURE_CONCURRENCY": str(args.concurrency), "WRAG_AZURE_MAX_RETRIES": "2",
-        "WRAG_AZURE_TIMEOUT_S": "120", "WRAG_EMBED_BACKEND": "st",
+        "WRAG_AZURE_CONCURRENCY": str(args.concurrency), "WRAG_EMBED_BACKEND": "st",
         "WRAG_EMBED_MODEL": args.embed_model, "WRAG_EMBED_DEVICE": args.embed_device,
         "WRAG_EMBED_BATCH_SIZE": "32", "WRAG_SEED": str(args.seed),
         "WRAG_DATA_DIR": str(output / "data"), "WRAG_RUNS_DIR": str(output / "benchmark"),
@@ -183,6 +189,15 @@ def make_plan(args, output):
         # A decodificação é gulosa (temperature=0), logo o sampler nativo não altera saídas.
         "VLLM_USE_FLASHINFER_SAMPLER": "0",
     }
+    if args.backend == "vllm":
+        env.update({"OPENAI_MODEL": args.model,
+                    "OPENAI_BASE_URL": f"http://127.0.0.1:{args.port}/v1",
+                    "OPENAI_API_KEY": "local-pilot",
+                    "WRAG_AZURE_MAX_RETRIES": "2", "WRAG_AZURE_TIMEOUT_S": "120"})
+    else:
+        # Credentials, endpoint, API version and CA bundle remain exclusively
+        # in the parent environment; pilot.json never stores those secrets.
+        env["WRAG_AZURE_DEPLOYMENT"] = args.model
     command = [args.vllm_python, "-m", "vllm.entrypoints.cli.main", "serve", args.model,
                "--served-model-name", args.model, "--host", "127.0.0.1", "--port", str(args.port),
                "--dtype", args.dtype, "--max-model-len", str(args.max_model_len),
@@ -193,6 +208,8 @@ def make_plan(args, output):
         command += ["--revision", args.model_revision, "--tokenizer-revision", args.model_revision]
     if args.quantization:
         command += ["--quantization", args.quantization]
+    if args.backend == "azure":
+        command = []
     frozen_source = os.environ.get("WRAG_FROZEN_MEMORY_SOURCE")
     frozen_identity = None
     if frozen_source:
@@ -230,7 +247,7 @@ def prepare_conversation(plan, index, output):
     source = settings.get("locomo_file") or (str(shared) if shared.exists() else None)
     return prepare(output, source, index, settings.get("locomo_turns_per_passage", 8),
                    settings.get("questions"), settings["seed"], settings["max_passages"],
-                   settings.get("locomo_chunk_tokens") or None, settings["model"],
+                   settings.get("locomo_chunk_tokens") or None, settings.get("tokenizer_model", settings["model"]),
                    settings.get("model_revision") or None)
 
 
@@ -244,7 +261,7 @@ def prepare_data(plan):
         return prepare(plan["output"], settings.get("locomo_file"),
                        settings.get("locomo_conversation", 0), settings.get("locomo_turns_per_passage", 8),
                        settings.get("questions"), settings["seed"], settings["max_passages"],
-                       settings.get("locomo_chunk_tokens") or None, settings["model"],
+                       settings.get("locomo_chunk_tokens") or None, settings.get("tokenizer_model", settings["model"]),
                        settings.get("model_revision") or None)
     data = Path(plan["output"]) / "data"
     source = Path(plan["output"]) / "source-data"
@@ -287,7 +304,8 @@ def prepare_data(plan):
     elif settings.get("corpus_token_budget"):
         from transformers import AutoTokenizer
         tokenizer = AutoTokenizer.from_pretrained(
-            settings["model"], revision=settings.get("model_revision") or None)
+            settings.get("tokenizer_model", settings["model"]),
+            revision=settings.get("model_revision") or None)
         chosen = list(reduced.passages)
         tokens = sum(len(tokenizer.encode(p.full, add_special_tokens=False)) for p in chosen)
         for passage in extras:
@@ -406,10 +424,12 @@ def _run_config(settings, n_questions):
     cfg.qa.temporal_annotations = settings.get("temporal_annotations", False)
     cfg.witness.hybrid_fallback = settings.get("hybrid_fallback", False)
     cfg.witness.candidate_pool_k = settings.get("witness_candidate_pool", 20)
+    cfg.witness.gap_context_rescue = settings.get("gap_context_rescue", False)
+    cfg.qa.evidence_reader = settings.get("evidence_reader", False)
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
     cfg.graph.merge_relation_inflections = not settings.get("no_relation_family_merge", False)
     cfg.ie.window_tokens = settings.get("locomo_ie_window_tokens", 0)
-    cfg.ie.window_tokenizer = settings["model"] if cfg.ie.window_tokens else ""
+    cfg.ie.window_tokenizer = settings.get("tokenizer_model", settings["model"]) if cfg.ie.window_tokens else ""
     cfg.ie.window_tokenizer_revision = settings.get("model_revision", "") if cfg.ie.window_tokens else ""
     return cfg
 
@@ -553,7 +573,7 @@ def launch(args):
     if args.dry_run:
         print(json.dumps(plan, ensure_ascii=False, indent=2))
         return 0
-    if os.name != "posix" and not args.existing_server:
+    if os.name != "posix" and args.backend == "vllm" and not args.existing_server:
         raise RuntimeError("execute o launcher no servidor Linux com NVIDIA/vLLM; use --dry-run para inspecionar")
     if output.exists() and any(output.iterdir()) and not args.resume:
         raise ValueError("--output deve ser novo ou vazio; use --resume para uma execução parcial")
@@ -587,14 +607,17 @@ def launch(args):
             (output / "gpu.txt").write_text(hardware.stdout + hardware.stderr, encoding="utf-8")
         except (OSError, subprocess.SubprocessError):
             pass
-        if not args.existing_server:
+        if args.backend == "vllm" and not args.existing_server:
             wait_port_free(args.port)
             with (output / "vllm.log").open("w", encoding="utf-8") as log:
                 server = subprocess.Popen(plan["server_command"], env=env, cwd=ROOT,
                                           stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
-        print("Aguardando vLLM (pesos ausentes podem exigir download)...", flush=True)
-        wait_ready(server, args.port, args.model, min(deadline, time.monotonic() + 3600))
-        if not args.existing_server:
+        if args.backend == "vllm":
+            print("Aguardando vLLM (pesos ausentes podem exigir download)...", flush=True)
+            wait_ready(server, args.port, args.model, min(deadline, time.monotonic() + 3600))
+        else:
+            print("Usando deployment Azure configurado no ambiente.", flush=True)
+        if args.backend == "vllm" and not args.existing_server:
             try:
                 version = subprocess.run([args.vllm_python, "-c",
                                           "import importlib.metadata; print(importlib.metadata.version('vllm'))"],
@@ -647,14 +670,15 @@ def launch(args):
 
 def _validate_resume(old, new):
     """Reject changes that would mix incomparable results in one aggregate."""
-    fields = ("model", "model_revision", "embed_model", "dataset", "questions",
+    fields = ("backend", "model", "model_revision", "tokenizer_model", "embed_model", "dataset", "questions",
               "locomo_conversation", "locomo_turns_per_passage", "locomo_chunk_tokens",
               "locomo_ie_window_tokens", "seed", "top_k", "witness_candidate_pool",
               "corpus_token_budget", "corpus_passages", "full_corpus",
               "answer_set", "vocab_compile", "query_plans", "max_query_plans",
               "active_frontier", "active_obligations", "active_context", "active_operators",
               "soft_obligations", "proof_reader", "plan_repair", "temporal_memory",
-              "complementary_context", "temporal_annotations", "admit_provisional_witnesses",
+              "complementary_context", "temporal_annotations", "evidence_reader",
+              "gap_context_rescue", "admit_provisional_witnesses",
               "hybrid_fallback", "dialogue_ie",
               "no_relation_family_merge",
               "binding_aware_grounding", "verify_witnesses", "no_acquisition")

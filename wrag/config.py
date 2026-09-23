@@ -277,6 +277,8 @@ class WitnessConfig:
     # Profundidade explorada antes do corte do contexto. O leitor continua
     # recebendo exatamente RunConfig.top_k documentos.
     candidate_pool_k: int = 20
+    # One text-only search for a concrete missing join relation. No LLM call.
+    gap_context_rescue: bool = False
 
     # -- proveniência e risco
     fact_confidence: float = 0.90      # p_e default de um fato extraído uma vez
@@ -312,6 +314,9 @@ class QAConfig:
     # Render a temporal view only for temporal LoCoMo questions. The stored
     # corpus, embeddings, OpenIE and graph remain identical to the control.
     temporal_annotations: bool = False
+    # One-call, operation-aware reading for conversational memory. Off by
+    # default so earlier runs remain reproducible.
+    evidence_reader: bool = False
 
 
 @dataclass

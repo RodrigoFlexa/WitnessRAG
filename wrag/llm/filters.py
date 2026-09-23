@@ -120,6 +120,13 @@ class Ledger:
                     out[e.method] = out.get(e.method, 0) + 1
         return out
 
+    def question_blocked(self, dataset: str, method: str, item_id: str) -> bool:
+        """Whether any query-time Azure call for this item hit the policy filter."""
+        with self._lock:
+            return any(e.dataset == dataset and e.method == method and
+                       e.item_id == item_id and e.stage not in {"index", "pilot.preflight"}
+                       for e in self.events)
+
     def indexing_blocked(self, dataset: str | None = None) -> set[str]:
         """Passagens que o filtro recusou durante a extração."""
         with self._lock:

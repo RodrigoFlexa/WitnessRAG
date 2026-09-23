@@ -1051,9 +1051,30 @@ class WitnessRAGRetriever(Retriever):
         if chosen is None:
             diagnostics["fallback"] = "denso (pesquisa sem prova suficiente)"
             pids = list(dense_pids[:k]) if cfg.dense_fallback else []
+            # A missing bound relation is a more specific query than the
+            # original question. Try it once, without claiming a proof or
+            # increasing the five-passage budget. Require the bound entity to
+            # occur literally in the candidate source before promotion.
+            if cfg.gap_context_rescue and question.qtype == "multi-hop" and k > 1:
+                gaps = [r.gap for _, _, r, _, _ in attempts
+                        if r.gap is not None and r.gap.anchor()]
+                gaps.sort(key=lambda gap: -gap.depth_reached)
+                if gaps:
+                    gap = gaps[0]
+                    rescue_pids, _ = self._dense.search(gap.probe(), cfg.candidate_pool_k)
+                    anchor = canonical_symbol(gap.anchor())
+                    rescued = next((pid for pid in rescue_pids
+                                    if pid not in pids and anchor in
+                                    canonical_symbol(self.corpus.get(pid).text)), None)
+                    if rescued and pids:
+                        pids[-1] = rescued
+                        diagnostics["lacuna_contextual"] = {
+                            "sonda": gap.probe(), "passagem": rescued,
+                            "status": "hipotese_textual_nao_verificada"}
             # Diversified subquery evidence is useful even without a proof, but
             # the established fallback retains most of the context budget.
-            if cfg.active_frontier and cfg.dense_fallback and k > 1 and not cfg.plan_repair:
+            if (cfg.active_frontier and cfg.dense_fallback and k > 1 and
+                    not cfg.plan_repair and not diagnostics.get("lacuna_contextual")):
                 for pid in frontier:
                     if pid not in pids and pid not in used_pages:
                         pids[-1] = pid

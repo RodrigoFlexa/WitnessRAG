@@ -24,7 +24,7 @@ from wrag import config as C
 from wrag.data import Corpus, Question, load_dataset, _PassageIndex, _parse_question
 from wrag.embed import get_embedder
 from wrag.eval import metrics as M
-from wrag.eval.reader import read
+from wrag.eval.reader import ReadResult, read
 from wrag.llm import get_llm
 from wrag.llm.base import usage_delta, sum_usage
 from wrag.llm.filters import LEDGER, configure_ledger
@@ -351,9 +351,15 @@ def _answer_standard(name: str, retriever, corpus: Corpus, question: Question,
                      run_cfg: C.RunConfig) -> dict[str, Any]:
     before = retriever.ctx.llm.usage.snapshot()
     retrieval = retriever.retrieve(question, run_cfg.top_k)
-    reading = read(retriever.ctx.llm, corpus, question, retrieval.pids,
-                   replace(run_cfg.qa, top_k=run_cfg.top_k), method=name,
-                   proof_context=retrieval.diagnostics.get("leitura_provas"))
+    # A corporate content-policy block on any query-time stage excludes this
+    # question from answer evaluation. Do not ask the reader to reconstruct an
+    # answer after its compiler, verifier or targeted extraction was refused.
+    from wrag.llm.filters import LEDGER
+    blocked = retrieval.filtered or LEDGER.question_blocked(corpus.name, name, question.qid)
+    reading = (ReadResult(filtered=True) if blocked else
+               read(retriever.ctx.llm, corpus, question, retrieval.pids,
+                    replace(run_cfg.qa, top_k=run_cfg.top_k), method=name,
+                    proof_context=retrieval.diagnostics.get("leitura_provas")))
 
     diagnostics = retrieval.diagnostics
     witness_facts = []

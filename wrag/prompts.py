@@ -511,6 +511,40 @@ Return only JSON: {{"answer": "..."}}
 QUESTION: {question}"""
 
 
+QA_EVIDENCE_TEMPLATE = """Answer the question using the dialogue passages below.
+
+Work out what the question asks for before writing the answer: a person or
+object, an option, a likely inference, a complete list, a distinct count, a
+calendar date, a time interval, or a duration. Match every person, event and
+qualifier to the SAME supporting dialogue; do not combine unrelated mentions.
+
+For an inference, use relevant statements and ordinary category knowledge,
+and give the likely conclusion with the short reason grounded in the dialogue
+when the conclusion alone would be ambiguous. A yes/no question needs a yes/no
+conclusion; a question asking WHICH option, holiday, job, place or condition
+needs that named answer, not yes/no. Do not abstain merely because an inference
+is not quoted verbatim. Do not invent facts absent from the passages.
+
+For a list, include every distinct supported member, separated by commas.
+For a count, count distinct matching people, objects or events rather than
+mentions. An incomplete list is not proof of a total.
+
+For time, use the session date belonging to the event's own turn. Resolve
+relative expressions against that date. Return the unit requested: a year,
+month, calendar date, interval, or duration. Express calendar dates in words
+(for example, 16 March 2023), not ISO notation. Preserve distinctions such as
+"since 2016" versus "for seven years" when the question requires one of them.
+
+Use "insufficient information" only if no relevant statement supports even
+the requested inference. Keep the answer concise but complete. Return exactly
+one JSON object: {{"answer":"..."}}.
+
+PASSAGES:
+{passages}
+
+QUESTION: {question}"""
+
+
 QA_TEMPORAL_MEMORY_TEMPLATE = """Answer the temporal question using only the dialogue below.
 
 Every dialogue turn may contain `date=...`, its session reference time. A line

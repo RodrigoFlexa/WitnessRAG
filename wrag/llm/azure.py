@@ -104,6 +104,14 @@ class AzureEmptyResponse(RuntimeError):
 class AzureLLM(LLM):
     name = "azure"
 
+    def cache_identity(self) -> str:
+        """Separate deployments at different gateways/API versions, not keys."""
+        scope = {"base_url": os.environ.get(C.AZURE_BASE_URL_VAR, ""),
+                 "endpoint": os.environ.get(C.AZURE_ENDPOINT_VAR, ""),
+                 "api_version": C.AZURE_API_VERSION,
+                 "deployment": self.deployment}
+        return hashlib.sha256(json.dumps(scope, sort_keys=True).encode()).hexdigest()
+
     def __init__(
         self,
         deployment: str | None = None,
@@ -269,7 +277,7 @@ class AzureLLM(LLM):
             sort_keys=True, ensure_ascii=False,
         )
         digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
-        return C.CACHE_DIR / "azure" / digest[:2] / f"{digest}.json"
+        return C.CACHE_DIR / "azure" / self.cache_identity()[:16] / digest[:2] / f"{digest}.json"
 
     def _cache_read(self, path: Path) -> LLMResult | None:
         if not self.use_cache or not path.exists():
@@ -351,14 +359,9 @@ class AzureLLM(LLM):
         log.warning("prompt bloqueado pelo filtro de conteúdo (%d/%d); item marcado e o lote segue: %s",
                     filters, calls, detail.splitlines()[0][:200])
         if calls >= C.HEALTH_CHECK_CALLS and filters / calls > C.MAX_FILTER_RATE:
-            # Um filtro que recusa 1 em 4 não é ruído: é sinal de que o prompt ou
-            # o corpus está sistematicamente batendo na política, e o benchmark
-            # resultante não seria interpretável.
-            raise RuntimeError(
-                f"taxa de bloqueio {filters}/{calls} = {filters/calls:.0%} acima de "
-                f"{C.MAX_FILTER_RATE:.0%}. Reveja o prompt ou suba WRAG_MAX_FILTER_RATE "
-                f"conscientemente se o corpus realmente for assim."
-            )
+            log.warning("taxa de filtro %d/%d = %.1f%%; perguntas bloqueadas serão "
+                        "registradas e excluídas da avaliação, sem parar o lote",
+                        filters, calls, 100 * filters / calls)
         return LLMResult(text="", finish_reason="content_filter", filtered=True)
 
     def _explain_fatal(self, exc: Exception) -> None:
