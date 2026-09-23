@@ -46,6 +46,30 @@ def test_evidence_reader_uses_one_call_for_any_locomo_category():
     assert all("not yes/no" in prompt for prompt in llm.prompts)
 
 
+def test_evidence_reader_canonicalizes_only_safe_short_answer_types():
+    class VerboseLLM:
+        def __init__(self, answer):
+            self.answer = answer
+
+        def chat(self, prompt, **kwargs):
+            return LLMResult(text=json.dumps({"answer": self.answer}))
+
+    corpus = Corpus("locomo", [Passage("p1", "dialogue", "Melanie has three children.")], [])
+    cfg = C.QAConfig(evidence_reader=True, top_k=1)
+    count = Question("q1", "How many children does Melanie have?", ["3"],
+                     dataset="locomo", qtype="single-hop")
+    assert read(VerboseLLM("Melanie has three children."), corpus, count,
+                ["p1"], cfg).answer == "3"
+    yes_no = Question("q2", "Does Melanie have children?", ["yes"],
+                      dataset="locomo", qtype="single-hop")
+    assert read(VerboseLLM("Yes, she has three."), corpus, yes_no,
+                ["p1"], cfg).answer == "yes"
+    entity = Question("q3", "Who has three children?", ["Melanie"],
+                      dataset="locomo", qtype="single-hop")
+    assert read(VerboseLLM("Melanie has three children."), corpus, entity,
+                ["p1"], cfg).answer == "Melanie has three children."
+
+
 def test_content_policy_block_is_question_specific(tmp_path):
     ledger = Ledger(tmp_path / "filters.jsonl")
     ledger.add("obligations", "locomo", "witnessrag", "q1", "content_filter")

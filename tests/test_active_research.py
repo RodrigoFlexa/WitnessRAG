@@ -5,6 +5,8 @@ import importlib.util
 import json
 from pathlib import Path
 
+import pytest
+
 from test_witness import build_toy
 from wrag import config as C
 from wrag.data import Question
@@ -70,6 +72,78 @@ def test_active_controller_replans_after_incomplete_query(monkeypatch):
     assert result.diagnostics["plano_escolhido"] == 1
     assert result.diagnostics["testemunha_no_contexto"]
     assert set(result.pids) == {"p0", "p1"}
+
+
+def test_selective_controller_skips_graph_for_non_multihop(monkeypatch):
+    memory, searcher, embedder, cfg = build_toy()
+    cfg.selective_witness = True
+    run = C.RunConfig()
+    run.witness = cfg
+    retriever = WitnessRAGRetriever(IndexContext(memory.corpus, object(), embedder, run))
+    retriever.memory = memory
+    retriever.searcher = searcher
+    monkeypatch.setattr("wrag.methods.witnessrag.compile_query",
+                        lambda *_a, **_k: pytest.fail("compiler must not run"))
+    result = retriever._retrieve_selective(
+        Question("q", "Where does Ana work?", [], qtype="single-hop"), 3,
+        ["p2", "p3", "p4"], [1.0, .5, .25])
+    assert result.pids == ["p2", "p3", "p4"]
+    assert result.diagnostics["rota"] == "hybrid_only"
+    assert result.diagnostics["planejamento"]["chamadas"] == 0
+
+
+def test_selective_controller_rejects_one_atom_and_accepts_whole_join(monkeypatch):
+    memory, searcher, embedder, cfg = build_toy()
+    cfg.selective_witness = True
+    cfg.answer_set = True
+    run = C.RunConfig()
+    run.witness = cfg
+    retriever = WitnessRAGRetriever(IndexContext(memory.corpus, object(), embedder, run))
+    retriever.memory = memory
+    retriever.searcher = searcher
+    question = Question("q", "Where is Ana's employer located?", [],
+                        qtype="multi-hop")
+    weak = ConjunctiveQuery(answer_var="x",
+                            atoms=[Atom("trabalha em", "Ana", "?x")])
+    monkeypatch.setattr("wrag.methods.witnessrag.compile_query", lambda *_a, **_k: weak)
+    unchanged = retriever._retrieve_selective(
+        question, 3, ["p2", "p3", "p4"], [1.0, .5, .25])
+    assert unchanged.pids == ["p2", "p3", "p4"]
+    assert unchanged.diagnostics["motivo_parada"] == "plan_not_compositional"
+
+    full = ConjunctiveQuery(answer_var="x", atoms=[
+        Atom("trabalha em", "Ana", "?y"),
+        Atom("localizada em", "?y", "?x")])
+    monkeypatch.setattr("wrag.methods.witnessrag.compile_query", lambda *_a, **_k: full)
+    changed = retriever._retrieve_selective(
+        question, 3, ["p2", "p3", "p4"], [1.0, .5, .25])
+    assert set(changed.pids) == {"p2", "p0", "p1"}
+    assert changed.diagnostics["testemunha_no_contexto"]
+    assert changed.diagnostics["contexto_alterado_pelo_witness"]
+
+
+def test_selective_multi_probe_requires_agreement_and_only_replaces_tail(monkeypatch):
+    memory, searcher, embedder, cfg = build_toy()
+    cfg.selective_witness = True
+    run = C.RunConfig()
+    run.witness = cfg
+    retriever = WitnessRAGRetriever(IndexContext(memory.corpus, object(), embedder, run))
+    retriever.memory = memory
+    retriever.searcher = searcher
+    weak = ConjunctiveQuery(answer_var="x", fallback="Ana employer city",
+                            atoms=[Atom("work at", "Ana", "?x")])
+    monkeypatch.setattr("wrag.methods.witnessrag.compile_query", lambda *_a, **_k: weak)
+    rankings = {
+        "Ana employer city": ["p0", "p3", "p4"],
+        "Ana work at": ["p1", "p3", "p0"],
+    }
+    retriever._dense.search = lambda probe, _n: (rankings[probe], [1.0, .5, .25])
+    result = retriever._retrieve_selective(
+        Question("q", "Where is Ana's employer located?", [], qtype="multi-hop"),
+        3, ["p0", "p1", "p2"], [1.0, .5, .25])
+    assert result.pids == ["p0", "p1", "p3"]
+    assert result.diagnostics["rota"] == "multi_probe"
+    assert result.diagnostics["sondas_recuperacao"]["votos"] == 2
 
 
 def test_frontier_and_packing_keep_whole_proof():

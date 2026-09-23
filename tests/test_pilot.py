@@ -88,6 +88,17 @@ def test_reformed_locomo_flags_reach_data_and_controller(tmp_path):
     assert cfg.qa.temporal_annotations is True
 
 
+def test_selective_witness_flag_reaches_controller(tmp_path):
+    from wrag.pilot import _run_config
+    args = parser().parse_args(["--gpu", "3", "--dataset", "locomo",
+                                "--selective-witness", "--qa-max-tokens", "128"])
+    plan = make_plan(args, tmp_path)
+    assert plan["settings"]["selective_witness"] is True
+    cfg = _run_config(plan["settings"], 1)
+    assert cfg.witness.selective_witness is True
+    assert cfg.qa.max_tokens == 128
+
+
 def test_compatible_backend_uses_model_task_cap_and_endpoint_cache(tmp_path, monkeypatch):
     from wrag.llm.openai_compat import OpenAICompatLLM
     from wrag.llm.base import GenParams

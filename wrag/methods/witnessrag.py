@@ -369,7 +369,9 @@ class WitnessRAGRetriever(Retriever):
 
         before_events = len(LEDGER.events)
         try:
-            result = self._retrieve_inner(question, k, dense_pids, dense_scores)
+            result = (self._retrieve_selective(question, k, dense_pids, dense_scores)
+                      if cfg.selective_witness else
+                      self._retrieve_inner(question, k, dense_pids, dense_scores))
             # Apply the cheap context policy only when the logical route did not
             # deliver a complete proof.  This prevents a tail swap from silently
             # removing a cited witness.  It consumes no LLM call and never reads
@@ -409,6 +411,217 @@ class WitnessRAGRetriever(Retriever):
                 # resultado passaria a depender da ordem do dataset.
                 self.searcher.rollback()
                 self.memory.reset()
+
+    def _retrieve_selective(self, question: Question, k: int,
+                            fallback_pids: list[str],
+                            fallback_scores: list[float]) -> RetrievalResult:
+        """A cost-bounded graph intervention over a strong hybrid baseline.
+
+        Most LoCoMo questions do not benefit from a graph join.  The previous
+        controller nevertheless compiled, judged, replanned and acquired for
+        nearly every question, then promoted many one-atom matches as proofs.
+        Here non-multi-hop questions use the hybrid context directly.  A
+        multi-hop question gets one compilation and one join; the graph may
+        change at most two reader slots and only for a connected query with at
+        least two atoms and a small answer set.  No LLM judge, replan or
+        targeted extraction is used online.
+        """
+        assert self.memory is not None and self.searcher is not None
+        cfg = self.ctx.run.witness
+        baseline = list(fallback_pids[:k])
+        base_scores = list(fallback_scores[:k])
+        diagnostics: dict[str, Any] = {
+            "controlador": "selective-v1",
+            "rota": "hybrid_only",
+            "classe_prova": "nenhuma",
+            "motivo_parada": "non_multihop_hybrid",
+            "contexto_alterado_pelo_witness": False,
+            "testemunha_no_contexto": False,
+            "n_testemunhas": 0,
+            "planejamento": {"chamadas": 0, "planos_distintos": 0,
+                             "replanejamentos": 0},
+        }
+        if question.qtype != "multi-hop":
+            return RetrievalResult(pids=baseline, scores=base_scores,
+                                   diagnostics=diagnostics)
+
+        vocabulary = self._vocabulary(question) if cfg.vocabulary_aware_compile else ""
+        query = compile_query(
+            self.ctx.llm, question, mode=self.compile_mode,
+            max_atoms=cfg.max_atoms, temperature=cfg.compile_temperature,
+            dataset=self.ctx.dataset, method=self.name, vocabulary=vocabulary)
+        diagnostics["planejamento"] = {"chamadas": 1, "planos_distintos": 1,
+                                       "replanejamentos": 0}
+        diagnostics["consulta"] = query.to_dict()
+        diagnostics["forma"] = query.shape()
+        if query.filtered:
+            diagnostics.update({"rota": "filtered", "motivo_parada": "compile_filtered"})
+            return RetrievalResult(pids=baseline, scores=base_scores,
+                                   diagnostics=diagnostics, filtered=True)
+
+        connected = query.shape() not in {"single-hop", "disconnected"}
+        executable = (query.n_atoms >= 2 and connected and
+                      query.aggregation in executable_aggregations(cfg.answer_set))
+        if not executable:
+            probed, probe_diag = self._selective_probe_tail(question, query, baseline, k)
+            if probed != baseline:
+                diagnostics.update({"rota": "multi_probe",
+                                    "motivo_parada": "plan_not_compositional_probe",
+                                    "contexto_alterado_pelo_witness": True,
+                                    "sondas_recuperacao": probe_diag})
+                return RetrievalResult(pids=probed, scores=[1.0 / (i + 1)
+                                       for i in range(len(probed))], diagnostics=diagnostics)
+            diagnostics.update({"rota": "hybrid_after_plan",
+                                "motivo_parada": "plan_not_compositional"})
+            return RetrievalResult(pids=baseline, scores=base_scores,
+                                   diagnostics=diagnostics)
+
+        search = self.searcher.join(query)
+        diagnostics.update({
+            "n_candidatos_por_atomo": search.n_candidates,
+            "profundidade_alcancada": search.depth_reached,
+            "cortes": search.truncations,
+            "modo_aterramento": search.grounding_mode,
+            "n_testemunhas": len(search.witnesses),
+        })
+        candidates = score_answers(search.witnesses, self.memory, cfg)
+        diagnostics["respostas"] = [c.to_dict(self.memory) for c in candidates[:3]]
+
+        reason = "join_incomplete"
+        evidence: list[str] = []
+        if search.complete and candidates:
+            reason = "answer_set_too_broad"
+            if len(candidates) <= cfg.selective_max_answers:
+                reason = "witness_set_too_broad"
+                # A small answer set is not enough: a broad query may produce
+                # dozens of duplicate proofs for one spurious answer (observed
+                # in LoCoMo as 20 witnesses all answering "Caroline"). Search
+                # truncation is also evidence that the apparent answer set is
+                # only the visible prefix. Neither may displace the baseline.
+                if (len(search.witnesses) <= cfg.selective_max_witnesses and
+                        not search.truncations):
+                    reason = "score_below_threshold"
+                if (reason == "score_below_threshold" and
+                        candidates[0].score >= cfg.selective_min_score):
+                    reason = "witness_too_large"
+                    # Preserve whole witnesses. Partial graph evidence is not
+                    # allowed to displace the established fallback context.
+                    for candidate in candidates:
+                        witness = candidate.best
+                        if witness is None:
+                            continue
+                        proposed = list(dict.fromkeys(evidence + list(witness.pids)))
+                        if len(proposed) <= cfg.selective_max_new_passages:
+                            evidence = proposed
+                    if evidence:
+                        reason = "selective_witness"
+
+        if evidence:
+            pids = list(baseline)
+            missing = [pid for pid in evidence if pid not in pids]
+            replaceable = [i for i in range(len(pids) - 1, -1, -1)
+                           if pids[i] not in evidence]
+            for pid, index in zip(missing, replaceable):
+                pids[index] = pid
+            delivered = [w for w in search.witnesses if set(w.pids) <= set(pids)]
+            diagnostics.update({
+                "rota": "selective_witness",
+                "classe_prova": "full" if delivered else "nenhuma",
+                "motivo_parada": "selective_witness" if delivered else "packing_failed",
+                "testemunha_no_contexto": bool(delivered),
+                "n_testemunhas_no_contexto": len(delivered),
+                "contexto_alterado_pelo_witness": pids != baseline,
+                "passagens_testemunha": evidence,
+            })
+            return RetrievalResult(pids=pids, scores=[1.0 / (i + 1)
+                                   for i in range(len(pids))], diagnostics=diagnostics)
+
+        # A failed graph join can still provide retrieval facets.  These are
+        # hypotheses, never proofs: four baseline positions remain protected
+        # and two independently generated probes must agree on the new tail.
+        probed, probe_diag = self._selective_probe_tail(question, query, baseline, k)
+        if probed != baseline:
+            diagnostics.update({"rota": "multi_probe",
+                                "motivo_parada": f"{reason}_probe",
+                                "contexto_alterado_pelo_witness": True,
+                                "sondas_recuperacao": probe_diag})
+            return RetrievalResult(pids=probed, scores=[1.0 / (i + 1)
+                                   for i in range(len(probed))], diagnostics=diagnostics)
+
+        # One deterministic, text-only rescue for an explicit bound gap. It is
+        # recorded as a hypothesis and never relabelled as a proof.
+        if cfg.gap_context_rescue and search.gap is not None and search.gap.anchor() and baseline:
+            rescue_pids, _ = self._dense.search(search.gap.probe(), cfg.candidate_pool_k)
+            anchor = canonical_symbol(search.gap.anchor())
+            rescued = next((pid for pid in rescue_pids if pid not in baseline and
+                            anchor in canonical_symbol(self.corpus.get(pid).text)), None)
+            if rescued:
+                pids = list(baseline)
+                pids[-1] = rescued
+                diagnostics.update({"rota": "gap_rescue",
+                                    "motivo_parada": "gap_rescue_unverified",
+                                    "contexto_alterado_pelo_witness": True,
+                                    "lacuna_contextual": {"sonda": search.gap.probe(),
+                                                          "passagem": rescued}})
+                return RetrievalResult(pids=pids, scores=[1.0 / (i + 1)
+                                       for i in range(len(pids))], diagnostics=diagnostics)
+
+        diagnostics.update({"rota": "hybrid_after_join", "motivo_parada": reason,
+                            "lacuna": search.gap.to_dict() if search.gap else None})
+        return RetrievalResult(pids=baseline, scores=base_scores, diagnostics=diagnostics)
+
+    def _selective_probe_tail(self, question: Question, query: ConjunctiveQuery,
+                              baseline: list[str], k: int) -> tuple[list[str], dict[str, Any]]:
+        """Use the compiled plan as cheap multi-query retrieval expansion.
+
+        The graph compiler has already been paid for.  Its fallback and atom
+        verbalizations are useful search probes even when the logical plan is
+        not executable.  Agreement between two different probes is required;
+        this prevented a single hallucinated predicate from replacing a good
+        baseline passage in the measured failure cases.
+        """
+        raw = [query.fallback] + [atom.verbalize() for atom in query.atoms]
+        probes: list[str] = []
+        seen: set[str] = set()
+        question_key = canonical_symbol(question.question)
+        for probe in raw:
+            key = canonical_symbol(probe)
+            if key and key != question_key and key not in seen:
+                probes.append(probe.strip())
+                seen.add(key)
+        if len(probes) < 2 or not baseline or k < 2:
+            return list(baseline), {"consultas": probes, "acordo_minimo": 2,
+                                    "adicionada": ""}
+
+        depth = min(10, self.ctx.run.witness.candidate_pool_k)
+        votes: dict[str, int] = {}
+        rrf: dict[str, float] = {}
+        ranks: dict[str, list[int]] = {}
+        protected = set(baseline[:max(1, k - 1)])
+        for probe in probes[:4]:
+            pids, _scores = self._dense.search(probe, depth)
+            for rank, pid in enumerate(pids, 1):
+                if pid in protected:
+                    continue
+                votes[pid] = votes.get(pid, 0) + 1
+                rrf[pid] = rrf.get(pid, 0.0) + 1.0 / (60 + rank)
+                ranks.setdefault(pid, []).append(rank)
+        agreed = [pid for pid, count in votes.items()
+                  if count >= 2 and pid not in baseline]
+        if not agreed:
+            return list(baseline), {"consultas": probes[:4], "acordo_minimo": 2,
+                                    "adicionada": ""}
+        agreed.sort(key=lambda pid: (-votes[pid], -rrf[pid], min(ranks[pid]), pid))
+        added = agreed[0]
+        output = list(baseline[:max(1, k - 1)]) + [added]
+        for pid in baseline:
+            if len(output) >= k:
+                break
+            if pid not in output:
+                output.append(pid)
+        return output[:k], {"consultas": probes[:4], "acordo_minimo": 2,
+                            "adicionada": added, "votos": votes[added],
+                            "postos": ranks[added]}
 
     def _retrieve_inner(self, question: Question, k: int, dense_pids: list[str],
                         dense_scores: list[float]) -> RetrievalResult:

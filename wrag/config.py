@@ -279,6 +279,15 @@ class WitnessConfig:
     candidate_pool_k: int = 20
     # One text-only search for a concrete missing join relation. No LLM call.
     gap_context_rescue: bool = False
+    # Cost-bounded controller: hybrid retrieval for every question and a
+    # single graph compilation only for questions labelled multi-hop. Graph
+    # evidence may replace context only when a connected multi-atom join is
+    # selective enough to be useful.
+    selective_witness: bool = False
+    selective_max_answers: int = 3
+    selective_max_witnesses: int = 3
+    selective_max_new_passages: int = 2
+    selective_min_score: float = 0.45
 
     # -- proveniência e risco
     fact_confidence: float = 0.90      # p_e default de um fato extraído uma vez

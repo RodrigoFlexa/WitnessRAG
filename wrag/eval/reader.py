@@ -30,6 +30,39 @@ from wrag.witness.query import looks_like_answer_set
 log = get_logger("wrag.eval.reader")
 
 
+_NUMBER_WORDS = {
+    "zero": "0", "one": "1", "two": "2", "three": "3", "four": "4",
+    "five": "5", "six": "6", "seven": "7", "eight": "8", "nine": "9",
+    "ten": "10", "eleven": "11", "twelve": "12", "thirteen": "13",
+    "fourteen": "14", "fifteen": "15", "sixteen": "16",
+    "seventeen": "17", "eighteen": "18", "nineteen": "19", "twenty": "20",
+}
+
+
+def _canonicalize_short_answer(question: str, answer: str) -> str:
+    """Apply only type-preserving normalizations that cannot need new facts.
+
+    LoCoMo's official token F1 distinguishes ``three`` from ``3`` and punishes
+    explanatory prose.  A strict prompt is the main control; this function is a
+    narrow last line of defence for count and yes/no questions.  It deliberately
+    does not guess an entity span from an arbitrary sentence.
+    """
+    text = answer.strip().strip('"').strip()
+    if re.search(r"\bhow many\b", question, re.I):
+        digits = re.findall(r"(?<![\w.])\d+(?![\w.])", text)
+        words = re.findall(r"\b(?:" + "|".join(_NUMBER_WORDS) + r")\b",
+                           text.casefold())
+        values = list(dict.fromkeys(digits + [_NUMBER_WORDS[word] for word in words]))
+        if len(values) == 1:
+            return values[0]
+    if re.match(r"\s*(?:did|do|does|is|are|was|were|has|have|had|can|could|would|will)\b",
+                question, re.I):
+        match = re.match(r"\s*(likely\s+)?(yes|no)\b", text, re.I)
+        if match:
+            return (match.group(1) or "").casefold() + match.group(2).casefold()
+    return text
+
+
 @dataclass
 class ReadResult:
     answer: str = ""
@@ -179,6 +212,7 @@ def read(
         answer = result.text.strip().splitlines()[0][:200]
 
     raw_answer = answer
+    answer = _canonicalize_short_answer(question.question, answer)
     guard = None
     prompt_tokens, completion_tokens, latency = (result.prompt_tokens,
                                                   result.completion_tokens, result.latency_s)

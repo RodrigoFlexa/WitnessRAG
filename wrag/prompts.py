@@ -518,16 +518,18 @@ object, an option, a likely inference, a complete list, a distinct count, a
 calendar date, a time interval, or a duration. Match every person, event and
 qualifier to the SAME supporting dialogue; do not combine unrelated mentions.
 
-For an inference, use relevant statements and ordinary category knowledge,
-and give the likely conclusion with the short reason grounded in the dialogue
-when the conclusion alone would be ambiguous. A yes/no question needs a yes/no
-conclusion; a question asking WHICH option, holiday, job, place or condition
-needs that named answer, not yes/no. Do not abstain merely because an inference
-is not quoted verbatim. Do not invent facts absent from the passages.
+For an inference, use relevant statements and ordinary category knowledge.
+Reason internally, but NEVER put the reasoning, evidence, passage identifiers,
+citations or an explanatory sentence in the answer. A yes/no question needs only
+"yes", "no", "likely yes", or "likely no". A question asking WHICH option,
+holiday, job, place or condition needs only that named answer, not yes/no. Do
+not abstain merely because an inference is not quoted verbatim. Do not invent
+facts absent from the passages.
 
-For a list, include every distinct supported member, separated by commas.
-For a count, count distinct matching people, objects or events rather than
-mentions. An incomplete list is not proof of a total.
+For a list, include every distinct supported member, separated by commas, with
+no introduction. For a count, count distinct matching people, objects or events
+rather than mentions and return ASCII digits only, for example "3". An
+incomplete list is not proof of a total.
 
 For time, use the session date belonging to the event's own turn. Resolve
 relative expressions against that date. Return the unit requested: a year,
@@ -536,8 +538,9 @@ month, calendar date, interval, or duration. Express calendar dates in words
 "since 2016" versus "for seven years" when the question requires one of them.
 
 Use "insufficient information" only if no relevant statement supports even
-the requested inference. Keep the answer concise but complete. Return exactly
-one JSON object: {{"answer":"..."}}.
+the requested inference. The value of `answer` should normally be 1--12 words:
+the answer span only, without a lead-in such as "the answer is". Return exactly
+one JSON object and no other text: {{"answer":"..."}}.
 
 PASSAGES:
 {passages}

@@ -69,6 +69,8 @@ def parser():
     p.add_argument("--binding-aware-grounding", action="store_true")
     p.add_argument("--verify-witnesses", action="store_true")
     p.add_argument("--top-k", type=int, default=5, help="passagens entregues ao leitor")
+    p.add_argument("--qa-max-tokens", type=int, default=512,
+                   help="teto de tokens da resposta final do leitor")
     p.add_argument("--answer-set", action="store_true",
                    help="resposta como conjunto de atribuições certas, com prova por item")
     p.add_argument("--vocab-compile", action="store_true",
@@ -99,6 +101,8 @@ def parser():
                    help="leitor de uma chamada orientado pelo tipo de resposta e pelas evidências")
     p.add_argument("--gap-context-rescue", action="store_true",
                    help="uma busca textual sem LLM para a relação multi-hop faltante")
+    p.add_argument("--selective-witness", action="store_true",
+                   help="controlador econômico: híbrido sempre, uma compilação apenas em multi-hop")
     p.add_argument("--admit-provisional-witnesses", action="store_true",
                    help="usa testemunhas provisórias com proveniência como rota qualificada")
     p.add_argument("--plan-repair", action="store_true",
@@ -421,10 +425,12 @@ def _run_config(settings, n_questions):
     cfg.qa.operator_reader = cfg.witness.active_operators
     cfg.qa.proof_reader = cfg.witness.proof_reader
     cfg.qa.answer_guard = settings.get("answer_guard", False)
+    cfg.qa.max_tokens = settings.get("qa_max_tokens", 512)
     cfg.qa.temporal_annotations = settings.get("temporal_annotations", False)
     cfg.witness.hybrid_fallback = settings.get("hybrid_fallback", False)
     cfg.witness.candidate_pool_k = settings.get("witness_candidate_pool", 20)
     cfg.witness.gap_context_rescue = settings.get("gap_context_rescue", False)
+    cfg.witness.selective_witness = settings.get("selective_witness", False)
     cfg.qa.evidence_reader = settings.get("evidence_reader", False)
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
     cfg.graph.merge_relation_inflections = not settings.get("no_relation_family_merge", False)
@@ -686,7 +692,8 @@ def _validate_resume(old, new):
               "active_frontier", "active_obligations", "active_context", "active_operators",
               "soft_obligations", "proof_reader", "plan_repair", "temporal_memory",
               "complementary_context", "temporal_annotations", "evidence_reader",
-              "gap_context_rescue", "admit_provisional_witnesses",
+              "gap_context_rescue", "selective_witness", "admit_provisional_witnesses",
+              "qa_max_tokens",
               "hybrid_fallback", "dialogue_ie",
               "no_relation_family_merge",
               "binding_aware_grounding", "verify_witnesses", "no_acquisition")
