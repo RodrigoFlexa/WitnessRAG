@@ -16,7 +16,7 @@ if [[ -z "${AZURE_OPENAI_BASE_URL:-}" && -z "${AZURE_OPENAI_ENDPOINT:-}" ]]; the
 fi
 
 BENCH_PYTHON=${BENCH_PYTHON:-"$PWD/.venv-bench/bin/python"}
-OUTPUT=${1:-runs/witness-suite-locomo-azure-evidence}
+OUTPUT=${1:-runs/witness-suite-locomo-azure-low-fallback}
 GPU=${GPU:-1}
 CONVERSATION=${LOCOMO_CONVERSATION:-all}
 DEPLOYMENT=${DEPLOYMENT:-gpt-4-1-mini-petrobras}
@@ -38,9 +38,6 @@ export WRAG_LLM_CACHE=1 WRAG_EMBED_CACHE=1 PYTHONHASHSEED=42
 "$BENCH_PYTHON" -m wrag.cli diag-azure
 RESUME=()
 [[ -f "$OUTPUT/pilot.json" ]] && RESUME+=(--resume)
-IMPROVEMENTS=()
-[[ "${EVIDENCE_READER:-1}" == 1 ]] && IMPROVEMENTS+=(--evidence-reader)
-[[ "${GAP_CONTEXT_RESCUE:-1}" == 1 ]] && IMPROVEMENTS+=(--gap-context-rescue)
 "$BENCH_PYTHON" -m wrag.pilot --backend azure --gpu "$GPU" \
   --model "$DEPLOYMENT" --tokenizer-model "$TOKENIZER_MODEL" \
   --dataset locomo --locomo-conversation "$CONVERSATION" --methods witnessrag \
@@ -51,6 +48,7 @@ IMPROVEMENTS=()
   --vocab-compile --hybrid-fallback --dialogue-ie --query-plans \
   --max-query-plans 5 --active-frontier --active-obligations --active-context \
   --active-operators --soft-obligations --temporal-memory \
-  --complementary-context --temporal-annotations "${IMPROVEMENTS[@]}" \
+  --complementary-context --temporal-annotations --evidence-reader \
+  --gap-context-rescue --admit-provisional-witnesses \
   --cache-dir "$CACHE_DIR" \
   --hours "${HOURS:-72}" --output "$OUTPUT" "${RESUME[@]}"
