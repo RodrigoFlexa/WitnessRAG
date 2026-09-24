@@ -14,7 +14,8 @@
 # CHUNKS=""              optional, e.g. "1024 512": k=5 with smaller chunks.
 #                        This rebuilds the memory (new extraction and planning),
 #                        so it costs like a full run; the k sweep does not.
-# REFERENCE=runs/witness-suite-locomo-azure-proof   the k=5 proof run
+# REFERENCE=runs/witness-suite-locomo-$LLM-proof    the k=5 proof run
+# LLM=azure | qwen       passed to both run scripts (qwen: vLLM on $PORT)
 #
 # Cost: with k<5 the index, the entity graph and almost every planning prompt
 # are identical to the reference run, so they come from the shared cache. The
@@ -27,11 +28,14 @@ CONVERSATIONS=${CONVERSATIONS:-all}
 BUDGETS=${BUDGETS:-"4 3 2 1"}
 METHODS=${METHODS:-"proof hybrid"}
 CHUNKS=${CHUNKS:-""}
-REFERENCE=${REFERENCE:-runs/witness-suite-locomo-azure-proof}
+export LLM=${LLM:-azure}
+REFERENCE=${REFERENCE:-runs/witness-suite-locomo-$LLM-proof}
+SUFFIX=""
+[[ "$LLM" != azure ]] && SUFFIX="-$LLM"
 if [[ "$CONVERSATIONS" == all ]]; then
-  ROOT=${ROOT:-runs/locomo-budget}
+  ROOT=${ROOT:-"runs/locomo-budget$SUFFIX"}
 else
-  ROOT=${ROOT:-"runs/locomo-budget-c${CONVERSATIONS//,/}"}
+  ROOT=${ROOT:-"runs/locomo-budget$SUFFIX-c${CONVERSATIONS//,/}"}
 fi
 export LOCOMO_CONVERSATION="$CONVERSATIONS"
 if [[ -z "${BENCH_PYTHON:-}" ]]; then

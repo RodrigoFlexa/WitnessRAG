@@ -21,21 +21,31 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-if [[ -f .env ]]; then
-  set -a
-  # shellcheck disable=SC1091
-  source .env
-  set +a
-fi
-: "${AZURE_OPENAI_API_KEY:?Set AZURE_OPENAI_API_KEY in .env or the environment}"
-if [[ -z "${AZURE_OPENAI_BASE_URL:-}" && -z "${AZURE_OPENAI_ENDPOINT:-}" ]]; then
-  echo "Set AZURE_OPENAI_BASE_URL or AZURE_OPENAI_ENDPOINT." >&2
-  exit 1
-fi
+# LLM=azure (default): gpt-4-1-mini-petrobras through .env.
+# LLM=qwen: an already-running vLLM server on 127.0.0.1:$PORT
+#           (scripts/serve-qwen-vllm.sh), MODEL=Qwen/Qwen2.5-14B-Instruct.
+LLM=${LLM:-azure}
+case "$LLM" in
+  azure)
+    if [[ -f .env ]]; then
+      set -a
+      # shellcheck disable=SC1091
+      source .env
+      set +a
+    fi
+    : "${AZURE_OPENAI_API_KEY:?Set AZURE_OPENAI_API_KEY in .env or the environment}"
+    if [[ -z "${AZURE_OPENAI_BASE_URL:-}" && -z "${AZURE_OPENAI_ENDPOINT:-}" ]]; then
+      echo "Set AZURE_OPENAI_BASE_URL or AZURE_OPENAI_ENDPOINT." >&2
+      exit 1
+    fi
+    ;;
+  qwen) ;;
+  *) echo "LLM must be azure or qwen." >&2; exit 2 ;;
+esac
 
 BENCH_PYTHON=${BENCH_PYTHON:-"$PWD/.venv-bench/bin/python"}
 PROFILE=${PROFILE:-proof}
-OUTPUT=${1:-runs/witness-suite-locomo-azure-$PROFILE}
+OUTPUT=${1:-runs/witness-suite-locomo-$LLM-$PROFILE}
 GPU=${GPU:-1}
 CONVERSATION=${LOCOMO_CONVERSATION:-all}
 DEPLOYMENT=${DEPLOYMENT:-gpt-4-1-mini-petrobras}
@@ -44,13 +54,9 @@ TOKENIZER_MODEL=${WRAG_TOKENIZER_MODEL:-Qwen/Qwen2.5-14B-Instruct}
 # and chunk size. The registered configuration is 5 x 2048 tokens.
 TOP_K=${TOP_K:-5}
 CHUNK_TOKENS=${CHUNK_TOKENS:-2048}
-CACHE_DIR=${CACHE_DIR:-"$PWD/runs/.cache/witness-azure"}
+CACHE_DIR=${CACHE_DIR:-"$PWD/runs/.cache/witness-$LLM"}
 mkdir -p "$OUTPUT" "$CACHE_DIR"
 
-export WRAG_LLM_BACKEND=azure
-export WRAG_AZURE_DEPLOYMENT="$DEPLOYMENT"
-export AZURE_OPENAI_API_VERSION=${AZURE_OPENAI_API_VERSION:-2024-10-21}
-export WRAG_AZURE_CONCURRENCY=${AZURE_CONCURRENCY:-4}
 export WRAG_CONTINUE_ON_CONTENT_FILTER=1
 export WRAG_EMBED_BACKEND=st
 export WRAG_EMBED_MODEL=${EMBED_MODEL:-BAAI/bge-m3}
@@ -58,7 +64,23 @@ export WRAG_EMBED_DEVICE=${EMBED_DEVICE:-cpu}
 export WRAG_CACHE_DIR="$CACHE_DIR"
 export WRAG_LLM_CACHE=1 WRAG_EMBED_CACHE=1 PYTHONHASHSEED=42
 
-"$BENCH_PYTHON" -m wrag.cli diag-azure
+if [[ "$LLM" == qwen ]]; then
+  PORT=${PORT:-8095}
+  MODEL=${MODEL:-Qwen/Qwen2.5-14B-Instruct}
+  if ! curl -fsS "http://127.0.0.1:$PORT/v1/models" >/dev/null 2>&1; then
+    echo "No vLLM server at http://127.0.0.1:$PORT/v1; start scripts/serve-qwen-vllm.sh first." >&2
+    exit 1
+  fi
+  BACKEND_FLAGS=(--backend vllm --existing-server --port "$PORT" --model "$MODEL"
+    --concurrency "${CONCURRENCY:-16}")
+else
+  export WRAG_LLM_BACKEND=azure
+  export WRAG_AZURE_DEPLOYMENT="$DEPLOYMENT"
+  export AZURE_OPENAI_API_VERSION=${AZURE_OPENAI_API_VERSION:-2024-10-21}
+  export WRAG_AZURE_CONCURRENCY=${AZURE_CONCURRENCY:-4}
+  "$BENCH_PYTHON" -m wrag.cli diag-azure
+  BACKEND_FLAGS=(--backend azure --model "$DEPLOYMENT" --concurrency "$WRAG_AZURE_CONCURRENCY")
+fi
 RESUME=()
 [[ -f "$OUTPUT/pilot.json" ]] && RESUME+=(--resume)
 # The graph flags are those of the selective run, so the memory (OpenIE, entity
@@ -75,11 +97,10 @@ case "$PROFILE" in
     exit 2
     ;;
 esac
-"$BENCH_PYTHON" -m wrag.pilot --backend azure --gpu "$GPU" \
-  --model "$DEPLOYMENT" --tokenizer-model "$TOKENIZER_MODEL" \
+"$BENCH_PYTHON" -m wrag.pilot "${BACKEND_FLAGS[@]}" --gpu "$GPU" \
+  --tokenizer-model "$TOKENIZER_MODEL" \
   --dataset locomo --locomo-conversation "$CONVERSATION" --methods witnessrag \
   --embed-model "$WRAG_EMBED_MODEL" --embed-device "$WRAG_EMBED_DEVICE" \
-  --concurrency "$WRAG_AZURE_CONCURRENCY" \
   --locomo-chunk-tokens "$CHUNK_TOKENS" --locomo-ie-window-tokens 512 --top-k "$TOP_K" --qa-max-tokens 128 \
   --witness-candidate-pool 20 --answer-set --temporal-annotations --evidence-reader \
   "${METHOD_FLAGS[@]}" \
