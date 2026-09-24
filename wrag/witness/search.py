@@ -12,6 +12,7 @@ não autoriza inverter relações e não é interpretada como probabilidade.
 from __future__ import annotations
 
 import math
+import zlib
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Sequence
 
@@ -37,6 +38,14 @@ class Grounding:
     fact_index: int
     score: float
     reversed: bool = False
+    # Raw match of the fact to the atom (relation, names, verbalization). When
+    # a plan blends importance and time into the score, ``score`` is the blend
+    # and ``match`` keeps the quality gate independent of the plan's weights.
+    match: float = -1.0
+
+    @property
+    def match_score(self) -> float:
+        return self.score if self.match < 0 else self.match
 
 
 @dataclass
@@ -49,6 +58,11 @@ class Witness:
     cost: float                       # -Σ log score + λ·|passagens distintas|
     pids: tuple[str, ...]
     answer: str = ""
+    match: float = -1.0               # ∏ casamentos brutos (sem pesos do plano)
+
+    @property
+    def match_score(self) -> float:
+        return self.score if self.match < 0 else self.match
 
     def to_dict(self, kg: KnowledgeGraph) -> dict[str, Any]:
         return {
@@ -112,6 +126,7 @@ class _State:
     facts: tuple[int, ...]
     log_score: float
     pids: frozenset[str]
+    log_match: float = 0.0
 
     def cost(self, penalty: float) -> float:
         return -self.log_score + penalty * len(self.pids)
@@ -143,6 +158,11 @@ class WitnessSearcher:
         self.allowed: set[int] | None = None
         self._reactivated: set[int] = set()
         self._allowed_horizon: int = len(kg.facts)
+        # Plan-dependent scoring (design v3). ``_blend`` is (w_sim, prior) with
+        # prior[f] = w_imp·imp(f) + w_time·prox(f); None means raw match only.
+        self._blend: tuple[float, np.ndarray] | None = None
+        # Resolved event time of each fact, used to bind a time variable.
+        self.fact_times: list[str] | None = None
         for i, fact in enumerate(kg.facts):
             if fact.subj_id >= 0:
                 self._facts_by_cluster_subject.setdefault(self._identity(fact.subj_id), []).append(i)
@@ -155,6 +175,30 @@ class WitnessSearcher:
     def _permitted(self, fid: int) -> bool:
         return (self.allowed is None or fid in self.allowed or fid in self._reactivated
                 or fid >= self._allowed_horizon)
+
+    # -- pontuação dependente do plano (desenho v3) ---------------------------
+
+    def set_scoring(self, similarity_weight: float, prior: np.ndarray | None) -> None:
+        """score(f|α) = w_sim·casamento(f,α) + prior[f]. Identity when prior is None."""
+        if prior is None or (similarity_weight >= 1.0 - 1e-12 and not np.any(prior)):
+            self._blend = None
+        else:
+            self._blend = (float(similarity_weight), np.asarray(prior, dtype=np.float32))
+
+    def clear_scoring(self) -> None:
+        self._blend = None
+
+    def _blended(self, fid: int, match: float) -> float:
+        if match <= 0 or self._blend is None:
+            return match
+        weight, prior = self._blend
+        extra = float(prior[fid]) if 0 <= fid < len(prior) else 0.0
+        return float(max(EPS, min(1.0, weight * match + extra)))
+
+    def _time_key(self, fid: int) -> str:
+        if self.fact_times is not None and 0 <= fid < len(self.fact_times):
+            return self.fact_times[fid]
+        return str(getattr(self.kg.facts[fid], "time", "") or "")
 
     # -- reindexação incremental reversível (usada pela aquisição) ----------
 
@@ -299,14 +343,14 @@ class WitnessSearcher:
         scored: list[Grounding] = []
         for fid in sorted(forward | backward):
             fact = kg.facts[fid]
-            base = self._score_fact(atom, fact, fid, rel_vector, verb_vector, constant_clusters,
+            base = self._match_fact(atom, fact, fid, rel_vector, verb_vector, constant_clusters,
                                     reversed_=False) if fid in forward else 0.0
-            rev = self._score_fact(atom, fact, fid, rel_vector, verb_vector, constant_clusters,
+            rev = self._match_fact(atom, fact, fid, rel_vector, verb_vector, constant_clusters,
                                    reversed_=True) * REVERSE_PENALTY if fid in backward else 0.0
             if base >= rev and base > 0:
-                scored.append(Grounding(fid, base, reversed=False))
+                scored.append(Grounding(fid, self._blended(fid, base), reversed=False, match=base))
             elif rev > 0:
-                scored.append(Grounding(fid, rev, reversed=True))
+                scored.append(Grounding(fid, self._blended(fid, rev), reversed=True, match=rev))
             elif cfg.plan_repair:
                 rel_sim = (float(np.dot(rel_vector, kg.relation_vectors[fact.rel_id]))
                            if fact.rel_id >= 0 and kg.relation_vectors.size else 0.0)
@@ -337,6 +381,14 @@ class WitnessSearcher:
         return scored
 
     def _score_fact(self, atom: Atom, fact: Fact, fid: int, rel_vector: np.ndarray,
+                    verb_vector: np.ndarray,
+                    constant_clusters: dict[str, list[tuple[int, float]]],
+                    reversed_: bool) -> float:
+        """Blended score used by the beam; equals the raw match without a plan."""
+        return self._blended(fid, self._match_fact(atom, fact, fid, rel_vector, verb_vector,
+                                                   constant_clusters, reversed_))
+
+    def _match_fact(self, atom: Atom, fact: Fact, fid: int, rel_vector: np.ndarray,
                     verb_vector: np.ndarray,
                     constant_clusters: dict[str, list[tuple[int, float]]],
                     reversed_: bool) -> float:
@@ -405,9 +457,10 @@ class WitnessSearcher:
         for fid in sorted(pool):
             if not self._permitted(fid):
                 continue
-            score = self._score_fact(atom, self.kg.facts[fid], fid,
+            match = self._match_fact(atom, self.kg.facts[fid], fid,
                                      vectors[0], vectors[1], constants, False)
-            grounding = Grounding(fid, score)
+            score = self._blended(fid, match)
+            grounding = Grounding(fid, score, match=match)
             # Restrições repetidas (?x R ?x) também precedem o corte.
             if score > 0 and self._extend(state, atom, grounding) is not None:
                 scored.append(grounding)
@@ -591,6 +644,18 @@ class WitnessSearcher:
                 return None      # a variável compartilhada não bate: sem testemunha
             clusters[name] = cluster
             surfaces.setdefault(name, kg.entities[eid])
+        if atom.time_is_var:
+            # A time variable takes the event date of the fact. A fact without a
+            # date cannot answer "when"; equal dates bind the same value.
+            when = self._time_key(grounding.fact_index).strip()
+            if not when:
+                return None
+            name = var_name(atom.time)
+            key = -1 - (zlib.crc32(normalize(when).encode("utf-8")) & 0x7FFFFFFF)
+            if name in clusters and clusters[name] != key:
+                return None
+            clusters[name] = key
+            surfaces.setdefault(name, when)
 
         return _State(
             clusters=clusters,
@@ -598,6 +663,7 @@ class WitnessSearcher:
             facts=tuple(sorted(set(state.facts) | {grounding.fact_index})),
             log_score=state.log_score + math.log(max(grounding.score, EPS)),
             pids=state.pids | {fact.pid},
+            log_match=state.log_match + math.log(max(grounding.match_score, EPS)),
         )
 
     def _gap(self, atom_index: int, atom: Atom, states: Sequence[_State], depth: int) -> Gap:
@@ -626,6 +692,7 @@ class WitnessSearcher:
                 cost=state.cost(cfg.passage_penalty),
                 pids=tuple(sorted(state.pids)),
                 answer=answer,
+                match=float(math.exp(state.log_match)),
             ))
         out.sort(key=lambda w: w.cost)
         return _minimal_only(out)

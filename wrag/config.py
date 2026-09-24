@@ -288,6 +288,55 @@ class WitnessConfig:
     selective_max_witnesses: int = 3
     selective_max_new_passages: int = 2
     selective_min_score: float = 0.45
+    # Category-agnostic routing. One planning call writes an evidence contract
+    # (answer form, operator, evidence scope, time focus, lenses) from the
+    # question text alone; the route is a deterministic function of it. The
+    # composition route reuses the selective controller unchanged, so when the
+    # contract's route equals the labelled route the context is identical.
+    agnostic_router: bool = False
+    contract_temperature: float = 0.0
+    # Ablation only: force every question to one route while still planning
+    # ("compose" = compose-all, "direct" = planner overhead without graph).
+    route_override: str = ""
+    # Memory lenses chosen by the contract (recency/stability, salience,
+    # corroborated confidence). Tail-only, never displace a delivered witness.
+    memory_lenses: bool = False
+    lens_weight: float = 1.0
+    lens_max_swaps: int = 1
+    lens_margin: float = 0.10
+    # Lenses the contract is allowed to switch on (single-lens ablations).
+    lens_allow: str = "temporal,salience,confidence"
+    stability_base_days: float = 30.0   # s0 da retenção exp(-Δt/s)
+    stability_gain_days: float = 30.0   # α: ganho de estabilidade por reafirmação
+
+    # -- controlador de prova (desenho v3; docs/paper/witnessrag-proposta-v3.tex)
+    # Buscar -> Planejar -> Provar -> Verificar -> Responder, para toda pergunta
+    # e sem rótulo de categoria. Os limites de mudança do contexto vêm das
+    # auditorias: duas trocas não provadas pioraram o multi-hop; uma prova
+    # inteira e seletiva pode ocupar duas vagas; hipóteses ocupam no máximo uma.
+    proof_controller: bool = False
+    proof_cycles: int = 2                  # R: ciclos Buscar-Planejar-Provar-Verificar
+    proof_evidence_facts: int = 30         # fatos das evidências mostrados ao planejador
+    proof_max_new_passages: int = 2        # k_W de um plano composto
+    proof_simple_max_new_passages: int = 1  # k_W de um plano de um fato e um valor
+    proof_max_answers: int = 3
+    proof_max_witnesses: int = 3
+    proof_min_support: float = 0.45        # sobre o casamento bruto x confiança
+    proof_verify: bool = True              # Verificar antes de mudar o contexto
+    # Evidência parcial (sondas de concordância e resgate de lacuna, do
+    # controlador seletivo) na última vaga quando um plano conectado não fecha a
+    # prova. Desligada: no replay offline ela mudou 32-48% dos contextos com
+    # perda de revocação (multi-hop 7 ganhos/20 perdas; single-hop 7/15). Fica
+    # como ablação (--partial-evidence).
+    proof_partial_evidence: bool = False
+    plan_temperature: float = 0.0
+    # Níveis de peso da pontuação (scoring.WeightLevels), calibrados offline.
+    proof_time_normal: float = 0.0
+    proof_time_strong: float = 0.3
+    proof_importance_normal: float = 0.0
+    proof_importance_strong: float = 0.1
+    proof_min_scale_days: float = 7.0      # λ mínimo da proximidade temporal
+    proof_point_scale_fraction: float = 0.25  # λ de "hoje"/"início": fração da memória
 
     # -- proveniência e risco
     fact_confidence: float = 0.90      # p_e default de um fato extraído uma vez

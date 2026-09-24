@@ -448,8 +448,29 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
              "truncations", "aterramento", "exaustiva", "truncamentos",
              "modo_aterramento", "busca_exaustiva", "feixe_exaustivo", "cortes", "risco_calibrado",
              "limite_inferior_contagem", "empacotamento", "classe_prova",
-             "prova_provisoria", "leitura_provas")
+             "prova_provisoria", "leitura_provas",
+             # controladores seletivo, agnóstico e de prova (desenho v3)
+             "controlador", "rota", "rota_plano", "contrato",
+             "contexto_alterado_pela_pontuacao", "contexto_alterado_pela_prova",
+             "plano_final", "pesos", "periodo", "passagens_testemunha",
+             "n_testemunhas_no_contexto", "contexto_hibrido", "sondas_recuperacao",
+             "lacuna_contextual")
             if k in diagnostics}
+    cycles = diagnostics.get("ciclos")
+    if isinstance(cycles, list):
+        # Um ciclo por plano; o suficiente para refazer a trajetória: consulta,
+        # período, pesos, resultado da prova e decisão da verificação.
+        keep["ciclos"] = [
+            {"ciclo": c.get("ciclo"), "resultado": c.get("resultado"),
+             "escopo": c.get("escopo"), "n_testemunhas": c.get("n_testemunhas"),
+             "candidatos_por_atomo": c.get("candidatos_por_atomo"),
+             "respostas": (c.get("respostas") or [])[:3],
+             "verificacao": c.get("verificacao"),
+             "plano": {k: (c.get("plano") or {}).get(k) for k in
+                       ("consulta", "cardinalidade", "periodo", "nivel_tempo",
+                        "nivel_importancia", "pesos", "valido", "erro", "reparos",
+                        "composto", "conectado")}}
+            for c in cycles if isinstance(c, dict)]
     research = diagnostics.get("pesquisa_provas")
     if isinstance(research, dict):
         keep["pesquisa_provas"] = {

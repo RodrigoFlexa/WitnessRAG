@@ -4,6 +4,10 @@ Protótipo de memória orientada à preservação de **testemunhas de consultas 
 
 A proposta original está em [docs/proposta.md](docs/proposta.md). Como o método funciona hoje, etapa por etapa, com o que cada uma garante e o que não garante, está em [docs/witness-atual.md](docs/witness-atual.md). O estado efetivo do código, as correções da revisão e as limitações estão em [docs/revisao-implementacao.md](docs/revisao-implementacao.md).
 
+**Controlador de prova (24/09/2026):** o desenho v3 ([docs/paper/witnessrag-proposta-v3.tex](docs/paper/witnessrag-proposta-v3.tex), versão formal em [witnessrag-proposta-v2.tex](docs/paper/witnessrag-proposta-v2.tex)) está implementado como `--proof-controller`: Registrar (memória datada), Buscar, Planejar com evidências, Provar, Verificar e Responder, para toda pergunta e sem rótulo de categoria. Rodada no Azure: `scripts/run-witness-proof-locomo.sh`; relatório pareado: `scripts/proof-report.py`; replay offline sem LLM: `scripts/proof-offline-eval.py`.
+
+**Estado anterior (23/09/2026):** a explicação didática completa, incluindo o controlador agnóstico à categoria (contrato de evidência + roteamento por pertença ao fragmento), as lentes de memória e o desenho experimental, está em [docs/witnessrag-metodo.md](docs/witnessrag-metodo.md). A seção de método para o artigo, em LaTeX, está em [docs/paper/witnessrag-method.tex](docs/paper/witnessrag-method.tex).
+
 A [auditoria do piloto de 14/09/2026](docs/revisao-resultados-2026-09-14.md) revisa os resultados salvos e apresenta as ablações experimentais `--binding-aware-grounding` e `--verify-witnesses`, disponíveis na CLI e no piloto. Ambas são desligadas por padrão; ainda não têm ganho medido com modelo real.
 
 ## O que está implementado
@@ -31,6 +35,13 @@ anterior, e por isso as rodadas já medidas continuam comparáveis.
 | `--dialogue-ie` | extração adaptada a diálogo: falante como sujeito, correferência dentro do bloco e escopo temporal no fato. Muda a base de fatos compartilhada e exige nova extração |
 | `--no-relation-family-merge` | ablação que preserva cada flexão de relação separada no índice, sem refazer a extração |
 | `--top-k N` | blocos entregues ao leitor |
+| `--agnostic-router` | uma chamada de planejamento escreve um contrato de evidência a partir só do texto da pergunta; a rota (DIRECT ou COMPOSE) é função determinística do contrato. Não lê a categoria do benchmark |
+| `--memory-lenses` | lentes escolhidas pelo contrato (recência/estabilidade, saliência, confiança corroborada) reordenam só a cauda do contexto; exige `--agnostic-router` |
+| `--lenses L1,L2`, `--lens-max-swaps N` | ablações das lentes: quais podem ser ligadas e quantas posições podem trocar (padrão 1) |
+| `--route-override compose\|direct` | ablação: planeja, mas força a rota para todas as perguntas |
+| `--proof-controller` | desenho v3: memória datada (data do evento e importância de cada fato), um plano por pergunta escrito depois da primeira busca (consulta, período de referência, pesos de tempo e importância), prova no grafo com a mesma pontuação, verificação só quando a prova mudaria o contexto; até 2 trechos novos para prova confirmada de plano composto, 1 para plano simples; prefixo protegido. Exige `--evidence-reader` no LoCoMo |
+| `--proof-cycles N` | ciclos buscar-planejar-provar-verificar (padrão 2) |
+| `--no-proof-verify`, `--partial-evidence` | ablações do controlador de prova (sem verificação; com as sondas/lacuna do controlador seletivo na última vaga) |
 
 A completude do conjunto de respostas **não é certificada**: ele contém o que a
 memória prova, e nada limita o que ficou de fora por falha de extração, de

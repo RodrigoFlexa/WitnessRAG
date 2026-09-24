@@ -67,6 +67,10 @@ class Atom:
     relation: str
     subject: str
     object: str
+    # Optional time slot (design v3): a variable such as "?t" makes the date of
+    # the matched fact a value of the query, so "when" questions have a proof
+    # whose answer is a date. Empty for the legacy two-argument atoms.
+    time: str = ""
 
     @property
     def subject_is_var(self) -> bool:
@@ -75,6 +79,10 @@ class Atom:
     @property
     def object_is_var(self) -> bool:
         return is_var(self.object)
+
+    @property
+    def time_is_var(self) -> bool:
+        return is_var(self.time)
 
     @property
     def n_constants(self) -> int:
@@ -92,10 +100,19 @@ class Atom:
         return " ".join(parts)
 
     def variables(self) -> list[str]:
+        names = [var_name(t) for t in (self.subject, self.object) if is_var(t)]
+        if self.time_is_var and var_name(self.time) not in names:
+            names.append(var_name(self.time))
+        return names
+
+    def entity_variables(self) -> list[str]:
         return [var_name(t) for t in (self.subject, self.object) if is_var(t)]
 
     def to_dict(self) -> dict[str, str]:
-        return {"relation": self.relation, "subject": self.subject, "object": self.object}
+        out = {"relation": self.relation, "subject": self.subject, "object": self.object}
+        if self.time:
+            out["time"] = self.time
+        return out
 
 
 @dataclass
@@ -164,7 +181,7 @@ class ConjunctiveQuery:
             return "cyclic"
         counts: dict[str, int] = {}
         for atom in self.atoms:
-            for v in set(atom.variables()):
+            for v in set(atom.entity_variables()):
                 counts[v] = counts.get(v, 0) + 1
         shared = [v for v, c in counts.items() if c > 1]
         if not shared:
@@ -323,7 +340,11 @@ def _parse_atoms(raw: Any, max_atoms: int) -> list[Atom]:
         obj = str(item.get("object") or "").strip()
         if not relation or not subject or not obj:
             continue
-        atoms.append(Atom(relation=relation, subject=subject, object=obj))
+        # Only a variable is accepted in the time slot; dates belong to the
+        # plan's period, never to an atom constant.
+        time = str(item.get("time") or "").strip()
+        atoms.append(Atom(relation=relation, subject=subject, object=obj,
+                          time=time if is_var(time) else ""))
         if len(atoms) >= max_atoms:
             break
     return atoms

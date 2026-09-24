@@ -102,6 +102,10 @@ class StubLLM(LLM):
             "witness.acquire": self._openie,
             "retrieve.filter": self._filter_triples,
             "witness.compile": self._compile_query,
+            "witness.contract": self._contract,
+            "witness.plan": self._plan,
+            "witness.replan_v3": self._plan,
+            "witness.confirm": self._confirm,
             "graphrag.community": self._community,
             "qa": self._answer,
         }.get(stage, self._echo)
@@ -154,6 +158,91 @@ class StubLLM(LLM):
         atoms.append({"relation": relation, "subject": "?m", "object": "?x"})
         return json.dumps({"answer_var": "x", "atoms": atoms, "expected_type": "entity",
                            "fallback": question}, ensure_ascii=False)
+
+    def _contract(self, payload: str, _messages: Any) -> str:
+        """Contrato de brinquedo por regras de superfície; só para testes offline."""
+        question = payload.split("\n", 1)[0].strip()
+        low = question.lower()
+        words = re.findall(r"[a-z]+", low)
+        first = words[0] if words else ""
+        from wrag.witness.query import looks_like_answer_set
+        if "how many" in low:
+            form = "count"
+        elif "how long" in low:
+            form = "duration"
+        elif first == "when" or re.search(r"\bwhat (date|year|month|day)\b", low):
+            form = "time"
+        elif first in {"would", "does", "do", "did", "is", "are", "was", "were", "can",
+                       "could", "has", "have", "will"}:
+            form = "choice" if " or " in low else "yes_no"
+        elif looks_like_answer_set(question):
+            form = "set"
+        elif first == "why" or re.search(r"\bfeel|felt\b", low):
+            form = "description"
+        else:
+            form = "entity"
+        if re.search(r"\b(would|likely|might|probably)\b", low):
+            operator = "abduce"
+        elif form in {"time", "duration"}:
+            operator = "temporal"
+        elif re.search(r"\bboth\b|in common", low):
+            operator = "join"
+        elif form in {"set", "count"}:
+            operator = "aggregate"
+        else:
+            operator = "lookup"
+        scope = "multiple" if operator in {"aggregate", "join", "compare", "abduce"} else "single"
+        anchor = ""
+        match = re.search(r"\b(?:in|during|of)\s+((?:[A-Z][a-z]+\s+)?\d{4})\b", question)
+        if match:
+            anchor = match.group(1)
+        focus = ("window" if anchor else "current" if re.search(r"\b(currently|now|recently)\b", low)
+                 else "first" if re.search(r"\bfirst\b", low) else
+                 "when" if form == "time" else "duration" if form == "duration" else "none")
+        temporal = {"window": "anchor", "current": "recent", "first": "early"}.get(focus, "none")
+        return json.dumps({
+            "answer_form": form, "operator": operator, "evidence_scope": scope,
+            "time": {"focus": focus, "anchor": anchor},
+            "focus_entities": [e for e in _entities(question, limit=4) if not e.isdigit()],
+            "info_needs": [question],
+            "lenses": {"temporal": temporal,
+                       "salience": bool(re.search(r"\bfeel|felt|emotion|why\b", low)),
+                       "confidence": form == "entity" and operator == "lookup"},
+        }, ensure_ascii=False)
+
+    def _plan(self, payload: str, _messages: Any) -> str:
+        """Plano de brinquedo (desenho v3); só para testes offline."""
+        question = payload.strip().splitlines()[-1].strip() if payload.strip() else ""
+        low = question.lower()
+        from wrag.witness.query import looks_like_answer_set
+        ents = [e for e in _entities(question, limit=3) if not e.isdigit()]
+        content = [w for w in re.findall(r"[a-zA-Z]+", question)
+                   if w.lower() not in _STOPWORDS and w not in ents]
+        relation = " ".join(content[:2]).lower() or "related to"
+        when = low.startswith("when") or bool(re.search(r"\bwhat (date|year|month)\b", low))
+        window = re.search(r"\b(?:in|during)\s+((?:January|February|March|April|May|June|July|"
+                           r"August|September|October|November|December)(?:\s+\d{4})?|\d{4})\b",
+                           question)
+        atom = {"relation": relation, "subject": ents[0] if ents else "?s",
+                "object": "?y" if when else "?x"}
+        if when:
+            atom["time"] = "?t"
+        aggregation = ("count" if "how many" in low else
+                       "set" if looks_like_answer_set(question) else "none")
+        plan = {"answer_var": "t" if when else "x", "atoms": [atom] if ents else [],
+                "aggregation": aggregation, "expected_type": "date" if when else "other",
+                "period": ({"reference": "window", "text": window.group(1)} if window else
+                           {"reference": "start", "text": ""} if re.search(r"\bfirst\b", low)
+                           else {"reference": "now", "text": ""}),
+                "time_weight": "strong" if window or re.search(r"\b(first|latest|recent)\b", low)
+                else "normal",
+                "importance_weight": "normal", "fallback": question}
+        return json.dumps(plan, ensure_ascii=False)
+
+    def _confirm(self, payload: str, _messages: Any) -> str:
+        """Confirma toda candidata listada; só para testes offline."""
+        ids = sorted(set(re.findall(r"^(A\d+):", payload, re.M)), key=lambda x: int(x[1:]))
+        return json.dumps({"supported": ids, "rejected": []})
 
     def _community(self, payload: str, _messages: Any) -> str:
         ents = _entities(payload, limit=8)

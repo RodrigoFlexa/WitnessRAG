@@ -103,6 +103,25 @@ def parser():
                    help="uma busca textual sem LLM para a relação multi-hop faltante")
     p.add_argument("--selective-witness", action="store_true",
                    help="controlador econômico: híbrido sempre, uma compilação apenas em multi-hop")
+    p.add_argument("--agnostic-router", action="store_true",
+                   help="planejamento agnóstico: um contrato de evidência decide a rota, sem categoria")
+    p.add_argument("--route-override", choices=["compose", "direct"], default=None,
+                   help="ablação: força uma rota para todas as perguntas (ainda planeja)")
+    p.add_argument("--memory-lenses", action="store_true",
+                   help="lentes de memória escolhidas pelo contrato (recência, saliência, confiança)")
+    p.add_argument("--lenses", default=None,
+                   help="ablação: lentes permitidas, ex. temporal ou salience,confidence")
+    p.add_argument("--lens-max-swaps", type=int, default=None,
+                   help="posições da cauda que as lentes podem trocar (padrão: 1)")
+    p.add_argument("--proof-controller", action="store_true",
+                   help="desenho v3: buscar, planejar com evidências, provar, verificar e responder; "
+                        "sem rótulo de categoria")
+    p.add_argument("--proof-cycles", type=int, default=None,
+                   help="ciclos buscar-planejar-provar-verificar do controlador de prova (padrão: 2)")
+    p.add_argument("--no-proof-verify", action="store_true",
+                   help="ablação: aceita a prova utilizável sem a chamada de verificação")
+    p.add_argument("--partial-evidence", action="store_true",
+                   help="ablação: sondas/lacuna na última vaga quando um plano conectado não fecha a prova")
     p.add_argument("--admit-provisional-witnesses", action="store_true",
                    help="usa testemunhas provisórias com proveniência como rota qualificada")
     p.add_argument("--plan-repair", action="store_true",
@@ -134,6 +153,36 @@ def make_plan(args, output):
         raise ValueError("--soft-obligations exige --active-obligations")
     if args.plan_repair and not (args.query_plans and args.active_obligations and args.active_frontier):
         raise ValueError("--plan-repair exige --query-plans, --active-obligations e --active-frontier")
+    if getattr(args, "memory_lenses", False) and not getattr(args, "agnostic_router", False):
+        raise ValueError("--memory-lenses exige --agnostic-router: as lentes vêm do contrato")
+    if getattr(args, "lenses", None):
+        unknown = {x.strip() for x in args.lenses.split(",") if x.strip()} - \
+            {"temporal", "salience", "confidence"}
+        if unknown or not getattr(args, "memory_lenses", False):
+            raise ValueError("--lenses aceita temporal,salience,confidence e exige --memory-lenses")
+    if (getattr(args, "agnostic_router", False) and args.dataset == "locomo"
+            and not getattr(args, "evidence_reader", False)):
+        # Sem o leitor único, reader.py escolhe o template pela categoria do
+        # LoCoMo, e o pipeline deixaria de ser agnóstico no último passo.
+        raise ValueError("--agnostic-router no LoCoMo exige --evidence-reader")
+    if getattr(args, "proof_controller", False):
+        if getattr(args, "agnostic_router", False) or getattr(args, "selective_witness", False):
+            raise ValueError("--proof-controller substitui --agnostic-router e --selective-witness")
+        if args.dataset == "locomo" and not getattr(args, "evidence_reader", False):
+            raise ValueError("--proof-controller no LoCoMo exige --evidence-reader "
+                             "(o leitor não pode escolher o template pela categoria)")
+        if not getattr(args, "answer_set", False):
+            raise ValueError("--proof-controller exige --answer-set: sem ele a junção não "
+                             "executa planos de conjunto, contagem ou comparação")
+        if getattr(args, "proof_cycles", None) is not None and not 1 <= args.proof_cycles <= 4:
+            raise ValueError("--proof-cycles deve estar entre 1 e 4")
+    elif (getattr(args, "proof_cycles", None) is not None or getattr(args, "no_proof_verify", False)
+          or getattr(args, "partial_evidence", False)):
+        raise ValueError("--proof-cycles/--no-proof-verify/--partial-evidence exigem --proof-controller")
+    if getattr(args, "route_override", None) and not getattr(args, "agnostic_router", False):
+        raise ValueError("--route-override exige --agnostic-router")
+    if getattr(args, "lens_max_swaps", None) is not None and args.lens_max_swaps < 0:
+        raise ValueError("--lens-max-swaps deve ser >= 0")
     if args.questions is None and args.dataset != "locomo":
         args.questions = 100
     if args.methods is None:
@@ -431,6 +480,18 @@ def _run_config(settings, n_questions):
     cfg.witness.candidate_pool_k = settings.get("witness_candidate_pool", 20)
     cfg.witness.gap_context_rescue = settings.get("gap_context_rescue", False)
     cfg.witness.selective_witness = settings.get("selective_witness", False)
+    cfg.witness.agnostic_router = settings.get("agnostic_router", False)
+    cfg.witness.proof_controller = settings.get("proof_controller", False)
+    cycles = settings.get("proof_cycles")
+    cfg.witness.proof_cycles = 2 if cycles is None else int(cycles)
+    cfg.witness.proof_verify = not settings.get("no_proof_verify", False)
+    cfg.witness.proof_partial_evidence = settings.get("partial_evidence", False)
+    cfg.witness.memory_lenses = settings.get("memory_lenses", False)
+    cfg.witness.route_override = settings.get("route_override") or ""
+    if settings.get("lenses"):
+        cfg.witness.lens_allow = settings["lenses"]
+    swaps = settings.get("lens_max_swaps")
+    cfg.witness.lens_max_swaps = 1 if swaps is None else int(swaps)
     cfg.qa.evidence_reader = settings.get("evidence_reader", False)
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
     cfg.graph.merge_relation_inflections = not settings.get("no_relation_family_merge", False)
@@ -693,6 +754,8 @@ def _validate_resume(old, new):
               "soft_obligations", "proof_reader", "plan_repair", "temporal_memory",
               "complementary_context", "temporal_annotations", "evidence_reader",
               "gap_context_rescue", "selective_witness", "admit_provisional_witnesses",
+              "agnostic_router", "memory_lenses", "lens_max_swaps", "route_override", "lenses",
+              "proof_controller", "proof_cycles", "no_proof_verify", "partial_evidence",
               "qa_max_tokens",
               "hybrid_fallback", "dialogue_ie",
               "no_relation_family_merge",

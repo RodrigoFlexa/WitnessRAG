@@ -37,8 +37,30 @@ from wrag.witness.research import (assess_plan, assess_plan_soft, assess_plan_re
                                    frontier_probes, gap_candidates, proof_hints,
                                    select_evidence)
 from wrag.witness.context_selection import select_complement
+from wrag.witness.contract import ROUTE_COMPOSE, EvidenceContract, plan_contract
+from wrag.witness.lenses import (MemorySignals, lens_values, policy_from_contract,
+                                 rerank_with_lenses)
+from wrag.witness.confirm import Verdict, confirm
+from wrag.witness.dated_memory import DatedMemory
+from wrag.witness.plan import (CARDINALITY_ALL, ProofPlan, default_plan, evidence_block,
+                               feedback_block, plan_question)
+from wrag.witness.scoring import MemoryScorer, WeightLevels
 
 log = get_logger("wrag.methods.witnessrag")
+
+
+# Observable outcome of a failed proof, in the planner's language. Only search
+# state goes back to the planner: never gold answers or benchmark labels.
+_OUTCOME_FEEDBACK = {
+    "join_incompleto": "the graph search found no complete match",
+    "respostas_demais": "the plan matched too many different answers ({n}); make it more specific",
+    "testemunhas_demais": "too many matching fact combinations; make the plan more specific",
+    "busca_truncada": "the search was cut because the plan was too broad; make it more specific",
+    "casamento_abaixo_do_limiar": "only weak matches; use the relation words the memory uses",
+    "prova_nao_cabe_no_contexto": "the proof needs too many passages; use fewer facts",
+    "melhor_resposta_fraca": ("the best-ranked answer only has weak matches; use the relation "
+                              "and names the memory uses"),
+}
 
 
 def _plan_signature(query: ConjunctiveQuery) -> tuple:
@@ -171,6 +193,9 @@ class WitnessRAGRetriever(Retriever):
         self._acquisition_calls = 0
         self._acquired_facts = 0
         self._last_acquired_facts: list[Fact] = []
+        self.signals: MemorySignals | None = None
+        self.dated: DatedMemory | None = None
+        self.scorer: MemoryScorer | None = None
 
     # -- indexação ----------------------------------------------------------
 
@@ -180,6 +205,16 @@ class WitnessRAGRetriever(Retriever):
         self._dense.index()
         self.memory = MemoryView(self.kg)
         self.searcher = WitnessSearcher(self.memory, self.ctx.embedder, self.ctx.run.witness)
+        cfg = self.ctx.run.witness
+        if cfg.proof_controller:
+            self._build_dated_memory()
+        if cfg.memory_lenses:
+            # Etapa de memorização: sinais offline, sem LLM, calculados uma vez
+            # por corpus (relógio de referência, ensaio, corroboração, falas).
+            self.signals = MemorySignals(
+                self.corpus, self.memory,
+                stability_base_days=cfg.stability_base_days,
+                stability_gain_days=cfg.stability_gain_days)
 
         # A seleção sob orçamento não roda aqui: ela precisa do conjunto de
         # demandas, que o runner monta depois da indexação (`set_train_demands`
@@ -369,9 +404,14 @@ class WitnessRAGRetriever(Retriever):
 
         before_events = len(LEDGER.events)
         try:
-            result = (self._retrieve_selective(question, k, dense_pids, dense_scores)
-                      if cfg.selective_witness else
-                      self._retrieve_inner(question, k, dense_pids, dense_scores))
+            if cfg.proof_controller:
+                result = self._retrieve_proof(question, k, dense_pids, dense_scores)
+            elif cfg.agnostic_router:
+                result = self._retrieve_agnostic(question, k, dense_pids, dense_scores)
+            elif cfg.selective_witness:
+                result = self._retrieve_selective(question, k, dense_pids, dense_scores)
+            else:
+                result = self._retrieve_inner(question, k, dense_pids, dense_scores)
             # Apply the cheap context policy only when the logical route did not
             # deliver a complete proof.  This prevents a tail swap from silently
             # removing a cited witness.  It consumes no LLM call and never reads
@@ -414,7 +454,8 @@ class WitnessRAGRetriever(Retriever):
 
     def _retrieve_selective(self, question: Question, k: int,
                             fallback_pids: list[str],
-                            fallback_scores: list[float]) -> RetrievalResult:
+                            fallback_scores: list[float],
+                            compose: bool | None = None) -> RetrievalResult:
         """A cost-bounded graph intervention over a strong hybrid baseline.
 
         Most LoCoMo questions do not benefit from a graph join.  The previous
@@ -425,6 +466,10 @@ class WitnessRAGRetriever(Retriever):
         change at most two reader slots and only for a connected query with at
         least two atoms and a small answer set.  No LLM judge, replan or
         targeted extraction is used online.
+
+        ``compose`` decides the route explicitly.  ``None`` keeps the legacy,
+        privileged decision (the benchmark label ``qtype == "multi-hop"``); the
+        agnostic controller passes the route derived from its own contract.
         """
         assert self.memory is not None and self.searcher is not None
         cfg = self.ctx.run.witness
@@ -441,7 +486,8 @@ class WitnessRAGRetriever(Retriever):
             "planejamento": {"chamadas": 0, "planos_distintos": 0,
                              "replanejamentos": 0},
         }
-        if question.qtype != "multi-hop":
+        wants_composition = (question.qtype == "multi-hop") if compose is None else compose
+        if not wants_composition:
             return RetrievalResult(pids=baseline, scores=base_scores,
                                    diagnostics=diagnostics)
 
@@ -569,6 +615,96 @@ class WitnessRAGRetriever(Retriever):
         diagnostics.update({"rota": "hybrid_after_join", "motivo_parada": reason,
                             "lacuna": search.gap.to_dict() if search.gap else None})
         return RetrievalResult(pids=baseline, scores=base_scores, diagnostics=diagnostics)
+
+    def _retrieve_agnostic(self, question: Question, k: int, pool_pids: list[str],
+                           pool_scores: list[float]) -> RetrievalResult:
+        """Plan -> route -> compose or direct -> lenses. No benchmark label is read.
+
+        1. Plan (one LLM call): an evidence contract written from the question
+           text alone (wrag/witness/contract.py).
+        2. Route: a deterministic function of the contract. COMPOSE when the
+           need lies in the executable witness fragment with several facts;
+           DIRECT otherwise, including an invalid or blocked contract.
+        3. COMPOSE calls the selective witness controller with exactly the
+           arguments the labelled controller uses, so an agreeing route yields
+           the identical context (and identical cached LLM calls).
+        4. Optional memory lenses re-rank only the unprotected tail.
+        """
+        cfg = self.ctx.run.witness
+        contract = plan_contract(self.ctx.llm, question, cfg.contract_temperature)
+        compose = contract.route == ROUTE_COMPOSE
+        if cfg.route_override in {"compose", "direct"}:
+            compose = cfg.route_override == "compose"   # ablation arm, never the default
+        result = self._retrieve_selective(question, k, pool_pids, pool_scores,
+                                          compose=compose)
+        diagnostics = result.diagnostics
+        diagnostics["controlador"] = "agnostic-v1"
+        diagnostics["contrato"] = contract.to_dict()
+        diagnostics["rota_plano"] = contract.route
+        if cfg.route_override:
+            diagnostics["rota_forcada"] = cfg.route_override
+        if not compose:
+            diagnostics["motivo_parada"] = (
+                "contract_filtered_direct" if contract.filtered else
+                "contract_invalid_direct" if not contract.valid else "contract_direct")
+        planning = diagnostics.setdefault("planejamento", {})
+        planning["chamadas_contrato"] = 1
+        planning["chamadas"] = int(planning.get("chamadas", 0)) + 1
+        if cfg.memory_lenses:
+            self._apply_lenses(question, contract, result, pool_pids, pool_scores, k)
+        return result
+
+    def _apply_lenses(self, question: Question, contract: EvidenceContract,
+                      result: RetrievalResult, pool_pids: list[str],
+                      pool_scores: list[float], k: int) -> None:
+        """Tail re-ranking by the memory signals the contract selected.
+
+        Passages already chosen by the route (witness, agreed probe, gap
+        rescue) are protected, as is the hybrid prefix. Without an active lens
+        this is the identity.
+        """
+        cfg = self.ctx.run.witness
+        diagnostics = result.diagnostics
+        if self.signals is None:
+            self.signals = MemorySignals(self.corpus, self.memory,
+                                         stability_base_days=cfg.stability_base_days,
+                                         stability_gain_days=cfg.stability_gain_days)
+        policy = policy_from_contract(contract, self.signals.clock)
+        allowed = {name.strip() for name in cfg.lens_allow.split(",") if name.strip()}
+        if "temporal" not in allowed and policy.temporal != "none":
+            policy.temporal, policy.anchor = "none", None
+            policy.repairs.append("temporal:desligada_na_ablacao")
+        if "salience" not in allowed and policy.salience:
+            policy.salience = False
+            policy.repairs.append("salience:desligada_na_ablacao")
+        if "confidence" not in allowed and policy.confidence:
+            policy.confidence = False
+            policy.repairs.append("confidence:desligada_na_ablacao")
+        block: dict[str, Any] = {"politica": policy.to_dict(), "alterou": False,
+                                 "trocas": []}
+        diagnostics["lentes"] = block
+        if not policy.active or not result.pids:
+            return
+        protected = set(diagnostics.get("passagens_testemunha") or [])
+        probe = (diagnostics.get("sondas_recuperacao") or {}).get("adicionada")
+        rescue = (diagnostics.get("lacuna_contextual") or {}).get("passagem")
+        protected |= {pid for pid in (probe, rescue) if pid}
+        need = None
+        if policy.confidence:
+            vectors = self.ctx.embedder.encode(contract.info_needs or [question.question])
+            need = np.asarray(vectors, dtype=np.float32).mean(axis=0)
+        candidates = list(dict.fromkeys(list(pool_pids) + list(result.pids)))
+        values = lens_values(self.signals, candidates, policy, contract.focus_entities,
+                             question.question, need)
+        pids, swaps = rerank_with_lenses(
+            result.pids, pool_pids, pool_scores, k, values, weight=cfg.lens_weight,
+            max_swaps=cfg.lens_max_swaps, margin=cfg.lens_margin, protected=protected)
+        block.update(swaps)
+        if pids != list(result.pids):
+            result.pids = pids
+            result.scores = [1.0 / (i + 1) for i in range(len(pids))]
+            diagnostics["contexto_alterado_pelo_witness"] = True
+            diagnostics["contexto_alterado_por_lente"] = True
 
     def _selective_probe_tail(self, question: Question, query: ConjunctiveQuery,
                               baseline: list[str], k: int) -> tuple[list[str], dict[str, Any]]:
@@ -1373,6 +1509,384 @@ class WitnessRAGRetriever(Retriever):
         order = sorted(scores, key=lambda pid: -scores[pid])[:k]
         return order, [scores[pid] for pid in order]
 
+    # -- controlador de prova (desenho v3) ------------------------------------
+
+    def _build_dated_memory(self) -> None:
+        """REGISTRAR: datas, importância e fala de origem de trechos e fatos."""
+        assert self.memory is not None and self.searcher is not None
+        cfg = self.ctx.run.witness
+        self.dated = DatedMemory(self.corpus, self.memory.facts)
+        self.scorer = MemoryScorer(self.dated, cfg.proof_min_scale_days,
+                                   cfg.proof_point_scale_fraction)
+        self.searcher.fact_times = [self.dated.fact_time_text(i)
+                                    for i in range(len(self.memory.facts))]
+
+    def _weight_levels(self) -> WeightLevels:
+        cfg = self.ctx.run.witness
+        return WeightLevels(cfg.proof_time_normal, cfg.proof_time_strong,
+                            cfg.proof_importance_normal, cfg.proof_importance_strong)
+
+    def _rank_memory(self, plan: ProofPlan, fused: dict[str, float],
+                     fused_order: list[str]) -> list[str]:
+        """BUSCAR: todos os trechos da memória ordenados pela pontuação do plano."""
+        assert self.scorer is not None
+        return self.scorer.rank(fused, fused_order, [p.pid for p in self.corpus.passages],
+                                plan.weights, plan.period)
+
+    def _evidence_facts(self, question: Question, evidence: list[str],
+                        probe: str = "") -> str:
+        """Fatos das evidências mais próximos da pergunta, com a data do evento."""
+        assert self.memory is not None and self.dated is not None
+        cfg = self.ctx.run.witness
+        limit = cfg.proof_evidence_facts
+        if limit <= 0 or not self.memory.facts or not self.memory.fact_vectors.size:
+            return ""
+        allowed = set(evidence)
+        ids = [i for i, fact in enumerate(self.memory.facts) if fact.pid in allowed]
+        if not ids:
+            return ""
+        text = question.question if not probe else f"{question.question} {probe}"
+        vector = self.ctx.embedder.encode([text])[0]
+        sims = self.memory.fact_vectors[ids] @ vector
+        order = np.argsort(-sims)[: limit * 3]
+        position = {pid: i + 1 for i, pid in enumerate(evidence)}
+        lines, seen = [], set()
+        for row in order:
+            fact = self.memory.facts[ids[int(row)]]
+            key = (canonical_symbol(fact.subject), canonical_symbol(fact.relation),
+                   canonical_symbol(fact.object))
+            if key in seen:
+                continue
+            seen.add(key)
+            when = self.dated.fact_time_text(ids[int(row)])
+            lines.append(f"- {fact.subject} | {fact.relation} | {fact.object} | "
+                         f"{when or 'no date'} (chunk {position.get(fact.pid, '?')})")
+            if len(lines) >= limit:
+                break
+        return evidence_block(lines)
+
+    def _prove(self, plan: ProofPlan, evidence: list[str],
+               context_pids: list[str]) -> dict[str, Any]:
+        """PROVAR: executa o plano no grafo, primeiro nos fatos das evidências.
+
+        O casamento bruto decide se uma testemunha é utilizável (os limiares
+        vieram do controlador seletivo); a pontuação do plano decide qual
+        testemunha é preferida. max/min/compare buscam os fatos a comparar como
+        um conjunto: o grafo fornece as premissas e o leitor compara.
+        """
+        assert self.memory is not None and self.searcher is not None
+        assert self.scorer is not None
+        cfg = self.ctx.run.witness
+        query = plan.query
+        if query.aggregation in {"max", "min", "compare"}:
+            query = ConjunctiveQuery(answer_var=query.answer_var, atoms=query.atoms,
+                                     expected_type=query.expected_type, aggregation="set",
+                                     fallback=query.fallback, source=query.source,
+                                     repairs=list(query.repairs) + ["comparacao_como_conjunto"])
+        prior = self.scorer.fact_prior(plan.weights, plan.period, len(self.memory.facts))
+        self.searcher.set_scoring(plan.weights.similarity, prior)
+        saved = (self.searcher.allowed, self.searcher._allowed_horizon)
+        local_ids: set[int] | None = None
+        covered = set(evidence)
+        if len(covered) < len(self.corpus.passages):
+            local_ids = {i for i, f in enumerate(self.memory.facts) if f.pid in covered}
+            if saved[0] is not None:
+                local_ids &= saved[0]
+        searches: list[tuple[str, SearchResult]] = []
+        try:
+            if local_ids is not None and plan.cardinality != CARDINALITY_ALL:
+                self.searcher.allowed = local_ids
+                self.searcher._allowed_horizon = len(self.memory.facts)
+                searches.append(("evidencias", self.searcher.join(query)))
+                self.searcher.allowed, self.searcher._allowed_horizon = saved
+            if not searches or not searches[-1][1].complete:
+                searches.append(("grafo", self.searcher.join(query)))
+        finally:
+            self.searcher.allowed, self.searcher._allowed_horizon = saved
+            self.searcher.clear_scoring()
+        scope, search = searches[-1]
+        outcome: dict[str, Any] = {
+            "escopo": scope, "busca": search, "consulta_executada": query,
+            "n_candidatos_por_atomo": search.n_candidates,
+            "profundidade": search.depth_reached, "cortes": list(search.truncations),
+            "n_testemunhas": len(search.witnesses), "lacuna": search.gap,
+            "candidatas": [], "selecionadas": [], "passagens": [], "novas": [],
+            "utilizavel": False, "motivo": "join_incompleto",
+        }
+        if not search.complete:
+            return outcome
+        confidence = {i: max(0.0, min(1.0, f.confidence))
+                      for w in search.witnesses for i, f in
+                      ((i, self.memory.facts[i]) for i in w.facts)}
+
+        def support(witness, use_match: bool) -> float:
+            value = witness.match_score if use_match else witness.score
+            for index in set(witness.facts):
+                value *= confidence.get(index, 1.0)
+            return float(value)
+
+        candidates = score_answers(search.witnesses, self.memory, cfg)
+        outcome["candidatas"] = candidates
+        if len(candidates) > cfg.proof_max_answers:
+            outcome["motivo"] = "respostas_demais"
+            return outcome
+        if len(search.witnesses) > cfg.proof_max_witnesses:
+            outcome["motivo"] = "testemunhas_demais"
+            return outcome
+        if search.truncations:
+            outcome["motivo"] = "busca_truncada"
+            return outcome
+        best_match = max((support(w, True) for c in candidates for w in c.witnesses),
+                         default=0.0)
+        if best_match < cfg.proof_min_support:
+            outcome["motivo"] = "casamento_abaixo_do_limiar"
+            return outcome
+        limit = (cfg.proof_max_new_passages if plan.composite
+                 else cfg.proof_simple_max_new_passages)
+        top = set(context_pids)
+        chosen: list[tuple[int, Any]] = []
+        pids: list[str] = []
+        # A one-value plan may only use its best answer: falling back to the
+        # second answer because the first does not fit would insert a proof the
+        # plan itself ranks lower.
+        considered = candidates if plan.cardinality == CARDINALITY_ALL else candidates[:1]
+        any_usable = False
+        for position, candidate in enumerate(considered):
+            usable = [w for w in candidate.witnesses if support(w, True) >= cfg.proof_min_support]
+            any_usable |= bool(usable)
+            usable.sort(key=lambda w: (-support(w, False), w.cost, w.facts))
+            for witness in usable:
+                proposed = list(dict.fromkeys(pids + list(witness.pids)))
+                if self._fits(proposed, context_pids, limit):
+                    chosen.append((position, witness))
+                    pids = proposed
+                    break
+            if chosen and plan.cardinality != CARDINALITY_ALL:
+                break
+        if not chosen:
+            outcome["motivo"] = ("prova_nao_cabe_no_contexto" if any_usable
+                                 else "melhor_resposta_fraca")
+            return outcome
+        outcome.update({"utilizavel": True, "motivo": "prova_utilizavel",
+                        "selecionadas": chosen, "passagens": pids,
+                        "novas": [pid for pid in pids if pid not in top]})
+        return outcome
+
+    @staticmethod
+    def _fits(proposed: list[str], context: list[str], limit: int) -> bool:
+        """Can these passages enter the context under the same rule Responder
+        applies? New passages replace unprotected tail slots that are not part of
+        the proof; the prefix max(1, k - k_W) never changes."""
+        if len(proposed) > len(context):
+            return False
+        new = [pid for pid in proposed if pid not in context]
+        if len(new) > limit:
+            return False
+        protected = max(1, len(context) - max(limit, 1))
+        replaceable = [i for i in range(protected, len(context)) if context[i] not in proposed]
+        return len(new) <= len(replaceable)
+
+    def _verification_candidates(self, outcome: dict[str, Any]) -> list[dict[str, Any]]:
+        assert self.memory is not None and self.dated is not None
+        candidates = []
+        for position, witness in outcome["selecionadas"]:
+            answer = outcome["candidatas"][position].answer
+            facts = []
+            for index in witness.facts:
+                fact = self.memory.facts[index]
+                facts.append({"triple": fact.triple, "date": self.dated.fact_time_text(index),
+                              "excerpt": self.dated.excerpt(index)})
+            candidates.append({"answer": answer, "facts": facts})
+        return candidates
+
+    def _retrieve_proof(self, question: Question, k: int, pool_pids: list[str],
+                        pool_scores: list[float]) -> RetrievalResult:
+        """Buscar -> Planejar -> Provar -> Verificar (até R ciclos) -> Responder.
+
+        Nenhum rótulo do benchmark é lido. O contexto parte dos k melhores
+        trechos sob a pontuação do plano (igual ao híbrido quando o plano não dá
+        peso a tempo nem importância) e muda apenas por uma prova confirmada
+        (até k_W trechos novos) ou, num plano composto sem prova, por uma
+        evidência parcial na última vaga. O prefixo k - k_W nunca é trocado.
+        """
+        assert self.memory is not None and self.searcher is not None
+        if self.dated is None:
+            self._build_dated_memory()
+        assert self.dated is not None
+        cfg = self.ctx.run.witness
+        levels = self._weight_levels()
+        fused = dict(zip(pool_pids, pool_scores))
+        hybrid = list(pool_pids[:k])
+        question_time = self.dated.last
+        diagnostics: dict[str, Any] = {
+            "controlador": "prova-v3", "rota": "base", "classe_prova": "nenhuma",
+            "motivo_parada": "sem_prova", "contexto_alterado_pelo_witness": False,
+            "contexto_alterado_pela_pontuacao": False, "contexto_alterado_pela_prova": False,
+            "testemunha_no_contexto": False, "n_testemunhas": 0, "ciclos": [],
+            "planejamento": {"chamadas": 0, "chamadas_plano": 0, "chamadas_verificacao": 0,
+                             "planos_distintos": 0, "replanejamentos": 0},
+        }
+        planning = diagnostics["planejamento"]
+
+        plan0 = default_plan(self.dated, levels, question_time)
+        evidence = self._rank_memory(plan0, fused, list(pool_pids))[:cfg.candidate_pool_k]
+        feedback: list[dict[str, Any]] = []
+        signatures: set[tuple] = set()
+        final_plan: ProofPlan | None = None
+        accepted: dict[str, Any] | None = None
+        last_outcome: dict[str, Any] | None = None
+        probe_text = ""
+        for cycle in range(1, max(1, cfg.proof_cycles) + 1):
+            plan = plan_question(
+                self.ctx.llm, question, self.dated, levels,
+                vocabulary=self._vocabulary(question) if cfg.vocabulary_aware_compile else "",
+                evidence=self._evidence_facts(question, evidence, probe_text),
+                feedback=feedback_block(feedback), max_atoms=cfg.max_atoms,
+                temperature=cfg.plan_temperature, question_time=question_time, cycle=cycle,
+                dataset=self.ctx.dataset, method=self.name)
+            planning["chamadas_plano"] += 1
+            record: dict[str, Any] = {"ciclo": cycle, "plano": plan.to_dict()}
+            diagnostics["ciclos"].append(record)
+            if plan.filtered:
+                diagnostics["motivo_parada"] = "plano_filtrado"
+                break
+            if not plan.valid:
+                record["resultado"] = f"plano_invalido:{plan.error}"
+                feedback.append({"cycle": cycle, "plan": plan.describe(),
+                                 "outcome": f"invalid plan ({plan.error})"})
+                continue
+            if plan.signature() in signatures:
+                record["resultado"] = "plano_repetido"
+                break
+            signatures.add(plan.signature())
+            final_plan = plan
+            order = self._rank_memory(plan, fused, list(pool_pids))
+            evidence = list(dict.fromkeys(evidence + order[:cfg.candidate_pool_k]))
+            outcome = self._prove(plan, evidence, order[:k])
+            last_outcome = outcome
+            record.update({"escopo": outcome["escopo"], "resultado": outcome["motivo"],
+                           "n_testemunhas": outcome["n_testemunhas"],
+                           "candidatos_por_atomo": outcome["n_candidatos_por_atomo"],
+                           "cortes": outcome["cortes"],
+                           "respostas": [c.answer for c in outcome["candidatas"][:5]]})
+            if outcome["utilizavel"]:
+                if not outcome["novas"]:
+                    record["verificacao"] = "dispensada_prova_ja_no_contexto"
+                    accepted = outcome
+                    diagnostics["motivo_parada"] = "prova_ja_no_contexto"
+                    break
+                if not cfg.proof_verify:
+                    record["verificacao"] = "desligada"
+                    accepted = outcome
+                    diagnostics["motivo_parada"] = "prova_sem_verificacao"
+                    break
+                verdict = confirm(self.ctx.llm, question, plan.describe(),
+                                  self._verification_candidates(outcome),
+                                  dataset=self.ctx.dataset, method=self.name)
+                planning["chamadas_verificacao"] += int(verdict.called)
+                record["verificacao"] = verdict.to_dict()
+                if verdict.confirmed:
+                    kept = [item for number, item in enumerate(outcome["selecionadas"])
+                            if number in set(verdict.supported)]
+                    pids = list(dict.fromkeys(pid for _p, w in kept for pid in w.pids))
+                    outcome = dict(outcome, selecionadas=kept, passagens=pids,
+                                   novas=[pid for pid in pids if pid not in order[:k]])
+                    accepted = outcome
+                    diagnostics["motivo_parada"] = "prova_confirmada"
+                    break
+                reasons = sorted(set(verdict.rejected.values())) or [verdict.error or "sem_decisao"]
+                feedback.append({"cycle": cycle, "plan": plan.describe(),
+                                 "outcome": "proof rejected by the check (" + ", ".join(reasons) + ")"})
+                diagnostics["motivo_parada"] = "prova_recusada"
+            else:
+                gap = outcome["lacuna"]
+                detail = _OUTCOME_FEEDBACK.get(outcome["motivo"], outcome["motivo"])
+                if outcome["motivo"] == "respostas_demais":
+                    detail = detail.format(n=len(outcome["candidatas"]))
+                if gap is not None:
+                    detail += (f"; no fact matched '{gap.atom.relation}'"
+                               + (f" for '{gap.anchor()}'" if gap.anchor() else ""))
+                    probe_text = gap.probe()
+                feedback.append({"cycle": cycle, "plan": plan.describe(), "outcome": detail})
+                diagnostics["motivo_parada"] = outcome["motivo"]
+        if final_plan is None and diagnostics["motivo_parada"] == "sem_prova":
+            diagnostics["motivo_parada"] = "plano_invalido"
+        planning["planos_distintos"] = len(signatures)
+        planning["replanejamentos"] = max(0, planning["chamadas_plano"] - 1)
+        planning["chamadas"] = planning["chamadas_plano"] + planning["chamadas_verificacao"]
+
+        # -- RESPONDER: montar o contexto ------------------------------------
+        plan_for_context = final_plan or plan0
+        base = self._rank_memory(plan_for_context, fused, list(pool_pids))[:k]
+        pids = list(base)
+        if final_plan is not None:
+            diagnostics["consulta"] = final_plan.query.to_dict()
+            diagnostics["forma"] = final_plan.query.shape()
+            diagnostics["plano_final"] = final_plan.to_dict()
+        diagnostics["pesos"] = plan_for_context.weights.to_dict()
+        diagnostics["periodo"] = plan_for_context.period.to_dict()
+        if last_outcome is not None:
+            diagnostics.update({"n_testemunhas": last_outcome["n_testemunhas"],
+                                "n_candidatos_por_atomo": last_outcome["n_candidatos_por_atomo"],
+                                "cortes": last_outcome["cortes"],
+                                "respostas": [c.to_dict(self.memory) for c in
+                                              last_outcome["candidatas"][:3]]})
+            if last_outcome["candidatas"]:
+                diagnostics["resposta_estrutural"] = last_outcome["candidatas"][0].answer
+        if accepted is not None:
+            evidence_pids = list(accepted["passagens"])
+            missing = [pid for pid in evidence_pids if pid not in pids]
+            limit = (cfg.proof_max_new_passages if final_plan is not None and final_plan.composite
+                     else cfg.proof_simple_max_new_passages)
+            # Trocas começam pela cauda; o prefixo k - k_W é protegido.
+            protected = max(1, k - max(limit, 1))
+            replaceable = [i for i in range(len(pids) - 1, protected - 1, -1)
+                           if pids[i] not in evidence_pids]
+            if len(missing) <= len(replaceable):
+                for pid, index in zip(missing, replaceable):
+                    pids[index] = pid
+                delivered = [w for _p, w in accepted["selecionadas"] if set(w.pids) <= set(pids)]
+                diagnostics.update({
+                    "rota": "prova", "classe_prova": "full" if delivered else "nenhuma",
+                    "testemunha_no_contexto": bool(delivered),
+                    "n_testemunhas_no_contexto": len(delivered),
+                    "passagens_testemunha": evidence_pids,
+                    "contexto_alterado_pela_prova": bool(missing),
+                })
+            else:
+                diagnostics["motivo_parada"] = "prova_nao_cabe_no_contexto"
+        elif (cfg.proof_partial_evidence and final_plan is not None and final_plan.connected):
+            # Evidência parcial de um plano que compõe fatos (cadeia ou
+            # interseção): hipótese, nunca prova, e só a última vaga. Em planos
+            # de um fato (inclusive conjuntos) as sondas mudavam metade dos
+            # contextos de perguntas simples sem ganho de revocação (replay
+            # offline, scripts/proof-offline-eval.py).
+            probed, probe_diag = self._selective_probe_tail(question, final_plan.query, pids, k)
+            if probed != pids:
+                pids = probed
+                diagnostics.update({"rota": "evidencia_parcial_sondas",
+                                    "sondas_recuperacao": probe_diag})
+            elif (cfg.gap_context_rescue and last_outcome is not None
+                  and last_outcome["lacuna"] is not None and last_outcome["lacuna"].anchor()):
+                gap = last_outcome["lacuna"]
+                rescue_pids, _ = self._dense.search(gap.probe(), cfg.candidate_pool_k)
+                anchor = canonical_symbol(gap.anchor())
+                rescued = next((pid for pid in rescue_pids if pid not in pids and
+                                anchor in canonical_symbol(self.corpus.get(pid).text)), None)
+                if rescued:
+                    pids = list(pids)
+                    pids[-1] = rescued
+                    diagnostics.update({"rota": "evidencia_parcial_lacuna",
+                                        "lacuna_contextual": {"sonda": gap.probe(),
+                                                              "passagem": rescued}})
+        if set(pids) == set(hybrid):
+            pids = list(hybrid)          # a mesma escolha preserva a ordem do híbrido
+        diagnostics["contexto_alterado_pela_pontuacao"] = set(base) != set(hybrid)
+        diagnostics["contexto_alterado_pelo_witness"] = pids != hybrid
+        diagnostics["contexto_hibrido"] = hybrid
+        return RetrievalResult(pids=pids, scores=[1.0 / (i + 1) for i in range(len(pids))],
+                               diagnostics=diagnostics)
+
     def index_report(self) -> dict:
         report: dict[str, Any] = {"grafo": self.kg.stats(),
                                   "modo_compilacao": self.compile_mode,
@@ -1382,6 +1896,10 @@ class WitnessRAGRetriever(Retriever):
             report["selecao_memoria"] = self.selection.to_dict()
             report["selecao_memoria"]["escopo"] = "mascara_de_fatos; corpus_e_vetores_permanecem_em_RAM"
         report["fontes_demandas"] = getattr(self, "demand_sources", {})
+        if self.signals is not None:
+            report["sinais_memoria"] = self.signals.stats()
+        if self.dated is not None:
+            report["memoria_datada"] = self.dated.stats()
         return report
 
 
