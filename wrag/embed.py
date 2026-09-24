@@ -132,6 +132,9 @@ class SentenceTransformerEmbedder(Embedder):
             log.warning("não consegui usar device=%s; caindo para cpu", device)
             self._model = SentenceTransformer(self.model_name, device="cpu")
         self.batch_size = batch_size or C.EMBED_BATCH_SIZE
+        self.max_seq_length = int(C.EMBED_MAX_SEQ_LENGTH or 0)
+        if self.max_seq_length > 0:
+            self._model.max_seq_length = self.max_seq_length
         self.dim = int(self._model.get_sentence_embedding_dimension())
 
     def _encode(self, texts: Sequence[str]) -> np.ndarray:
@@ -143,7 +146,9 @@ class SentenceTransformerEmbedder(Embedder):
         )
 
     def cache_key(self) -> str:
-        return "st-" + self.model_name.replace("/", "_")
+        key = "st-" + self.model_name.replace("/", "_")
+        # Truncated vectors are different vectors; the default key is unchanged.
+        return key + (f"-len{self.max_seq_length}" if self.max_seq_length > 0 else "")
 
 
 class TfidfEmbedder(Embedder):

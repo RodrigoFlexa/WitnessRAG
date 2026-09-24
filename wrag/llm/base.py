@@ -28,6 +28,10 @@ class GenParams:
     max_tokens: int = 1024
     seed: int | None = 42
     json_mode: bool = False
+    # Use max_tokens as given instead of max(backend ceiling, max_tokens). A
+    # benchmark protocol that fixes the answer budget (GAM: 256) needs it; the
+    # default keeps every existing request, and so every cache key, unchanged.
+    exact_max_tokens: bool = False
 
 
 @dataclass

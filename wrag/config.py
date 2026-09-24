@@ -116,6 +116,9 @@ EMBED_MODEL = _env("WRAG_EMBED_MODEL", "BAAI/bge-large-en-v1.5")
 EMBED_BATCH_SIZE = _env_int("WRAG_EMBED_BATCH_SIZE", 64)
 EMBED_DEVICE = _env("WRAG_EMBED_DEVICE", "cuda")
 EMBED_CACHE = _env_bool("WRAG_EMBED_CACHE", True)
+# 0 keeps the model's own limit (8192 for BGE-M3). A positive value truncates
+# every input, e.g. 512 to mirror the GAM code's FlagEmbedding default.
+EMBED_MAX_SEQ_LENGTH = _env_int("WRAG_EMBED_MAX_SEQ_LENGTH", 0)
 
 
 # ---------------------------------------------------------------------------

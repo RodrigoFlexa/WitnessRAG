@@ -164,6 +164,10 @@ Para retomar, repita a configuração original. Configuração, código ou dados
 - Seletividade por score não calibrado, incluindo falhas sem prova e aceitando empates em bloco.
 - Custos de extração compartilhada, indexação própria, seleção e consultas. Tokens lógicos e sem cache são distintos; tokens de embeddings e custos financeiros totais não são medidos.
 
+## Contexto longo no protocolo do GAM
+
+HotpotQA (56K/224K/448K, F1), RULER 128K (Retri./MT/AGG./QA, acurácia) e NarrativeQA (F1), com os dados, as páginas de 2.048 tokens, o top-5, o prompt do leitor e as métricas do código de avaliação do GAM. `bash scripts/run-gam-bench.sh` prepara os dados, roda os motores `rag` e `witnessrag` e escreve a tabela no formato da Tabela 1(b). Detalhes, fontes de cada parâmetro e custo em [docs/gam-benchmarks.md](docs/gam-benchmarks.md).
+
 ## Piloto local com vLLM
 
 Para testar os sete métodos na A100 de 80 GB com Qwen2.5-14B, seleção `--gpu 5`, prazo de 6,5 horas e gráficos automáticos, veja [o guia do piloto](docs/piloto-vllm.md). O launcher é `python -m wrag.pilot --gpu 5`; o guia inclui a instalação em ambientes separados e os limites da comparação.

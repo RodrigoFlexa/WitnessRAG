@@ -108,6 +108,7 @@ class StubLLM(LLM):
             "witness.confirm": self._confirm,
             "graphrag.community": self._community,
             "qa": self._answer,
+            "gam.answer": self._gam_answer,
         }.get(stage, self._echo)
 
         text = handler(payload, messages)
@@ -264,6 +265,22 @@ class StubLLM(LLM):
             counts[ent] = counts.get(ent, 0) + 1
         best = max(counts.items(), key=lambda kv: kv[1])[0] if counts else "unknown"
         return json.dumps({"answer": best}, ensure_ascii=False)
+
+    def _gam_answer(self, payload: str, _messages: Any) -> str:
+        """Protocolo do GAM: resposta em texto puro. Procura "<chave> is: <valor>"
+        para uma chave citada na pergunta; senão, a entidade mais frequente."""
+        match = re.search(r"Question:\s*(.*?)(?:\n\s*\n|$)", payload, re.S)
+        question = match.group(1) if match else ""
+        for key, value in re.findall(r"for ([\w\-]+) is:? ([\w\-]+)", payload):
+            if key.lower() in question.lower():
+                return value
+        qents = {e.lower() for e in _entities(question)}
+        counts: dict[str, int] = {}
+        context = payload.split("Context:", 1)[-1]
+        for ent in _entities(context, limit=400):
+            if ent.lower() not in qents:
+                counts[ent] = counts.get(ent, 0) + 1
+        return max(counts.items(), key=lambda kv: kv[1])[0] if counts else "unknown"
 
     def _echo(self, payload: str, _messages: Any) -> str:
         return json.dumps({"text": payload[:200]}, ensure_ascii=False)

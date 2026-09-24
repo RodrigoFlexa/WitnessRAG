@@ -221,8 +221,9 @@ class AzureLLM(LLM):
 
     def build_kwargs(self, messages: list[dict[str, str]], params: GenParams) -> dict[str, Any]:
         kwargs: dict[str, Any] = {"model": self.deployment, "messages": messages}
-        cap = token_budget(max(self.max_tokens, params.max_tokens), self.reasoning,
-                           C.AZURE_REASONING_MIN_TOKENS)
+        ceiling = (params.max_tokens if params.exact_max_tokens and not self.reasoning
+                   else max(self.max_tokens, params.max_tokens))
+        cap = token_budget(ceiling, self.reasoning, C.AZURE_REASONING_MIN_TOKENS)
         if cap > 0:
             kwargs["max_completion_tokens" if self.reasoning else "max_tokens"] = cap
 
