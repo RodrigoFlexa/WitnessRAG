@@ -211,3 +211,17 @@ def test_plots_use_common_ids_and_skip_missing_methods(tmp_path):
     write_json(tmp_path / "run.json", {"datasets": ["toy"], "metodos": ["dense", "missing"]})
     empty = plot_run(tmp_path)
     assert read_json(empty / "plot_data.json") == {}
+
+
+def test_locomo_conversation_subset_runs_like_all(tmp_path):
+    from wrag.pilot import locomo_conversations, locomo_many
+    plan = make_plan(parser().parse_args(["--gpu", "3", "--dataset", "locomo",
+                                          "--locomo-conversation", "2,0,1"]), tmp_path)
+    assert plan["settings"]["locomo_conversation"] == "0,1,2"
+    assert locomo_many(plan["settings"]) and locomo_conversations(plan) == [0, 1, 2]
+    one = make_plan(parser().parse_args(["--gpu", "3", "--dataset", "locomo",
+                                         "--locomo-conversation", "4"]), tmp_path / "one")
+    assert not locomo_many(one["settings"]) and locomo_conversations(one) == [4]
+    with pytest.raises(ValueError):
+        make_plan(parser().parse_args(["--gpu", "3", "--dataset", "locomo",
+                                       "--locomo-conversation", "0,10"]), tmp_path / "bad")

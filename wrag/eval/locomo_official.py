@@ -222,6 +222,9 @@ def aggregate_runs(run_dirs: Sequence["Path"]) -> dict:
                       "em": _mean([r["em"] for r in subset]),
                       "recall@5": _mean([r["recall@5"] for r in subset]),
                       "all_recall@5": _mean([r["all_recall@5"] for r in subset])}
+            if any("recall@k" in r for r in subset):
+                values["recall@k"] = _mean([r.get("recall@k", float("nan")) for r in subset])
+                values["all_recall@k"] = _mean([r.get("all_recall@k", float("nan")) for r in subset])
             if scored:
                 values["f1_locomo"] = _mean([r["f1_locomo"] for r in subset])
                 values["bleu1_locomo"] = _mean([r["bleu1_locomo"] for r in subset])

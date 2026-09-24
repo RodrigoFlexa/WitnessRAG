@@ -40,6 +40,10 @@ GPU=${GPU:-1}
 CONVERSATION=${LOCOMO_CONVERSATION:-all}
 DEPLOYMENT=${DEPLOYMENT:-gpt-4-1-mini-petrobras}
 TOKENIZER_MODEL=${WRAG_TOKENIZER_MODEL:-Qwen/Qwen2.5-14B-Instruct}
+# Reader budget (scripts/run-locomo-budget.sh): chunks handed to the reader
+# and chunk size. The registered configuration is 5 x 2048 tokens.
+TOP_K=${TOP_K:-5}
+CHUNK_TOKENS=${CHUNK_TOKENS:-2048}
 CACHE_DIR=${CACHE_DIR:-"$PWD/runs/.cache/witness-azure"}
 mkdir -p "$OUTPUT" "$CACHE_DIR"
 
@@ -76,7 +80,7 @@ esac
   --dataset locomo --locomo-conversation "$CONVERSATION" --methods witnessrag \
   --embed-model "$WRAG_EMBED_MODEL" --embed-device "$WRAG_EMBED_DEVICE" \
   --concurrency "$WRAG_AZURE_CONCURRENCY" \
-  --locomo-chunk-tokens 2048 --locomo-ie-window-tokens 512 --top-k 5 --qa-max-tokens 128 \
+  --locomo-chunk-tokens "$CHUNK_TOKENS" --locomo-ie-window-tokens 512 --top-k "$TOP_K" --qa-max-tokens 128 \
   --witness-candidate-pool 20 --answer-set --temporal-annotations --evidence-reader \
   "${METHOD_FLAGS[@]}" \
   --cache-dir "$CACHE_DIR" \

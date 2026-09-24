@@ -389,6 +389,10 @@ def _answer_standard(name: str, retriever, corpus: Corpus, question: Question,
         "recall@5": M.recall_at_k(retrieval.pids, question.gold_pids, 5) if run_cfg.top_k >= 5 else float("nan"),
         "all_recall@2": M.all_recall_at_k(retrieval.pids, question.gold_pids, 2) if run_cfg.top_k >= 2 else float("nan"),
         "all_recall@5": M.all_recall_at_k(retrieval.pids, question.gold_pids, 5) if run_cfg.top_k >= 5 else float("nan"),
+        # Revocação no orçamento real do leitor (varredura de orçamento: k < 5).
+        "k_leitor": run_cfg.top_k,
+        "recall@k": M.recall_at_k(retrieval.pids, question.gold_pids, run_cfg.top_k),
+        "all_recall@k": M.all_recall_at_k(retrieval.pids, question.gold_pids, run_cfg.top_k),
         "cobertura_testemunha": (M.witness_coverage(witness_facts, question.evidences)
                                   if "resposta_estrutural" in diagnostics else float("nan")),
         "cobertura_extremos_relaxada": (M.endpoint_coverage(witness_facts, question.evidences)

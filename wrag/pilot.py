@@ -195,6 +195,13 @@ def make_plan(args, output):
         # um corpus único — juntar tudo criaria distratores que o protocolo
         # publicado não tem, e "John" aparece em três conversas diferentes.
         args.locomo_conversation = "all"
+    elif "," in str(args.locomo_conversation):
+        # Um subconjunto (ex.: "0,1,2") roda como o modo "all", conversa por
+        # conversa, só que nas escolhidas.
+        chosen = sorted({int(x) for x in str(args.locomo_conversation).split(",") if x.strip()})
+        if not chosen or chosen[0] < 0 or chosen[-1] >= LOCOMO_CONVERSATIONS:
+            raise ValueError(f"conversas LoCoMo devem estar entre 0 e {LOCOMO_CONVERSATIONS - 1}")
+        args.locomo_conversation = ",".join(str(x) for x in chosen)
     else:
         args.locomo_conversation = int(args.locomo_conversation)
         if args.locomo_conversation < 0:
@@ -287,9 +294,18 @@ def make_plan(args, output):
 def locomo_conversations(plan):
     """Índices a rodar: um só, ou as dez conversas do arquivo oficial."""
     settings = plan["settings"]
-    if settings.get("locomo_conversation") != "all":
-        return [int(settings.get("locomo_conversation", 0))]
-    return list(range(LOCOMO_CONVERSATIONS))
+    value = settings.get("locomo_conversation", 0)
+    if value == "all":
+        return list(range(LOCOMO_CONVERSATIONS))
+    if isinstance(value, str) and "," in value:
+        return [int(x) for x in value.split(",")]
+    return [int(value)]
+
+
+def locomo_many(settings) -> bool:
+    """"all" ou uma lista: uma rodada por conversa, cada uma no seu diretório."""
+    value = settings.get("locomo_conversation")
+    return value == "all" or (isinstance(value, str) and "," in value)
 
 
 def prepare_conversation(plan, index, output):
@@ -398,7 +414,7 @@ def worker(plan_path):
     setup_logging()
     settings = plan["settings"]
     print("Preparando corpus do piloto...", flush=True)
-    every = settings["dataset"] == "locomo" and settings.get("locomo_conversation") == "all"
+    every = settings["dataset"] == "locomo" and locomo_many(settings)
     # No modo "all" esta chamada serve para baixar e registrar o snapshot uma vez
     # (origem e SHA-256); cada conversa é preparada depois no seu diretório.
     metadata = prepare_conversation(plan, 0, Path(plan["output"])) if every else prepare_data(plan)
@@ -417,10 +433,11 @@ def worker(plan_path):
     if not isinstance(probe.json(), dict) or probe.json().get("ok") is not True:
         raise RuntimeError("preflight não retornou o JSON esperado; confira modelo/endpoint")
     # Mantém os demais hiperparâmetros consolidados: sem corte oculto de tokens/fatos.
-    if settings["dataset"] == "locomo" and settings.get("locomo_conversation") == "all":
+    if settings["dataset"] == "locomo" and locomo_many(settings):
         roots = _run_every_conversation(plan, settings)
-        if len(roots) != LOCOMO_CONVERSATIONS:
-            raise RuntimeError(f"LoCoMo incompleto: {len(roots)}/{LOCOMO_CONVERSATIONS} conversas; "
+        expected = len(locomo_conversations(plan))
+        if len(roots) != expected:
+            raise RuntimeError(f"LoCoMo incompleto: {len(roots)}/{expected} conversas; "
                                "reexecute com --resume e o mesmo diretório")
     else:
         resume_dir = None
