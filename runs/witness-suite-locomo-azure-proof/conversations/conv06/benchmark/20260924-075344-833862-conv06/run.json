@@ -1,0 +1,697 @@
+{
+  "iniciado_em": "2026-09-24T07:53:44.802082+00:00",
+  "datasets": [
+    "locomo"
+  ],
+  "metodos": [
+    "witnessrag"
+  ],
+  "config": {
+    "dataset": "locomo",
+    "n_questions": 150,
+    "top_k": 5,
+    "seed": 42,
+    "subset_corpus": false,
+    "train_questions_path": "",
+    "interleave_methods": true,
+    "corpus_scope": "locomo_full_selected_conversation",
+    "methods": [
+      "witnessrag"
+    ],
+    "ie": {
+      "max_tokens": 1600,
+      "temperature": 0.0,
+      "two_step": true,
+      "max_triples_per_passage": 40,
+      "window_tokens": 512,
+      "window_overlap_tokens": 64,
+      "window_tokenizer": "Qwen/Qwen2.5-14B-Instruct",
+      "window_tokenizer_revision": "",
+      "dialogue_mode": true
+    },
+    "graph": {
+      "merge_similar_entities": false,
+      "merge_identity_variants": true,
+      "merge_relation_inflections": true,
+      "identity_merge_threshold": 0.8,
+      "synonym_threshold": 0.8,
+      "synonym_max_neighbors": 20,
+      "ppr_damping": 0.5,
+      "ppr_tol": 1e-08,
+      "ppr_max_iter": 100
+    },
+    "hippo2": {
+      "n_triples_retrieved": 20,
+      "n_triples_kept": 5,
+      "n_passages_seed": 10,
+      "passage_node_weight": 0.05,
+      "use_recognition_memory": true
+    },
+    "graphrag": {
+      "community_levels": 2,
+      "min_community_size": 3,
+      "build_community_reports": true,
+      "max_communities_reported": 400,
+      "text_units_per_entity": 8
+    },
+    "witness": {
+      "max_atoms": 4,
+      "compile_temperature": 0.0,
+      "vocabulary_aware_compile": true,
+      "vocabulary_relations": 40,
+      "vocabulary_entities": 20,
+      "query_plans": false,
+      "max_query_plans": 5,
+      "active_frontier": false,
+      "active_obligations": false,
+      "active_context": false,
+      "active_operators": false,
+      "soft_obligations": false,
+      "proof_reader": false,
+      "temporal_memory": false,
+      "complementary_context": false,
+      "admit_provisional_witnesses": false,
+      "plan_repair": false,
+      "max_replan_calls": 2,
+      "conditional_verification_max_witnesses": 1,
+      "active_frontier_queries": 5,
+      "active_frontier_passages": 30,
+      "grounding_mode": "semantic",
+      "relation_match_threshold": 0.65,
+      "candidates_per_atom": 60,
+      "entity_match_threshold": 0.55,
+      "entity_top_k": 5,
+      "relation_weight": 0.45,
+      "argument_weight": 0.35,
+      "verbalization_weight": 0.2,
+      "max_witnesses": 20,
+      "beam_width": 400,
+      "passage_penalty": 0.15,
+      "binding_aware_grounding": true,
+      "verify_witnesses": false,
+      "verification_max_witnesses": 5,
+      "answer_set": true,
+      "answer_set_max_items": 10,
+      "hybrid_fallback": true,
+      "hybrid_rrf_k": 60,
+      "candidate_pool_k": 20,
+      "gap_context_rescue": true,
+      "selective_witness": false,
+      "selective_max_answers": 3,
+      "selective_max_witnesses": 3,
+      "selective_max_new_passages": 2,
+      "selective_min_score": 0.45,
+      "agnostic_router": false,
+      "contract_temperature": 0.0,
+      "route_override": "",
+      "memory_lenses": false,
+      "lens_weight": 1.0,
+      "lens_max_swaps": 1,
+      "lens_margin": 0.1,
+      "lens_allow": "temporal,salience,confidence",
+      "stability_base_days": 30.0,
+      "stability_gain_days": 30.0,
+      "proof_controller": true,
+      "proof_cycles": 2,
+      "proof_evidence_facts": 30,
+      "proof_max_new_passages": 2,
+      "proof_simple_max_new_passages": 1,
+      "proof_max_answers": 3,
+      "proof_max_witnesses": 3,
+      "proof_min_support": 0.45,
+      "proof_verify": true,
+      "proof_partial_evidence": false,
+      "plan_temperature": 0.0,
+      "proof_time_normal": 0.0,
+      "proof_time_strong": 0.3,
+      "proof_importance_normal": 0.0,
+      "proof_importance_strong": 0.1,
+      "proof_min_scale_days": 7.0,
+      "proof_point_scale_fraction": 0.25,
+      "fact_confidence": 0.9,
+      "delta_interpretation": 0.1,
+      "delta_verbalization": 0.05,
+      "acquisition_rounds": 2,
+      "acquisition_passages": 3,
+      "acquisition_lambda": 0.05,
+      "enable_acquisition": true,
+      "dense_fallback": true,
+      "budget_fraction": 1.0,
+      "ilp_time_limit_s": 120,
+      "ilp_max_facts": 20000
+    },
+    "qa": {
+      "max_tokens": 128,
+      "temperature": 0.0,
+      "top_k": 5,
+      "answer_set": true,
+      "operator_reader": false,
+      "proof_reader": false,
+      "answer_guard": false,
+      "temporal_annotations": true,
+      "evidence_reader": true
+    }
+  },
+  "llm": {
+    "backend": "azure",
+    "deployment": "gpt-4-1-mini-petrobras",
+    "provider_identity": "beddb0076033dd287b526b002f18a0ffc5ffc69517f9106b9b57e92bdfab7f67"
+  },
+  "embedder": {
+    "backend": "st",
+    "chave": "st-BAAI_bge-m3"
+  },
+  "ambiente": {
+    "python": "3.10.12",
+    "plataforma": "Linux-5.15.153.1-microsoft-standard-WSL2-x86_64-with-glibc2.35"
+  },
+  "protocolo_versao": 2,
+  "codigo_hash": "2e74959228e9cff743654cd06eb1d61f9af80673276d6cd7def9d48aa1632c3a",
+  "terminado_em": "2026-09-24T09:02:00.005714+00:00",
+  "resumos": {
+    "locomo": {
+      "dataset": "locomo",
+      "corpus": {
+        "dataset": "locomo",
+        "n_passages": 14,
+        "n_questions": 150,
+        "hops_medio": 1.17,
+        "com_evidencia_anotada": 0,
+        "com_decomposicao": 0,
+        "question_ids": [
+          "locomo:conv-47:qa0",
+          "locomo:conv-47:qa1",
+          "locomo:conv-47:qa2",
+          "locomo:conv-47:qa3",
+          "locomo:conv-47:qa4",
+          "locomo:conv-47:qa5",
+          "locomo:conv-47:qa6",
+          "locomo:conv-47:qa7",
+          "locomo:conv-47:qa8",
+          "locomo:conv-47:qa9",
+          "locomo:conv-47:qa10",
+          "locomo:conv-47:qa11",
+          "locomo:conv-47:qa12",
+          "locomo:conv-47:qa13",
+          "locomo:conv-47:qa14",
+          "locomo:conv-47:qa15",
+          "locomo:conv-47:qa16",
+          "locomo:conv-47:qa17",
+          "locomo:conv-47:qa18",
+          "locomo:conv-47:qa19",
+          "locomo:conv-47:qa20",
+          "locomo:conv-47:qa21",
+          "locomo:conv-47:qa22",
+          "locomo:conv-47:qa23",
+          "locomo:conv-47:qa24",
+          "locomo:conv-47:qa25",
+          "locomo:conv-47:qa26",
+          "locomo:conv-47:qa27",
+          "locomo:conv-47:qa28",
+          "locomo:conv-47:qa29",
+          "locomo:conv-47:qa30",
+          "locomo:conv-47:qa31",
+          "locomo:conv-47:qa32",
+          "locomo:conv-47:qa33",
+          "locomo:conv-47:qa34",
+          "locomo:conv-47:qa35",
+          "locomo:conv-47:qa36",
+          "locomo:conv-47:qa37",
+          "locomo:conv-47:qa38",
+          "locomo:conv-47:qa39",
+          "locomo:conv-47:qa40",
+          "locomo:conv-47:qa41",
+          "locomo:conv-47:qa42",
+          "locomo:conv-47:qa43",
+          "locomo:conv-47:qa44",
+          "locomo:conv-47:qa45",
+          "locomo:conv-47:qa46",
+          "locomo:conv-47:qa47",
+          "locomo:conv-47:qa48",
+          "locomo:conv-47:qa49",
+          "locomo:conv-47:qa50",
+          "locomo:conv-47:qa51",
+          "locomo:conv-47:qa52",
+          "locomo:conv-47:qa53",
+          "locomo:conv-47:qa54",
+          "locomo:conv-47:qa55",
+          "locomo:conv-47:qa56",
+          "locomo:conv-47:qa57",
+          "locomo:conv-47:qa58",
+          "locomo:conv-47:qa59",
+          "locomo:conv-47:qa60",
+          "locomo:conv-47:qa61",
+          "locomo:conv-47:qa62",
+          "locomo:conv-47:qa63",
+          "locomo:conv-47:qa64",
+          "locomo:conv-47:qa65",
+          "locomo:conv-47:qa66",
+          "locomo:conv-47:qa67",
+          "locomo:conv-47:qa68",
+          "locomo:conv-47:qa69",
+          "locomo:conv-47:qa70",
+          "locomo:conv-47:qa71",
+          "locomo:conv-47:qa72",
+          "locomo:conv-47:qa73",
+          "locomo:conv-47:qa74",
+          "locomo:conv-47:qa75",
+          "locomo:conv-47:qa76",
+          "locomo:conv-47:qa77",
+          "locomo:conv-47:qa78",
+          "locomo:conv-47:qa79",
+          "locomo:conv-47:qa80",
+          "locomo:conv-47:qa81",
+          "locomo:conv-47:qa82",
+          "locomo:conv-47:qa83",
+          "locomo:conv-47:qa84",
+          "locomo:conv-47:qa85",
+          "locomo:conv-47:qa86",
+          "locomo:conv-47:qa87",
+          "locomo:conv-47:qa88",
+          "locomo:conv-47:qa89",
+          "locomo:conv-47:qa90",
+          "locomo:conv-47:qa91",
+          "locomo:conv-47:qa92",
+          "locomo:conv-47:qa93",
+          "locomo:conv-47:qa94",
+          "locomo:conv-47:qa95",
+          "locomo:conv-47:qa96",
+          "locomo:conv-47:qa97",
+          "locomo:conv-47:qa98",
+          "locomo:conv-47:qa99",
+          "locomo:conv-47:qa100",
+          "locomo:conv-47:qa101",
+          "locomo:conv-47:qa102",
+          "locomo:conv-47:qa103",
+          "locomo:conv-47:qa104",
+          "locomo:conv-47:qa105",
+          "locomo:conv-47:qa106",
+          "locomo:conv-47:qa107",
+          "locomo:conv-47:qa108",
+          "locomo:conv-47:qa109",
+          "locomo:conv-47:qa110",
+          "locomo:conv-47:qa111",
+          "locomo:conv-47:qa112",
+          "locomo:conv-47:qa113",
+          "locomo:conv-47:qa114",
+          "locomo:conv-47:qa115",
+          "locomo:conv-47:qa116",
+          "locomo:conv-47:qa117",
+          "locomo:conv-47:qa118",
+          "locomo:conv-47:qa119",
+          "locomo:conv-47:qa120",
+          "locomo:conv-47:qa121",
+          "locomo:conv-47:qa122",
+          "locomo:conv-47:qa123",
+          "locomo:conv-47:qa124",
+          "locomo:conv-47:qa125",
+          "locomo:conv-47:qa126",
+          "locomo:conv-47:qa127",
+          "locomo:conv-47:qa128",
+          "locomo:conv-47:qa129",
+          "locomo:conv-47:qa130",
+          "locomo:conv-47:qa131",
+          "locomo:conv-47:qa132",
+          "locomo:conv-47:qa133",
+          "locomo:conv-47:qa134",
+          "locomo:conv-47:qa135",
+          "locomo:conv-47:qa136",
+          "locomo:conv-47:qa137",
+          "locomo:conv-47:qa138",
+          "locomo:conv-47:qa139",
+          "locomo:conv-47:qa140",
+          "locomo:conv-47:qa141",
+          "locomo:conv-47:qa142",
+          "locomo:conv-47:qa143",
+          "locomo:conv-47:qa144",
+          "locomo:conv-47:qa145",
+          "locomo:conv-47:qa146",
+          "locomo:conv-47:qa147",
+          "locomo:conv-47:qa148",
+          "locomo:conv-47:qa149"
+        ],
+        "corpus_hash": "a5886f642ae5e92e5983418db23aa236dd0c6730aafb3313d761e4b5b2a9e005",
+        "questions_hash": "597dffae27ab38caffacb22b1d1cc7c19cd87e4c95dc509b105fdf23208d646e"
+      },
+      "indexacao_s": 1093.3,
+      "uso_indexacao": {
+        "por_estagio": {
+          "index.ner": {
+            "chamadas": 69,
+            "em_cache": 0,
+            "filtradas": 0,
+            "tokens_prompt": 36530,
+            "tokens_resposta": 1957,
+            "tokens_prompt_sem_cache": 36530,
+            "tokens_resposta_sem_cache": 1957,
+            "latencia_s": 79.82
+          },
+          "index.openie": {
+            "chamadas": 69,
+            "em_cache": 0,
+            "filtradas": 0,
+            "tokens_prompt": 82785,
+            "tokens_resposta": 26755,
+            "tokens_prompt_sem_cache": 82785,
+            "tokens_resposta_sem_cache": 26755,
+            "latencia_s": 334.1
+          }
+        },
+        "total": {
+          "chamadas": 138,
+          "tokens_prompt": 119315,
+          "tokens_resposta": 28712,
+          "filtradas": 0,
+          "em_cache": 0,
+          "tokens_prompt_sem_cache": 119315,
+          "tokens_resposta_sem_cache": 28712
+        }
+      },
+      "indexacao_compartilhada": {
+        "seconds": 1092.7154903449991,
+        "usage": {
+          "total": {
+            "chamadas": 138,
+            "tokens_resposta": 28712,
+            "em_cache": 0,
+            "tokens_prompt": 119315,
+            "filtradas": 0,
+            "tokens_prompt_sem_cache": 119315,
+            "tokens_resposta_sem_cache": 28712
+          },
+          "por_estagio": {
+            "index.ner": {
+              "chamadas": 69,
+              "tokens_resposta": 1957,
+              "em_cache": 0,
+              "tokens_resposta_sem_cache": 1957,
+              "latencia_s": 79.82,
+              "filtradas": 0,
+              "tokens_prompt": 36530,
+              "tokens_prompt_sem_cache": 36530
+            },
+            "index.openie": {
+              "chamadas": 69,
+              "tokens_resposta": 26755,
+              "em_cache": 0,
+              "tokens_resposta_sem_cache": 26755,
+              "latencia_s": 334.1,
+              "filtradas": 0,
+              "tokens_prompt": 82785,
+              "tokens_prompt_sem_cache": 82785
+            }
+          }
+        }
+      },
+      "tentativas_indexacao": [
+        {
+          "seconds": 1093.3256142540195,
+          "usage": {
+            "por_estagio": {
+              "index.ner": {
+                "chamadas": 69,
+                "em_cache": 0,
+                "filtradas": 0,
+                "tokens_prompt": 36530,
+                "tokens_resposta": 1957,
+                "tokens_prompt_sem_cache": 36530,
+                "tokens_resposta_sem_cache": 1957,
+                "latencia_s": 79.82
+              },
+              "index.openie": {
+                "chamadas": 69,
+                "em_cache": 0,
+                "filtradas": 0,
+                "tokens_prompt": 82785,
+                "tokens_resposta": 26755,
+                "tokens_prompt_sem_cache": 82785,
+                "tokens_resposta_sem_cache": 26755,
+                "latencia_s": 334.1
+              }
+            },
+            "total": {
+              "chamadas": 138,
+              "tokens_prompt": 119315,
+              "tokens_resposta": 28712,
+              "filtradas": 0,
+              "em_cache": 0,
+              "tokens_prompt_sem_cache": 119315,
+              "tokens_resposta_sem_cache": 28712
+            }
+          },
+          "shared": {
+            "seconds": 1092.7154903449991,
+            "usage": {
+              "total": {
+                "chamadas": 138,
+                "tokens_resposta": 28712,
+                "em_cache": 0,
+                "tokens_prompt": 119315,
+                "filtradas": 0,
+                "tokens_prompt_sem_cache": 119315,
+                "tokens_resposta_sem_cache": 28712
+              },
+              "por_estagio": {
+                "index.ner": {
+                  "chamadas": 69,
+                  "tokens_resposta": 1957,
+                  "em_cache": 0,
+                  "tokens_resposta_sem_cache": 1957,
+                  "latencia_s": 79.82,
+                  "filtradas": 0,
+                  "tokens_prompt": 36530,
+                  "tokens_prompt_sem_cache": 36530
+                },
+                "index.openie": {
+                  "chamadas": 69,
+                  "tokens_resposta": 26755,
+                  "em_cache": 0,
+                  "tokens_resposta_sem_cache": 26755,
+                  "latencia_s": 334.1,
+                  "filtradas": 0,
+                  "tokens_prompt": 82785,
+                  "tokens_prompt_sem_cache": 82785
+                }
+              }
+            }
+          },
+          "methods": {
+            "witnessrag": {
+              "indexacao": {
+                "seconds": 0.6026698390196543,
+                "usage": {
+                  "total": {
+                    "chamadas": 0,
+                    "tokens_resposta": 0,
+                    "em_cache": 0,
+                    "tokens_prompt": 0,
+                    "filtradas": 0,
+                    "tokens_prompt_sem_cache": 0,
+                    "tokens_resposta_sem_cache": 0
+                  },
+                  "por_estagio": {
+                    "index.ner": {
+                      "chamadas": 0,
+                      "tokens_resposta": 0,
+                      "em_cache": 0,
+                      "tokens_resposta_sem_cache": 0,
+                      "latencia_s": 0.0,
+                      "filtradas": 0,
+                      "tokens_prompt": 0,
+                      "tokens_prompt_sem_cache": 0
+                    },
+                    "index.openie": {
+                      "chamadas": 0,
+                      "tokens_resposta": 0,
+                      "em_cache": 0,
+                      "tokens_resposta_sem_cache": 0,
+                      "latencia_s": 0.0,
+                      "filtradas": 0,
+                      "tokens_prompt": 0,
+                      "tokens_prompt_sem_cache": 0
+                    }
+                  }
+                }
+              },
+              "selecao": {}
+            }
+          }
+        }
+      ],
+      "embedder": {
+        "backend": "st",
+        "chave": "st-BAAI_bge-m3"
+      },
+      "subset_corpus": false,
+      "corpus_scope": "locomo_full_selected_conversation",
+      "extracao": {
+        "n_fatos": 1265,
+        "n_relacoes_distintas": 619,
+        "n_entidades_distintas": 1007,
+        "n_objetos_distintos": 981,
+        "relacoes_por_fato": 0.489,
+        "relacoes_unicas": 440,
+        "palavras_por_relacao": 1.69,
+        "passagens_bloqueadas": 0,
+        "passagens_sem_fato": 0,
+        "janelas_extracao": 69,
+        "janelas_bloqueadas": 0
+      },
+      "grafo": {
+        "n_nos_frase": 1007,
+        "n_clusters_canonicos": 869,
+        "n_fatos": 1265,
+        "n_relacoes_canonicas": 550,
+        "n_arestas_sinonimia": 646,
+        "n_nos_passagem": 14
+      },
+      "metodos": {
+        "witnessrag": {
+          "n_perguntas": 150,
+          "n_concluidas": 150,
+          "tempo_consulta_s": 2983.377,
+          "uso_consulta": {
+            "total": {
+              "chamadas": 431,
+              "tokens_resposta": 22472,
+              "em_cache": 1,
+              "tokens_prompt": 2269950,
+              "filtradas": 0,
+              "tokens_prompt_sem_cache": 2269450,
+              "tokens_resposta_sem_cache": 22449
+            },
+            "por_estagio": {
+              "index.ner": {
+                "chamadas": 0,
+                "tokens_resposta": 0,
+                "em_cache": 0,
+                "tokens_resposta_sem_cache": 0,
+                "latencia_s": 0.0,
+                "filtradas": 0,
+                "tokens_prompt": 0,
+                "tokens_prompt_sem_cache": 0
+              },
+              "index.openie": {
+                "chamadas": 0,
+                "tokens_resposta": 0,
+                "em_cache": 0,
+                "tokens_resposta_sem_cache": 0,
+                "latencia_s": 0.0,
+                "filtradas": 0,
+                "tokens_prompt": 0,
+                "tokens_prompt_sem_cache": 0
+              },
+              "qa": {
+                "chamadas": 150,
+                "tokens_resposta": 1489,
+                "em_cache": 0,
+                "tokens_resposta_sem_cache": 1489,
+                "latencia_s": 238.38,
+                "filtradas": 0,
+                "tokens_prompt": 1572881,
+                "tokens_prompt_sem_cache": 1572881
+              },
+              "witness.plan": {
+                "chamadas": 150,
+                "tokens_resposta": 11308,
+                "em_cache": 0,
+                "tokens_resposta_sem_cache": 11308,
+                "latencia_s": 270.58,
+                "filtradas": 0,
+                "tokens_prompt": 376040,
+                "tokens_prompt_sem_cache": 376040
+              },
+              "witness.replan_v3": {
+                "chamadas": 121,
+                "tokens_resposta": 9472,
+                "em_cache": 0,
+                "tokens_resposta_sem_cache": 9472,
+                "latencia_s": 229.24,
+                "filtradas": 0,
+                "tokens_prompt": 315652,
+                "tokens_prompt_sem_cache": 315652
+              },
+              "witness.confirm": {
+                "chamadas": 10,
+                "tokens_resposta": 203,
+                "em_cache": 1,
+                "tokens_resposta_sem_cache": 180,
+                "latencia_s": 10.84,
+                "filtradas": 0,
+                "tokens_prompt": 5377,
+                "tokens_prompt_sem_cache": 4877
+              }
+            }
+          },
+          "custo_completo": true,
+          "indice": {
+            "grafo": {
+              "n_nos_frase": 1007,
+              "n_clusters_canonicos": 869,
+              "n_fatos": 1265,
+              "n_relacoes_canonicas": 550,
+              "n_arestas_sinonimia": 646,
+              "n_nos_passagem": 14
+            },
+            "modo_compilacao": "llm",
+            "chamadas_aquisicao": 0,
+            "fatos_adquiridos": 0,
+            "fontes_demandas": {},
+            "memoria_datada": {
+              "t_inicio": "2022-03-17",
+              "t_ultimo": "2022-11-07",
+              "trechos": 14,
+              "fatos": 1265,
+              "fatos_tempo_da_expressao": 795,
+              "fatos_tempo_da_sessao": 470,
+              "fatos_sem_tempo": 0,
+              "importancia_media_fatos": 0.4437
+            }
+          },
+          "indexacao": {
+            "seconds": 0.6026698390196543,
+            "usage": {
+              "total": {
+                "chamadas": 0,
+                "tokens_resposta": 0,
+                "em_cache": 0,
+                "tokens_prompt": 0,
+                "filtradas": 0,
+                "tokens_prompt_sem_cache": 0,
+                "tokens_resposta_sem_cache": 0
+              },
+              "por_estagio": {
+                "index.ner": {
+                  "chamadas": 0,
+                  "tokens_resposta": 0,
+                  "em_cache": 0,
+                  "tokens_resposta_sem_cache": 0,
+                  "latencia_s": 0.0,
+                  "filtradas": 0,
+                  "tokens_prompt": 0,
+                  "tokens_prompt_sem_cache": 0
+                },
+                "index.openie": {
+                  "chamadas": 0,
+                  "tokens_resposta": 0,
+                  "em_cache": 0,
+                  "tokens_resposta_sem_cache": 0,
+                  "latencia_s": 0.0,
+                  "filtradas": 0,
+                  "tokens_prompt": 0,
+                  "tokens_prompt_sem_cache": 0
+                }
+              }
+            }
+          },
+          "selecao": {}
+        }
+      }
+    }
+  },
+  "filtro_conteudo": {
+    "total": 0,
+    "por_estagio": {},
+    "por_metodo": {}
+  }
+}
