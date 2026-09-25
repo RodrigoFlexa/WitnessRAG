@@ -11,6 +11,8 @@ import json
 from pathlib import Path
 import random
 import re
+import time
+import urllib.error
 import urllib.request
 from datetime import datetime, timedelta
 
@@ -219,6 +221,23 @@ def convert(raw, conversation_index=0, turns_per_passage=8, n_questions=None, se
     return questions, passages, metadata
 
 
+def _fetch_with_retry(url, attempts=5, timeout=60):
+    """GET com backoff: o handshake TLS para raw.githubusercontent.com
+    ocasionalmente sofre reset de conexão (WinError 10054); um único urlopen
+    sem retry derruba a rodada inteira por um soluço passageiro de rede."""
+    last_exc: Exception | None = None
+    for attempt in range(attempts):
+        try:
+            with urllib.request.urlopen(url, timeout=timeout) as response:
+                return response.read()
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
+            last_exc = exc
+            if attempt + 1 == attempts:
+                break
+            time.sleep(min(30.0, 2.0 ** attempt))
+    raise last_exc
+
+
 def prepare(output, source_file=None, conversation_index=0, turns_per_passage=8,
             n_questions=None, seed=42, max_passages=1500, chunk_tokens=None,
             tokenizer_name="Qwen/Qwen2.5-14B-Instruct", tokenizer_revision=None,
@@ -232,8 +251,7 @@ def prepare(output, source_file=None, conversation_index=0, turns_per_passage=8,
         payload = snapshot.read_bytes()
         source = "saved snapshot (origin not revalidated)"
     else:
-        with urllib.request.urlopen(URL, timeout=60) as response:
-            payload = response.read()
+        payload = _fetch_with_retry(URL)
         source = URL
     questions, passages, metadata = convert(json.loads(payload), conversation_index,
         turns_per_passage, n_questions, seed, chunk_tokens, tokenizer_name, tokenizer_revision,

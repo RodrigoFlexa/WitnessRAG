@@ -109,8 +109,11 @@ def summarize(label: str, root: Path, keep: set[str] | None = None) -> dict:
             "reader_tokens": _avg(((r.get("uso_llm") or {}).get("por_estagio") or {})
                                   .get("qa", {}).get("tokens_prompt", float("nan")) for r in values),
             "controller_tokens": _avg(_stage_tokens(r, "witness.") for r in values),
+            # Design v4 may keep the passages and add proof excerpts instead.
             "changed_context": _avg(float(bool((r.get("diagnosticos") or {})
-                                               .get("contexto_alterado_pelo_witness")))
+                                               .get("contexto_alterado_pelo_witness")
+                                               or (r.get("diagnosticos") or {})
+                                               .get("contexto_alterado_por_trechos")))
                                     for r in values),
             "overall": block(values),
             "by_category": {c: block([r for r in values if r.get("tipo") == c]) for c in CATEGORIES},

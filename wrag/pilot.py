@@ -29,8 +29,9 @@ LOCOMO_CONVERSATIONS = 10   # locomo10.json; `--locomo-conversation all` roda as
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--gpu", required=True, help="índice físico NVIDIA ou UUID; ex.: 5")
-    p.add_argument("--backend", choices=["vllm", "azure"], default="vllm",
-                   help="azure usa o gateway configurado no ambiente, sem iniciar vLLM")
+    p.add_argument("--backend", choices=["vllm", "azure", "openai"], default="vllm",
+                   help="azure usa o gateway configurado no ambiente; openai usa a API da "
+                        "OpenAI (OPENAI_API_KEY no .env/ambiente). Nenhum dos dois inicia vLLM")
     p.add_argument("--model", default="Qwen/Qwen2.5-14B-Instruct", help="repo HF ou diretório de pesos HF")
     p.add_argument("--tokenizer-model", default="Qwen/Qwen2.5-14B-Instruct",
                    help="tokenizador fixo para segmentar o corpus, independente do deployment Azure")
@@ -122,6 +123,20 @@ def parser():
                    help="ablação: aceita a prova utilizável sem a chamada de verificação")
     p.add_argument("--partial-evidence", action="store_true",
                    help="ablação: sondas/lacuna na última vaga quando um plano conectado não fecha a prova")
+    # -- desenho v4 (docs/witnessrag-v4.md); todas exigem --proof-controller
+    p.add_argument("--typed-variables", action="store_true",
+                   help="v4: o plano declara o tipo pedido (?x : 'martial art'); ordena e é verificado")
+    p.add_argument("--item-set-proofs", action="store_true",
+                   help="v4: planos de conjunto provados item a item, com verificação por item")
+    p.add_argument("--witness-delivery", choices=["pages", "excerpts", "mixed"], default=None,
+                   help="v4: prova entregue trocando trechos (pages, v3), como falas de origem "
+                        "(excerpts) ou trocas até k_W e falas para o resto (mixed)")
+    p.add_argument("--abductive-premises", action="store_true",
+                   help="v4: hipóteses (would/likely) recebem premissas da vizinhança da pessoa")
+    p.add_argument("--proof-edit-fraction", type=float, default=None,
+                   help="k_W proporcional a k (0,4 reproduz 2/1 em k=5); para orçamento fixo")
+    p.add_argument("--yesno-rationale", action="store_true",
+                   help="leitor: sim/não com justificativa curta, para todos os métodos")
     p.add_argument("--admit-provisional-witnesses", action="store_true",
                    help="usa testemunhas provisórias com proveniência como rota qualificada")
     p.add_argument("--plan-repair", action="store_true",
@@ -179,6 +194,18 @@ def make_plan(args, output):
     elif (getattr(args, "proof_cycles", None) is not None or getattr(args, "no_proof_verify", False)
           or getattr(args, "partial_evidence", False)):
         raise ValueError("--proof-cycles/--no-proof-verify/--partial-evidence exigem --proof-controller")
+    v4 = [name for name in ("typed_variables", "item_set_proofs", "abductive_premises")
+          if getattr(args, name, False)]
+    if getattr(args, "witness_delivery", None):
+        v4.append("witness_delivery")
+    if getattr(args, "proof_edit_fraction", None) is not None:
+        v4.append("proof_edit_fraction")
+        if not 0 < args.proof_edit_fraction <= 1:
+            raise ValueError("--proof-edit-fraction deve estar em (0, 1]")
+    if v4 and not getattr(args, "proof_controller", False):
+        raise ValueError("opções v4 exigem --proof-controller: " + ", ".join(v4))
+    if getattr(args, "yesno_rationale", False) and not getattr(args, "evidence_reader", False):
+        raise ValueError("--yesno-rationale altera o leitor de evidências: exige --evidence-reader")
     if getattr(args, "route_override", None) and not getattr(args, "agnostic_router", False):
         raise ValueError("--route-override exige --agnostic-router")
     if getattr(args, "lens_max_swaps", None) is not None and args.lens_max_swaps < 0:
@@ -254,6 +281,10 @@ def make_plan(args, output):
                     "OPENAI_BASE_URL": f"http://127.0.0.1:{args.port}/v1",
                     "OPENAI_API_KEY": "local-pilot",
                     "WRAG_AZURE_MAX_RETRIES": "2", "WRAG_AZURE_TIMEOUT_S": "120"})
+    elif args.backend == "openai":
+        # OPENAI_API_KEY (and an optional OPENAI_BASE_URL) stay in the parent
+        # environment or .env; pilot.json never stores the key.
+        env["OPENAI_MODEL"] = args.model
     else:
         # Credentials, endpoint, API version and CA bundle remain exclusively
         # in the parent environment; pilot.json never stores those secrets.
@@ -268,7 +299,7 @@ def make_plan(args, output):
         command += ["--revision", args.model_revision, "--tokenizer-revision", args.model_revision]
     if args.quantization:
         command += ["--quantization", args.quantization]
-    if args.backend == "azure":
+    if args.backend != "vllm":
         command = []
     frozen_source = os.environ.get("WRAG_FROZEN_MEMORY_SOURCE")
     frozen_identity = None
@@ -503,6 +534,13 @@ def _run_config(settings, n_questions):
     cfg.witness.proof_cycles = 2 if cycles is None else int(cycles)
     cfg.witness.proof_verify = not settings.get("no_proof_verify", False)
     cfg.witness.proof_partial_evidence = settings.get("partial_evidence", False)
+    cfg.witness.typed_variables = settings.get("typed_variables", False)
+    cfg.witness.item_set_proofs = settings.get("item_set_proofs", False)
+    cfg.witness.witness_delivery = settings.get("witness_delivery") or "pages"
+    cfg.witness.abductive_premises = settings.get("abductive_premises", False)
+    fraction = settings.get("proof_edit_fraction")
+    cfg.witness.proof_edit_fraction = 0.0 if fraction is None else float(fraction)
+    cfg.qa.yesno_rationale = settings.get("yesno_rationale", False)
     cfg.witness.memory_lenses = settings.get("memory_lenses", False)
     cfg.witness.route_override = settings.get("route_override") or ""
     if settings.get("lenses"):
@@ -703,6 +741,8 @@ def launch(args):
         if args.backend == "vllm":
             print("Aguardando vLLM (pesos ausentes podem exigir download)...", flush=True)
             wait_ready(server, args.port, args.model, min(deadline, time.monotonic() + 3600))
+        elif args.backend == "openai":
+            print(f"Usando a API da OpenAI (modelo {args.model}).", flush=True)
         else:
             print("Usando deployment Azure configurado no ambiente.", flush=True)
         if args.backend == "vllm" and not args.existing_server:
@@ -773,6 +813,8 @@ def _validate_resume(old, new):
               "gap_context_rescue", "selective_witness", "admit_provisional_witnesses",
               "agnostic_router", "memory_lenses", "lens_max_swaps", "route_override", "lenses",
               "proof_controller", "proof_cycles", "no_proof_verify", "partial_evidence",
+              "typed_variables", "item_set_proofs", "witness_delivery", "abductive_premises",
+              "proof_edit_fraction", "yesno_rationale",
               "qa_max_tokens",
               "hybrid_fallback", "dialogue_ie",
               "no_relation_family_merge",

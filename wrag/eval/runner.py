@@ -359,7 +359,8 @@ def _answer_standard(name: str, retriever, corpus: Corpus, question: Question,
     reading = (ReadResult(filtered=True) if blocked else
                read(retriever.ctx.llm, corpus, question, retrieval.pids,
                     replace(run_cfg.qa, top_k=run_cfg.top_k), method=name,
-                    proof_context=retrieval.diagnostics.get("leitura_provas")))
+                    proof_context=retrieval.diagnostics.get("leitura_provas"),
+                    extra_passages=retrieval.diagnostics.get("trechos_extras")))
 
     diagnostics = retrieval.diagnostics
     witness_facts = []
@@ -458,7 +459,10 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
              "contexto_alterado_pela_pontuacao", "contexto_alterado_pela_prova",
              "plano_final", "pesos", "periodo", "passagens_testemunha",
              "n_testemunhas_no_contexto", "contexto_hibrido", "sondas_recuperacao",
-             "lacuna_contextual")
+             "lacuna_contextual",
+             # desenho v4
+             "trechos_extras", "contexto_alterado_por_trechos", "premissas",
+             "itens_conjunto")
             if k in diagnostics}
     cycles = diagnostics.get("ciclos")
     if isinstance(cycles, list):

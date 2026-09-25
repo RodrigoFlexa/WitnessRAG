@@ -18,7 +18,10 @@ from typing import Any
 
 import numpy as np
 
+import dataclasses
+
 from wrag import config as C
+from wrag import prompts
 from wrag.data import Question
 from wrag.embed import cosine_topk
 from wrag.ie import Fact, extract_targeted
@@ -30,7 +33,8 @@ from wrag.witness import budget as budget_mod
 from wrag.witness.memory import MemoryView
 from wrag.witness.provenance import (AnswerCandidate, answer_set, rank_passages,
                                      score_answers)
-from wrag.witness.query import Atom, ConjunctiveQuery, compile_query, compile_query_plans
+from wrag.witness.query import (Atom, ConjunctiveQuery, compile_query, compile_query_plans,
+                                question_type_phrase)
 from wrag.witness.search import (Gap, SearchResult, WitnessSearcher, cover_answers,
                                  executable_aggregations)
 from wrag.witness.research import (assess_plan, assess_plan_soft, assess_plan_repair, collect_frontier,
@@ -1582,7 +1586,11 @@ class WitnessRAGRetriever(Retriever):
             query = ConjunctiveQuery(answer_var=query.answer_var, atoms=query.atoms,
                                      expected_type=query.expected_type, aggregation="set",
                                      fallback=query.fallback, source=query.source,
-                                     repairs=list(query.repairs) + ["comparacao_como_conjunto"])
+                                     repairs=list(query.repairs) + ["comparacao_como_conjunto"],
+                                     types=dict(query.types))
+        if query.types and not cfg.typed_variables:
+            # A type the planner volunteered is ignored unless the option is on.
+            query = dataclasses.replace(query, types={})
         prior = self.scorer.fact_prior(plan.weights, plan.period, len(self.memory.facts))
         self.searcher.set_scoring(plan.weights.similarity, prior)
         saved = (self.searcher.allowed, self.searcher._allowed_horizon)
@@ -1627,6 +1635,9 @@ class WitnessRAGRetriever(Retriever):
 
         candidates = score_answers(search.witnesses, self.memory, cfg)
         outcome["candidatas"] = candidates
+        item_mode = cfg.item_set_proofs and plan.cardinality == CARDINALITY_ALL
+        if item_mode:
+            return self._prove_items(plan, query, outcome, candidates, support, context_pids)
         if len(candidates) > cfg.proof_max_answers:
             outcome["motivo"] = "respostas_demais"
             return outcome
@@ -1641,8 +1652,7 @@ class WitnessRAGRetriever(Retriever):
         if best_match < cfg.proof_min_support:
             outcome["motivo"] = "casamento_abaixo_do_limiar"
             return outcome
-        limit = (cfg.proof_max_new_passages if plan.composite
-                 else cfg.proof_simple_max_new_passages)
+        limit = self._edit_limit(plan, len(context_pids))
         top = set(context_pids)
         chosen: list[tuple[int, Any]] = []
         pids: list[str] = []
@@ -1657,7 +1667,7 @@ class WitnessRAGRetriever(Retriever):
             usable.sort(key=lambda w: (-support(w, False), w.cost, w.facts))
             for witness in usable:
                 proposed = list(dict.fromkeys(pids + list(witness.pids)))
-                if self._fits(proposed, context_pids, limit):
+                if cfg.witness_delivery == "excerpts" or self._fits(proposed, context_pids, limit):
                     chosen.append((position, witness))
                     pids = proposed
                     break
@@ -1670,6 +1680,96 @@ class WitnessRAGRetriever(Retriever):
         outcome.update({"utilizavel": True, "motivo": "prova_utilizavel",
                         "selecionadas": chosen, "passagens": pids,
                         "novas": [pid for pid in pids if pid not in top]})
+        return outcome
+
+    @staticmethod
+    def _type_from_question(plan: ProofPlan, question: Question) -> None:
+        """When the planner gives no type, the kind named by the question itself
+        ("What martial arts ...") types the answer variable. Only entity
+        answers; a date answer (?t) has no kind."""
+        query = plan.query
+        answer = query.answer_var
+        if answer in query.types or any(a.time_is_var and a.time.lstrip("?") == answer
+                                        for a in query.atoms):
+            return
+        if answer not in {v for a in query.atoms for v in a.entity_variables()}:
+            return
+        phrase = question_type_phrase(question.question)
+        if phrase:
+            query.types[answer] = phrase
+            plan.repairs.append("tipo_da_pergunta")
+
+    def _edit_limit(self, plan: ProofPlan | None, k: int) -> int:
+        """k_W: how many passages a proof may bring into a context of k slots."""
+        cfg = self.ctx.run.witness
+        composite = plan is not None and plan.composite
+        if cfg.proof_edit_fraction > 0:
+            share = cfg.proof_edit_fraction * k * (1.0 if composite else 0.5)
+            return max(1, int(share + 0.5))
+        return cfg.proof_max_new_passages if composite else cfg.proof_simple_max_new_passages
+
+    def _prove_items(self, plan: ProofPlan, query: ConjunctiveQuery, outcome: dict[str, Any],
+                     candidates: list[AnswerCandidate], support, context_pids: list[str]
+                     ) -> dict[str, Any]:
+        """Item-level selectivity for set plans (design v4).
+
+        Each member needs its own witness whose raw match (times confidence)
+        reaches proof_min_support. A typed plan ranks the members by
+        support x affinity of the answer with the type and sends the best
+        proof_set_max_items to the verifier, which decides member by member
+        (and rejects the wrong kind). An untyped plan with more members than
+        that is not selective: the v3 refusal applies. Truncations only limit
+        completeness, which a set proof never claims, so they are recorded and
+        do not refuse the proof.
+        """
+        cfg = self.ctx.run.witness
+        items = []
+        for position, candidate in enumerate(candidates):
+            usable = [w for w in candidate.witnesses if support(w, True) >= cfg.proof_min_support]
+            if usable:
+                usable.sort(key=lambda w: (-support(w, False), w.cost, w.facts))
+                items.append([position, candidate, usable[0], max(support(w, True)
+                                                                 for w in usable)])
+        outcome["itens_conjunto"] = {"candidatas": len(candidates), "com_suporte": len(items)}
+        if not items:
+            outcome["motivo"] = "casamento_abaixo_do_limiar"
+            return outcome
+        kind = query.types.get(query.answer_var, "")
+        if kind:
+            vectors = self.ctx.embedder.encode([kind] + [c.answer for _p, c, _w, _s in items])
+            affinity = vectors[1:] @ vectors[0]
+            for item, value in zip(items, affinity):
+                item.append(float(value))
+            items.sort(key=lambda it: (-(it[3] * max(it[4], 1e-3)), it[0]))
+            outcome["itens_conjunto"]["tipo"] = kind
+        elif len(items) > cfg.proof_set_max_items:
+            outcome["motivo"] = "respostas_demais"
+            return outcome
+        items = items[:cfg.proof_set_max_items]
+        chosen: list[tuple[int, Any]] = []
+        pids: list[str] = []
+        if cfg.witness_delivery in {"excerpts", "mixed"}:
+            # Every member with a witness goes to the verifier. "excerpts" keeps
+            # the k passages; "mixed" swaps in what fits under k_W and sends the
+            # remaining members as source turns.
+            chosen = [(position, witness) for position, _c, witness, *_ in items]
+            pids = list(dict.fromkeys(pid for _p, w in chosen for pid in w.pids))
+        else:
+            limit = self._edit_limit(plan, len(context_pids))
+            for position, _c, witness, *_ in items:
+                proposed = list(dict.fromkeys(pids + list(witness.pids)))
+                if self._fits(proposed, context_pids, limit):
+                    chosen.append((position, witness))
+                    pids = proposed
+            if not chosen:
+                outcome["motivo"] = "prova_nao_cabe_no_contexto"
+                return outcome
+        top = set(context_pids)
+        outcome.update({"utilizavel": True, "motivo": "prova_utilizavel",
+                        "selecionadas": chosen, "passagens": pids,
+                        "novas": [pid for pid in pids if pid not in top],
+                        "por_item": True})
+        outcome["itens_conjunto"]["enviados"] = len(chosen)
         return outcome
 
     @staticmethod
@@ -1730,6 +1830,9 @@ class WitnessRAGRetriever(Retriever):
 
         plan0 = default_plan(self.dated, levels, question_time)
         evidence = self._rank_memory(plan0, fused, list(pool_pids))[:cfg.candidate_pool_k]
+        extensions = ((prompts.PLAN_TYPES_EXTENSION if cfg.typed_variables else "")
+                      + (prompts.PLAN_HYPOTHESIS_EXTENSION if cfg.abductive_premises else ""))
+        hypothesis: dict[str, Any] = {}
         feedback: list[dict[str, Any]] = []
         signatures: set[tuple] = set()
         final_plan: ProofPlan | None = None
@@ -1743,10 +1846,14 @@ class WitnessRAGRetriever(Retriever):
                 evidence=self._evidence_facts(question, evidence, probe_text),
                 feedback=feedback_block(feedback), max_atoms=cfg.max_atoms,
                 temperature=cfg.plan_temperature, question_time=question_time, cycle=cycle,
-                dataset=self.ctx.dataset, method=self.name)
+                dataset=self.ctx.dataset, method=self.name, extensions=extensions)
             planning["chamadas_plano"] += 1
             record: dict[str, Any] = {"ciclo": cycle, "plano": plan.to_dict()}
             diagnostics["ciclos"].append(record)
+            if cfg.abductive_premises and plan.hypothesis and not hypothesis:
+                hypothesis = dict(plan.hypothesis)
+            if cfg.typed_variables and plan.valid:
+                self._type_from_question(plan, question)
             if plan.filtered:
                 diagnostics["motivo_parada"] = "plano_filtrado"
                 break
@@ -1770,7 +1877,11 @@ class WitnessRAGRetriever(Retriever):
                            "cortes": outcome["cortes"],
                            "respostas": [c.answer for c in outcome["candidatas"][:5]]})
             if outcome["utilizavel"]:
-                if not outcome["novas"]:
+                # Excerpts of a set are new text for the reader even when their
+                # passages are already retrieved, so they are always verified.
+                needs_check = bool(outcome["novas"]) or (
+                    outcome.get("por_item") and cfg.witness_delivery in {"excerpts", "mixed"})
+                if not needs_check:
                     record["verificacao"] = "dispensada_prova_ja_no_contexto"
                     accepted = outcome
                     diagnostics["motivo_parada"] = "prova_ja_no_contexto"
@@ -1833,11 +1944,42 @@ class WitnessRAGRetriever(Retriever):
                                               last_outcome["candidatas"][:3]]})
             if last_outcome["candidatas"]:
                 diagnostics["resposta_estrutural"] = last_outcome["candidatas"][0].answer
-        if accepted is not None:
+        extras: list[dict[str, str]] = []
+        if accepted is not None and cfg.witness_delivery in {"excerpts", "mixed"}:
+            # Design v4. "excerpts": the k passages stay and every verified
+            # witness reaches the reader as its source turns. "mixed": the v3
+            # swap for the witnesses that fit under k_W (in rank order), and the
+            # source turns of the rest. A value proof already inside the
+            # passages was not verified (nothing changed), so it adds no text.
+            selected = list(accepted["selecionadas"])
+            evidence_pids = list(accepted["passagens"])
+            placed: list[Any] = []
+            if cfg.witness_delivery == "mixed":
+                pids, placed = self._swap_in(pids, [w for _p, w in selected],
+                                             self._edit_limit(final_plan, k), k)
+            unverified = diagnostics["motivo_parada"] == "prova_ja_no_contexto"
+            rest = [w for _p, w in selected if all(w is not other for other in placed)
+                    and not set(w.pids) <= set(pids)]
+            block, turns = ("", []) if unverified else self._dialogue_block(
+                [w.facts for w in rest], cfg.excerpt_window)
+            if block:
+                extras.append({"title": prompts.EXCERPT_BLOCK_TITLE, "text": block})
+            delivered = [w for _p, w in selected]
+            changed = set(pids) != set(base)
+            diagnostics.update({
+                "rota": ("prova" if changed else diagnostics["rota"]) if not block else
+                        ("prova_trechos_e_falas" if changed else "prova_falas"),
+                "classe_prova": "full" if delivered else "nenhuma",
+                "testemunha_no_contexto": bool(delivered),
+                "n_testemunhas_no_contexto": len(delivered),
+                "passagens_testemunha": evidence_pids,
+                "contexto_alterado_pela_prova": changed,
+                "falas_prova": turns,
+            })
+        elif accepted is not None:
             evidence_pids = list(accepted["passagens"])
             missing = [pid for pid in evidence_pids if pid not in pids]
-            limit = (cfg.proof_max_new_passages if final_plan is not None and final_plan.composite
-                     else cfg.proof_simple_max_new_passages)
+            limit = self._edit_limit(final_plan, k)
             # Trocas começam pela cauda; o prefixo k - k_W é protegido.
             protected = max(1, k - max(limit, 1))
             replaceable = [i for i in range(len(pids) - 1, protected - 1, -1)
@@ -1879,6 +2021,15 @@ class WitnessRAGRetriever(Retriever):
                     diagnostics.update({"rota": "evidencia_parcial_lacuna",
                                         "lacuna_contextual": {"sonda": gap.probe(),
                                                               "passagem": rescued}})
+        if cfg.abductive_premises and hypothesis:
+            block, info = self._abductive_premises(question, hypothesis)
+            diagnostics["premissas"] = info
+            if block:
+                extras.append({"title": prompts.PREMISE_BLOCK_TITLE.format(
+                    about=hypothesis["about"]), "text": block})
+        if extras:
+            diagnostics["trechos_extras"] = extras
+        diagnostics["contexto_alterado_por_trechos"] = bool(extras)
         if set(pids) == set(hybrid):
             pids = list(hybrid)          # a mesma escolha preserva a ordem do híbrido
         diagnostics["contexto_alterado_pela_pontuacao"] = set(base) != set(hybrid)
@@ -1886,6 +2037,116 @@ class WitnessRAGRetriever(Retriever):
         diagnostics["contexto_hibrido"] = hybrid
         return RetrievalResult(pids=pids, scores=[1.0 / (i + 1) for i in range(len(pids))],
                                diagnostics=diagnostics)
+
+    @staticmethod
+    def _swap_in(pids: list[str], witnesses: list[Any], limit: int, k: int
+                 ) -> tuple[list[str], list[Any]]:
+        """Greedy v3 swap, witness by witness in rank order: a witness enters
+        when all its passages fit in the unprotected tail without evicting a
+        passage of a witness already placed. At most ``limit`` new passages."""
+        out = list(pids)
+        protected = max(1, k - max(limit, 1))
+        placed: list[Any] = []
+        keep: set[str] = set()
+        inserted = 0
+        for witness in witnesses:
+            missing = [pid for pid in dict.fromkeys(witness.pids) if pid not in out]
+            if inserted + len(missing) > limit:
+                continue
+            need = keep | set(witness.pids)
+            slots = [i for i in range(len(out) - 1, protected - 1, -1) if out[i] not in need]
+            if len(missing) > len(slots):
+                continue
+            for pid, index in zip(missing, slots):
+                out[index] = pid
+            inserted += len(missing)
+            keep |= set(witness.pids)
+            placed.append(witness)
+        return out, placed
+
+    def _dialogue_block(self, fact_groups: list[tuple[int, ...]], window: int
+                        ) -> tuple[str, list[str]]:
+        """Source turns of the given facts, printed exactly as in the passages
+        (session date line, turn line, its temporal and caption lines), with
+        ``window`` neighbouring turns. No answer and no extracted triple: the
+        reader sees dialogue, as in every passage. Capped by excerpt_max_chars."""
+        assert self.dated is not None
+        cfg = self.ctx.run.witness
+        wanted: list[tuple[str, int]] = []
+        for facts in fact_groups:
+            for index in facts:
+                if not 0 <= index < len(self.dated.fact_turn):
+                    continue
+                pid, position = self.dated.fact_turn[index]
+                turns = self.dated.turns.get(pid) or []
+                if not 0 <= position < len(turns):
+                    continue
+                for j in range(max(0, position - window), min(len(turns), position + window + 1)):
+                    if (pid, j) not in wanted:
+                        wanted.append((pid, j))
+        chunks, ids, used, last_header = [], [], 0, ""
+        for pid, j in wanted:
+            turn = self.dated.turns[pid][j]
+            lines = self.corpus.get(pid).text.splitlines()
+            if turn.line < 0 or turn.line >= len(lines):
+                continue
+            header = next((lines[n] for n in range(turn.line, -1, -1)
+                           if lines[n].startswith("Session date:")), "")
+            body = [lines[turn.line]]
+            for n in range(turn.line + 1, len(lines)):
+                follow = lines[n]
+                if follow.startswith(f"[{turn.turn_id} ") or follow.startswith(f"[{turn.turn_id}]"):
+                    body.append(follow)
+                else:
+                    break
+            text = "\n".join(([header] if header and header != last_header else []) + body)
+            if used + len(text) > cfg.excerpt_max_chars and chunks:
+                break
+            chunks.append(text)
+            used += len(text)
+            ids.append(turn.turn_id)
+            last_header = header or last_header
+        return "\n".join(chunks), ids
+
+    def _abductive_premises(self, question: Question, hypothesis: dict[str, Any]
+                            ) -> tuple[str, dict[str, Any]]:
+        """Premises of a hypothesis (design v4): the neighbourhood N(e) of the
+        person in the graph, ranked by the concepts that would support or
+        contradict the hypothesis (70%) and by the question (30%). Ranking only;
+        no threshold, because raw cosine levels do not separate relevance well."""
+        assert self.memory is not None and self.dated is not None and self.searcher is not None
+        cfg = self.ctx.run.witness
+        about = hypothesis["about"]
+        info: dict[str, Any] = {"sobre": about, "conceitos": list(hypothesis["concepts"]),
+                                "n_fatos_vizinhanca": 0, "falas": []}
+        clusters = {cluster for cluster, _sim in self.searcher.match_entity(about)}
+        ids = sorted({i for c in clusters for table in (self.searcher._facts_by_cluster_subject,
+                                                          self.searcher._facts_by_cluster_object)
+                      for i in table.get(c, []) if i < len(self.memory.facts)})
+        info["n_fatos_vizinhanca"] = len(ids)
+        if not ids or not self.memory.fact_vectors.size:
+            return "", info
+        vectors = self.ctx.embedder.encode(list(hypothesis["concepts"]) + [question.question])
+        sims = self.memory.fact_vectors[ids] @ vectors.T
+        score = 0.7 * sims[:, :-1].max(axis=1) + 0.3 * sims[:, -1]
+        entries: list[int] = []
+        seen: set = set()
+        for row in np.argsort(-score):
+            index = ids[int(row)]
+            source = self.dated.fact_turn[index] if index < len(self.dated.fact_turn) else None
+            if source is None or source in seen:
+                continue
+            seen.add(source)
+            entries.append(index)
+            if len(entries) >= cfg.abductive_max_premises:
+                break
+        # Chronological order reads like the dialogue it comes from.
+        order = {p.pid: n for n, p in enumerate(self.corpus.passages)}
+        entries.sort(key=lambda i: (order.get(self.dated.fact_turn[i][0], 0),
+                                    self.dated.fact_turn[i][1]))
+        block, ids = self._dialogue_block([(i,) for i in entries], 0)
+        info["falas"] = ids
+        return block, info
 
     def index_report(self) -> dict:
         report: dict[str, Any] = {"grafo": self.kg.stats(),

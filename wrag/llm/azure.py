@@ -330,6 +330,7 @@ class AzureLLM(LLM):
             return cached
 
         attempt = 0
+        throttled = 0
         last_exc: Exception | None = None
 
         while attempt <= C.AZURE_MAX_RETRIES:
@@ -342,6 +343,15 @@ class AzureLLM(LLM):
                     return self._filtered_result(str(exc), cache_path)
                 if self._maybe_drop_parameter(exc, kwargs):
                     continue  # não conta como tentativa: a chamada mudou
+                if (_status_of(exc) == 429 and throttled < C.AZURE_RATE_LIMIT_RETRIES
+                        and not is_content_filter_error(exc)
+                        and "insufficient_quota" not in str(exc)):
+                    # A per-minute token quota is not a failure of the request:
+                    # wait what the server asks (plus jitter) without spending the
+                    # retry budget meant for errors. Parallel runs on one key hit it.
+                    throttled += 1
+                    time.sleep(max(_retry_after_seconds(exc), 1.0) + 2.0 * random.random())
+                    continue
                 if not _is_transient(exc) or attempt == C.AZURE_MAX_RETRIES:
                     self._explain_fatal(exc)
                     raise

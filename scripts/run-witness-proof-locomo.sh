@@ -9,6 +9,9 @@
 #                           slot when a connected plan has no proof (the
 #                           selective controller's multi-hop fallback).
 # PROFILE=proof-1cycle      ablation: a single plan, no replanning.
+# PROFILE=proof-v4 | v4-typed | v4-excerpts | v4-abductive | v4-no-types
+#                           design v4 and its ablations (scripts/proof-profiles.sh).
+# EXTRA_FLAGS="..."         appended to the pilot flags (e.g. --yesno-rationale).
 #
 # CACHE_DIR defaults to the cache of run-witness-azure-locomo.sh. Sharing it is
 # deliberate: OpenIE/index prompts are unchanged, and every question whose
@@ -85,24 +88,18 @@ RESUME=()
 [[ -f "$OUTPUT/pilot.json" ]] && RESUME+=(--resume)
 # The graph flags are those of the selective run, so the memory (OpenIE, entity
 # clusters, relation families) is the same; only the controller differs.
-METHOD_FLAGS=(--binding-aware-grounding --vocab-compile --hybrid-fallback
-  --dialogue-ie --gap-context-rescue --proof-controller)
-case "$PROFILE" in
-  proof) ;;
-  proof-no-verify) METHOD_FLAGS+=(--no-proof-verify) ;;
-  proof-partial) METHOD_FLAGS+=(--partial-evidence) ;;
-  proof-1cycle) METHOD_FLAGS+=(--proof-cycles 1) ;;
-  *)
-    echo "PROFILE must be proof, proof-no-verify, proof-partial or proof-1cycle." >&2
-    exit 2
-    ;;
-esac
+# Profiles (proof, proof-v4, v4-typed, ...) live in scripts/proof-profiles.sh.
+# shellcheck disable=SC1091
+source scripts/proof-profiles.sh
+proof_profile_flags "$PROFILE" || exit 2
+METHOD_FLAGS=("${PROOF_FLAGS[@]}")
+read -r -a EXTRA <<< "${EXTRA_FLAGS:-}"
 "$BENCH_PYTHON" -m wrag.pilot "${BACKEND_FLAGS[@]}" --gpu "$GPU" \
   --tokenizer-model "$TOKENIZER_MODEL" \
   --dataset locomo --locomo-conversation "$CONVERSATION" --methods witnessrag \
   --embed-model "$WRAG_EMBED_MODEL" --embed-device "$WRAG_EMBED_DEVICE" \
   --locomo-chunk-tokens "$CHUNK_TOKENS" --locomo-ie-window-tokens 512 --top-k "$TOP_K" --qa-max-tokens 128 \
-  --witness-candidate-pool 20 --answer-set --temporal-annotations --evidence-reader \
-  "${METHOD_FLAGS[@]}" \
+  --witness-candidate-pool "${POOL:-20}" --answer-set --temporal-annotations --evidence-reader \
+  "${METHOD_FLAGS[@]}" "${EXTRA[@]}" \
   --cache-dir "$CACHE_DIR" \
   --hours "${HOURS:-72}" --output "$OUTPUT" "${RESUME[@]}"

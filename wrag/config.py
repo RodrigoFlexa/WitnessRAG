@@ -93,6 +93,8 @@ AZURE_REASONING_EFFORT = _env("WRAG_AZURE_REASONING_EFFORT", "minimal")
 AZURE_MAX_TOKENS = _env_int("WRAG_AZURE_MAX_TOKENS", 2048)
 AZURE_CONCURRENCY = _env_int("WRAG_AZURE_CONCURRENCY", 8)
 AZURE_MAX_RETRIES = _env_int("WRAG_AZURE_MAX_RETRIES", 6)
+# 429 (quota per minute) waits apart from the error budget above.
+AZURE_RATE_LIMIT_RETRIES = _env_int("WRAG_RATE_LIMIT_RETRIES", 60)
 AZURE_BACKOFF_BASE = _env_float("WRAG_AZURE_BACKOFF_BASE", 2.0)
 AZURE_BACKOFF_MAX = _env_float("WRAG_AZURE_BACKOFF_MAX", 60.0)
 AZURE_TIMEOUT_S = _env_float("WRAG_AZURE_TIMEOUT_S", 600.0)
@@ -340,6 +342,38 @@ class WitnessConfig:
     proof_importance_strong: float = 0.1
     proof_min_scale_days: float = 7.0      # λ mínimo da proximidade temporal
     proof_point_scale_fraction: float = 0.25  # λ de "hoje"/"início": fração da memória
+    # k_W proporcional a k (varredura com orçamento fixo de tokens, em que k
+    # cresce quando o trecho diminui). 0 mantém os valores fixos acima; com
+    # f > 0: composto = round(f·k), simples = round(f·k/2), ambos >= 1. Para
+    # k = 5 e f = 0,4 isso reproduz exatamente 2 e 1.
+    proof_edit_fraction: float = 0.0
+
+    # -- desenho v4 (docs/witnessrag-v4.md): tudo desligado por padrão, então
+    # uma rodada sem as opções abaixo é byte a byte a rodada v3.
+    # Variáveis tipadas: o plano declara o tipo pedido pela pergunta para cada
+    # variável (?x : "martial art"). O tipo é um átomo unário: ele ordena as
+    # respostas (similaridade do nó com o tipo) e é conferido pelo Verificar,
+    # que recebe o tipo no plano e rejeita "wrong_type".
+    typed_variables: bool = False
+    # Seletividade por item em planos de conjunto: em vez de exigir no máximo
+    # proof_max_answers respostas, cada item precisa da própria testemunha
+    # acima de proof_min_support; os proof_set_max_items melhores vão ao
+    # Verificar, que decide item a item. Planos de um valor mantêm a regra v3.
+    item_set_proofs: bool = False
+    proof_set_max_items: int = 12
+    # Entrega da prova ao leitor: "pages" (v3: troca até k_W trechos da cauda),
+    # "excerpts" (mantém os k trechos e acrescenta um bloco curto com as falas
+    # de origem dos fatos provados, no mesmo formato dos trechos) ou "mixed"
+    # (troca v3 para o que cabe em k_W; falas de origem para o resto).
+    witness_delivery: str = "pages"
+    excerpt_max_chars: int = 2400          # teto do bloco (~600 tokens)
+    excerpt_window: int = 1                # falas vizinhas de cada fala de origem
+    # Premissas abdutivas ("Would X ...?"): o plano declara a hipótese (sobre
+    # quem, e os conceitos que a apoiariam ou contradiriam); a vizinhança da
+    # entidade no grafo é ordenada por esses conceitos e as melhores falas vão
+    # ao leitor como bloco de premissas. Suporte, nunca prova: não troca trechos.
+    abductive_premises: bool = False
+    abductive_max_premises: int = 8
 
     # -- proveniência e risco
     fact_confidence: float = 0.90      # p_e default de um fato extraído uma vez
@@ -378,6 +412,10 @@ class QAConfig:
     # One-call, operation-aware reading for conversational memory. Off by
     # default so earlier runs remain reproducible.
     evidence_reader: bool = False
+    # Sim/não com justificativa curta ("likely no; she wants to be a
+    # counselor"). É opção do LEITOR, igual para todos os métodos; muda a forma
+    # da resposta, não a evidência. Desligado por padrão.
+    yesno_rationale: bool = False
 
 
 @dataclass

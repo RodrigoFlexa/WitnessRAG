@@ -129,6 +129,10 @@ class ConjunctiveQuery:
     # Requirements checked against literal source passages after graph joining.
     # They are not graph predicates and cannot make an incomplete join complete.
     conditions: list[str] = field(default_factory=list)
+    # Unary type atoms (design v4): variable name -> type phrase copied from the
+    # question ("martial art", "musical instrument"). Checked by ranking and by
+    # the verifier, never by a similarity threshold (see search.type_affinity).
+    types: dict[str, str] = field(default_factory=dict)
 
     def __bool__(self) -> bool:
         return bool(self.atoms)
@@ -202,6 +206,8 @@ class ConjunctiveQuery:
                 "uses_annotations": not self.source.startswith("llm")}
         if self.conditions:
             result["source_conditions"] = list(self.conditions)
+        if self.types:
+            result["types"] = dict(self.types)
         return result
 
 
@@ -323,7 +329,75 @@ def _query_from_data(data: dict[str, Any], question: Question, max_atoms: int,
         query.validation_error = "constante_booleana_artificial"
         query.atoms = []
         return query
-    return _repair(query, question)
+    query = _repair(query, question)
+    _attach_types(query, data)
+    return query
+
+
+_GENERIC_TYPES = frozenset("thing things item items something stuff entity entities "
+                           "other answer value one ones".split())
+
+
+def _attach_types(query: ConjunctiveQuery, data: dict[str, Any]) -> None:
+    """Read the optional unary type atoms. Invalid entries are dropped with a
+    repair note; a type never invalidates the plan, because it only narrows it."""
+    raw = data.get("types")
+    if raw is None and isinstance(data.get("answer_type"), str):
+        raw = {query.answer_var: data["answer_type"]}
+    if not raw or not query.atoms:
+        return
+    if not isinstance(raw, dict):
+        query.repairs.append("tipos_invalidos")
+        return
+    variables = {v for atom in query.atoms for v in atom.entity_variables()}
+    for name, phrase in raw.items():
+        var = var_name(str(name))
+        text = re.sub(r"\s+", " ", str(phrase or "")).strip().strip(".")
+        if not text or var not in variables or len(text) > 60:
+            if text:
+                query.repairs.append(f"tipo_descartado:{var}")
+            continue
+        if normalize(text) in _GENERIC_TYPES:
+            continue
+        query.types[var] = text
+
+
+_AUXILIARIES = frozenset("do does did has have had is are was were will would can could "
+                        "should might may".split())
+_TYPE_HEAD = re.compile(r"^\s*(?:what|which)\s+(?:(?:kinds?|types?|sorts?)\s+of\s+)?"
+                        r"((?:[a-z][a-z'\-]*\s+){0,3}?[a-z][a-z'\-]*)\s+"
+                        r"(?:" + "|".join(sorted(_AUXILIARIES)) + r")\b", re.I)
+
+
+def _singular(word: str) -> str:
+    low = word.lower()
+    if low.endswith("ies") and len(low) > 4:
+        return word[:-3] + "y"
+    if low.endswith(("sses", "shes", "ches", "xes")):
+        return word[:-2]
+    if low.endswith("s") and not low.endswith(("ss", "us", "is")) and len(low) > 3:
+        return word[:-1]
+    return word
+
+
+def question_type_phrase(question: str) -> str:
+    """The kind of thing a wh-question asks for, read from its words only:
+    "What martial arts has John done?" -> "martial art"; "What kind of books
+    does X have?" -> "book"; "What did X buy?" -> "" (no kind named). Generic
+    heads ("things", "items") give "". Never reads a benchmark label."""
+    match = _TYPE_HEAD.match(question or "")
+    if not match:
+        return ""
+    words = match.group(1).split()
+    if not words:
+        return ""
+    if any(w.lower() in _AUXILIARIES for w in words):
+        return ""
+    words[-1] = _singular(words[-1])
+    phrase = " ".join(words)
+    if normalize(phrase) in _GENERIC_TYPES or normalize(words[-1]) in _GENERIC_TYPES:
+        return ""
+    return phrase
 
 
 def _parse_atoms(raw: Any, max_atoms: int) -> list[Atom]:

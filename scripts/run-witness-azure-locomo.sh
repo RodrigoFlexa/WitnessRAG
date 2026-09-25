@@ -69,6 +69,7 @@ else
 fi
 RESUME=()
 [[ -f "$OUTPUT/pilot.json" ]] && RESUME+=(--resume)
+read -r -a EXTRA <<< "${EXTRA_FLAGS:-}"
 METHOD_FLAGS=()
 case "$METHOD" in
   witnessrag)
@@ -89,7 +90,7 @@ esac
   --dataset locomo --locomo-conversation "$CONVERSATION" --methods "$METHOD" \
   --embed-model "$WRAG_EMBED_MODEL" --embed-device "$WRAG_EMBED_DEVICE" \
   --locomo-chunk-tokens "$CHUNK_TOKENS" --locomo-ie-window-tokens 512 --top-k "$TOP_K" --qa-max-tokens 128 \
-  --witness-candidate-pool 20 --answer-set --temporal-annotations --evidence-reader \
-  "${METHOD_FLAGS[@]}" \
+  --witness-candidate-pool "${POOL:-20}" --answer-set --temporal-annotations --evidence-reader \
+  "${METHOD_FLAGS[@]}" "${EXTRA[@]}" \
   --cache-dir "$CACHE_DIR" \
   --hours "${HOURS:-72}" --output "$OUTPUT" "${RESUME[@]}"

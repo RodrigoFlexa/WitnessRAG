@@ -4,6 +4,7 @@ Linha de comando.
     python -m wrag.cli selftest                  # verificação offline, sem rede
     python -m wrag.cli prepare-data              # baixa os subconjuntos oficiais
     python -m wrag.cli diag-azure                # testa o gateway antes de gastar
+    python -m wrag.cli diag-openai --model gpt-4o-mini   # idem, API da OpenAI
     python -m wrag.cli run --datasets musique --methods dense,witnessrag -n 20
     python -m wrag.cli report runs/<id>
 """
@@ -12,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -71,17 +73,30 @@ def cmd_diag_azure(args: argparse.Namespace) -> int:
     (deployment inexistente, endpoint errado, api-version antiga), e descobrir
     qual delas é no meio de uma indexação de 2000 passagens custa caro.
     """
+    return _diag_llm("azure")
+
+
+def cmd_diag_openai(args: argparse.Namespace) -> int:
+    """Mesma checagem de ida e volta, contra a API da OpenAI (OPENAI_API_KEY)."""
+    if getattr(args, "model", None):
+        os.environ["OPENAI_MODEL"] = args.model
+    return _diag_llm("openai")
+
+
+def _diag_llm(backend: str) -> int:
     from wrag.llm import GenParams, get_llm
 
     try:
-        llm = get_llm("azure")
+        llm = get_llm(backend)
     except Exception as exc:  # noqa: BLE001
         print(f"FALHA ao construir o cliente: {exc}")
         return 1
 
+    print(f"backend: {backend}")
     print(f"deployment: {llm.deployment}")
     print(f"modo: {'reasoning' if llm.reasoning else 'chat'}")
-    print(f"api-version: {C.AZURE_API_VERSION}")
+    if backend == "azure":
+        print(f"api-version: {C.AZURE_API_VERSION}")
     try:
         result = llm.chat('Responda com um objeto JSON exatamente assim: {"ok": true}.',
                           params=GenParams(max_tokens=64, json_mode=True), stage="diag")
@@ -97,6 +112,8 @@ def cmd_diag_azure(args: argparse.Namespace) -> int:
               "WRAG_AZURE_REASONING_MIN_TOKENS (tente 12000).")
         return 1
 
+    if backend != "azure":
+        return 0
     if C.AZURE_EMBED_DEPLOYMENT:
         from wrag.embed import AzureEmbedder
 
@@ -220,6 +237,9 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("prepare-data", help="copia os subconjuntos oficiais do HippoRAG"
                    ).set_defaults(func=cmd_prepare_data)
     sub.add_parser("diag-azure", help="testa o gateway Azure").set_defaults(func=cmd_diag_azure)
+    p_diag_openai = sub.add_parser("diag-openai", help="testa a API da OpenAI (OPENAI_API_KEY)")
+    p_diag_openai.add_argument("--model", default="", help="ex.: gpt-4o-mini (padrão: OPENAI_MODEL)")
+    p_diag_openai.set_defaults(func=cmd_diag_openai)
 
     p_run = sub.add_parser("run", help="roda o benchmark")
     p_run.add_argument("--datasets", default=",".join(C.DATASETS))

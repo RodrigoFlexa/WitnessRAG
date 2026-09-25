@@ -39,7 +39,7 @@ _NUMBER_WORDS = {
 }
 
 
-def _canonicalize_short_answer(question: str, answer: str) -> str:
+def _canonicalize_short_answer(question: str, answer: str, keep_reason: bool = False) -> str:
     """Apply only type-preserving normalizations that cannot need new facts.
 
     LoCoMo's official token F1 distinguishes ``three`` from ``3`` and punishes
@@ -55,8 +55,9 @@ def _canonicalize_short_answer(question: str, answer: str) -> str:
         values = list(dict.fromkeys(digits + [_NUMBER_WORDS[word] for word in words]))
         if len(values) == 1:
             return values[0]
-    if re.match(r"\s*(?:did|do|does|is|are|was|were|has|have|had|can|could|would|will)\b",
-                question, re.I):
+    if not keep_reason and re.match(
+            r"\s*(?:did|do|does|is|are|was|were|has|have|had|can|could|would|will)\b",
+            question, re.I):
         match = re.match(r"\s*(likely\s+)?(yes|no)\b", text, re.I)
         if match:
             return (match.group(1) or "").casefold() + match.group(2).casefold()
@@ -158,6 +159,7 @@ def read(
     proof_context: dict[str, Any] | None = None,
     passages_override: Sequence[tuple[str, str]] | None = None,
     count_mode: bool = False,
+    extra_passages: Sequence[dict[str, str]] | None = None,
 ) -> ReadResult:
     cfg = cfg or C.QAConfig()
     passages = []
@@ -172,13 +174,24 @@ def read(
                 (question.qtype == "temporal" or cfg.evidence_reader)):
             text = _temporal_reader_view(text)
         passages.append((title, text))
+    # Design v4: short blocks built from the memory (source turns of a proved
+    # fact, or premises of a hypothesis). They come after the k passages, next
+    # to the question, and never replace a retrieved passage.
+    for block in extra_passages or []:
+        if block.get("text"):
+            text = str(block["text"])
+            if (cfg.temporal_annotations and question.dataset == "locomo" and
+                    (question.qtype == "temporal" or cfg.evidence_reader)):
+                text = _temporal_reader_view(text)
+            passages.append((str(block.get("title") or "Evidence"), text))
 
     operator_question = bool(re.search(
         r"\b(how many|when|what date|what time|how long|before|after)\b",
         question.question, re.I))
     use_proof = bool(cfg.proof_reader and proof_context and
                      proof_context.get("hipoteses"))
-    template = (prompts.QA_EVIDENCE_TEMPLATE if cfg.evidence_reader and question.dataset == "locomo" else
+    template = (prompts.qa_evidence_template(cfg.yesno_rationale)
+                if cfg.evidence_reader and question.dataset == "locomo" else
                 prompts.QA_INFERENCE_TEMPLATE if question.dataset == "locomo" and question.qtype == "open-domain" else
                 prompts.QA_TEMPORAL_MEMORY_TEMPLATE if question.dataset == "locomo" and question.qtype == "temporal" else
                 prompts.QA_COUNT_TEMPLATE if count_mode and re.search(r"\bhow many\b", question.question, re.I) else
@@ -212,7 +225,8 @@ def read(
         answer = result.text.strip().splitlines()[0][:200]
 
     raw_answer = answer
-    answer = _canonicalize_short_answer(question.question, answer)
+    answer = _canonicalize_short_answer(question.question, answer,
+                                        keep_reason=cfg.yesno_rationale)
     guard = None
     prompt_tokens, completion_tokens, latency = (result.prompt_tokens,
                                                   result.completion_tokens, result.latency_s)

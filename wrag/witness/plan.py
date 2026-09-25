@@ -47,6 +47,10 @@ class ProofPlan:
     error: str = ""
     repairs: list[str] = field(default_factory=list)
     cycle: int = 1
+    # Design v4: the hypothesis of an inference question ("Would X ...?"): who
+    # it is about and the concepts whose stated facts would support or
+    # contradict it. Empty unless the planner was asked for it.
+    hypothesis: dict[str, Any] = field(default_factory=dict)
 
     @property
     def executable(self) -> bool:
@@ -71,20 +75,25 @@ class ProofPlan:
 
     def signature(self) -> tuple:
         q = self.query
-        return (q.answer_var, q.aggregation, self.period.kind, self.period.text.lower(),
+        base = (q.answer_var, q.aggregation, self.period.kind, self.period.text.lower(),
                 self.time_level, self.importance_level,
                 tuple((a.relation.lower(), a.subject.lower(), a.object.lower(), a.time)
                       for a in q.atoms))
+        if q.types:
+            base += (tuple(sorted((k, v.lower()) for k, v in q.types.items())),)
+        return base
 
     def describe(self) -> str:
         """Compact text used in prompts (verification, replanning)."""
         atoms = " AND ".join(
             f"{a.relation}({a.subject}, {a.object}" + (f", time={a.time}" if a.time else "") + ")"
             for a in self.query.atoms) or "(no atoms)"
+        types = "".join(f"; ?{name} must be a {kind}"
+                        for name, kind in sorted(self.query.types.items()))
         return (f"find {atoms}; answer ?{self.query.answer_var}; "
                 f"{'all members' if self.cardinality == CARDINALITY_ALL else 'one value'}; "
                 f"period {self.period.kind}"
-                + (f" ({self.period.text})" if self.period.text else ""))
+                + (f" ({self.period.text})" if self.period.text else "") + types)
 
     def to_dict(self) -> dict[str, Any]:
         return {"consulta": self.query.to_dict(), "cardinalidade": self.cardinality,
@@ -94,7 +103,8 @@ class ProofPlan:
                 "filtrado": self.filtered, "erro": self.error,
                 "reparos": list(self.repairs), "ciclo": self.cycle,
                 "composto": self.composite, "conectado": self.connected,
-                "executavel": self.executable}
+                "executavel": self.executable,
+                **({"hipotese": dict(self.hypothesis)} if self.hypothesis else {})}
 
 
 def default_plan(memory: DatedMemory | None, levels: WeightLevels,
@@ -182,10 +192,33 @@ def plan_from_data(data: Any, question: Question, memory: DatedMemory | None,
             repairs.append("memoria_sem_datas:tempo_desligado")
         time_level = "none"
     weights = levels.weights(time_level, importance_level)
+    hypothesis = parse_hypothesis(data.get("hypothesis"), repairs)
     return ProofPlan(query=query, cardinality=cardinality, period=period,
                      time_level=time_level, importance_level=importance_level,
                      weights=weights, valid=bool(query.atoms) and not error,
-                     error=error, repairs=repairs, cycle=cycle)
+                     error=error, repairs=repairs, cycle=cycle, hypothesis=hypothesis)
+
+
+def parse_hypothesis(raw: Any, repairs: list[str]) -> dict[str, Any]:
+    """{"about": person, "concepts": [...]}; anything else is dropped (the
+    hypothesis only adds premises for the reader, it never makes a plan valid)."""
+    if not raw:
+        return {}
+    if not isinstance(raw, dict):
+        repairs.append("hipotese_invalida")
+        return {}
+    about = " ".join(str(raw.get("about") or "").split())[:80]
+    concepts = raw.get("concepts")
+    if isinstance(concepts, str):
+        concepts = [concepts]
+    if not isinstance(concepts, list):
+        concepts = []
+    kept = list(dict.fromkeys(" ".join(str(c).split())[:80] for c in concepts
+                              if isinstance(c, str) and c.strip()))[:6]
+    if not about or not kept:
+        repairs.append("hipotese_incompleta")
+        return {}
+    return {"about": about, "concepts": kept}
 
 
 def evidence_block(lines: list[str]) -> str:
@@ -210,10 +243,13 @@ def plan_question(llm: LLM, question: Question, memory: DatedMemory | None,
                   levels: WeightLevels, *, vocabulary: str = "", evidence: str = "",
                   feedback: str = "", max_atoms: int = 4, temperature: float = 0.0,
                   question_time: date | None = None, cycle: int = 1,
-                  dataset: str = "", method: str = "witnessrag") -> ProofPlan:
+                  dataset: str = "", method: str = "witnessrag",
+                  extensions: str = "") -> ProofPlan:
+    # ``extensions`` (design v4) is appended after the evidence block. Empty,
+    # the prompt is byte-identical to design v3, so cached plans stay valid.
     result = llm.chat(
         prompts.PLAN_TEMPLATE.format(question=question.question, max_atoms=max_atoms,
-                                     vocabulary=vocabulary, evidence=evidence,
+                                     vocabulary=vocabulary, evidence=evidence + extensions,
                                      feedback=feedback),
         system=prompts.PLAN_SYSTEM,
         params=GenParams(temperature=temperature, max_tokens=900, json_mode=True),
