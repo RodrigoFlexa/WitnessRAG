@@ -1,0 +1,55 @@
+Traceback (most recent call last):
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\pilot.py", line 913, in main
+    worker(args.worker)
+    ~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\pilot.py", line 442, in worker
+    roots = _run_every_conversation(plan, settings)
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\pilot.py", line 569, in _run_every_conversation
+    root = run([settings["dataset"]], plan["methods"],
+               _run_config(settings, metadata["questions"]), tag=f"conv{index:02d}",
+               resume_dir=resume_dir)
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\eval\runner.py", line 568, in run
+    summaries[dataset] = run_dataset(dataset, run_cfg, paths, methods, resume=resume)
+                         ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\eval\runner.py", line 133, in run_dataset
+    _run_interleaved(retrievers, corpus, run_cfg, paths, resume, summary, original)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\eval\runner.py", line 175, in _run_interleaved
+    record = _answer_one(name, retrievers[name], corpus, question, cfg)
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\eval\runner.py", line 347, in _answer_one
+    return _answer_standard(name, retriever, corpus, question, run_cfg)
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\eval\runner.py", line 360, in _answer_standard
+    read(retriever.ctx.llm, corpus, question, retrieval.pids,
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         replace(run_cfg.qa, top_k=run_cfg.top_k), method=name,
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         proof_context=retrieval.diagnostics.get("leitura_provas")))
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\eval\reader.py", line 190, in read
+    result = llm.chat(
+        template.format(passages=prompts.format_passages(passages),
+    ...<6 lines>...
+        stage="qa",
+    )
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\llm\base.py", line 218, in chat
+    result = self._complete(messages, params, stage)
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\llm\azure.py", line 338, in _complete
+    response = self._client.chat.completions.create(**kwargs)
+  File "C:\Users\rodri\anaconda3\Lib\site-packages\openai\_utils\_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\rodri\anaconda3\Lib\site-packages\openai\resources\chat\completions\completions.py", line 1192, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<47 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\rodri\anaconda3\Lib\site-packages\openai\_base_client.py", line 1259, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\rodri\anaconda3\Lib\site-packages\openai\_base_client.py", line 1047, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o-mini in organization org-WaByzdC4bjAMjtVTUHtPRn3w on tokens per min (TPM): Limit 200000, Used 196135, Requested 10156. Please try again in 1.887s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}

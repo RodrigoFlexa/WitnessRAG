@@ -210,3 +210,23 @@ Primeira versão da entrega "excerpts" (com linhas "answer:" e "fact:") piorou
 3 pontos na conversa 0: o leitor copiava a resposta extraída. Daí o formato
 atual (só diálogo) e o modo "mixed". Varredura parcial (híbrido, conversas 1-2):
 5 × 512 contra 5 × 2048 = −1,88 F1 [−2,48; −1,57], R@5 88,6 → 78,5.
+
+## 10. Prompt do planejador com few-shot (v4.1)
+
+Os campos `types` e `hypothesis` agora fazem parte da descrição da tarefa, do
+formato JSON e dos exemplos (`prompts.plan_template`), em vez de uma instrução
+no fim. O exemplo de Nira passou a ter tipo; entraram dois exemplos tipados e
+um de hipótese, todos sintéticos. Sem as opções v4, o prompt continua
+idêntico ao v3.
+
+Auditoria (`scripts/plan-audit.py`), gpt-4o-mini, conversas 1 e 2 (233 perguntas):
+
+| | v3 | v4 (instrução no fim) | v4.1 (few-shot) |
+|---|---:|---:|---:|
+| prova usada | 22,3% | 35,6% | **44,6%** |
+| multi-hop com prova usada | 14,3% | 59,5% | **71,4%** |
+| tipos escritos pelo planejador | 0 | 8 de 59 | **83 de 104** |
+| junção incompleta | 8,6% | 15,0% | 9,0% |
+| plano inválido | 8,6% | 9,4% | 9,9% |
+| ciclos por pergunta | 1,80 | 1,67 | 1,61 |
+| F1 oficial | 59,69 | 59,98 | 60,13 |

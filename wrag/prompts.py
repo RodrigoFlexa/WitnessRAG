@@ -807,36 +807,87 @@ Return one JSON object only, without explanations or markdown.
 {question}"""
 
 
-# Design v4 extensions of the plan (docs/witnessrag-v4.md). They are appended
-# to PLAN_TEMPLATE only when the matching option is on, so a v3 run sends the
-# exact v3 prompt. Synthetic names only; no benchmark category vocabulary.
-PLAN_TYPES_EXTENSION = """
-Add the field "types" to the JSON object whenever the question names the KIND
-of thing it asks for: the kind for the variable, in the singular, copied from
-the question. For example {"answer_var": "x", "atoms": [...], "aggregation":
-"set", "types": {"x": "martial art"}, ...}. More cases:
-"What martial arts has Omar done?" -> "types": {"x": "martial art"};
-"Which instruments does Nira play?" -> "types": {"x": "musical instrument"};
-"What gifts did Lia get from her aunt?" -> "types": {"x": "gift"}.
-Omit "types" when the question names no kind ("What did Leo buy?"). Because the
-type does the narrowing, keep the relation general enough to find the facts
-(practice(Omar, ?x) with the type "martial art", not practice_martial_art).
-Do not drop any other requirement of the question: a person, a source ("from
-her aunt"), or a place stays in the plan, as an atom or in the relation phrase.
+# Design v4 plan prompt (docs/witnessrag-v4.md). The v4 fields are part of the
+# task description, of the JSON shape and of the worked examples, because a
+# small planner follows the examples far more than a trailing instruction: with
+# the fields only appended after the evidence (first v4 version), gpt-4o-mini
+# wrote a type in 17 of 94 typed questions, and the example "Which instrument
+# does Nira play?" showed a named kind WITHOUT a type. PLAN_TEMPLATE itself is
+# unchanged, so a v3 run sends the exact v3 prompt. Synthetic names only.
+
+_PLAN_PART_TYPES = """5. "types" (include it whenever the question names the KIND of thing it asks
+   for): the kind, in the singular, copied from the question, for the variable
+   it describes. "What martial arts has Omar practised?" -> {{"x": "martial
+   art"}}; "Which instrument does Nira play?" -> {{"x": "musical instrument"}}.
+   Omit it when no kind is named ("What did Ravi cook?", "Where has Tomas
+   travelled?"). The type does the narrowing, so keep the relation general
+   (practise(Omar, ?x), not practise_martial_art). Never drop another
+   requirement of the question: a person, a source ("from her aunt") or a
+   place stays in the plan, in the relation phrase or as another atom.
 """
 
-PLAN_HYPOTHESIS_EXTENSION = """
-Optional field "hypothesis", ONLY for a question that asks whether something is
-likely, would, might or could be true of someone (including "Would X prefer A
-or B?"): {"hypothesis": {"about": "<the person, copied from the question>",
-"concepts": ["3 to 6 short phrases"]}}. The concepts name the kinds of stated
-facts that would SUPPORT or CONTRADICT the hypothesis (tastes, hobbies, values,
-plans, experiences, identity), so the memory can be searched for them. They
-describe what to look for, never the answer. Example for "Would Paulo enjoy a
-jazz festival?": {"about": "Paulo", "concepts": ["music Paulo likes",
-"concerts or festivals Paulo attended", "Paulo's hobbies", "crowds and noise"]}.
-Omit "hypothesis" for every other question.
+_PLAN_PART_HYPOTHESIS = """6. "hypothesis" (only when the question asks whether something is likely,
+   would, might or could be true of someone, including "Would X prefer A or
+   B?"): {{"about": the person, "concepts": 3 to 6 short phrases naming stated
+   facts that would SUPPORT or CONTRADICT it}}. Still write valid atoms for the
+   facts the answer depends on. Omit "hypothesis" for every other question.
 """
+
+_EXAMPLES_V3 = (
+    '{{"answer_var":"x","atoms":[{{"relation":"play","subject":"Nira","object":"?x"}}],"aggregation":"none","expected_type":"other",',
+    '{{"answer_var":"x","atoms":[{{"relation":"attend","subject":"Leo","object":"?x"}}],"aggregation":"count","expected_type":"number",',
+)
+_EXAMPLES_TYPED = (
+    '{{"answer_var":"x","atoms":[{{"relation":"play","subject":"Nira","object":"?x"}}],"aggregation":"none","types":{{"x":"musical instrument"}},"expected_type":"other",',
+    '{{"answer_var":"x","atoms":[{{"relation":"attend","subject":"Leo","object":"?x"}}],"aggregation":"count","types":{{"x":"concert"}},"expected_type":"number",',
+)
+_EXTRA_TYPED_EXAMPLES = """
+Question: "What martial arts has Omar practised?"
+{{"answer_var":"x","atoms":[{{"relation":"practise","subject":"Omar","object":"?x"}}],"aggregation":"set","types":{{"x":"martial art"}},"expected_type":"other","period":{{"reference":"now","text":""}},"time_weight":"normal","importance_weight":"normal","fallback":"Omar martial arts"}}
+
+Question: "What gifts did Mei receive from her aunt?"
+{{"answer_var":"x","atoms":[{{"relation":"receive from aunt","subject":"Mei","object":"?x"}}],"aggregation":"set","types":{{"x":"gift"}},"expected_type":"other","period":{{"reference":"now","text":""}},"time_weight":"normal","importance_weight":"normal","fallback":"Mei gifts from aunt"}}
+"""
+_EXTRA_HYPOTHESIS_EXAMPLE = """
+Question: "Would Paulo enjoy a jazz festival?"
+{{"answer_var":"x","atoms":[{{"relation":"like","subject":"Paulo","object":"?x"}}],"aggregation":"set","expected_type":"other","period":{{"reference":"now","text":""}},"time_weight":"normal","importance_weight":"normal","hypothesis":{{"about":"Paulo","concepts":["music Paulo likes","concerts or festivals Paulo attended","Paulo's hobbies","crowds and noise"]}},"fallback":"Paulo music festivals"}}
+"""
+
+
+def plan_template(types: bool = False, hypothesis: bool = False) -> str:
+    """PLAN_TEMPLATE, or its design-v4 variant with the requested fields in the
+    task, the JSON shape and the examples."""
+    if not types and not hypothesis:
+        return PLAN_TEMPLATE
+    text = PLAN_TEMPLATE.replace("A plan has four parts.", "A plan has these parts.", 1)
+    parts = (_PLAN_PART_TYPES if types else "") + (_PLAN_PART_HYPOTHESIS if hypothesis else "")
+    anchor = "\nAnswer with JSON exactly in this shape:"
+    assert anchor in text
+    text = text.replace(anchor, parts + anchor, 1)
+    shape_old = '  "importance_weight": "none|normal|strong",\n'
+    assert shape_old in text
+    shape_new = shape_old
+    if types:
+        shape_new += '  "types": {{"x": "kind named by the question, or omit"}},\n'
+    if hypothesis:
+        shape_new += ('  "hypothesis": {{"about": "...", "concepts": ["..."]}} '
+                      '(only for likely/would questions),\n')
+    text = text.replace(shape_old, shape_new, 1)
+    if types:
+        for old, new in zip(_EXAMPLES_V3, _EXAMPLES_TYPED):
+            assert old in text, old
+            text = text.replace(old, new, 1)
+    extra = ((_EXTRA_TYPED_EXAMPLES if types else "")
+             + (_EXTRA_HYPOTHESIS_EXAMPLE if hypothesis else ""))
+    closing = "\nReturn one JSON object only, without explanations or markdown."
+    assert closing in text
+    text = text.replace(closing, extra + closing, 1)
+    return text
+
+
+# Kept for reference: the first v4 prompt appended these after the evidence.
+PLAN_TYPES_EXTENSION = ""
+PLAN_HYPOTHESIS_EXTENSION = ""
 
 EXCERPT_BLOCK_TITLE = "More dialogue turns found by the memory search"
 PREMISE_BLOCK_TITLE = ("Statements about {about} that may bear on the question "

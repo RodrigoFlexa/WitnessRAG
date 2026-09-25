@@ -244,13 +244,13 @@ def plan_question(llm: LLM, question: Question, memory: DatedMemory | None,
                   feedback: str = "", max_atoms: int = 4, temperature: float = 0.0,
                   question_time: date | None = None, cycle: int = 1,
                   dataset: str = "", method: str = "witnessrag",
-                  extensions: str = "") -> ProofPlan:
-    # ``extensions`` (design v4) is appended after the evidence block. Empty,
-    # the prompt is byte-identical to design v3, so cached plans stay valid.
+                  types: bool = False, hypothesis: bool = False) -> ProofPlan:
+    # Design v4 fields (types, hypothesis) switch to the v4 variant of the
+    # prompt. Both off, the prompt is byte-identical to design v3.
     result = llm.chat(
-        prompts.PLAN_TEMPLATE.format(question=question.question, max_atoms=max_atoms,
-                                     vocabulary=vocabulary, evidence=evidence + extensions,
-                                     feedback=feedback),
+        prompts.plan_template(types, hypothesis).format(
+            question=question.question, max_atoms=max_atoms, vocabulary=vocabulary,
+            evidence=evidence, feedback=feedback),
         system=prompts.PLAN_SYSTEM,
         params=GenParams(temperature=temperature, max_tokens=900, json_mode=True),
         stage="witness.plan" if cycle <= 1 else "witness.replan_v3",

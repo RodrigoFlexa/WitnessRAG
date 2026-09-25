@@ -175,3 +175,24 @@ Para testar os sete métodos na A100 de 80 GB com Qwen2.5-14B, seleção `--gpu 
 ## Limites científicos
 
 A implementação não demonstra novidade científica nem superioridade sobre GraphRAG/HippoRAG. Permanecem necessários: esquema e ontologia controlados, fatos tipados com tempo e escopo, consultas ouro verificadas, calibração de erros, um modelo efetivo de aquisição por valor da informação e experimentos em múltiplas sementes e corpora. A completude formal do executor não elimina erros de extração, de identidade ou de compilação.
+
+## LoCoMo com a API da OpenAI (gpt-4o-mini, local)
+
+Backend `openai` (`wrag/llm/openai_compat.py`): com `OPENAI_BASE_URL` vazio fala
+com api.openai.com, exige `OPENAI_API_KEY` e usa o mesmo perfil de tokens das
+rodadas Azure. Mesmo perfil WitnessRAG registrado, mesmo embedder (bge-m3) e
+mesmo tokenizador de chunks; só o LLM muda.
+
+```bash
+# .env na raiz: OPENAI_API_KEY=...   (nunca versionado)
+pip install -r requirements-pilot.txt          # inclui sentence-transformers
+python -m wrag.cli diag-openai --model gpt-4o-mini
+# Windows (PowerShell):
+powershell -ExecutionPolicy Bypass -File scripts\run-witness-openai-locomo.ps1
+# Linux/macOS/Git Bash:
+bash scripts/run-witness-openai-locomo.sh
+```
+
+Smoke test: `-Conversation 0 -Questions 5 -Output runs\smoke-openai` (PowerShell) ou
+`LOCOMO_CONVERSATION=0 QUESTIONS=5 bash scripts/run-witness-openai-locomo.sh runs/smoke-openai`.
+Rodada interrompida retoma sozinha (`--resume`) ao repetir o mesmo comando.

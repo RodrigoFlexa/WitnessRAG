@@ -124,16 +124,24 @@ def test_v3_prompt_is_unchanged_without_the_options_and_extended_with_them():
     retriever(llm)._retrieve_proof(QUESTION, 3, *POOL)
     v3_prompt = llm.calls[0][1]
     assert '"types"' not in v3_prompt and '"hypothesis"' not in v3_prompt
+    assert prompts.plan_template(False, False) is prompts.PLAN_TEMPLATE
     llm4 = FakeLLM([CHAIN])
     retriever(llm4, typed_variables=True, abductive_premises=True)._retrieve_proof(
         QUESTION, 3, *POOL)
     v4_prompt = llm4.calls[0][1]
-    assert 'Add the field "types"' in v4_prompt and 'Optional field "hypothesis"' in v4_prompt
-    assert v4_prompt.replace(prompts.PLAN_TYPES_EXTENSION + prompts.PLAN_HYPOTHESIS_EXTENSION,
-                             "") == v3_prompt
-    for text in (prompts.PLAN_TYPES_EXTENSION, prompts.PLAN_HYPOTHESIS_EXTENSION):
+    # The fields are in the task, in the JSON shape and in the worked examples.
+    assert '5. "types"' in v4_prompt and '6. "hypothesis"' in v4_prompt
+    assert '"types": {"x": "kind named by the question, or omit"}' in v4_prompt
+    assert '"subject":"Nira","object":"?x"}],"aggregation":"none","types":{"x":"musical instrument"}' in v4_prompt
+    assert 'Question: "Would Paulo enjoy a jazz festival?"' in v4_prompt
+    only_types = prompts.plan_template(True, False)
+    assert '"hypothesis"' not in only_types and 'martial art' in only_types
+    only_hyp = prompts.plan_template(False, True)
+    assert '"types"' not in only_hyp and "Paulo" in only_hyp
+    for variant in (only_types, only_hyp, prompts.plan_template(True, True)):
+        variant.format(question="q", max_atoms=4, vocabulary="", evidence="", feedback="")
         for word in ("single-hop", "multi-hop", "open-domain", "category"):
-            assert word not in text.lower()
+            assert word not in variant.lower()
 
 
 def test_a_type_is_ignored_when_the_option_is_off():

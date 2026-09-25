@@ -1830,8 +1830,6 @@ class WitnessRAGRetriever(Retriever):
 
         plan0 = default_plan(self.dated, levels, question_time)
         evidence = self._rank_memory(plan0, fused, list(pool_pids))[:cfg.candidate_pool_k]
-        extensions = ((prompts.PLAN_TYPES_EXTENSION if cfg.typed_variables else "")
-                      + (prompts.PLAN_HYPOTHESIS_EXTENSION if cfg.abductive_premises else ""))
         hypothesis: dict[str, Any] = {}
         feedback: list[dict[str, Any]] = []
         signatures: set[tuple] = set()
@@ -1846,7 +1844,8 @@ class WitnessRAGRetriever(Retriever):
                 evidence=self._evidence_facts(question, evidence, probe_text),
                 feedback=feedback_block(feedback), max_atoms=cfg.max_atoms,
                 temperature=cfg.plan_temperature, question_time=question_time, cycle=cycle,
-                dataset=self.ctx.dataset, method=self.name, extensions=extensions)
+                dataset=self.ctx.dataset, method=self.name,
+                types=cfg.typed_variables, hypothesis=cfg.abductive_premises)
             planning["chamadas_plano"] += 1
             record: dict[str, Any] = {"ciclo": cycle, "plano": plan.to_dict()}
             diagnostics["ciclos"].append(record)
