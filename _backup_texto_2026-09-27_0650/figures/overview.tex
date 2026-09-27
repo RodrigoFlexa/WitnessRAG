@@ -1,0 +1,29 @@
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/overview-standalone.pdf}
+  \caption{\textbf{WitnessRAG architecture.}
+  (1) \emph{Memory construction}: an extractor turns dialogue histories into propositions with triples,
+  event dates, and source links. (2) \emph{Memory retrieval}: hybrid retrieval supplies evidence to
+  a planner, which specifies conjunctive requirements, answer types, a
+  temporal reference, and scoring weights. The executor joins graph facts
+  under consistent bindings to produce witnesses. A conditional verifier
+  checks candidates against source utterances; gaps and rejections feed
+  bounded replanning. Within retrieval, accepted witnesses and candidate facts receive
+  selection bonuses, while relevance ranking supplies additional evidence.
+  The full profile delivers dated propositions and cached passage summaries
+  to the reader. Blue outlines denote LLM operations, green outlines denote
+  retrieval or deterministic processing, dotted links denote provenance,
+  and dashed arrows denote feedback. Witness acceptance does not guarantee
+  that all supporting facts survive the final context budget.}
+  \Description{The architecture has two stages: memory construction and memory retrieval. Memory construction
+  extracts propositions and indexes their time and importance metadata.
+  Source passages and the dated proposition graph are connected by
+  provenance. A question triggers evidence retrieval and an LLM planner.
+  The planner specifies conjunctive requirements, answer type, temporal
+  reference and weights. A graph executor finds consistent bindings without
+  LLM calls. A conditional verifier checks source utterances, returning
+  gaps or rejections to the planner. Accepted support and relevance-ranked
+  candidates guide context selection. The reader receives dated statements
+  and cached summaries and generates an answer.}
+  \label{fig:overview}
+\end{figure*}

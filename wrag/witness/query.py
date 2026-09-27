@@ -24,6 +24,9 @@ log = get_logger("wrag.witness.query")
 
 VAR_RE = re.compile(r"^\?[A-Za-z_]\w*$")
 
+# Alternative relation phrasings kept per atom (disjunctive atoms).
+MAX_ALTERNATIVES = 3
+
 _SET_NOUNS = frozenset(
     "activities items things books films movies songs instruments hobbies interests "
     "places countries cities events plans goals projects jobs pets languages games "
@@ -71,6 +74,15 @@ class Atom:
     # the matched fact a value of the query, so "when" questions have a proof
     # whose answer is a date. Empty for the legacy two-argument atoms.
     time: str = ""
+    # Alternative phrasings of the same relation (disjunctive atom): the atom
+    # holds for a fact when ANY of ``relations`` matches it. Formally a plan
+    # with alternatives is a union of conjunctive queries (UCQ) that shares
+    # one join. Empty for a plain atom, which keeps the v3/v4 behaviour.
+    alternatives: list[str] = field(default_factory=list)
+
+    @property
+    def relations(self) -> list[str]:
+        return [self.relation] + [r for r in self.alternatives if r != self.relation]
 
     @property
     def subject_is_var(self) -> bool:
@@ -112,6 +124,8 @@ class Atom:
         out = {"relation": self.relation, "subject": self.subject, "object": self.object}
         if self.time:
             out["time"] = self.time
+        if self.alternatives:
+            out["alternatives"] = list(self.alternatives)
         return out
 
 
@@ -409,7 +423,23 @@ def _parse_atoms(raw: Any, max_atoms: int) -> list[Atom]:
             item = {"subject": item[0], "relation": item[1], "object": item[2]}
         if not isinstance(item, dict):
             continue
-        relation = str(item.get("relation") or "").strip()
+        raw_relation = item.get("relation")
+        alternatives: list[str] = []
+        if isinstance(raw_relation, (list, tuple)):
+            # ["live in", "move to"]: the first phrase is the relation, the
+            # others are alternatives of the same disjunctive atom.
+            phrases = [str(r).strip() for r in raw_relation if str(r or "").strip()]
+            raw_relation = phrases[0] if phrases else ""
+            alternatives = phrases[1:]
+        extra = item.get("alternatives") or item.get("relation_alternatives") or []
+        if isinstance(extra, str):
+            extra = [extra]
+        if isinstance(extra, (list, tuple)):
+            alternatives += [str(r).strip() for r in extra if str(r or "").strip()]
+        relation = str(raw_relation or "").strip()
+        alternatives = [r for r in dict.fromkeys(alternatives)
+                        if normalize(r) != normalize(relation) and len(r) <= 60
+                        and "?" not in r and not re.search(r"\w\(", r)][:MAX_ALTERNATIVES]
         subject = str(item.get("subject") or "").strip()
         obj = str(item.get("object") or "").strip()
         if not relation or not subject or not obj:
@@ -418,7 +448,7 @@ def _parse_atoms(raw: Any, max_atoms: int) -> list[Atom]:
         # plan's period, never to an atom constant.
         time = str(item.get("time") or "").strip()
         atoms.append(Atom(relation=relation, subject=subject, object=obj,
-                          time=time if is_var(time) else ""))
+                          time=time if is_var(time) else "", alternatives=alternatives))
         if len(atoms) >= max_atoms:
             break
     return atoms

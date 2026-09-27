@@ -1,0 +1,582 @@
+[
+  {
+    "question": "Where is the company Ana works at located?",
+    "diagnostics": {
+      "controlador": "contract-portfolio-v1",
+      "rota": "portfolio_fatos",
+      "ciclos": [
+        {
+          "ciclo": 1,
+          "plano": {
+            "consulta": {
+              "answer_var": "x",
+              "atoms": [
+                {
+                  "relation": "works at",
+                  "subject": "Ana",
+                  "object": "?company"
+                },
+                {
+                  "relation": "located in",
+                  "subject": "?company",
+                  "object": "?x"
+                }
+              ],
+              "expected_type": "place",
+              "aggregation": "set",
+              "shape": "chain",
+              "source": "llm-plano-v3",
+              "fallback": "Where is the company Ana works at located?",
+              "validation_error": "",
+              "repairs": [],
+              "uses_annotations": false,
+              "types": {
+                "x": "place"
+              }
+            },
+            "cardinalidade": "all",
+            "periodo": {
+              "tipo": "now",
+              "texto": "now",
+              "intervalo": "2 October 2023"
+            },
+            "nivel_tempo": "none",
+            "nivel_importancia": "none",
+            "pesos": {
+              "similarity": 1.0,
+              "importance": 0.0,
+              "time": 0.0
+            },
+            "valido": true,
+            "filtrado": false,
+            "erro": "",
+            "reparos": [],
+            "ciclo": 1,
+            "composto": true,
+            "conectado": true,
+            "executavel": true
+          },
+          "estrategia": {
+            "covers": [
+              "q0",
+              "r1"
+            ],
+            "strategy": "chain",
+            "temporal_var": ""
+          },
+          "resultado": "prova_utilizavel",
+          "candidatos_por_atomo": [
+            1,
+            1
+          ],
+          "cortes": [],
+          "n_testemunhas": 1,
+          "verificacao": {
+            "supported": [
+              0
+            ],
+            "rejected": {},
+            "decisions": [
+              {
+                "id": "A1",
+                "covered": [
+                  "q0",
+                  "r1"
+                ],
+                "accepted": true,
+                "reason": ""
+              }
+            ]
+          }
+        }
+      ],
+      "motivo_parada": "prova_confirmada",
+      "contrato": {
+        "operation": "lookup",
+        "answer_type": "place",
+        "ambiguous": false,
+        "requirements": [
+          {
+            "id": "q0",
+            "quote": "Where is the company Ana works at located?",
+            "condition": "Answer the entire original question faithfully"
+          },
+          {
+            "id": "r1",
+            "quote": "Ana works at",
+            "condition": "Ana actually works at the company"
+          }
+        ],
+        "temporal_operands": []
+      },
+      "operacao": {
+        "operation": "lookup",
+        "contract": {
+          "operation": "lookup",
+          "answer_type": "place",
+          "ambiguous": false,
+          "requirements": [
+            {
+              "id": "q0",
+              "quote": "Where is the company Ana works at located?",
+              "condition": "Answer the entire original question faithfully"
+            },
+            {
+              "id": "r1",
+              "quote": "Ana works at",
+              "condition": "Ana actually works at the company"
+            }
+          ],
+          "temporal_operands": []
+        },
+        "covered_requirements": [
+          "q0",
+          "r1"
+        ],
+        "operator_status": "not_applicable",
+        "complete_enumeration": false,
+        "proof_status": "full"
+      },
+      "planejamento": {
+        "chamadas_plano": 1,
+        "chamadas_verificacao": 1,
+        "chamadas": 2,
+        "planos_distintos": 1,
+        "replanejamentos": 0,
+        "cache_atomos_hits": 0
+      },
+      "classe_prova": "full",
+      "testemunha_no_contexto": true,
+      "n_testemunhas": 1,
+      "n_testemunhas_no_contexto": 1,
+      "fatos_entregues": {
+        "prova": 2,
+        "plano": 0,
+        "relevancia": 4,
+        "pacotes_descartados": [],
+        "n": 6,
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "fontes": [
+          {
+            "indice": 0,
+            "fid": "f0",
+            "pid": "p0",
+            "turn_id": "D1:1"
+          },
+          {
+            "indice": 1,
+            "fid": "f1",
+            "pid": "p1",
+            "turn_id": "D2:1"
+          },
+          {
+            "indice": 2,
+            "fid": "f2",
+            "pid": "p2",
+            "turn_id": "D3:1"
+          },
+          {
+            "indice": 3,
+            "fid": "f3",
+            "pid": "p3",
+            "turn_id": "D4:1"
+          },
+          {
+            "indice": 4,
+            "fid": "f4",
+            "pid": "p4",
+            "turn_id": "D5:1"
+          },
+          {
+            "indice": 5,
+            "fid": "f5",
+            "pid": "p5",
+            "turn_id": "D6:1"
+          }
+        ]
+      },
+      "leitura_fatos": "bitemporal",
+      "trechos_extras": [
+        {
+          "title": "Facts from the memory",
+          "text": "Session of 8 May 2023:\n- Ana | works at | Atlas\nSession of 20 June 2023:\n- Atlas | located in | Recife\nSession of 27 June 2023:\n- Bruno | camped at | montanhas (event: the week before 27 June 2023; 19 June 2023 - 25 June 2023)\nSession of 6 August 2023:\n- Bruno | camped at | praia\nSession of 1 September 2023:\n- Carla | paints | paisagens\nSession of 2 October 2023:\n- Carla | reads | romance"
+        },
+        {
+          "title": "Retrieval scope and question requirements",
+          "text": "{\"operation\": \"lookup\", \"contract\": {\"operation\": \"lookup\", \"answer_type\": \"place\", \"ambiguous\": false, \"requirements\": [{\"id\": \"q0\", \"quote\": \"Where is the company Ana works at located?\", \"condition\": \"Answer the entire original question faithfully\"}, {\"id\": \"r1\", \"quote\": \"Ana works at\", \"condition\": \"Ana actually works at the company\"}], \"temporal_operands\": []}, \"covered_requirements\": [\"q0\", \"r1\"], \"operator_status\": \"not_applicable\", \"complete_enumeration\": false, \"proof_status\": \"full\"}"
+        }
+      ],
+      "contexto_alterado_pelo_witness": true,
+      "plano_final": {
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "works at",
+              "subject": "Ana",
+              "object": "?company"
+            },
+            {
+              "relation": "located in",
+              "subject": "?company",
+              "object": "?x"
+            }
+          ],
+          "expected_type": "place",
+          "aggregation": "set",
+          "shape": "chain",
+          "source": "llm-plano-v3",
+          "fallback": "Where is the company Ana works at located?",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false,
+          "types": {
+            "x": "place"
+          }
+        },
+        "cardinalidade": "all",
+        "periodo": {
+          "tipo": "now",
+          "texto": "now",
+          "intervalo": "2 October 2023"
+        },
+        "nivel_tempo": "none",
+        "nivel_importancia": "none",
+        "pesos": {
+          "similarity": 1.0,
+          "importance": 0.0,
+          "time": 0.0
+        },
+        "valido": true,
+        "filtrado": false,
+        "erro": "",
+        "reparos": [],
+        "ciclo": 1,
+        "composto": true,
+        "conectado": true,
+        "executavel": true
+      },
+      "consulta": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "works at",
+            "subject": "Ana",
+            "object": "?company"
+          },
+          {
+            "relation": "located in",
+            "subject": "?company",
+            "object": "?x"
+          }
+        ],
+        "expected_type": "place",
+        "aggregation": "set",
+        "shape": "chain",
+        "source": "llm-plano-v3",
+        "fallback": "Where is the company Ana works at located?",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false,
+        "types": {
+          "x": "place"
+        }
+      },
+      "forma": "chain"
+    }
+  },
+  {
+    "question": "Where has Bruno camped?",
+    "diagnostics": {
+      "controlador": "contract-portfolio-v1",
+      "rota": "portfolio_fatos",
+      "ciclos": [
+        {
+          "ciclo": 1,
+          "plano": {
+            "consulta": {
+              "answer_var": "x",
+              "atoms": [
+                {
+                  "relation": "camped at",
+                  "subject": "Bruno",
+                  "object": "?x"
+                }
+              ],
+              "expected_type": "place",
+              "aggregation": "set",
+              "shape": "single-hop",
+              "source": "llm-plano-v3",
+              "fallback": "Where has Bruno camped?",
+              "validation_error": "",
+              "repairs": [],
+              "uses_annotations": false,
+              "types": {
+                "x": "place"
+              }
+            },
+            "cardinalidade": "all",
+            "periodo": {
+              "tipo": "now",
+              "texto": "now",
+              "intervalo": "2 October 2023"
+            },
+            "nivel_tempo": "none",
+            "nivel_importancia": "none",
+            "pesos": {
+              "similarity": 1.0,
+              "importance": 0.0,
+              "time": 0.0
+            },
+            "valido": true,
+            "filtrado": false,
+            "erro": "",
+            "reparos": [],
+            "ciclo": 1,
+            "composto": true,
+            "conectado": false,
+            "executavel": true
+          },
+          "estrategia": {
+            "covers": [
+              "q0",
+              "r1"
+            ],
+            "strategy": "direct",
+            "temporal_var": ""
+          },
+          "resultado": "prova_utilizavel",
+          "candidatos_por_atomo": [
+            2
+          ],
+          "cortes": [],
+          "n_testemunhas": 2,
+          "verificacao": {
+            "supported": [
+              0,
+              1
+            ],
+            "rejected": {},
+            "decisions": [
+              {
+                "id": "A1",
+                "covered": [
+                  "q0",
+                  "r1"
+                ],
+                "accepted": true,
+                "reason": ""
+              },
+              {
+                "id": "A2",
+                "covered": [
+                  "q0",
+                  "r1"
+                ],
+                "accepted": true,
+                "reason": ""
+              }
+            ]
+          }
+        }
+      ],
+      "motivo_parada": "budget_exhausted",
+      "contrato": {
+        "operation": "list",
+        "answer_type": "place",
+        "ambiguous": false,
+        "requirements": [
+          {
+            "id": "q0",
+            "quote": "Where has Bruno camped?",
+            "condition": "Answer the entire original question faithfully"
+          },
+          {
+            "id": "r1",
+            "quote": "Bruno camped",
+            "condition": "Bruno actually camped at each location"
+          }
+        ],
+        "temporal_operands": []
+      },
+      "operacao": {
+        "operation": "list",
+        "contract": {
+          "operation": "list",
+          "answer_type": "place",
+          "ambiguous": false,
+          "requirements": [
+            {
+              "id": "q0",
+              "quote": "Where has Bruno camped?",
+              "condition": "Answer the entire original question faithfully"
+            },
+            {
+              "id": "r1",
+              "quote": "Bruno camped",
+              "condition": "Bruno actually camped at each location"
+            }
+          ],
+          "temporal_operands": []
+        },
+        "covered_requirements": [
+          "q0",
+          "r1"
+        ],
+        "operator_status": "not_applicable",
+        "complete_enumeration": false,
+        "proof_status": "full"
+      },
+      "planejamento": {
+        "chamadas_plano": 1,
+        "chamadas_verificacao": 1,
+        "chamadas": 2,
+        "planos_distintos": 1,
+        "replanejamentos": 0,
+        "cache_atomos_hits": 0
+      },
+      "classe_prova": "full",
+      "testemunha_no_contexto": true,
+      "n_testemunhas": 2,
+      "n_testemunhas_no_contexto": 2,
+      "fatos_entregues": {
+        "prova": 2,
+        "plano": 0,
+        "relevancia": 4,
+        "pacotes_descartados": [],
+        "n": 6,
+        "indices": [
+          2,
+          3,
+          0,
+          4,
+          5,
+          1
+        ],
+        "fontes": [
+          {
+            "indice": 2,
+            "fid": "f2",
+            "pid": "p2",
+            "turn_id": "D3:1"
+          },
+          {
+            "indice": 3,
+            "fid": "f3",
+            "pid": "p3",
+            "turn_id": "D4:1"
+          },
+          {
+            "indice": 0,
+            "fid": "f0",
+            "pid": "p0",
+            "turn_id": "D1:1"
+          },
+          {
+            "indice": 4,
+            "fid": "f4",
+            "pid": "p4",
+            "turn_id": "D5:1"
+          },
+          {
+            "indice": 5,
+            "fid": "f5",
+            "pid": "p5",
+            "turn_id": "D6:1"
+          },
+          {
+            "indice": 1,
+            "fid": "f1",
+            "pid": "p1",
+            "turn_id": "D2:1"
+          }
+        ]
+      },
+      "leitura_fatos": "bitemporal",
+      "trechos_extras": [
+        {
+          "title": "Facts from the memory",
+          "text": "Session of 8 May 2023:\n- Ana | works at | Atlas\nSession of 20 June 2023:\n- Atlas | located in | Recife\nSession of 27 June 2023:\n- Bruno | camped at | montanhas (event: the week before 27 June 2023; 19 June 2023 - 25 June 2023)\nSession of 6 August 2023:\n- Bruno | camped at | praia\nSession of 1 September 2023:\n- Carla | paints | paisagens\nSession of 2 October 2023:\n- Carla | reads | romance"
+        },
+        {
+          "title": "Retrieval scope and question requirements",
+          "text": "{\"operation\": \"list\", \"contract\": {\"operation\": \"list\", \"answer_type\": \"place\", \"ambiguous\": false, \"requirements\": [{\"id\": \"q0\", \"quote\": \"Where has Bruno camped?\", \"condition\": \"Answer the entire original question faithfully\"}, {\"id\": \"r1\", \"quote\": \"Bruno camped\", \"condition\": \"Bruno actually camped at each location\"}], \"temporal_operands\": []}, \"covered_requirements\": [\"q0\", \"r1\"], \"operator_status\": \"not_applicable\", \"complete_enumeration\": false, \"proof_status\": \"full\"}"
+        }
+      ],
+      "contexto_alterado_pelo_witness": true,
+      "plano_final": {
+        "consulta": {
+          "answer_var": "x",
+          "atoms": [
+            {
+              "relation": "camped at",
+              "subject": "Bruno",
+              "object": "?x"
+            }
+          ],
+          "expected_type": "place",
+          "aggregation": "set",
+          "shape": "single-hop",
+          "source": "llm-plano-v3",
+          "fallback": "Where has Bruno camped?",
+          "validation_error": "",
+          "repairs": [],
+          "uses_annotations": false,
+          "types": {
+            "x": "place"
+          }
+        },
+        "cardinalidade": "all",
+        "periodo": {
+          "tipo": "now",
+          "texto": "now",
+          "intervalo": "2 October 2023"
+        },
+        "nivel_tempo": "none",
+        "nivel_importancia": "none",
+        "pesos": {
+          "similarity": 1.0,
+          "importance": 0.0,
+          "time": 0.0
+        },
+        "valido": true,
+        "filtrado": false,
+        "erro": "",
+        "reparos": [],
+        "ciclo": 1,
+        "composto": true,
+        "conectado": false,
+        "executavel": true
+      },
+      "consulta": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "camped at",
+            "subject": "Bruno",
+            "object": "?x"
+          }
+        ],
+        "expected_type": "place",
+        "aggregation": "set",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Where has Bruno camped?",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false,
+        "types": {
+          "x": "place"
+        }
+      },
+      "forma": "single-hop"
+    }
+  }
+]

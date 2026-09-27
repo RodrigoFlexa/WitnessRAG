@@ -1,0 +1,83 @@
+\section{Introduction}
+\label{sec:intro}
+
+Agents built on \acp{LLM} rely on long-term memory to retain information
+across interactions, in settings ranging from personal assistance to
+simulated societies and multi-episode
+tasks~\cite{park2023generative,packer2023memgpt,sumers2024coala,zhang2025survey}.
+Interaction histories quickly exceed the context window, and even within
+it, a model's use of information degrades with context length and
+position~\cite{liu2024lost,hsieh2024ruler}. External memory removes the
+capacity constraint but introduces a retrieval problem: given a question,
+which stored evidence should the agent read?
+
+The problem is hardest when the answer depends on facts recorded in
+different sessions, connected through intermediate entities, or tied to
+a particular period. Long-term conversational benchmarks are built
+around precisely these forms of cross-session and temporal
+reasoning~\cite{maharana2024locomo,wu2025longmemeval}. Consider a question
+such as \emph{``Where did Melanie go camping after she adopted her dog?''}
+Answering it requires two facts, possibly mentioned weeks apart, and the
+temporal relation between them. The fact about the adoption may bear
+little lexical resemblance to the question, whereas many camping-related
+memories may resemble it closely without being the right ones. Relevance,
+in this setting, is a property of \emph{sets} of memories rather than of
+individual records.
+
+Existing approaches address this challenge in two ways. Ranking methods
+score memory records, or propagate relevance through a structured store,
+before selecting a bounded
+context~\cite{park2023generative,zhong2024memorybank,chhikara2025mem0,gutierrez2024hipporag}.
+Their selection criteria, however, do not test whether the retrieved
+records jointly satisfy the relations the answer requires. Iterative
+methods let intermediate reasoning guide further
+retrieval~\cite{trivedi2023ircot,asai2024selfrag,jeong2024adaptiverag,yan2025gam}.
+They can revise the search as evidence accumulates, but a model's judgment
+that the evidence is sufficient does not identify which facts support
+the answer or how they connect.
+
+We argue that these relational requirements should be stated and executed
+explicitly. Conjunctive queries offer a natural formalism: a query
+specifies relations whose arguments must admit a consistent
+assignment~\cite{chandra1977conjunctive}, and a \emph{witness} is a set of
+facts that realizes one such assignment, thereby explaining the answer
+through its provenance~\cite{buneman2001why,green2007provenance}. Applied
+to memory, this perspective separates two tasks of different nature. The
+linguistic task of deciding \emph{what} to find is left to a language
+model; the combinatorial task of finding facts that jointly meet that
+specification is delegated to an executor.
+
+Building on this idea, we introduce \sys, a retrieval framework for
+long-term agent memory. \sys organizes the interaction history into a
+graph of dated propositions that remain linked to their source dialogue.
+Given a question, a language model writes a conjunctive plan grounded in
+retrieved evidence, and an executor searches the graph for witnesses of
+that plan. When search fails or a candidate is rejected, the unsatisfied
+requirement tells the planner what to revise. Accepted witnesses finally
+guide the selection of the evidence passed to the reader. Because each
+answer is tied to an explicit derivation over stored facts, retrieval
+becomes inspectable: one can see not only what was retrieved, but why it
+supports the answer.
+
+This paper makes the following contributions:
+\begin{itemize}
+  \item We formulate long-term memory retrieval as \emph{witness search}
+    over conjunctive plans, separating the interpretation of a question
+    from the execution of its relational requirements.
+  \item We present \sys, a retrieval controller that combines
+    evidence-grounded planning, reference-relative temporal ranking,
+    consistent-binding search, and verification with gap-driven
+    replanning.
+  \item We show how witnesses can guide the construction of a compact,
+    source-linked reader context composed of dated propositions and
+    passage summaries.
+\end{itemize}
+% Add empirical contributions only after validating the completed runs,
+% comparison protocol, uncertainty estimates, and reported configuration.
+
+The remainder of the paper is organized as follows.
+\Cref{sec:background} reviews the formal background and related work.
+\Cref{sec:problem} formulates the task and \cref{sec:method} presents
+\sys. \Cref{sec:setup,sec:results} describe the evaluation, and
+\cref{sec:discussion,sec:conclusion} discuss limitations and conclude
+the paper.

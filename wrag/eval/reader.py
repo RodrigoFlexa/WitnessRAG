@@ -160,7 +160,7 @@ def read(
     passages_override: Sequence[tuple[str, str]] | None = None,
     count_mode: bool = False,
     extra_passages: Sequence[dict[str, str]] | None = None,
-    facts_mode: bool = False,
+    facts_mode: bool | str = False,
 ) -> ReadResult:
     cfg = cfg or C.QAConfig()
     passages = []
@@ -194,7 +194,8 @@ def read(
         question.question, re.I))
     use_proof = bool(cfg.proof_reader and proof_context and
                      proof_context.get("hipoteses"))
-    template = (prompts.qa_facts_template(cfg.yesno_rationale) if facts_mode else
+    template = (prompts.qa_facts_template(cfg.yesno_rationale,
+                                          bitemporal=facts_mode == "bitemporal") if facts_mode else
                 prompts.qa_evidence_template(cfg.yesno_rationale)
                 if cfg.evidence_reader and question.dataset == "locomo" else
                 prompts.QA_INFERENCE_TEMPLATE if question.dataset == "locomo" and question.qtype == "open-domain" else

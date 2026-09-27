@@ -1,0 +1,742 @@
+{
+  "api_calls": 0,
+  "source_sha256": {
+    "hybrid-chunks.jsonl": "2b7c4b0276a3f65c4073a9bc34ec0f38ca6b3c96e2fea0f3a4af2242258f443c",
+    "robust-no-plan.jsonl": "13f6b0e7d3f065862a39eca5e3fae1d2d9ca54854b64691403926e6cf6b91aff",
+    "witnessrag-robust.jsonl": "dc24a736acd886798493a040128097ebe74821b2ae7f177f9c4ede1b507ea401",
+    "witnessrag.jsonl": "040d8ac7e497dabe2f38603d8ee576de3652c90df2322f472101f80711cb2acb",
+    "wr-fill.jsonl": "dd30e85d414e3298d57166cbe4fa46bbb4e054eb4c39cff5eed1e3f5919ef547",
+    "wr-no-rerank.jsonl": "05d9c9af4de491f758f10e273de956072259c353cbfb94c1ef6646308b51b690",
+    "wr-plan.jsonl": "c79b12d6b3c7699f751953abdd043cc84766f9f2646af44673b4792d0752e315",
+    "wr-rerank.jsonl": "6a2b37eaa14f55bd68f9ec19d5befb8623057908012f0b5fc762cfc6ff35c03b",
+    "wr-time.jsonl": "599beba327bac7b0081344a347c185c142b1945e20829473dce6e874a2257d4a"
+  },
+  "metric_mismatches": {
+    "hybrid-chunks": {
+      "f1_locomo": 0,
+      "bleu1_locomo": 0
+    },
+    "robust-no-plan": {
+      "f1_locomo": 0,
+      "bleu1_locomo": 0
+    },
+    "witnessrag-robust": {
+      "f1_locomo": 0,
+      "bleu1_locomo": 0
+    },
+    "witnessrag": {
+      "f1_locomo": 0,
+      "bleu1_locomo": 0
+    },
+    "wr-fill": {
+      "f1_locomo": 0,
+      "bleu1_locomo": 0
+    },
+    "wr-no-rerank": {
+      "f1_locomo": 0,
+      "bleu1_locomo": 0
+    },
+    "wr-plan": {
+      "f1_locomo": 0,
+      "bleu1_locomo": 0
+    },
+    "wr-rerank": {
+      "f1_locomo": 0,
+      "bleu1_locomo": 0
+    },
+    "wr-time": {
+      "f1_locomo": 0,
+      "bleu1_locomo": 0
+    }
+  },
+  "other_readings_final": 7,
+  "other_readings_accepted": 3,
+  "other_readings_verified": 2,
+  "other_readings": [
+    {
+      "qid": "locomo:conv-44:qa100",
+      "question": "What was the reason Audrey couldn't walk her dogs for a period of time?",
+      "category": "single-hop",
+      "stop": "prova_recusada",
+      "answer": "she couldn't walk her dogs due to a knee injury",
+      "gold": [
+        "Knee injury"
+      ],
+      "f1": 0.3636363636363636,
+      "delta_vs_no_plan": -0.6363636363636365,
+      "query": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "explain reason for not checking",
+            "subject": "Audrey",
+            "object": "?x",
+            "alternatives": [
+              "state reason for not walking",
+              "describe reason for not taking out"
+            ]
+          }
+        ],
+        "expected_type": "other",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Audrey reason not walk dogs",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false
+      },
+      "accepted": false
+    },
+    {
+      "qid": "locomo:conv-44:qa106",
+      "question": "What did Audrey make to thank her neighbors?",
+      "category": "single-hop",
+      "stop": "respostas_demais",
+      "answer": "goodies",
+      "gold": [
+        "Goodies"
+      ],
+      "f1": 1.0,
+      "delta_vs_no_plan": 0.0,
+      "query": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "make",
+            "subject": "Audrey",
+            "object": "?x",
+            "alternatives": [
+              "create",
+              "prepare"
+            ]
+          }
+        ],
+        "expected_type": "other",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Audrey thank neighbors",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false,
+        "types": {
+          "x": "goodie"
+        }
+      },
+      "accepted": false
+    },
+    {
+      "qid": "locomo:conv-44:qa115",
+      "question": "What did Andrew and Audrey plan to do on the Saturday after October 28, 2023?",
+      "category": "single-hop",
+      "stop": "prova_confirmada",
+      "answer": "go hike",
+      "gold": [
+        "Go hiking"
+      ],
+      "f1": 1.0,
+      "delta_vs_no_plan": 0.19999999999999996,
+      "query": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "plan to",
+            "subject": "Andrew",
+            "object": "?x",
+            "alternatives": [
+              "plan for",
+              "intend to"
+            ]
+          },
+          {
+            "relation": "plan to",
+            "subject": "Audrey",
+            "object": "?x",
+            "alternatives": [
+              "plan for",
+              "intend to"
+            ]
+          }
+        ],
+        "expected_type": "other",
+        "aggregation": "set",
+        "shape": "intersection",
+        "source": "llm-plano-v3",
+        "fallback": "Andrew Audrey plans November 2023",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false
+      },
+      "accepted": true
+    },
+    {
+      "qid": "locomo:conv-44:qa43",
+      "question": "Which US state do Audrey and Andrew potentially live in?",
+      "category": "open-domain",
+      "stop": "prova_ja_no_contexto",
+      "answer": "insufficient information",
+      "gold": [
+        "Minnesota"
+      ],
+      "f1": 0.0,
+      "delta_vs_no_plan": 0.0,
+      "query": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "live in",
+            "subject": "Andrew and his girlfriend",
+            "object": "?x",
+            "alternatives": [
+              "reside in",
+              "move to"
+            ]
+          }
+        ],
+        "expected_type": "other",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Audrey Andrew US state",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false
+      },
+      "accepted": true
+    },
+    {
+      "qid": "locomo:conv-44:qa63",
+      "question": "What kind of pastries did Andrew and his girlfriend have at the cafe?",
+      "category": "single-hop",
+      "stop": "prova_confirmada",
+      "answer": "croissants, muffins, tarts",
+      "gold": [
+        "croissants, muffins, and tarts"
+      ],
+      "f1": 1.0,
+      "delta_vs_no_plan": 0.0,
+      "query": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "enjoy",
+            "subject": "Andrew",
+            "object": "?x",
+            "alternatives": [
+              "have",
+              "try"
+            ]
+          }
+        ],
+        "expected_type": "other",
+        "aggregation": "set",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Andrew girlfriend pastries cafe",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false,
+        "types": {
+          "x": "pastry"
+        }
+      },
+      "accepted": true
+    },
+    {
+      "qid": "locomo:conv-44:qa66",
+      "question": "What type of dog was Andrew looking to adopt based on his living space?",
+      "category": "single-hop",
+      "stop": "respostas_demais",
+      "answer": "a smaller dog",
+      "gold": [
+        "smaller dog"
+      ],
+      "f1": 1.0,
+      "delta_vs_no_plan": 0.0,
+      "query": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "wish to get",
+            "subject": "Andrew",
+            "object": "?x",
+            "alternatives": [
+              "want",
+              "hope to adopt"
+            ]
+          }
+        ],
+        "expected_type": "other",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Andrew type of dog adoption",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false,
+        "types": {
+          "x": "dog"
+        }
+      },
+      "accepted": false
+    },
+    {
+      "qid": "locomo:conv-44:qa80",
+      "question": "What dish is one of Audrey's favorite dishes that includes garlic and is shared with Andrew on 3 July, 2023?",
+      "category": "single-hop",
+      "stop": "respostas_demais",
+      "answer": "Roasted Chicken",
+      "gold": [
+        "Roasted Chicken"
+      ],
+      "f1": 1.0,
+      "delta_vs_no_plan": 0.0,
+      "query": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "share",
+            "subject": "Audrey",
+            "object": "?x",
+            "alternatives": [
+              "offer to share",
+              "send"
+            ]
+          },
+          {
+            "relation": "identify",
+            "subject": "Audrey",
+            "object": "?x",
+            "alternatives": [
+              "name"
+            ]
+          }
+        ],
+        "expected_type": "other",
+        "aggregation": "none",
+        "shape": "intersection",
+        "source": "llm-plano-v3",
+        "fallback": "Audrey favorite dish garlic shared Andrew",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false,
+        "types": {
+          "x": "dish"
+        }
+      },
+      "accepted": false
+    }
+  ],
+  "unchecked_proofs": [
+    {
+      "qid": "locomo:conv-44:qa1",
+      "question": "When did Andrew start his new job as a financial analyst?",
+      "category": "temporal",
+      "stop": "prova_ja_no_contexto",
+      "answer": "20 March 2023 - 26 March 2023",
+      "gold": [
+        "The week before March 27, 2023"
+      ],
+      "f1": 0.3636363636363636,
+      "delta_vs_no_plan": 0.0,
+      "query": {
+        "answer_var": "t",
+        "atoms": [
+          {
+            "relation": "start",
+            "subject": "Andrew",
+            "object": "a new job as a Financial Analyst",
+            "time": "?t",
+            "alternatives": [
+              "begin",
+              "commence"
+            ]
+          }
+        ],
+        "expected_type": "date",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Andrew new job start date",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false
+      },
+      "accepted": true
+    },
+    {
+      "qid": "locomo:conv-44:qa11",
+      "question": "When did Andrew go rock climbing?",
+      "category": "temporal",
+      "stop": "prova_ja_no_contexto",
+      "answer": "11 June 2023",
+      "gold": [
+        "June 11, 2023"
+      ],
+      "f1": 1.0,
+      "delta_vs_no_plan": 0.0,
+      "query": {
+        "answer_var": "t",
+        "atoms": [
+          {
+            "relation": "take",
+            "subject": "Andrew",
+            "object": "rock climbing",
+            "time": "?t",
+            "alternatives": [
+              "go",
+              "participate in"
+            ]
+          }
+        ],
+        "expected_type": "date",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Andrew rock climbing date",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false
+      },
+      "accepted": true
+    },
+    {
+      "qid": "locomo:conv-44:qa30",
+      "question": "When is Andrew planning to go to the beach with his girlfriend?",
+      "category": "temporal",
+      "stop": "prova_ja_no_contexto",
+      "answer": "November 2023",
+      "gold": [
+        "November 2023"
+      ],
+      "f1": 1.0,
+      "delta_vs_no_plan": 0.0,
+      "query": {
+        "answer_var": "t",
+        "atoms": [
+          {
+            "relation": "plan to go",
+            "subject": "Andrew",
+            "object": "the beach",
+            "time": "?t",
+            "alternatives": [
+              "intend to go",
+              "schedule to go"
+            ]
+          }
+        ],
+        "expected_type": "date",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Andrew beach plan date",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false
+      },
+      "accepted": true
+    },
+    {
+      "qid": "locomo:conv-44:qa32",
+      "question": "What kind of tattoo does Audrey have on her arm?",
+      "category": "multi-hop",
+      "stop": "prova_ja_no_contexto",
+      "answer": "tattoo of her four dogs",
+      "gold": [
+        "Tattoos of her four dogs."
+      ],
+      "f1": 1.0,
+      "delta_vs_no_plan": 0.11111111111111105,
+      "query": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "show",
+            "subject": "Audrey's tattoo",
+            "object": "?x",
+            "alternatives": [
+              "display",
+              "have"
+            ]
+          }
+        ],
+        "expected_type": "other",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Audrey tattoo arm",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false,
+        "types": {
+          "x": "tattoo"
+        }
+      },
+      "accepted": true
+    },
+    {
+      "qid": "locomo:conv-44:qa37",
+      "question": "When did Audrey get into an accident in the park?",
+      "category": "temporal",
+      "stop": "prova_ja_no_contexto",
+      "answer": "the week before 24 October 2023",
+      "gold": [
+        "between October 19 and 24, 2023"
+      ],
+      "f1": 0.6,
+      "delta_vs_no_plan": 0.0,
+      "query": {
+        "answer_var": "t",
+        "atoms": [
+          {
+            "relation": "have accident while",
+            "subject": "Audrey",
+            "object": "playing with her pups at the park",
+            "time": "?t",
+            "alternatives": [
+              "experience accident while",
+              "get into accident while"
+            ]
+          }
+        ],
+        "expected_type": "date",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Audrey accident park",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false
+      },
+      "accepted": true
+    },
+    {
+      "qid": "locomo:conv-44:qa43",
+      "question": "Which US state do Audrey and Andrew potentially live in?",
+      "category": "open-domain",
+      "stop": "prova_ja_no_contexto",
+      "answer": "insufficient information",
+      "gold": [
+        "Minnesota"
+      ],
+      "f1": 0.0,
+      "delta_vs_no_plan": 0.0,
+      "query": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "live in",
+            "subject": "Andrew and his girlfriend",
+            "object": "?x",
+            "alternatives": [
+              "reside in",
+              "move to"
+            ]
+          }
+        ],
+        "expected_type": "other",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Audrey Andrew US state",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false
+      },
+      "accepted": true
+    },
+    {
+      "qid": "locomo:conv-44:qa6",
+      "question": "When did Audrey adopt Pixie?",
+      "category": "temporal",
+      "stop": "prova_ja_no_contexto",
+      "answer": "the weekend before 2 April 2023",
+      "gold": [
+        "around April 2, 2023"
+      ],
+      "f1": 0.6666666666666665,
+      "delta_vs_no_plan": 0.0,
+      "query": {
+        "answer_var": "t",
+        "atoms": [
+          {
+            "relation": "adopt",
+            "subject": "Audrey",
+            "object": "a puppy called Pixie",
+            "time": "?t",
+            "alternatives": [
+              "take in",
+              "acquire"
+            ]
+          }
+        ],
+        "expected_type": "date",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Audrey adopt Pixie date",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false
+      },
+      "accepted": true
+    },
+    {
+      "qid": "locomo:conv-44:qa82",
+      "question": "What is the name of Audrey's childhood dog?",
+      "category": "single-hop",
+      "stop": "prova_ja_no_contexto",
+      "answer": "Max",
+      "gold": [
+        "Max"
+      ],
+      "f1": 1.0,
+      "delta_vs_no_plan": 0.0,
+      "query": {
+        "answer_var": "x",
+        "atoms": [
+          {
+            "relation": "name",
+            "subject": "Audrey's fur babies to her childhood pup",
+            "object": "?x",
+            "alternatives": [
+              "call",
+              "refer to as"
+            ]
+          }
+        ],
+        "expected_type": "other",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Audrey childhood dog name",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false
+      },
+      "accepted": true
+    },
+    {
+      "qid": "locomo:conv-44:qa87",
+      "question": "How long did the trail hike that Audrey went on with her pups take?",
+      "category": "single-hop",
+      "stop": "prova_ja_no_contexto",
+      "answer": "two hours",
+      "gold": [
+        "Two hours"
+      ],
+      "f1": 1.0,
+      "delta_vs_no_plan": 0.0,
+      "query": {
+        "answer_var": "t",
+        "atoms": [
+          {
+            "relation": "state duration of",
+            "subject": "Audrey",
+            "object": "the hike",
+            "time": "?t",
+            "alternatives": [
+              "describe duration of",
+              "mention length of"
+            ]
+          }
+        ],
+        "expected_type": "date",
+        "aggregation": "none",
+        "shape": "single-hop",
+        "source": "llm-plano-v3",
+        "fallback": "Audrey trail hike duration",
+        "validation_error": "",
+        "repairs": [],
+        "uses_annotations": false
+      },
+      "accepted": true
+    }
+  ],
+  "plan_generation": {
+    "calls": 195,
+    "primary_operators": {
+      "none": 113,
+      "set": 68,
+      "count": 8,
+      "compare": 6
+    },
+    "alternative_operators": {
+      "none": 70,
+      "set": 56,
+      "count": 2
+    },
+    "alternative_argument_structure": {
+      "same_argument_structure": 91,
+      "different_argument_structure": 37
+    },
+    "note": "Literal argument/time-slot structure only; equal structure does not establish semantic redundancy."
+  },
+  "shape_by_category": {
+    "single-hop": {
+      "single-hop": 46,
+      "disconnected": 7,
+      "intersection": 5,
+      "invalid": 4
+    },
+    "multi-hop": {
+      "single-hop": 21,
+      "disconnected": 3,
+      "intersection": 5,
+      "invalid": 1
+    },
+    "temporal": {
+      "single-hop": 21,
+      "invalid": 3
+    },
+    "open-domain": {
+      "single-hop": 4,
+      "disconnected": 1,
+      "intersection": 2
+    }
+  },
+  "exploratory_subsets": {
+    "single-hop": {
+      "n": 62,
+      "delta_f1": -1.1375631536921864,
+      "ic95": [
+        -5.76509511993383,
+        2.408424908424908
+      ]
+    },
+    "multi-hop": {
+      "n": 30,
+      "delta_f1": 4.297138047138048,
+      "ic95": [
+        -1.8409090909090906,
+        12.703703703703702
+      ]
+    },
+    "temporal": {
+      "n": 24,
+      "delta_f1": 4.166666666666666,
+      "ic95": [
+        0.0,
+        11.45833333333333
+      ]
+    },
+    "open-domain": {
+      "n": 7,
+      "delta_f1": 0.6211180124223602,
+      "ic95": [
+        0.0,
+        1.8633540372670807
+      ]
+    },
+    "connected_plan_exploratory": {
+      "n": 12,
+      "delta_f1": -7.013888888888889,
+      "ic95": [
+        -25.347222222222225,
+        4.652777777777778
+      ]
+    }
+  },
+  "note": "Saved predictions precede review fixes. Subsets selected by a model-produced plan are exploratory, not causal effects."
+}

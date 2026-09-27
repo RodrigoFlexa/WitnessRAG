@@ -1,0 +1,196 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Double-blind submission (authors hidden). For the camera-ready
+%%% version, switch to the second line.
+\documentclass[sigconf,anonymous]{aamas}
+%\documentclass[sigconf]{aamas}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Packages (acmart already loads amsmath, graphicx, booktabs, hyperref,
+%%% xcolor and natbib)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{balance}        % balance the columns of the last page
+\usepackage{xspace}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage[capitalise,noabbrev]{cleveref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc}
+\usepackage[printonlyused,withpage]{acronym}
+\usetikzlibrary{backgrounds}   % o template já carrega arrows.meta, positioning, fit, calc
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+% Permit modest extra interword flexibility before accepting an overfull line.
+\setlength{\emergencystretch}{1em}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% AAMAS-2027 copyright block (do not change)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\makeatletter
+\gdef\@copyrightpermission{
+  \begin{minipage}{0.2\columnwidth}
+   \href{https://creativecommons.org/licenses/by/4.0/}{\includegraphics[width=0.90\textwidth]{by}}
+  \end{minipage}\hfill
+  \begin{minipage}{0.8\columnwidth}
+   \href{https://creativecommons.org/licenses/by/4.0/}{This work is licensed under a Creative Commons Attribution International 4.0 License.}
+  \end{minipage}
+  \vspace{5pt}
+}
+\makeatother
+
+\setcopyright{ifaamas}
+\acmConference[AAMAS 2027]{Proc.\@ of the 26th International Conference
+on Autonomous Agents and Multiagent Systems (AAMAS 2027)}{3--7 May 2027}{Hanoi, Vietnam}{M.~Baldoni, F.~Fang, W.~Yeoh, N.~Yorke-Smith (eds.)}
+\copyrightyear{2027}
+\acmYear{2027}
+\acmDOI{}
+\acmISBN{}
+
+\acmSubmissionID{<<OpenReview submission id>>}
+\submissionType{Research Paper Track}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Macros
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Method name in one place, so a rename is a one-line change.
+\newcommand{\sys}{WitnessRAG\xspace}
+
+%% Pipeline operations (small caps in the text).
+\newcommand{\op}[1]{\textsc{#1}\xspace}
+\newcommand{\register}{\op{Register}}
+\newcommand{\search}{\op{Search}}
+\newcommand{\plan}{\op{Plan}}
+\newcommand{\prove}{\op{Prove}}
+\newcommand{\verify}{\op{Verify}}
+\newcommand{\respond}{\op{Respond}}
+
+%% Relations and variables in examples: \rel{camped\_at}(Melanie, \var{where}).
+\newcommand{\rel}[1]{\textsf{#1}}
+\newcommand{\var}[1]{\textsf{?#1}}
+
+%% Notation shared by the method and the problem formulation.
+\newcommand{\mem}{\mathcal{M}}          % memory
+\newcommand{\facts}{\mathcal{F}}        % fact base
+\newcommand{\passages}{\mathcal{D}}     % passages (chunks)
+\newcommand{\witness}{W}                % a witness
+\newcommand{\ctx}{C}                    % reader context
+\newcommand{\kread}{k}                  % reader budget (passages)
+\newcommand{\kwit}{k_W}                 % passages a witness may replace
+\DeclareMathOperator{\score}{score}
+\DeclareMathOperator{\simil}{sim}
+\DeclareMathOperator{\imp}{imp}
+\DeclareMathOperator{\prox}{prox}
+
+%% Writing aids. Remove every \todo before submission:
+%% grep -n "\\todo" sections/*.tex
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\BibTeX}{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em\TeX}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Acronyms: \ac{LLM} expands on first use, \acp{LLM} is the plural.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\acrodef{LLM}{large language model}
+\acrodef{RAG}{retrieval-augmented generation}
+\acrodef{KG}{knowledge graph}
+\acrodef{QA}{question answering}
+\acrodef{PPR}{Personalized PageRank}
+\acrodef{RRF}{reciprocal rank fusion}
+\acrodef{AOT}{ahead-of-time}
+\acrodef{JIT}{just-in-time}
+\acrodef{NER}{named entity recognition}
+\acrodef{OpenIE}{open information extraction}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Title and authors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \title[Show Me the Witness: Proof-Grounded Retrieval for Long-Term Memory in LLM Agents]{Show Me the Witness: Proof-Grounded Retrieval for Long-Term Memory in LLM Agents}
+
+\title[WitnessRAG: Long-Term Memory Retrieval for LLM Agents through Witness Search]{WitnessRAG: Long-Term Memory Retrieval for LLM Agents through Witness Search}
+
+
+
+\author{Rodrigo Gonçalves Flexa}
+\orcid{0009-0006-7591-7560}
+\affiliation{
+  \department{Institute of Computing}
+  \institution{University of Campinas (UNICAMP)}
+  \city{Campinas}
+  \state{São Paulo}
+  \country{Brazil}}
+\email{ra299214@dac.unicamp.br}
+
+\author{Luiz Eduardo Assunção de Albuquerque}
+\affiliation{
+  \department{Department of Mathematical Sciences, Faculty of Sciences}
+  \institution{University of Lisbon}
+  \city{Lisbon}
+  \country{Portugal}}
+\email{fc62505@alunos.ciencias.ulisboa.pt}
+
+\author{Leandro A. Villas}
+\orcid{0000-0002-3372-3366}
+\affiliation{
+  \department{Institute of Computing}
+  \institution{University of Campinas (UNICAMP)}
+  \city{Campinas}
+  \state{São Paulo}
+  \country{Brazil}}
+\email{villas@ic.unicamp.br}
+
+\author{Julio Cesar dos Reis}
+\orcid{0000-0002-9545-2098}
+\affiliation{
+  \department{Institute of Computing}
+  \institution{University of Campinas (UNICAMP)}
+  \city{Campinas}
+  \state{São Paulo}
+  \country{Brazil}}
+\email{jreis@ic.unicamp.br}
+
+\renewcommand{\shortauthors}{Flexa et al.}
+
+\begin{abstract}
+\input{sections/abstract}
+\end{abstract}
+
+\ccsdesc[500]{Computing methodologies~Intelligent agents}
+\ccsdesc[300]{Computing methodologies~Natural language processing}
+\ccsdesc[300]{Information systems~Retrieval models and ranking}
+
+\keywords{LLM Agents, Agent Memory, Retrieval-Augmented Generation,
+Data Provenance, Knowledge Graphs, Long-Term Conversational Memory}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\maketitle
+
+\input{sections/introduction}
+\input{sections/related_work}
+\input{sections/problem_formulation}
+\input{sections/method}
+\input{sections/experimental_setup}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/conclusion}
+
+%%% Omitted automatically in anonymous mode.
+\begin{acks}
+\input{sections/acknowledgments}
+\end{acks}
+
+%%% Issue \balance in the first column of the last page (camera-ready).
+%\balance
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+%%% Supplementary material (separate PDF, not counted in the 8 pages):
+%%% compile sections/appendix.tex in its own file if needed.
+
+\end{document}

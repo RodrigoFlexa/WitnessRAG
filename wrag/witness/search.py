@@ -163,6 +163,8 @@ class WitnessSearcher:
         self._blend: tuple[float, np.ndarray] | None = None
         # Resolved event time of each fact, used to bind a time variable.
         self.fact_times: list[str] | None = None
+        self.portfolio_cache: dict | None = None
+        self.portfolio_cache_hits: int = 0
         for i, fact in enumerate(kg.facts):
             if fact.subj_id >= 0:
                 self._facts_by_cluster_subject.setdefault(self._identity(fact.subj_id), []).append(i)
@@ -201,6 +203,35 @@ class WitnessSearcher:
         if self.fact_times is not None and 0 <= fid < len(self.fact_times):
             return self.fact_times[fid]
         return str(getattr(self.kg.facts[fid], "time", "") or "")
+
+    # -- relações disjuntivas (átomos com alternativas) -----------------------
+
+    def _encode_relations(self, atoms: Sequence[Atom]) -> list[np.ndarray]:
+        """One vector per atom, or a matrix (one row per phrasing) for an atom
+        with alternatives. Plain atoms get exactly the v3 vector."""
+        flat = [r for atom in atoms for r in atom.relations]
+        vectors = self.embedder.encode(flat)
+        out: list[np.ndarray] = []
+        start = 0
+        for atom in atoms:
+            count = len(atom.relations)
+            out.append(vectors[start] if count == 1 else vectors[start:start + count])
+            start += count
+        return out
+
+    def _relation_similarity(self, rel_vector: np.ndarray, atom: Atom, fact: Fact) -> float:
+        """Similarity of the fact's relation to the atom: the best phrasing of a
+        disjunctive atom; 1 when a phrasing is the fact's own relation."""
+        kg = self.kg
+        rel_sim = 0.0
+        if fact.rel_id >= 0 and kg.relation_vectors.size:
+            target = kg.relation_vectors[fact.rel_id]
+            rel_sim = (float(np.max(rel_vector @ target)) if rel_vector.ndim == 2
+                       else float(np.dot(rel_vector, target)))
+        relation = normalize(fact.relation)
+        if any(normalize(r) == relation for r in atom.relations):
+            rel_sim = 1.0
+        return rel_sim
 
     # -- reindexação incremental reversível (usada pela aquisição) ----------
 
@@ -250,6 +281,39 @@ class WitnessSearcher:
         return out
 
     def ground(self, query: ConjunctiveQuery) -> list[list[Grounding]]:
+        if self.portfolio_cache is None:
+            return self._ground_uncached(query)
+        # Query-local sharing. Key includes scope, scoring, thresholds and the
+        # memory horizon; equal atoms under different contexts cannot collide.
+        blend = None if self._blend is None else (self._blend[0], self._blend[1].tobytes())
+        context = (None if self.allowed is None else frozenset(self.allowed),
+                   self._allowed_horizon, frozenset(self._reactivated), len(self.kg.facts),
+                   blend, self.cfg.grounding_mode, self.cfg.candidates_per_atom,
+                   self.cfg.relation_match_threshold, self.cfg.entity_match_threshold,
+                   self.relation_threshold_override)
+        out, details, truncated = [], [], False
+        for atom in query.atoms:
+            names = {}
+            def renamed(term):
+                if not is_var(term):
+                    return term
+                names.setdefault(term, f"?v{len(names)}")
+                return names[term]
+            key = (context, renamed(atom.subject), renamed(atom.object), renamed(atom.time), tuple(atom.relations))
+            if key not in self.portfolio_cache:
+                single = ConjunctiveQuery(answer_var=query.answer_var, atoms=[atom])
+                candidates = self._ground_uncached(single)[0]
+                self.portfolio_cache[key] = (candidates, self._ground_truncated, self._ground_details[:])
+            else:
+                self.portfolio_cache_hits += 1
+            candidates, cut, detail = self.portfolio_cache[key]
+            out.append(list(candidates))
+            truncated |= cut
+            details.extend(detail)
+        self._ground_truncated, self._ground_details = truncated, details
+        return out
+
+    def _ground_uncached(self, query: ConjunctiveQuery) -> list[list[Grounding]]:
         kg = self.kg
         cfg = self.cfg
         self._ground_truncated = False
@@ -262,7 +326,8 @@ class WitnessSearcher:
             for atom in query.atoms:
                 candidates = []
                 for fid, fact in enumerate(kg.facts):
-                    if not self._permitted(fid) or normalize(atom.relation) != normalize(fact.relation):
+                    if not self._permitted(fid) or normalize(fact.relation) not in {
+                            normalize(r) for r in atom.relations}:
                         continue
                     if not atom.subject_is_var and normalize(atom.subject) != normalize(fact.subject):
                         continue
@@ -280,9 +345,8 @@ class WitnessSearcher:
 
         # Um lote de embeddings por consulta: relações, verbalizações e
         # constantes de uma vez. Cada chamada extra aqui é latência online.
-        relations = [a.relation for a in query.atoms]
         verbalizations = [a.verbalize() for a in query.atoms]
-        rel_vectors = self.embedder.encode(relations)
+        rel_vectors = self._encode_relations(query.atoms)
         verb_vectors = self.embedder.encode(verbalizations)
 
         constant_clusters: dict[str, list[tuple[int, float]]] = {}
@@ -354,10 +418,7 @@ class WitnessSearcher:
             elif rev > 0:
                 scored.append(Grounding(fid, self._blended(fid, rev), reversed=True, match=rev))
             elif cfg.plan_repair:
-                rel_sim = (float(np.dot(rel_vector, kg.relation_vectors[fact.rel_id]))
-                           if fact.rel_id >= 0 and kg.relation_vectors.size else 0.0)
-                if normalize(atom.relation) == normalize(fact.relation):
-                    rel_sim = 1.0
+                rel_sim = self._relation_similarity(rel_vector, atom, fact)
                 reason = ("relation_threshold" if rel_sim < cfg.relation_match_threshold
                           else "argument_or_entity_match")
                 detail["rejected_relation" if reason == "relation_threshold"
@@ -396,11 +457,7 @@ class WitnessSearcher:
                     reversed_: bool) -> float:
         kg, cfg = self.kg, self.cfg
 
-        rel_sim = 0.0
-        if fact.rel_id >= 0 and kg.relation_vectors.size:
-            rel_sim = float(np.dot(rel_vector, kg.relation_vectors[fact.rel_id]))
-        if normalize(atom.relation) == normalize(fact.relation):
-            rel_sim = 1.0
+        rel_sim = self._relation_similarity(rel_vector, atom, fact)
         if rel_sim < (self.relation_threshold_override or cfg.relation_match_threshold):
             return 0.0
         verb_sim = float(np.dot(verb_vector, kg.fact_vectors[fid])) if kg.fact_vectors.size else 0.0
@@ -468,10 +525,7 @@ class WitnessSearcher:
                 scored.append(grounding)
             elif trace is not None:
                 fact = self.kg.facts[fid]
-                rel_sim = (float(np.dot(vectors[0], self.kg.relation_vectors[fact.rel_id]))
-                           if fact.rel_id >= 0 and self.kg.relation_vectors.size else 0.0)
-                if normalize(atom.relation) == normalize(fact.relation):
-                    rel_sim = 1.0
+                rel_sim = self._relation_similarity(vectors[0], atom, fact)
                 reason = ("relation_rejected" if rel_sim < self.cfg.relation_match_threshold
                           else "argument_rejected" if score <= 0 else "binding_rejected")
                 trace[reason] += 1
@@ -517,7 +571,7 @@ class WitnessSearcher:
         adaptive = (cfg.binding_aware_grounding and cfg.grounding_mode == "semantic"
                     and not external_groundings)
         if adaptive:
-            rel_vectors = self.embedder.encode([a.relation for a in query.atoms])
+            rel_vectors = self._encode_relations(query.atoms)
             verb_vectors = self.embedder.encode([a.verbalize() for a in query.atoms])
             constants = {c: self.match_entity(c) for c in query.constants()}
         bound_cache: dict[tuple, list[Grounding] | None] = {}
@@ -599,6 +653,11 @@ class WitnessSearcher:
             depth_reached = depth + 1
 
         if depth_reached < len(query.atoms):
+            if self.portfolio_cache is not None:
+                trace["portfolio_prefix"] = [
+                    {"bindings": dict(state.surfaces), "facts": [
+                        {"index": i, "triple": list(kg.facts[i].triple), "pid": kg.facts[i].pid}
+                        for i in state.facts]} for state in states[:3]]
             return SearchResult(witnesses=[], gap=gap, n_candidates=n_candidates,
                                 depth_reached=depth_reached, exhaustive=exhaustive,
                                 truncations=truncations, grounding_mode=cfg.grounding_mode,
@@ -624,7 +683,8 @@ class WitnessSearcher:
         if not self._permitted(grounding.fact_index):
             return None
         if self.cfg.grounding_mode == "exact":
-            if grounding.reversed or normalize(atom.relation) != normalize(fact.relation):
+            if grounding.reversed or normalize(fact.relation) not in {
+                    normalize(r) for r in atom.relations}:
                 return None
             if not atom.subject_is_var and normalize(atom.subject) != normalize(fact.subject):
                 return None

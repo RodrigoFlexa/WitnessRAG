@@ -1,0 +1,28 @@
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/overview-standalone.pdf}
+  \caption{\textbf{Overview of \sys.}
+  (1) \emph{Memory construction}: dialogue histories are turned into
+  dated propositions, stored both as statements and as graph triples
+  linked to their source utterances. (2) \emph{Memory retrieval}: a
+  planner grounded in retrieved evidence specifies the relational
+  requirements of the question, its answer type, and a temporal reference.
+  An executor searches the graph for witnesses under consistent bindings;
+  a verifier checks candidates against their sources, and gaps or
+  rejections are fed back to the planner. Accepted witnesses guide the
+  selection of propositions and passage summaries passed to the reader.
+  Blue outlines denote LLM operations, green outlines denote retrieval or
+  deterministic processing, dotted links denote provenance, and dashed
+  arrows denote feedback.}
+  \Description{The architecture has two stages: memory construction and memory retrieval. Memory construction
+  extracts propositions and indexes their time and importance metadata.
+  Source passages and the dated proposition graph are connected by
+  provenance. A question triggers evidence retrieval and an LLM planner.
+  The planner specifies conjunctive requirements, answer type, temporal
+  reference and weights. A graph executor finds consistent bindings without
+  LLM calls. A conditional verifier checks source utterances, returning
+  gaps or rejections to the planner. Accepted support and relevance-ranked
+  candidates guide context selection. The reader receives dated statements
+  and passage summaries and generates an answer.}
+  \label{fig:overview}
+\end{figure*}

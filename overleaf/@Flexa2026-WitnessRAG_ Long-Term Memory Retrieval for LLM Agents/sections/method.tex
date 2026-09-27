@@ -1,0 +1,187 @@
+\section{\texorpdfstring{\sys}{WitnessRAG}}
+\label{sec:method}
+
+\sys treats memory retrieval as the search for facts that jointly satisfy
+the information requirements of a question. It operates in two stages
+(\cref{fig:overview}). \emph{Memory construction} organizes the
+interaction history into a graph of dated propositions linked to their
+source passages. \emph{Memory retrieval} grounds a plan in retrieved
+evidence, searches the graph for witnesses of that plan, verifies them,
+and assembles a compact context for the reader. Throughout, the planner
+specifies \emph{what} must be found, and the executor determines
+\emph{how} stored facts connect to satisfy it.
+
+\input{figures/overview}
+
+\subsection{Memory Construction}
+\label{sec:method-register}
+
+The memory pairs a passage store $\passages$ with a fact graph
+$\mathcal G=(\mathcal N,\facts)$. Passages preserve the original dialogue
+and its session structure. From them, an \ac{LLM} extracts
+self-contained propositions, each represented both as a natural-language
+statement and as a subject--relation--object triple: the statement is
+what the reader consumes, and the triple is what the executor searches.
+Entity normalization merges recurring mentions, so that facts recorded
+in different sessions can take part in the same derivation.
+
+Each fact is annotated with an event interval, an importance score, and a
+link to its source utterance. Temporal expressions are resolved relative
+to the session in which they occur, which distinguishes when an event
+happened from when it was mentioned. Importance is a
+question-independent estimate of the salience expressed in the source
+utterance. We write $\mem=(\passages,\facts)$ for the resulting memory
+and $\mathrm{src}(W)$ for the source passages of a set of facts $W$.
+These provenance links allow any witness to be traced back to the
+utterances from which its facts were extracted. Construction is performed
+once per history and shared across all questions about it.
+
+\subsection{Evidence-Grounded Planning}
+\label{sec:method-plan}
+
+Retrieval starts with a hybrid dense--lexical search, fused by
+\ac{RRF}, that yields an initial pool of evidence. The planner, an
+\ac{LLM}, receives the question together with dated facts from this pool
+and the relations and entities available in memory. Planning
+\emph{after} an initial retrieval lets the model phrase its query in the
+vocabulary of the stored history rather than that of the question.
+
+A plan $\pi$ consists of a conjunctive query in the form of \cref{eq:cq},
+the expected answer type (e.g., an entity, a date, or a set of values),
+a temporal reference, and ranking weights. Shared variables encode
+dependencies between facts: the value that satisfies one atom constrains
+the facts that can satisfy another. Operations such as comparison or
+date arithmetic are not executed over the graph; the plan retrieves
+their premises, and the reader performs them.
+
+The temporal reference designates the period against which memories are
+ranked: the present, the beginning of the history, or an interval named
+in the question. Together with the weights, it allows the same memory to
+be searched differently for questions about recent events, first
+occurrences, or specific periods. Once a plan is available, the evidence
+pool is expanded under the corresponding ranking.
+
+\subsection{Reference-Relative Ranking}
+\label{sec:method-score}
+
+Passage retrieval and witness search share a scoring function that
+combines relevance, importance, and temporal proximity:
+\begin{equation}
+ s(x\mid q,\pi)=
+ \lambda_s\,\mathrm{sim}(x)
+ +\lambda_i\,\kappa_x
+ +\lambda_t\,g(x;\rho),
+ \label{eq:score}
+\end{equation}
+where $\kappa_x$ is the importance of item $x$, $\rho$ is the temporal
+reference of $\pi$, and the nonnegative weights, chosen by the planner,
+sum to one. For a passage, $\mathrm{sim}(x)$ is its normalized retrieval
+score; for a fact, it measures how well the fact matches the
+corresponding query atom.
+
+Temporal proximity decays with the distance between the event interval
+$I_x$ and the reference:
+\begin{equation}
+ g(x;\rho)=\exp\!\left(-\frac{\delta(I_x,\rho)}{h_\rho}\right),
+ \label{eq:proximity}
+\end{equation}
+where $\delta$ vanishes for overlapping intervals and otherwise measures
+their separation, and $h_\rho$ sets the decay scale. With the present as
+reference, \cref{eq:proximity} reduces to recency; with an earlier
+reference, it favors events near that period. Time thus acts as a
+question-dependent preference rather than a universal bias toward recent
+memories.
+
+\subsection{Witness Search}
+\label{sec:method-prove}
+
+The executor searches for witnesses of the planned query without invoking
+a language model. As defined in \cref{sec:preliminaries}, a witness is a
+set of facts that instantiates every atom under a single consistent
+assignment. Matching is semantic rather than exact, which absorbs
+differences between the planner's phrasing and the stored propositions;
+consistency is strict, so that once a variable is bound, all subsequent
+atoms must agree with it. This prevents facts that are individually
+plausible from being combined into an incoherent answer.
+
+Search explores partial assignments with a bounded beam, starting from
+the most constrained atoms. For a witness $W=\{f_1,\ldots,f_m\}$, where
+$f_j$ matches the $j$-th atom, the search minimizes
+\begin{equation}
+ J(W)=-\sum_{j=1}^{m}\log s(f_j\mid q,\pi)
+       +\gamma\,|\mathrm{src}(W)|.
+ \label{eq:witness-search}
+\end{equation}
+The first term favors derivations whose atoms are all well matched, since
+a single weak link dominates the sum; the second discourages support
+that is dispersed across unnecessarily many passages. A candidate is
+accepted only when its matching strength is sufficient on its own, so
+that temporal or importance preferences can reorder plausible witnesses
+but cannot rescue a poor match. For set-valued answers, support is
+assessed separately for each member.
+
+When no consistent extension exists, search reports the unsatisfied atom
+together with the bindings established so far. This \emph{gap} states
+precisely which requirement remains unresolved and gives the planner a
+concrete target for revision.
+
+\subsection{Verification and Replanning}
+\label{sec:method-verify}
+
+Witness search establishes that stored facts satisfy the plan, but not
+that the plan and the extracted facts faithfully reflect the dialogue.
+A verifier therefore checks candidate answers against the source
+utterances of their witnesses, assessing whether the evidence concerns
+the intended entity, period, and answer type. Members of a set-valued
+answer are verified individually, so that a subset can be retained.
+Verification is applied selectively, when the support is not already
+evident in the retrieved evidence.
+
+If no candidate is accepted, the gaps and the verifier's feedback are
+returned to the planner, which may revise a relation, an entity, or the
+temporal interpretation before the executor searches again
+(\cref{alg:search}). The cycle ends when a witness is accepted or the
+cycle budget is exhausted, in which case retrieval falls back to
+relevance ranking alone.
+
+\begin{algorithm}[t]
+\caption{Witness-guided memory retrieval}
+\label{alg:search}
+\small
+\begin{algorithmic}[1]
+\Require Question $q$, memory $\mem$, cycle limit $R$, context budget $b$
+\State $E\gets\search(q,\mem)$; $\Delta\gets\emptyset$; $W^+\gets\emptyset$
+\For{$c=1,\ldots,R$}
+  \State $\pi\gets\plan(q,E,\Delta)$
+  \State $E\gets E\cup\search(q,\mem;\pi)$
+  \State $(W,\Delta)\gets\prove(\pi,\mem,E)$
+  \State $(W^+,\Delta)\gets\verify(q,\pi,W,\Delta)$
+  \If{$W^+\neq\emptyset$} \State \textbf{break} \EndIf
+\EndFor
+\State $\ctx\gets\op{Assemble}(q,\mem,\pi,W^+,b)$
+\State \Return $\mathrm{Read}(q,\ctx)$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Context Assembly and Cost}
+\label{sec:method-respond}
+\label{sec:method-guarantees}
+
+The reader's context combines dated propositions with summaries of their
+source passages. Propositions are selected by their membership in
+accepted witnesses and by their relevance to the question and the plan,
+favoring coverage over redundancy within the budget $b$. They are grouped
+by session and annotated with their event dates, while passage summaries,
+computed independently of the question and reused across queries,
+restore surrounding context that individual propositions omit. Witnesses
+thus prioritize evidence without excluding other relevant material. The
+reader formulates the answer and carries out any comparison or date
+arithmetic the plan has deferred to it.
+
+With at most $R$ cycles, retrieval issues at most $R$ planning and $R$
+verification calls, followed by a single reader call; graph execution
+requires none. Extraction and summarization are one-time costs amortized
+over all questions on the same history. Language models are thus used
+where interpretation is required, namely in planning, verification, and
+answer generation, while relational composition is carried out by the
+executor.

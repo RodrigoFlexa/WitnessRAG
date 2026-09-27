@@ -1,0 +1,106 @@
+% WitnessRAG architecture. Vector source shared by paper and standalone export.
+\definecolor{wrInk}{HTML}{183247}
+\definecolor{wrBlue}{HTML}{285F89}
+\definecolor{wrTeal}{HTML}{167A70}
+\definecolor{wrAmber}{HTML}{A56425}
+\definecolor{wrLine}{HTML}{CCD7DF}
+\definecolor{wrMuted}{HTML}{536879}
+\definecolor{wrPale}{HTML}{F3F6F8}
+\begin{tikzpicture}[x=1cm,y=-1cm,
+ font=\sffamily\fontsize{8}{9.5}\selectfont,text=wrInk,
+ flow/.style={-{Stealth[length=1.6mm,width=1.15mm]},draw=wrMuted,line width=.7pt,rounded corners=2pt},
+ feedback/.style={flow,draw=wrAmber,dashed},
+ provenance/.style={flow,draw=wrTeal,densely dotted},
+ card/.style={draw=wrLine,fill=white,rounded corners=3pt,line width=.65pt,align=center,inner sep=3.5pt},
+ llm/.style={card,draw=wrBlue,fill=wrBlue!4},
+ engine/.style={card,draw=wrTeal,fill=wrTeal!4},
+ note/.style={font=\sffamily\fontsize{7}{8.5}\selectfont,text=wrMuted,align=center},
+ head/.style={font=\sffamily\bfseries\fontsize{7.3}{9}\selectfont},
+ vertex/.style={circle,draw=wrTeal,fill=white,minimum size=3.6mm,inner sep=0pt,line width=.8pt}]
+\path[use as bounding box] (0,0) rectangle (17.8,9.45);
+
+\fill[wrPale,rounded corners=4pt] (0,0) rectangle (4.55,8.97);
+\fill[wrPale,rounded corners=4pt] (4.78,0) rectangle (17.80,8.97);
+\node[head,anchor=west] at (.22,.40) {\textcolor{wrTeal}{01}\quad MEMORY CONSTRUCTION};
+\node[note,anchor=west] at (.22,.80) {Once per history};
+\node[head,anchor=west] at (5.01,.40) {\textcolor{wrTeal}{02}\quad MEMORY RETRIEVAL};
+\node[note,anchor=west] at (5.01,.80) {Per question: evidence-grounded planning, witness search, and context assembly};
+
+% Write-time pathway and the two complementary memory layers.
+\node[card,minimum width=3.98cm,minimum height=.68cm] (history) at (2.275,1.57)
+ {\textbf{Interaction history}\\Sessions and utterances};
+\node[llm,minimum width=3.98cm,minimum height=.76cm,text width=3.56cm] (extract) at (2.275,4.13)
+ {\textbf{Extract propositions}\quad\textcolor{wrBlue}{\scriptsize LLM}\\Statements, triples, sources};
+\node[engine,minimum width=3.98cm,minimum height=.76cm,text width=3.56cm] (index) at (2.275,5.60)
+ {\textbf{Date and index}\\Event time + importance};
+\draw[flow] (extract) -- (index);
+\node[card,minimum width=3.98cm,minimum height=.86cm,text width=3.56cm] (passages) at (2.275,2.82)
+ {\textbf{Source passage store}\\Text with session dates};
+\draw[flow] (history) -- node[note,right]{segment} (passages);
+\draw[flow] (passages) -- (extract);
+\node[card,minimum width=3.98cm,minimum height=1.78cm] (graph) at (2.275,7.64) {};
+\node[font=\sffamily\bfseries\fontsize{8}{9.5}\selectfont] at (2.275,7.03) {Dated proposition graph};
+\node[vertex] (g1) at (1.13,7.63) {};
+\node[vertex] (g2) at (2.10,7.37) {};
+\node[vertex] (g3) at (3.19,7.63) {};
+\node[vertex] (g4) at (2.10,7.96) {};
+\draw[flow,draw=wrTeal] (g1) -- (g2);
+\draw[flow,draw=wrTeal] (g2) -- (g3);
+\draw[flow,draw=wrTeal] (g1) -- (g4);
+\draw[flow,draw=wrTeal] (g4) -- (g3);
+\node[note] at (2.275,8.32) {Facts retain passage and turn IDs};
+\draw[flow] (index) -- (graph);
+\draw[provenance] (graph.west) -- (.12,7.64) -- (.12,2.82) -- (passages.west);
+
+% Online pathway. Each box names a distinct mechanism.
+\node[card,minimum width=5.69cm,minimum height=.58cm] (question) at (8.37,1.56)
+ {\textbf{Question}};
+\node[engine,minimum width=5.69cm,minimum height=.81cm,text width=5.28cm] (search) at (8.37,2.70)
+ {\textbf{Retrieve evidence}\\Dense + BM25; time-aware ranking};
+\draw[flow] (question) -- (search);
+\node[llm,minimum width=5.69cm,minimum height=1.10cm,text width=5.28cm] (plan) at (8.37,4.18)
+ {\textbf{Plan}\quad\textcolor{wrBlue}{\scriptsize LLM}\\
+ Conjunctive atoms + answer type\\Temporal reference and scoring weights};
+\draw[flow] (search) -- node[note,right]{facts + vocabulary} (plan);
+\node[engine,minimum width=5.69cm,minimum height=1.10cm,text width=5.28cm] (execute) at (8.37,5.96)
+ {\textbf{Execute}\quad\textcolor{wrTeal}{\scriptsize NO LLM CALLS}\\
+ Join facts with consistent bindings\\Find witnesses for individual answers};
+\draw[flow] (plan) -- node[note,right]{retrieval plan} (execute);
+\node[llm,minimum width=5.69cm,minimum height=.90cm,text width=5.28cm] (verify) at (8.37,7.66)
+ {\textbf{Verify}\quad\textcolor{wrBlue}{\scriptsize CONDITIONAL LLM}\\
+ Check candidates against source utterances};
+\draw[flow] (execute) -- node[note,right]{witnesses + provenance} (verify);
+
+% Memory access. Separate line heights keep the paths readable.
+\draw[flow] (passages.east) -- (4.66,2.82) -- (4.66,2.70) -- (search.west);
+\draw[flow] (graph.east) -- (5.13,7.64) -- (5.13,5.96) -- (execute.west);
+\draw[feedback] (verify.east) -- (12.13,7.66) -- (12.13,4.18) -- (plan.east);
+\draw[feedback] (execute.east) -- (12.13,5.96);
+\node[note,text=wrAmber,rotate=90,fill=wrPale,inner sep=2pt] at (12.13,6.18)
+ {gap / rejection: replan};
+\node[note] at (8.37,8.52) {Bounded cycles; single answers or item-wise sets};
+
+% Actual reader delivery. A witness is a selection signal, not a containment guarantee.
+\node[engine,minimum width=4.20cm,minimum height=1.36cm,text width=3.80cm] (assemble) at (15.415,3.25)
+ {\textbf{Select propositions}\\Witness and candidate priority\\Question / atom relevance\\Budget and diversity limits};
+\draw[flow,draw=wrTeal] (verify.east) -- (12.91,7.66) -- (12.91,3.25) -- (assemble.west);
+\node[note,rotate=90,fill=wrPale,inner sep=1.5pt,text=wrTeal] at (12.91,5.25) {accepted support};
+\node[card,minimum width=4.20cm,minimum height=1.02cm,text width=3.80cm] (context) at (15.415,5.02)
+ {\textbf{Compact reader context}\\Dated statements\\+ cached summaries};
+\draw[flow] (assemble) -- (context);
+\node[llm,minimum width=2.95cm,minimum height=.71cm] (reader) at (15.415,6.79)
+ {\textbf{Reader}\quad\textcolor{wrBlue}{\scriptsize LLM}};
+\draw[flow] (context) -- (reader);
+\node[card,minimum width=2.95cm,minimum height=.60cm] (answer) at (15.415,8.21) {\textbf{Answer}};
+\draw[flow] (reader) -- (answer);
+
+% The fallback also supplies candidates when no witness is accepted.
+\draw[flow] (search.east) -- (11.58,2.70) -- (11.58,1.56) -- (15.415,1.56) -- (assemble.north);
+\node[note,fill=wrPale,inner sep=1.5pt] at (14.32,1.97) {ranked candidates / fallback};
+
+% Explicit scoring mechanism, placed on a single line without equations.
+\node[note,anchor=west] at (.04,9.27)
+ {\textbf{Query-dependent scoring:} similarity + importance + temporal proximity};
+\node[note,anchor=east] at (17.76,9.27)
+ {Temporal reference: present / history start / named interval};
+\end{tikzpicture}

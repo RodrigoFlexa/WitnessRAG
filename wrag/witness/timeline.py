@@ -455,3 +455,69 @@ def format_interval(value: Interval | None) -> str:
     if value.start == value.end:
         return fmt(value.start)
     return f"{fmt(value.start)} - {fmt(value.end)}"
+
+
+# -- tempo como o falante disse (entrega bitemporal, docs/plano-robusto.md) --------
+
+def natural_interval(value: Interval | None) -> str:
+    """Like format_interval, but a whole calendar month reads "August 2023" and
+    a whole year "2023": the precision the expression had, not a day range."""
+    if value is None:
+        return ""
+    start, end = value.start, value.end
+    if start.day == 1 and start.month == 1 and end.month == 12 and end.day == 31 \
+            and start.year == end.year:
+        return str(start.year)
+    if start.day == 1 and start.year == end.year and start.month == end.month:
+        following = (date(end.year + 1, 1, 1) if end.month == 12
+                     else date(end.year, end.month + 1, 1))
+        if (following - end).days == 1:
+            return start.strftime("%B %Y")
+    return format_interval(value)
+
+
+_ANCHOR_NUM = r"(a|an|one|two|three|four|five|six|seven|eight|nine|ten|few|couple of|\d+)"
+_ANCHOR_UNIT = r"(day|week|weekend|month|year|night)s?"
+
+
+def anchored_phrase(expression: str, said: date | None) -> str:
+    """A relative expression anchored to the day it was said, in words:
+    "last weekend" said on 24 October 2023 -> "the weekend before 24 October
+    2023"; "two days ago" -> "two days before ..."; "next month" -> "the month
+    after ...". This is the time exactly as the dialogue states it (speaker's
+    words + session date). Returns "" for anything else."""
+    if said is None:
+        return ""
+    text = " ".join(re.sub(r"[^a-z0-9 ]", " ", (expression or "").lower()).split())
+    if not text:
+        return ""
+    day = f"{said.day} {said.strftime('%B %Y')}"
+    if text in {"yesterday", "last night"}:
+        return f"the day before {day}"
+    if text in {"today", "tonight", "this morning", "this afternoon", "this evening",
+                "earlier today"}:
+        return day
+    if text == "tomorrow":
+        return f"the day after {day}"
+    names = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+             "january", "february", "march", "april", "may", "june", "july", "august",
+             "september", "october", "november", "december"}
+    text = " ".join(w.capitalize() if w in names else w for w in text.split())
+    match = re.fullmatch(r"(?:the )?last ([A-Za-z ]+)", text)
+    if match:
+        return f"the {match.group(1)} before {day}"
+    match = re.fullmatch(rf"{_ANCHOR_NUM} {_ANCHOR_UNIT} ago", text)
+    if match:
+        return f"{match.group(0)[:-4]} before {day}"
+    if text in {"the other day", "recently", "a few days ago", "a couple of days ago"}:
+        return f"a few days before {day}"
+    match = re.fullmatch(r"(?:the )?next ([A-Za-z ]+)", text)
+    if match:
+        return f"the {match.group(1)} after {day}"
+    match = re.fullmatch(rf"in {_ANCHOR_NUM} {_ANCHOR_UNIT}", text)
+    if match:
+        return f"{match.group(0)[3:]} after {day}"
+    match = re.fullmatch(r"this (weekend|week|month|summer|winter|spring|fall|year)", text)
+    if match:
+        return f"the {match.group(1)} of {day}"
+    return ""

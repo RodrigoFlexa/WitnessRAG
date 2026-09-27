@@ -1,0 +1,89 @@
+\section{Background}
+\label{sec:background}
+
+\subsection{Preliminaries}
+\label{sec:preliminaries}
+
+Conjunctive queries represent information needs as relations that must
+hold jointly. A query over binary relations has the form
+\begin{equation}
+ Q(x)=\exists\bar y\;\bigwedge_{j=1}^{m}r_j(t_j,t'_j),
+ \label{eq:cq}
+\end{equation}
+where each term is a constant or variable, $x$ is the answer variable,
+and $\bar y$ contains the remaining
+variables~\cite{chandra1977conjunctive}. An answer is obtained by assigning
+values to the variables so that every atom matches a stored fact.
+Occurrences of the same variable must receive the same value.
+
+A \emph{witness} is a set of facts supporting such an assignment: the
+query yields the answer using those facts
+alone~\cite{buneman2001why}. A witness contains at most $m$ distinct facts, and different witnesses can support the same answer.
+Provenance records these alternative
+derivations~\cite{green2007provenance}. This perspective gives retrieval
+a structural target: finding facts that jointly satisfy a query, rather
+than selecting them solely by their individual relevance.
+
+\subsection{Related Work}
+\label{sec:related}
+
+\paragraph{Memory architectures for language-model agents.}
+Existing systems address long interaction histories through virtual
+context management~\cite{packer2023memgpt,lee2024readagent}, memory streams
+with reflection or forgetting~\cite{park2023generative,zhong2024memorybank},
+and feedback accumulated across
+episodes~\cite{shinn2023reflexion,flexa2026bridging}. Other architectures
+maintain extracted facts~\cite{chhikara2025mem0}, linked
+notes~\cite{xu2025amem}, temporal
+graphs~\cite{rasmussen2025zep,anokhin2025arigraph}, hierarchical
+stores~\cite{kang2025memoryos,zhang2025gmemory}, or compressed and enriched
+records~\cite{fang2026lightmem,liu2026simplemem,salama2025meminsight}.
+These designs illustrate the range of representations available to a
+memory system. \sys focuses on how a question's relational requirements
+can guide retrieval from such a representation. Its stored propositions
+serve both as readable memory records and as graph facts with source
+provenance.
+
+\paragraph{Graph-based and iterative retrieval.}
+Graph and hierarchical retrieval use structure to recover information
+beyond direct similarity to the question. Examples include community
+summaries~\cite{edge2024graphrag}, recursive summary
+trees~\cite{sarthi2024raptor}, and relevance propagation over open
+knowledge graphs~\cite{gutierrez2024hipporag,gutierrez2025hipporag2}.
+Iterative approaches instead interleave retrieval with
+reasoning~\cite{trivedi2023ircot}, guide graph exploration with a language
+model~\cite{sun2024tog}, or adapt retrieval to the
+input~\cite{asai2024selfrag,jeong2024adaptiverag}. In agent memory,
+MemAgent learns memory behavior through reinforcement
+learning~\cite{yu2026memagent}, while GAM uses a researcher that searches
+stored pages, integrates evidence, and reflects on whether further
+search is needed~\cite{yan2025gam}. \sys also revises retrieval in
+response to evidence. Its distinguishing design choice is to expose a
+conjunctive plan whose bindings and supporting facts are computed by
+an executor, with failed execution conditions returned to the planner.
+
+\paragraph{Temporal memory.}
+Time can be represented as a retrieval preference or as an attribute of
+stored information. Generative Agents use access-dependent
+recency~\cite{park2023generative}; MemoryBank incorporates forgetting over
+elapsed time~\cite{zhong2024memorybank}; Zep represents temporal
+information in graph relations~\cite{rasmussen2025zep}; and Zero-Mem
+organizes evidence using temporal structure~\cite{xiao2026zeromem}.
+Recency alone does not express every temporal information need: a
+question may refer to an early event or a named historical period.
+\sys lets the planner choose the reference against which temporal
+proximity is measured. This reference changes ranking rather than
+imposing a hard temporal constraint on graph execution.
+
+\paragraph{Provenance, attribution, and verification.}
+Database provenance characterizes the facts contributing to a query
+answer~\cite{buneman2001why,green2007provenance}. In language models,
+attribution associates generated claims with source
+passages~\cite{gao2023alce}, while verification can use additional
+questions to identify and revise unsupported
+claims~\cite{dhuliawala2024cove}. Source-linked retrieval is also relevant
+to agent-memory designs such as Zero-Mem~\cite{xiao2026zeromem}.
+\sys uses provenance within retrieval: a candidate witness identifies
+the source utterances supplied to verification and influences context
+selection. This makes the supporting derivation inspectable, while
+leaving the verifier and final reader subject to model error.

@@ -1,0 +1,85 @@
+\section{Introduction}
+\label{sec:intro}
+
+Agents built on \acp{LLM} use long-term memory to retain information across
+interactions, from personal assistance to simulated societies and
+multi-episode tasks~\cite{park2023generative,packer2023memgpt,sumers2024coala,zhang2025survey}.
+Their histories can exceed the model's context window; even within that
+window, access to relevant information can depend on context length and
+position~\cite{liu2024lost,hsieh2024ruler}. External memory makes these
+histories available beyond a single interaction, but leaves a retrieval
+problem: which evidence should the agent read to answer the current
+question?
+
+This problem is particularly demanding when an answer depends on facts
+recorded in different sessions, connected through intermediate entities,
+or associated with a particular period. Long-term conversational
+benchmarks include precisely these forms of cross-session and temporal
+reasoning~\cite{maharana2024locomo,wu2025longmemeval}. In such cases,
+relevance is not solely a property of individual records. Two records
+may jointly establish an answer even when one is only weakly related to
+the question in isolation. Conversely, several highly relevant records
+may repeat the same information while omitting a necessary link.
+
+Ranking and iterative retrieval offer complementary responses to this
+challenge. Ranking methods score memory records or propagate relevance
+through a structured store before selecting a bounded
+context~\cite{park2023generative,zhong2024memorybank,chhikara2025mem0,gutierrez2024hipporag}.
+Their selection criteria need not explicitly test whether the retrieved
+records satisfy the relations required by the answer. Iterative methods
+use intermediate reasoning or model judgments to guide subsequent
+retrieval~\cite{trivedi2023ircot,asai2024selfrag,jeong2024adaptiverag,yan2025gam}.
+They can revise the search as evidence accumulates, but a model's
+assessment of sufficiency does not itself identify a set of facts that
+satisfies a specified relational condition. We investigate a complementary
+approach in which these conditions are represented and executed explicitly.
+
+Conjunctive queries provide a suitable formalism for this purpose.
+A query specifies relations whose arguments must admit a consistent
+assignment~\cite{chandra1977conjunctive}. A \emph{witness} is a set of
+facts that supports one such assignment and can therefore explain a
+query answer through its provenance~\cite{buneman2001why,green2007provenance}.
+Applied to memory retrieval, this perspective separates the linguistic
+task of specifying what to find from the computational task of finding
+facts that jointly meet that specification. The resulting support can
+be inspected independently of the reader's final response.
+
+We introduce \sys, a retrieval framework organized into memory
+construction and memory retrieval. During construction, the system
+extracts self-contained propositions, records their relational
+structure and temporal information, and retains links to the source
+dialogue. During retrieval, an \ac{LLM} writes a conjunctive plan
+conditioned on retrieved evidence. The plan specifies an answer type
+and output operator, together with a temporal reference and ranking
+weights. An executor searches for consistent bindings over the stored
+graph without \ac{LLM} calls. A conditional verifier checks candidate
+answers against source utterances, and execution gaps or rejections
+guide a bounded number of planning cycles. Accepted witnesses then
+guide the selection of dated propositions and passage summaries for
+the reader.
+
+The key idea is to make relational requirements part of retrieval
+itself. A plan states which connections matter, and a witness identifies
+the memories that realize those connections. This structure also gives
+replanning a concrete basis: the next attempt can address a missing
+relation or revise a rejected interpretation.
+
+This paper makes three methodological contributions:
+\begin{itemize}
+  \item We formulate conversational memory retrieval around conjunctive
+    plans and source-linked witnesses, separating the interpretation
+    of a question from the execution of its relational requirements.
+  \item We develop a controller that combines evidence-grounded planning,
+    reference-relative ranking, consistent-binding search, and
+    item-wise verification with gap-driven replanning.
+  \item We describe a compact context construction procedure that uses
+    witness support and query relevance to select dated propositions
+    and complementary passage summaries for the final reader.
+\end{itemize}
+% Add empirical contributions only after validating the completed runs,
+% comparison protocol, uncertainty estimates, and reported configuration.
+
+\Cref{sec:background} reviews the relevant foundations and prior work.
+\Cref{sec:problem,sec:method} define the task and present the method.
+The evaluation is organized in \cref{sec:setup,sec:results};
+\cref{sec:discussion} discusses limitations.

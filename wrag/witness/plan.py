@@ -51,6 +51,11 @@ class ProofPlan:
     # it is about and the concepts whose stated facts would support or
     # contradict it. Empty unless the planner was asked for it.
     hypothesis: dict[str, Any] = field(default_factory=dict)
+    # Robust plan: other readings of the question written in the same call
+    # (same period and weights, other atoms/aggregation/types). The executor
+    # tries them in order when this reading does not prove.
+    readings: list["ProofPlan"] = field(default_factory=list)
+    reading: int = 0              # 0 = main reading; i = i-th other reading
 
     @property
     def executable(self) -> bool:
@@ -78,6 +83,8 @@ class ProofPlan:
         base = (q.answer_var, q.aggregation, self.period.kind, self.period.text.lower(),
                 self.time_level, self.importance_level,
                 tuple((a.relation.lower(), a.subject.lower(), a.object.lower(), a.time)
+                      + ((tuple(sorted(r.lower() for r in a.alternatives)),)
+                         if a.alternatives else ())
                       for a in q.atoms))
         if q.types:
             base += (tuple(sorted((k, v.lower()) for k, v in q.types.items())),)
@@ -86,7 +93,8 @@ class ProofPlan:
     def describe(self) -> str:
         """Compact text used in prompts (verification, replanning)."""
         atoms = " AND ".join(
-            f"{a.relation}({a.subject}, {a.object}" + (f", time={a.time}" if a.time else "") + ")"
+            ("|".join(a.relations) if a.alternatives else a.relation)
+            + f"({a.subject}, {a.object}" + (f", time={a.time}" if a.time else "") + ")"
             for a in self.query.atoms) or "(no atoms)"
         types = "".join(f"; ?{name} must be a {kind}"
                         for name, kind in sorted(self.query.types.items()))
@@ -104,7 +112,10 @@ class ProofPlan:
                 "reparos": list(self.repairs), "ciclo": self.cycle,
                 "composto": self.composite, "conectado": self.connected,
                 "executavel": self.executable,
-                **({"hipotese": dict(self.hypothesis)} if self.hypothesis else {})}
+                **({"hipotese": dict(self.hypothesis)} if self.hypothesis else {}),
+                **({"leitura": self.reading} if self.reading else {}),
+                **({"outras_leituras": [r.to_dict() for r in self.readings]}
+                   if self.readings else {})}
 
 
 def default_plan(memory: DatedMemory | None, levels: WeightLevels,
@@ -127,7 +138,8 @@ def _level(value: Any, repairs: list[str], name: str) -> str:
 
 def plan_from_data(data: Any, question: Question, memory: DatedMemory | None,
                    levels: WeightLevels, max_atoms: int = 4,
-                   question_time: date | None = None, cycle: int = 1) -> ProofPlan:
+                   question_time: date | None = None, cycle: int = 1,
+                   max_readings: int = 0) -> ProofPlan:
     """Parse and validate the planner's JSON. Never raises on bad model output."""
     if not isinstance(data, dict):
         return ProofPlan(query=ConjunctiveQuery(fallback=question.question), error="json_invalido",
@@ -193,10 +205,60 @@ def plan_from_data(data: Any, question: Question, memory: DatedMemory | None,
         time_level = "none"
     weights = levels.weights(time_level, importance_level)
     hypothesis = parse_hypothesis(data.get("hypothesis"), repairs)
-    return ProofPlan(query=query, cardinality=cardinality, period=period,
+    plan = ProofPlan(query=query, cardinality=cardinality, period=period,
                      time_level=time_level, importance_level=importance_level,
                      weights=weights, valid=bool(query.atoms) and not error,
                      error=error, repairs=repairs, cycle=cycle, hypothesis=hypothesis)
+    if max_readings > 0:
+        _attach_readings(plan, data, question, memory, levels, max_atoms, question_time,
+                         cycle, max_readings)
+    return plan
+
+
+_READING_FIELDS = ("answer_var", "atoms", "aggregation", "types", "expected_type")
+
+
+def _attach_readings(plan: ProofPlan, data: dict[str, Any], question: Question,
+                     memory: DatedMemory | None, levels: WeightLevels, max_atoms: int,
+                     question_time: date | None, cycle: int, max_readings: int) -> None:
+    """Parse "other_readings". Each reading inherits the period and weights of
+    the plan and replaces only its query fields. Invalid readings and readings
+    identical to an earlier one are dropped with a repair note. If the main
+    reading is invalid and another is valid, the first valid one becomes the
+    main reading (the plan is not lost to one malformed reading)."""
+    raw = data.get("other_readings") or data.get("readings") or []
+    if not isinstance(raw, list):
+        plan.repairs.append("leituras_invalidas")
+        return
+    base = {k: v for k, v in data.items()
+            if k not in _READING_FIELDS and k not in {"other_readings", "readings", "types"}}
+    found: list[ProofPlan] = []
+    seen = {plan.signature()} if plan.valid else set()
+    for number, item in enumerate(raw[:max_readings], 1):
+        if not isinstance(item, dict):
+            plan.repairs.append(f"leitura_{number}_invalida")
+            continue
+        merged = dict(base)
+        merged.update({k: item[k] for k in _READING_FIELDS if k in item})
+        merged.setdefault("answer_var", data.get("answer_var") or "x")
+        other = plan_from_data(merged, question, memory, levels, max_atoms, question_time,
+                               cycle, max_readings=0)
+        other.reading = number
+        if not other.valid:
+            plan.repairs.append(f"leitura_{number}_invalida:{other.error}")
+            continue
+        if other.signature() in seen:
+            plan.repairs.append(f"leitura_{number}_repetida")
+            continue
+        seen.add(other.signature())
+        found.append(other)
+    if not plan.valid and found:
+        main = found.pop(0)
+        main.repairs = list(plan.repairs) + ["leitura_promovida"] + list(main.repairs)
+        main.hypothesis = plan.hypothesis
+        plan.__dict__.update(main.__dict__)
+        plan.reading = 0
+    plan.readings = found
 
 
 def parse_hypothesis(raw: Any, repairs: list[str]) -> dict[str, Any]:
@@ -244,15 +306,18 @@ def plan_question(llm: LLM, question: Question, memory: DatedMemory | None,
                   feedback: str = "", max_atoms: int = 4, temperature: float = 0.0,
                   question_time: date | None = None, cycle: int = 1,
                   dataset: str = "", method: str = "witnessrag",
-                  types: bool = False, hypothesis: bool = False) -> ProofPlan:
-    # Design v4 fields (types, hypothesis) switch to the v4 variant of the
-    # prompt. Both off, the prompt is byte-identical to design v3.
+                  types: bool = False, hypothesis: bool = False,
+                  alternatives: bool = False, readings: int = 0) -> ProofPlan:
+    # Design v4 fields (types, hypothesis) and the robust-plan fields
+    # (alternatives, readings) switch to the extended prompt. All off, the
+    # prompt is byte-identical to design v3.
     result = llm.chat(
-        prompts.plan_template(types, hypothesis).format(
+        prompts.plan_template(types, hypothesis, alternatives, readings).format(
             question=question.question, max_atoms=max_atoms, vocabulary=vocabulary,
             evidence=evidence, feedback=feedback),
         system=prompts.PLAN_SYSTEM,
-        params=GenParams(temperature=temperature, max_tokens=900, json_mode=True),
+        params=GenParams(temperature=temperature, max_tokens=1500 if readings > 0 else 900,
+                         json_mode=True),
         stage="witness.plan" if cycle <= 1 else "witness.replan_v3",
     )
     if result.filtered:
@@ -260,4 +325,4 @@ def plan_question(llm: LLM, question: Question, memory: DatedMemory | None,
         return ProofPlan(query=ConjunctiveQuery(fallback=question.question, filtered=True),
                          filtered=True, error="filtrado", cycle=cycle)
     return plan_from_data(result.json(), question, memory, levels, max_atoms,
-                          question_time, cycle)
+                          question_time, cycle, max_readings=max(0, readings))

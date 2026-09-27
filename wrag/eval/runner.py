@@ -362,7 +362,7 @@ def _answer_standard(name: str, retriever, corpus: Corpus, question: Question,
                     replace(run_cfg.qa, top_k=run_cfg.top_k), method=name,
                     proof_context=retrieval.diagnostics.get("leitura_provas"),
                     extra_passages=retrieval.diagnostics.get("trechos_extras"),
-                    facts_mode=bool(retrieval.diagnostics.get("leitura_fatos"))))
+                    facts_mode=retrieval.diagnostics.get("leitura_fatos") or False))
 
     diagnostics = retrieval.diagnostics
     witness_facts = []
@@ -464,7 +464,9 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
              "lacuna_contextual",
              # desenho v4
              "trechos_extras", "contexto_alterado_por_trechos", "premissas",
-             "itens_conjunto")
+             "itens_conjunto",
+             # entrega por fatos e plano robusto
+             "leitura_fatos", "fatos_entregues", "ablacao")
             if k in diagnostics}
     cycles = diagnostics.get("ciclos")
     if isinstance(cycles, list):
@@ -476,10 +478,12 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
              "candidatos_por_atomo": c.get("candidatos_por_atomo"),
              "respostas": (c.get("respostas") or [])[:3],
              "verificacao": c.get("verificacao"),
+             **({"leituras": c["leituras"], "leitura_escolhida": c.get("leitura_escolhida")}
+                if c.get("leituras") else {}),
              "plano": {k: (c.get("plano") or {}).get(k) for k in
                        ("consulta", "cardinalidade", "periodo", "nivel_tempo",
                         "nivel_importancia", "pesos", "valido", "erro", "reparos",
-                        "composto", "conectado")}}
+                        "composto", "conectado", "outras_leituras")}}
             for c in cycles if isinstance(c, dict)]
     research = diagnostics.get("pesquisa_provas")
     if isinstance(research, dict):

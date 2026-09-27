@@ -1,0 +1,298 @@
+--- a/wrag/methods/witnessrag.py
++++ b/wrag/methods/witnessrag.py
+@@ -1826,12 +1826,17 @@
+                     if index < n:
+                         priority[index] = max(priority.get(index, 0.0), 2.0)
+         if outcome is not None:
+-            for candidate in outcome.get("candidatas", [])[:5]:
++            rejected = set(outcome.get("candidatas_recusadas", []))
++            for position, candidate in enumerate(outcome.get("candidatas", [])[:5]):
++                if position in rejected:
++                    continue
+                 for witness in candidate.witnesses[:1]:
+                     for index in witness.facts:
+                         if index < n:
+                             priority[index] = max(priority.get(index, 0.0), 1.0)
+-        order = sorted(range(n), key=lambda i: -(score[i] + priority.get(i, 0.0)))
++        # These are strict tiers, not score bonuses: a negative cosine must
++        # never let a fill fact displace a fact from an accepted witness.
++        order = sorted(range(n), key=lambda i: (-priority.get(i, 0.0), -score[i], i))
+         if cfg.fact_rerank:
+             order, reranked = self._rerank_facts(question, order, score, priority)
+             info["reordenados"] = reranked
+@@ -1842,7 +1847,10 @@
+             fact = memory.facts[index]
+             key = ((canonical_symbol(fact.statement),) if fact.statement else
+                    (canonical_symbol(fact.subject), canonical_symbol(fact.relation),
+-                    canonical_symbol(fact.object), dated.fact_time_text(index)))
++                    canonical_symbol(fact.object)))
++            # Identical propositions can describe separate occurrences, or
++            # distinguish a plan from an event that actually happened.
++            key += (dated.fact_time_text(index), getattr(fact, "kind", ""))
+             turn = dated.fact_turn[index] if index < len(dated.fact_turn) else ("", -1)
+             if key in seen or per_turn.get(turn, 0) >= 4:
+                 continue
+@@ -1913,6 +1921,14 @@
+             summary = "\n".join(parts)
+             info["resumos"] = len(parts)
+         info["n"] = len(chosen)
++        # Provenance of what was actually delivered; retrieved passage ids
++        # alone do not describe a fact-only reader's context.
++        info["indices"] = chosen
++        info["fontes"] = [
++            {"indice": i, "fid": memory.facts[i].fid, "pid": memory.facts[i].pid,
++             "turn_id": (dated.turns[pid][pos].turn_id
++                         if 0 <= pos < len(dated.turns.get(pid, [])) else "")}
++            for i in chosen for pid, pos in [dated.fact_turn[i]]]
+         return "\n".join(lines), summary, info
+ 
+     def _rerank_facts(self, question: Question, order: list[int], score: np.ndarray,
+@@ -1935,8 +1951,8 @@
+             source = f" [{turn.speaker}: {turn.text}]" if turn is not None else ""
+             texts.append((body + source)[:700])
+         relevance = get_reranker(cfg.fact_rerank).score(question.question, texts)
+-        ranked = sorted(range(len(pool)), key=lambda j: (-(relevance[j] + priority.get(pool[j], 0.0)),
+-                                                         j))
++        ranked = sorted(range(len(pool)), key=lambda j: (-priority.get(pool[j], 0.0),
++                                                         -relevance[j], j))
+         return [pool[j] for j in ranked] + order[len(pool):], len(pool)
+ 
+     def _chunk_summary(self, pid: str) -> str:
+@@ -2320,7 +2336,10 @@
+             if outcome["utilizavel"]:
+                 # Excerpts of a set are new text for the reader even when their
+                 # passages are already retrieved, so they are always verified.
+-                needs_check = bool(outcome["novas"]) or (
++                # With fact delivery the witness changes selection even if
++                # its source passages were retrieved already. That old
++                # passage-only shortcut cannot certify the selected facts.
++                needs_check = bool(cfg.fact_delivery) or bool(outcome["novas"]) or (
+                     outcome.get("por_item") and cfg.witness_delivery in {"excerpts", "mixed"})
+                 if not needs_check:
+                     record["verificacao"] = "dispensada_prova_ja_no_contexto"
+@@ -2337,6 +2356,12 @@
+                                       self._verification_candidates(candidate),
+                                       dataset=self.ctx.dataset, method=self.name)
+                     planning["chamadas_verificacao"] += int(verdict.called)
++                    # Verdict ids index selected witnesses, not the full
++                    # candidate list. Explicitly rejected answers must not
++                    # re-enter fact delivery with the plan's priority.
++                    candidate["candidatas_recusadas"] = sorted({
++                        position for number, (position, _w) in
++                        enumerate(candidate["selecionadas"]) if number in verdict.rejected})
+                     if not verdict.confirmed:
+                         return verdict, None
+                     kept = [item for number, item in enumerate(candidate["selecionadas"])
+--- a/scripts/paired-report.py
++++ b/scripts/paired-report.py
+@@ -2,17 +2,18 @@
+ 
+     python scripts/paired-report.py runs/conv05 witnessrag wr-plan wr-fill ...
+ 
+-The first name is the reference. Reads <root>/<name>/**/locomo/witnessrag.jsonl,
++The first name is the reference. Reads <root>/<name>/**/locomo/*.jsonl or
++<root>/<name>.jsonl exports,
+ pairs the questions, and writes <root>/compare.md and compare.json: official
+ LoCoMo F1 by category, the paired difference to the reference with a 95%
+-bootstrap interval over QUESTIONS (one conversation: there is nothing else to
+-resample), wins/losses, tokens per question (reader and total, without the
++bootstrap interval over conversations (questions if only one conversation),
++local BLEU-1, wins/losses, tokens per question (reader and total, without the
+ memory construction) and planning statistics (cycles, proofs, readings used,
+ relation alternatives written).
+ """
+ from __future__ import annotations
+ 
+-import glob
++import argparse
+ import json
+ import random
+ import statistics as st
+@@ -27,15 +28,54 @@
+ 
+ 
+ def load(folder: Path) -> dict[str, dict]:
++    """Accept a single exported JSONL or a run tree; never silently overwrite IDs."""
+     rows = {}
+-    for path in glob.glob(str(folder / "**" / "locomo" / "*.jsonl"), recursive=True):
+-        for line in open(path, encoding="utf-8"):
++    paths = [folder] if folder.is_file() else sorted(folder.glob("**/locomo/*.jsonl"))
++    if not paths:
++        raise ValueError(f"No LoCoMo records found: {folder}")
++    for path in paths:
++        for line in path.read_text(encoding="utf-8").splitlines():
+             if line.strip():
+                 r = json.loads(line)
+-                if "f1_locomo" not in r:
+-                    r.update(score_record(r))
++                if r["qid"] in rows:
++                    raise ValueError(f"Duplicate qid {r['qid']} in {folder}")
++                # Recompute from predictions, even if an older metric is saved.
++                r.update(score_record(r))
+                 rows[r["qid"]] = r
++    if not rows:
++        raise ValueError(f"No LoCoMo records found: {folder}")
+     return rows
++
++
++def paired_ids(rows: dict, ref: dict) -> list[str]:
++    if rows.keys() != ref.keys():
++        raise ValueError("Question sets differ; refusing a silent intersection")
++    for qid in ref:
++        for key in ("pergunta", "respostas_ouro", "tipo", "categoria_locomo"):
++            if rows[qid].get(key) != ref[qid].get(key):
++                raise ValueError(f"Mismatched {key} for {qid}")
++    return sorted(ref)
++
++
++def paired_interval(rows: dict, ref: dict, ids: list[str], metric: str,
++                    samples: int = 4000) -> tuple[float, float, str]:
++    """Micro-average delta; resample conversations together when >1 is available."""
++    groups = {}
++    for qid in ids:
++        parts = qid.split(":")
++        conversation = parts[1] if len(parts) >= 3 else "single-conversation"
++        groups.setdefault(conversation, []).append(100 * (rows[qid][metric] - ref[qid][metric]))
++    clustered = len(groups) > 1
++    units = ([(sum(values), len(values)) for values in groups.values()] if clustered else
++             [(value, 1) for values in groups.values() for value in values])
++    rng = random.Random(0)
++    boots = []
++    for _ in range(samples):
++        selected = rng.choices(units, k=len(units))
++        boots.append(sum(s for s, n in selected) / sum(n for s, n in selected))
++    boots.sort()
++    return (boots[int(samples * .025)], boots[int(samples * .975) - 1],
++            "conversations" if clustered else "questions")
+ 
+ 
+ def tokens(r: dict, stage: str | None) -> float:
+@@ -56,7 +96,8 @@
+         proofs += d.get("motivo_parada") in {"prova_confirmada", "prova_ja_no_contexto",
+                                              "prova_sem_verificacao"}
+         final = d.get("plano_final") or {}
+-        if final.get("leitura"):
++        if final.get("leitura") and d.get("motivo_parada") in {
++                "prova_confirmada", "prova_ja_no_contexto", "prova_sem_verificacao"}:
+             reading_used += 1
+         for c in d.get("ciclos") or []:
+             plan = c.get("plano") or {}
+@@ -75,25 +116,30 @@
+ 
+ 
+ def main() -> None:
+-    root = Path(sys.argv[1])
+-    names = sys.argv[2:]
+-    data = {n: load(root / n) for n in names if (root / n).exists()}
++    if hasattr(sys.stdout, "reconfigure"):
++        sys.stdout.reconfigure(encoding="utf-8")
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("root", type=Path)
++    parser.add_argument("names", nargs="+")
++    parser.add_argument("--output", type=Path, help="Separate report directory")
++    args = parser.parse_args()
++    root, names = args.root, args.names
++    data = {n: load(root / n if (root / n).exists() else root / (n + ".jsonl"))
++            for n in names}
+     ref_name = names[0]
+     ref = data[ref_name]
+-    random.seed(0)
+     f1 = lambda R, I: 100 * st.mean(R[q]["f1_locomo"] for q in I) if I else float("nan")
+-    lines = ["| variante | n | F1 | Δ F1 [IC 95%] | ganhos/perdas | " + " | ".join(CATS)
++    lines = ["| variante | n | F1 | Δ F1 [IC 95%] | BLEU-1 local | Δ BLEU-1 [IC 95%] | ganhos/perdas | " + " | ".join(CATS)
+              + " | tokens leitor | tokens total | planos/perg. | com prova | prova por outra leitura |",
+-             "|---|---:|---:|---|---|" + "---:|" * len(CATS) + "---:|---:|---:|---:|---:|"]
++             "|---|---:|---:|---|---:|---|---|" + "---:|" * len(CATS) + "---:|---:|---:|---:|---:|"]
+     out = {}
+     for name, rows in data.items():
+-        ids = sorted(set(rows) & set(ref))
+-        if not ids:
+-            continue
++        ids = paired_ids(rows, ref)
+         delta = f1(rows, ids) - f1(ref, ids)
+-        boots = sorted(f1(rows, s) - f1(ref, s)
+-                       for s in (random.choices(ids, k=len(ids)) for _ in range(4000)))
+-        lo, hi = boots[100], boots[3899]
++        lo, hi, unit = paired_interval(rows, ref, ids, "f1_locomo")
++        bleu = 100 * st.mean(rows[q]["bleu1_locomo"] for q in ids)
++        bleu_delta = bleu - 100 * st.mean(ref[q]["bleu1_locomo"] for q in ids)
++        blo, bhi, _ = paired_interval(rows, ref, ids, "bleu1_locomo")
+         wins = sum(rows[q]["f1_locomo"] > ref[q]["f1_locomo"] + 1e-9 for q in ids)
+         losses = sum(rows[q]["f1_locomo"] < ref[q]["f1_locomo"] - 1e-9 for q in ids)
+         cats = {c: f1(rows, [q for q in ids if rows[q].get("tipo") == c]) for c in CATS}
+@@ -101,22 +147,30 @@
+         total = st.mean(tokens(rows[q], None) for q in ids)
+         stats = plan_stats(rows, ids)
+         ci = "" if name == ref_name else f"{delta:+.2f} [{lo:+.2f}; {hi:+.2f}]"
++        bci = "" if name == ref_name else f"{bleu_delta:+.2f} [{blo:+.2f}; {bhi:+.2f}]"
+         wl = "" if name == ref_name else f"{wins}/{losses}"
+-        lines.append(f"| {name} | {len(ids)} | {f1(rows, ids):.2f} | {ci} | {wl} | "
++        lines.append(f"| {name} | {len(ids)} | {f1(rows, ids):.2f} | {ci} | {bleu:.2f} | {bci} | {wl} | "
+                      + " | ".join(f"{cats[c]:.1f}" for c in CATS)
+                      + f" | {reader:,.0f} | {total:,.0f} | {stats['planos_por_pergunta']}"
+                      + f" | {stats['perguntas_com_prova_%']}% | {stats['prova_por_outra_leitura']} |")
+         out[name] = {"n": len(ids), "f1": f1(rows, ids), "delta": delta, "ic95": [lo, hi],
++                     "bleu1_local": bleu, "bleu1_delta": bleu_delta, "bleu1_ic95": [blo, bhi],
++                     "bootstrap_unit": unit,
+                      "ganhos": wins, "perdas": losses, "por_categoria": cats,
+                      "tokens_leitor": reader, "tokens_total": total, **stats}
+     counts = {c: sum(ref[q].get("tipo") == c for q in ref) for c in CATS}
+     header = (f"# Comparação pareada ({root.name})\n\nF1 oficial do LoCoMo; Δ contra "
+-              f"`{ref_name}` nas mesmas perguntas; IC 95% por bootstrap de perguntas "
+-              f"(4000 reamostragens). Perguntas por categoria: "
++              f"`{ref_name}` nas mesmas perguntas; IC 95% por bootstrap de "
++              f"{'conversas' if unit == 'conversations' else 'perguntas'} "
++              f"(4000 reamostragens; semente 0). BLEU-1 local: precisão de unigramas "
++              f"com penalidade de brevidade, normalização e stemming; não é uma "
++              f"métrica oficial do LoCoMo nem equivalência confirmada com Zero-Mem. Perguntas por categoria: "
+               + ", ".join(f"{c} {n}" for c, n in counts.items())
+               + ". Tokens por pergunta sem a construção da memória.\n\n")
+-    (root / "compare.md").write_text(header + "\n".join(lines) + "\n", encoding="utf-8")
+-    (root / "compare.json").write_text(json.dumps(out, indent=2, ensure_ascii=False),
++    output = args.output or root
++    output.mkdir(parents=True, exist_ok=True)
++    (output / "compare.md").write_text(header + "\n".join(lines) + "\n", encoding="utf-8")
++    (output / "compare.json").write_text(json.dumps(out, indent=2, ensure_ascii=False),
+                                        encoding="utf-8")
+     print(header + "\n".join(lines))
+ 
+--- a/scripts/proof-profiles.sh
++++ b/scripts/proof-profiles.sh
+@@ -50,7 +50,7 @@
+       # command made the function fail and the caller exit silently.
+       if [[ "$profile" == abl-* ]]; then PROOF_FLAGS+=(--ablation "${profile#abl-}"); fi
+       ;;
+-    witnessrag-robust|wr-no-rerank|wr-plan|wr-alt|wr-readings|wr-fill|wr-rerank|wr-time)
++    witnessrag-robust|robust-no-plan|wr-no-rerank|wr-plan|wr-alt|wr-readings|wr-fill|wr-rerank|wr-time)
+       # Plano robusto e seleção de fatos (docs/plano-robusto.md), sobre o
+       # WitnessRAG completo. witnessrag-robust liga tudo; wr-* liga uma parte
+       # (wr-plan = relações alternativas + leituras alternativas).
+@@ -59,6 +59,8 @@
+       case "$profile" in
+         witnessrag-robust) PROOF_FLAGS+=(--relation-alternatives --plan-readings 2
+           --fact-fill question --fact-rerank --fact-time both) ;;
++        robust-no-plan) PROOF_FLAGS+=(--ablation no-plan --fact-fill question
++          --fact-rerank --fact-time both) ;;
+         wr-no-rerank) PROOF_FLAGS+=(--relation-alternatives --plan-readings 2
+           --fact-fill question --fact-time both) ;;
+         wr-plan) PROOF_FLAGS+=(--relation-alternatives --plan-readings 2) ;;
+--- a/scripts/run-witness-openai-locomo.ps1
++++ b/scripts/run-witness-openai-locomo.ps1
+@@ -93,7 +93,7 @@
+                             "--abductive-premises", "--ie-style", "memory", "--fact-delivery", "facts+summary")
+                 if ($Profile -like "abl-*") { $flags += @("--ablation", $Profile.Substring(4)) }
+             }
+-            { $_ -in @("witnessrag-robust", "wr-no-rerank", "wr-plan", "wr-alt", "wr-readings", "wr-fill", "wr-rerank", "wr-time") } {
++            { $_ -in @("witnessrag-robust", "robust-no-plan", "wr-no-rerank", "wr-plan", "wr-alt", "wr-readings", "wr-fill", "wr-rerank", "wr-time") } {
+                 # Plano robusto e seleção de fatos (docs/plano-robusto.md).
+                 $flags += @("--typed-variables", "--item-set-proofs", "--witness-delivery", "mixed",
+                             "--abductive-premises", "--ie-style", "memory", "--fact-delivery", "facts+summary")
+@@ -101,6 +101,8 @@
+                     "witnessrag-robust" { $flags += @("--relation-alternatives", "--plan-readings", "2",
+                                                       "--fact-fill", "question", "--fact-rerank",
+                                                       "--fact-time", "both") }
++                    "robust-no-plan" { $flags += @("--ablation", "no-plan", "--fact-fill", "question",
++                                                  "--fact-rerank", "--fact-time", "both") }
+                     "wr-no-rerank" { $flags += @("--relation-alternatives", "--plan-readings", "2",
+                                                  "--fact-fill", "question", "--fact-time", "both") }
+                     "wr-plan" { $flags += @("--relation-alternatives", "--plan-readings", "2") }

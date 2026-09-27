@@ -154,6 +154,23 @@ def parser():
                    default=None, help="ablação de um componente do WitnessRAG (docs/ablacao.md)")
     p.add_argument("--ie-style", choices=["memory"], default=None,
                    help="extração como itens de memória (tripla + frase + fala + tipo temporal)")
+    # Plano robusto e seleção de fatos (27/09/2026, docs/plano-robusto.md). Desligados por padrão.
+    p.add_argument("--relation-alternatives", action="store_true",
+                   help="átomos disjuntivos: o planejador dá até 3 relações alternativas por átomo")
+    p.add_argument("--plan-readings", type=int, default=None,
+                   help="até N leituras alternativas da pergunta na mesma chamada de planejamento")
+    p.add_argument("--multiplan-portfolio", action="store_true",
+                   help="experimental: contrato fixo, planos complementares e verificação de cobertura")
+    p.add_argument("--portfolio-max-plans", type=int, default=None,
+                   help="planos distintos por ciclo do portfólio (1..4; padrão 3)")
+    p.add_argument("--fact-fill", choices=["plan", "question"], default=None,
+                   help="fatos além da prova e das respostas do plano: pela pergunta e átomos (plan) ou só pela pergunta")
+    p.add_argument("--fact-rerank", nargs="?", const="BAAI/bge-reranker-v2-m3", default=None,
+                   help="cross-encoder que substitui a similaridade na seleção dos fatos")
+    p.add_argument("--fact-rerank-pool", type=int, default=None,
+                   help="candidatos reordenados pelo cross-encoder (120)")
+    p.add_argument("--fact-time", choices=["resolved", "both"], default=None,
+                   help="data dos fatos no leitor: intervalo resolvido, ou também a expressão dita")
     p.add_argument("--set-union", action="store_true",
                    help="planos de conjunto: paráfrases viram união e relação mais frouxa (0.5)")
     p.add_argument("--type-mode", choices=["rank", "veto"], default=None,
@@ -189,6 +206,15 @@ def parser():
 
 
 def make_plan(args, output):
+    if getattr(args, "multiplan_portfolio", False):
+        if not (getattr(args, "proof_controller", False) and getattr(args, "fact_delivery", None)):
+            raise ValueError("--multiplan-portfolio exige --proof-controller e --fact-delivery")
+        if (getattr(args, "no_proof_verify", False) or getattr(args, "ablation", None)
+                or getattr(args, "fact_no_plan", False) or getattr(args, "set_union", False)):
+            raise ValueError("o portfólio exige verificação e não admite ablação antiga/set-union")
+    if getattr(args, "portfolio_max_plans", None) is not None:
+        if not getattr(args, "multiplan_portfolio", False) or not 1 <= args.portfolio_max_plans <= 4:
+            raise ValueError("--portfolio-max-plans exige portfólio e valor entre 1 e 4")
     if args.max_query_plans < 1:
         raise ValueError("--max-query-plans deve ser >= 1")
     if args.soft_obligations and not args.active_obligations:
@@ -585,6 +611,21 @@ def _run_config(settings, n_questions):
         cfg.witness.proof_importance_normal = cfg.witness.proof_importance_strong = 0.0
     if settings.get("fact_budget") is not None:
         cfg.witness.fact_budget = int(settings["fact_budget"])
+    cfg.witness.relation_alternatives = settings.get("relation_alternatives", False)
+    cfg.witness.plan_readings = int(settings.get("plan_readings") or 0)
+    cfg.witness.multiplan_portfolio = settings.get("multiplan_portfolio", False)
+    cfg.witness.portfolio_max_plans = int(settings.get("portfolio_max_plans") or 3)
+    if cfg.witness.multiplan_portfolio:
+        cfg.witness.typed_variables = True
+        cfg.witness.item_set_proofs = True
+        cfg.witness.relation_alternatives = True
+        cfg.witness.binding_aware_grounding = True
+        cfg.witness.witness_delivery = "mixed"
+    cfg.witness.fact_fill = settings.get("fact_fill") or "plan"
+    cfg.witness.fact_rerank = settings.get("fact_rerank") or ""
+    if settings.get("fact_rerank_pool") is not None:
+        cfg.witness.fact_rerank_pool = int(settings["fact_rerank_pool"])
+    cfg.witness.fact_time = settings.get("fact_time") or "resolved"
     if settings.get("proof_dominance") is not None:
         cfg.witness.proof_dominance = float(settings["proof_dominance"])
     if settings.get("anchor_relations") is not None:
@@ -872,6 +913,9 @@ def _validate_resume(old, new):
               "typed_variables", "item_set_proofs", "witness_delivery", "abductive_premises",
               "type_model", "type_min_score", "type_expected", "type_mode",
               "proof_dominance", "anchor_relations", "relation_threshold", "set_union", "plan_to_reader", "fact_delivery", "fact_budget", "ie_style", "fact_no_plan", "ablation",
+              "relation_alternatives", "plan_readings", "fact_fill", "fact_rerank",
+              "multiplan_portfolio", "portfolio_max_plans",
+              "fact_rerank_pool", "fact_time",
               "proof_edit_fraction", "yesno_rationale",
               "qa_max_tokens",
               "hybrid_fallback", "dialogue_ie",

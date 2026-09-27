@@ -93,6 +93,29 @@ switch ($Method) {
                             "--abductive-premises", "--ie-style", "memory", "--fact-delivery", "facts+summary")
                 if ($Profile -like "abl-*") { $flags += @("--ablation", $Profile.Substring(4)) }
             }
+            { $_ -in @("witnessrag-robust", "witnessrag-multiplan", "robust-no-plan", "wr-no-rerank", "wr-plan", "wr-alt", "wr-readings", "wr-fill", "wr-rerank", "wr-time") } {
+                # Plano robusto e seleção de fatos (docs/plano-robusto.md).
+                $flags += @("--typed-variables", "--item-set-proofs", "--witness-delivery", "mixed",
+                            "--abductive-premises", "--ie-style", "memory", "--fact-delivery", "facts+summary")
+                switch ($Profile) {
+                    "witnessrag-multiplan" { $flags += @("--relation-alternatives", "--plan-readings", "2",
+                        "--fact-fill", "question", "--fact-rerank", "--fact-time", "both",
+                        "--multiplan-portfolio", "--portfolio-max-plans", "3") }
+                    "witnessrag-robust" { $flags += @("--relation-alternatives", "--plan-readings", "2",
+                                                      "--fact-fill", "question", "--fact-rerank",
+                                                      "--fact-time", "both") }
+                    "robust-no-plan" { $flags += @("--ablation", "no-plan", "--fact-fill", "question",
+                                                  "--fact-rerank", "--fact-time", "both") }
+                    "wr-no-rerank" { $flags += @("--relation-alternatives", "--plan-readings", "2",
+                                                 "--fact-fill", "question", "--fact-time", "both") }
+                    "wr-plan" { $flags += @("--relation-alternatives", "--plan-readings", "2") }
+                    "wr-alt" { $flags += "--relation-alternatives" }
+                    "wr-readings" { $flags += @("--plan-readings", "2") }
+                    "wr-fill" { $flags += @("--fact-fill", "question") }
+                    "wr-rerank" { $flags += "--fact-rerank" }
+                    "wr-time" { $flags += @("--fact-time", "both") }
+                }
+            }
             "v4-typed" { $flags += @("--typed-variables", "--item-set-proofs") }
             "v4-excerpts" { $flags += @("--witness-delivery", "excerpts") }
             "v4-abductive" { $flags += "--abductive-premises" }

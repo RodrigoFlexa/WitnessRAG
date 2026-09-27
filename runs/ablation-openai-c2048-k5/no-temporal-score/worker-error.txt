@@ -1,0 +1,29 @@
+Traceback (most recent call last):
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\pilot.py", line 1006, in main
+    worker(args.worker)
+    ~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\pilot.py", line 497, in worker
+    roots = _run_every_conversation(plan, settings)
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\pilot.py", line 658, in _run_every_conversation
+    root = run([settings["dataset"]], plan["methods"],
+               _run_config(settings, metadata["questions"]), tag=f"conv{index:02d}",
+               resume_dir=resume_dir)
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\eval\runner.py", line 574, in run
+    summaries[dataset] = run_dataset(dataset, run_cfg, paths, methods, resume=resume)
+                         ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\eval\runner.py", line 133, in run_dataset
+    _run_interleaved(retrievers, corpus, run_cfg, paths, resume, summary, original)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\eval\runner.py", line 191, in _run_interleaved
+    _write_live_report(paths, corpus, rows)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\eval\runner.py", line 318, in _write_live_report
+    write_json(paths.dataset_dir(corpus.name) / "live_report.json", payload)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\rodri\OneDrive\Documentos\GitHub\AIIMS\papers\WitnessRAG\wrag\util.py", line 119, in write_json
+    temporary.replace(path)
+    ~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\rodri\anaconda3\Lib\pathlib\_local.py", line 780, in replace
+    os.replace(self, target)
+    ~~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Acesso negado: 'C:\\Users\\rodri\\OneDrive\\Documentos\\GitHub\\AIIMS\\papers\\WitnessRAG\\runs\\ablation-openai-c2048-k5\\no-temporal-score\\conversations\\conv00\\benchmark\\20260927-053746-041374-conv00\\locomo\\.live_report.json-kzpapjla.tmp' -> 'C:\\Users\\rodri\\OneDrive\\Documentos\\GitHub\\AIIMS\\papers\\WitnessRAG\\runs\\ablation-openai-c2048-k5\\no-temporal-score\\conversations\\conv00\\benchmark\\20260927-053746-041374-conv00\\locomo\\live_report.json'

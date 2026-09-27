@@ -16,6 +16,12 @@
 #   witnessrag       o método completo (igual a proof-v4-memory)
 #   abl-no-plan | abl-no-proof | abl-no-verify | abl-no-temporal-score
 #                    ablações de um componente (docs/ablacao.md)
+#   witnessrag-robust  WitnessRAG + plano robusto (relações alternativas,
+#                    leituras alternativas) + fatos pela pergunta + reranker +
+#                    datas bitemporais (docs/plano-robusto.md)
+#   wr-no-rerank     witnessrag-robust sem o reranker (sem custo de CPU)
+#   wr-plan | wr-alt | wr-readings | wr-fill | wr-rerank | wr-time
+#                    uma parte do witnessrag-robust de cada vez
 #   v4-typed         só tipos + conjuntos item a item, entrega por trechos (pages)
 #   v4-excerpts      só a entrega como falas de origem, sem trocar trechos
 #   v4-mixed         só a entrega mista
@@ -40,7 +46,33 @@ proof_profile_flags() {
       # (docs/ablacao.md). Todas usam a mesma memória e o mesmo leitor.
       PROOF_FLAGS+=(--typed-variables --item-set-proofs --witness-delivery mixed
         --abductive-premises --ie-style memory --fact-delivery facts+summary)
-      [[ "$profile" == abl-* ]] && PROOF_FLAGS+=(--ablation "${profile#abl-}")
+      # "if" and not "[[ ]] &&": under "set -e" a false test as the last
+      # command made the function fail and the caller exit silently.
+      if [[ "$profile" == abl-* ]]; then PROOF_FLAGS+=(--ablation "${profile#abl-}"); fi
+      ;;
+    witnessrag-robust|witnessrag-multiplan|robust-no-plan|wr-no-rerank|wr-plan|wr-alt|wr-readings|wr-fill|wr-rerank|wr-time)
+      # Plano robusto e seleção de fatos (docs/plano-robusto.md), sobre o
+      # WitnessRAG completo. witnessrag-robust liga tudo; wr-* liga uma parte
+      # (wr-plan = relações alternativas + leituras alternativas).
+      PROOF_FLAGS+=(--typed-variables --item-set-proofs --witness-delivery mixed
+        --abductive-premises --ie-style memory --fact-delivery facts+summary)
+      case "$profile" in
+        witnessrag-multiplan) PROOF_FLAGS+=(--relation-alternatives --plan-readings 2
+          --fact-fill question --fact-rerank --fact-time both --multiplan-portfolio
+          --portfolio-max-plans 3) ;;
+        witnessrag-robust) PROOF_FLAGS+=(--relation-alternatives --plan-readings 2
+          --fact-fill question --fact-rerank --fact-time both) ;;
+        robust-no-plan) PROOF_FLAGS+=(--ablation no-plan --fact-fill question
+          --fact-rerank --fact-time both) ;;
+        wr-no-rerank) PROOF_FLAGS+=(--relation-alternatives --plan-readings 2
+          --fact-fill question --fact-time both) ;;
+        wr-plan) PROOF_FLAGS+=(--relation-alternatives --plan-readings 2) ;;
+        wr-alt) PROOF_FLAGS+=(--relation-alternatives) ;;
+        wr-readings) PROOF_FLAGS+=(--plan-readings 2) ;;
+        wr-fill) PROOF_FLAGS+=(--fact-fill question) ;;
+        wr-rerank) PROOF_FLAGS+=(--fact-rerank) ;;
+        wr-time) PROOF_FLAGS+=(--fact-time both) ;;
+      esac
       ;;
     v4-typed) PROOF_FLAGS+=(--typed-variables --item-set-proofs) ;;
     v4-excerpts) PROOF_FLAGS+=(--witness-delivery excerpts) ;;

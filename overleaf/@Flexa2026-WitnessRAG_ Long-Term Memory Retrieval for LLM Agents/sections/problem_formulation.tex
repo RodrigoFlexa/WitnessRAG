@@ -1,0 +1,27 @@
+\section{Task Formulation}
+\label{sec:problem}
+
+An agent accumulates an interaction history $H=(s_1,\ldots,s_T)$ of dated
+dialogue sessions. A memory construction process maps this history to a
+memory $\mem$ comprising the source passages and representations derived
+from them. Given a question $q$, retrieval constructs a context $\ctx$
+under a budget $b$, from which a reader produces an answer:
+\begin{equation}
+ \ctx=\mathrm{Retrieve}(q,\mem;b),\qquad
+ \hat a=\mathrm{Read}(q,\ctx).
+ \label{eq:task}
+\end{equation}
+The budget bounds the evidence delivered to the reader, so the goal of
+retrieval is to select evidence that \emph{supports} a correct answer,
+rather than records that merely resemble the question.
+
+We consider questions whose relational requirements can be expressed as
+a conjunctive query (\cref{sec:preliminaries}). Under this view,
+retrieval amounts to finding witnesses of the query in memory, with the
+temporal scope and expected form of the answer shaping which witnesses
+are preferred. The formulation thus distinguishes two responsibilities:
+\emph{interpreting} the question as a query, and \emph{satisfying} that
+query over stored facts. Witnesses make the second responsibility
+explicit and checkable; their adequacy for the original question still
+depends on the interpretation and on the stored facts, a point we return
+to in \cref{sec:discussion}.

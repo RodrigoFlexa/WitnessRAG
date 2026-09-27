@@ -27,7 +27,7 @@ from wrag.embed import cosine_topk
 from wrag.ie import Fact, extract_targeted
 from wrag.llm import GenParams
 from wrag.llm.filters import LEDGER
-from wrag.witness.timeline import Interval, format_interval
+from wrag.witness.timeline import Interval, anchored_phrase, format_interval, natural_interval
 from wrag.methods.base import IndexContext, RetrievalResult, Retriever, pad_with_dense
 from wrag.methods.dense import DenseRetriever, HybridRetriever
 from wrag.util import get_logger, canonical_symbol
@@ -1635,6 +1635,10 @@ class WitnessRAGRetriever(Retriever):
         if query.types and not cfg.typed_variables:
             # A type the planner volunteered is ignored unless the option is on.
             query = dataclasses.replace(query, types={})
+        if not cfg.relation_alternatives and any(a.alternatives for a in query.atoms):
+            # Likewise for relation alternatives (disjunctive atoms).
+            query = dataclasses.replace(query, atoms=[dataclasses.replace(a, alternatives=[])
+                                                      for a in query.atoms])
         prior = self.scorer.fact_prior(plan.weights, plan.period, len(self.memory.facts))
         self.searcher.set_scoring(plan.weights.similarity, prior)
         saved = (self.searcher.allowed, self.searcher._allowed_horizon)
@@ -1712,6 +1716,7 @@ class WitnessRAGRetriever(Retriever):
             return outcome
         best_match = max((support(w, True) for c in candidates for w in c.witnesses),
                          default=0.0)
+        outcome["melhor_suporte"] = best_match
         if best_match < cfg.proof_min_support:
             outcome["motivo"] = "casamento_abaixo_do_limiar"
             return outcome
@@ -1745,6 +1750,43 @@ class WitnessRAGRetriever(Retriever):
                         "novas": [pid for pid in pids if pid not in top]})
         return outcome
 
+    def _try_readings(self, plan: ProofPlan, outcome: dict[str, Any], evidence: list[str],
+                      context_pids: list[str], signatures: set[tuple],
+                      record: dict[str, Any]) -> tuple[ProofPlan, dict[str, Any]]:
+        """Robust plan: the main reading did not prove, so the other readings
+        written in the same planning call are executed (no new LLM call).
+
+        Choice rule: the usable reading with the highest support (ties: the
+        earlier reading). Without any usable reading, the main reading stays
+        unless it did not even complete the join and another reading did (its
+        answers then guide the fact selection). Every attempt is logged."""
+        attempts = [{"leitura": 0, "resultado": outcome["motivo"],
+                     "suporte": round(float(outcome.get("melhor_suporte", 0.0)), 4)}]
+        best_plan, best = plan, outcome
+        for other in plan.readings:
+            if not other.executable or other.signature() in signatures:
+                attempts.append({"leitura": other.reading, "resultado": "nao_executada"})
+                continue
+            signatures.add(other.signature())
+            result = self._prove(other, evidence, context_pids)
+            attempts.append({"leitura": other.reading, "resultado": result["motivo"],
+                             "suporte": round(float(result.get("melhor_suporte", 0.0)), 4),
+                             "consulta": other.query.to_dict(),
+                             "respostas": [c.answer for c in result["candidatas"][:5]]})
+            if result["utilizavel"]:
+                if (not best["utilizavel"]
+                        or result.get("melhor_suporte", 0.0) > best.get("melhor_suporte", 0.0)):
+                    best_plan, best = other, result
+            elif (not best["utilizavel"] and best["motivo"] == "join_incompleto"
+                  and result["motivo"] != "join_incompleto" and best_plan is plan):
+                best_plan, best = other, result
+        record["leituras"] = attempts
+        record["leitura_escolhida"] = best_plan.reading
+        if best_plan is not plan:
+            best_plan.hypothesis = best_plan.hypothesis or plan.hypothesis
+            record["plano_leitura"] = best_plan.to_dict()
+        return best_plan, best
+
     def _fact_context(self, question: Question, plan: ProofPlan | None,
                       accepted: dict[str, Any] | None, outcome: dict[str, Any] | None,
                       context_pids: list[str]) -> tuple[str, str, dict[str, Any]]:
@@ -1768,7 +1810,7 @@ class WitnessRAGRetriever(Retriever):
         probes = [question.question]
         if not cfg.fact_plan_guided:
             plan, accepted, outcome = None, None, None
-        if plan is not None and plan.valid:
+        if plan is not None and plan.valid and cfg.fact_fill != "question":
             probes += [a.verbalize() for a in plan.query.atoms if a.verbalize().strip()]
         vectors = self.ctx.embedder.encode(probes)
         sims = memory.fact_vectors[:n] @ vectors.T
@@ -1784,20 +1826,54 @@ class WitnessRAGRetriever(Retriever):
                     if index < n:
                         priority[index] = max(priority.get(index, 0.0), 2.0)
         if outcome is not None:
-            for candidate in outcome.get("candidatas", [])[:5]:
+            rejected = set(outcome.get("candidatas_recusadas", []))
+            for position, candidate in enumerate(outcome.get("candidatas", [])[:5]):
+                if position in rejected:
+                    continue
                 for witness in candidate.witnesses[:1]:
                     for index in witness.facts:
                         if index < n:
                             priority[index] = max(priority.get(index, 0.0), 1.0)
-        order = sorted(range(n), key=lambda i: -(score[i] + priority.get(i, 0.0)))
+        # These are strict tiers, not score bonuses: a negative cosine must
+        # never let a fill fact displace a fact from an accepted witness.
+        order = sorted(range(n), key=lambda i: (-priority.get(i, 0.0), -score[i], i))
+        if cfg.fact_rerank:
+            order, reranked = self._rerank_facts(question, order, score, priority)
+            info["reordenados"] = reranked
         chosen: list[int] = []
         seen: set = set()
         per_turn: dict[tuple, int] = {}
+        if cfg.multiplan_portfolio and accepted is not None:
+            from wrag.witness.portfolio import atomic_seed
+            chosen, dropped = atomic_seed(accepted.get("pacotes", []), cfg.fact_budget, n)
+            info["pacotes_descartados"] = dropped
+            retained = set(chosen)
+            for index in list(priority):
+                if priority[index] >= 2 and index not in retained:
+                    del priority[index]
+            info["prova"] = len(chosen)
+            # Preserve the original source indices of every admitted witness.
+            # A per-turn cap or semantic dedup must not remove its bridge.
+            for index in chosen:
+                fact = memory.facts[index]
+                key = ((canonical_symbol(fact.statement),) if fact.statement else
+                       (canonical_symbol(fact.subject), canonical_symbol(fact.relation),
+                        canonical_symbol(fact.object)))
+                seen.add(key + (dated.fact_time_text(index), getattr(fact, "kind", "")))
+                turn = dated.fact_turn[index]
+                per_turn[turn] = per_turn.get(turn, 0) + 1
         for index in order:
+            if len(chosen) >= cfg.fact_budget:
+                break
+            if index in chosen:
+                continue
             fact = memory.facts[index]
             key = ((canonical_symbol(fact.statement),) if fact.statement else
                    (canonical_symbol(fact.subject), canonical_symbol(fact.relation),
-                    canonical_symbol(fact.object), dated.fact_time_text(index)))
+                    canonical_symbol(fact.object)))
+            # Identical propositions can describe separate occurrences, or
+            # distinguish a plan from an event that actually happened.
+            key += (dated.fact_time_text(index), getattr(fact, "kind", ""))
             turn = dated.fact_turn[index] if index < len(dated.fact_turn) else ("", -1)
             if key in seen or per_turn.get(turn, 0) >= 4:
                 continue
@@ -1831,8 +1907,22 @@ class WitnessRAGRetriever(Retriever):
                 event = dated.fact_time_text(index)
                 from_text = (index < len(dated.fact_time_source)
                              and dated.fact_time_source[index] == "expressao")
-                if getattr(fact, "kind", "") == "plan":
-                    suffix = f" (planned for: {event})" if from_text and event else " (plan)"
+                expression = " ".join(str(getattr(fact, "time", "") or "").split())[:40]
+                if cfg.fact_time == "both" and from_text and expression:
+                    # Bitemporal: the time as the dialogue states it (the
+                    # speaker's words anchored to the day they were said), then
+                    # the resolved dates at the precision of the expression.
+                    interval = (dated.fact_interval[index]
+                                if index < len(dated.fact_interval) else None)
+                    natural = natural_interval(interval) or event
+                    anchored = anchored_phrase(expression, when)
+                    stated = anchored or f'said as "{expression}"'
+                    head = "planned for" if getattr(fact, "kind", "") == "plan" else "event"
+                    suffix = f" ({head}: {stated}; {natural})" if anchored else \
+                        f" ({stated}; {head}: {natural})"
+                elif getattr(fact, "kind", "") == "plan":
+                    suffix = (f" (planned for: {event})" if from_text and event
+                              else " (plan)")
                 else:
                     suffix = f" (event: {event})" if event and event != label else ""
                 body = fact.statement or f"{fact.subject} | {fact.relation} | {fact.object}"
@@ -1854,7 +1944,39 @@ class WitnessRAGRetriever(Retriever):
             summary = "\n".join(parts)
             info["resumos"] = len(parts)
         info["n"] = len(chosen)
+        # Provenance of what was actually delivered; retrieved passage ids
+        # alone do not describe a fact-only reader's context.
+        info["indices"] = chosen
+        info["fontes"] = [
+            {"indice": i, "fid": memory.facts[i].fid, "pid": memory.facts[i].pid,
+             "turn_id": (dated.turns[pid][pos].turn_id
+                         if 0 <= pos < len(dated.turns.get(pid, [])) else "")}
+            for i in chosen for pid, pos in [dated.fact_turn[i]]]
         return "\n".join(lines), summary, info
+
+    def _rerank_facts(self, question: Question, order: list[int], score: np.ndarray,
+                      priority: dict[int, float]) -> tuple[list[int], int]:
+        """Cross-encoder in place of the similarity score: the first
+        ``fact_rerank_pool`` candidates (after the proof and plan tiers, which
+        keep their priority) are reordered by the relevance of the question to
+        the fact sentence plus its source turn. The rest keeps its order."""
+        from wrag.witness.rerank import get_reranker
+        assert self.memory is not None and self.dated is not None
+        cfg = self.ctx.run.witness
+        pool = order[:cfg.fact_rerank_pool]
+        texts = []
+        for index in pool:
+            fact = self.memory.facts[index]
+            body = fact.statement or f"{fact.subject} {fact.relation} {fact.object}"
+            pid, position = self.dated.fact_turn[index]
+            turns = self.dated.turns.get(pid) or []
+            turn = turns[position] if 0 <= position < len(turns) else None
+            source = f" [{turn.speaker}: {turn.text}]" if turn is not None else ""
+            texts.append((body + source)[:700])
+        relevance = get_reranker(cfg.fact_rerank).score(question.question, texts)
+        ranked = sorted(range(len(pool)), key=lambda j: (-priority.get(pool[j], 0.0),
+                                                         -relevance[j], j))
+        return [pool[j] for j in ranked] + order[len(pool):], len(pool)
 
     def _chunk_summary(self, pid: str) -> str:
         """Short summary of one chunk, written once per chunk (memory
@@ -2137,6 +2259,9 @@ class WitnessRAGRetriever(Retriever):
         assert self.dated is not None
         cfg = self.ctx.run.witness
         levels = self._weight_levels()
+        if cfg.multiplan_portfolio:
+            from wrag.witness.portfolio import retrieve_portfolio
+            return retrieve_portfolio(self, question, k, pool_pids, pool_scores)
         fused = dict(zip(pool_pids, pool_scores))
         hybrid = list(pool_pids[:k])
         question_time = self.dated.last
@@ -2168,7 +2293,8 @@ class WitnessRAGRetriever(Retriever):
                 extras = [{"title": "Facts from the memory", "text": facts_text}]
                 if summary_text:
                     extras.append({"title": "Chunk summaries", "text": summary_text})
-                diagnostics.update({"leitura_fatos": True, "fatos_entregues": info,
+                diagnostics.update({"leitura_fatos": "bitemporal" if cfg.fact_time == "both" else True,
+                                    "fatos_entregues": info,
                                     "trechos_extras": extras})
             return RetrievalResult(pids=hybrid, scores=[1.0 / (i + 1) for i in range(len(hybrid))],
                                    diagnostics=diagnostics)
@@ -2187,7 +2313,8 @@ class WitnessRAGRetriever(Retriever):
                 feedback=feedback_block(feedback), max_atoms=cfg.max_atoms,
                 temperature=cfg.plan_temperature, question_time=question_time, cycle=cycle,
                 dataset=self.ctx.dataset, method=self.name,
-                types=cfg.typed_variables, hypothesis=cfg.abductive_premises)
+                types=cfg.typed_variables, hypothesis=cfg.abductive_premises,
+                alternatives=cfg.relation_alternatives, readings=cfg.plan_readings)
             planning["chamadas_plano"] += 1
             record: dict[str, Any] = {"ciclo": cycle, "plano": plan.to_dict()}
             diagnostics["ciclos"].append(record)
@@ -2219,6 +2346,11 @@ class WitnessRAGRetriever(Retriever):
             order = self._rank_memory(plan, fused, list(pool_pids))
             evidence = list(dict.fromkeys(evidence + order[:cfg.candidate_pool_k]))
             outcome = self._prove(plan, evidence, order[:k])
+            main_plan = plan
+            if cfg.plan_readings and plan.readings and not outcome["utilizavel"]:
+                plan, outcome = self._try_readings(plan, outcome, evidence, order[:k],
+                                                   signatures, record)
+                final_plan = plan
             last_outcome = outcome
             record.update({"escopo": outcome["escopo"], "resultado": outcome["motivo"],
                            "n_testemunhas": outcome["n_testemunhas"],
@@ -2230,7 +2362,10 @@ class WitnessRAGRetriever(Retriever):
             if outcome["utilizavel"]:
                 # Excerpts of a set are new text for the reader even when their
                 # passages are already retrieved, so they are always verified.
-                needs_check = bool(outcome["novas"]) or (
+                # With fact delivery the witness changes selection even if
+                # its source passages were retrieved already. That old
+                # passage-only shortcut cannot certify the selected facts.
+                needs_check = bool(cfg.fact_delivery) or bool(outcome["novas"]) or (
                     outcome.get("por_item") and cfg.witness_delivery in {"excerpts", "mixed"})
                 if not needs_check:
                     record["verificacao"] = "dispensada_prova_ja_no_contexto"
@@ -2242,24 +2377,56 @@ class WitnessRAGRetriever(Retriever):
                     accepted = outcome
                     diagnostics["motivo_parada"] = "prova_sem_verificacao"
                     break
-                verdict = confirm(self.ctx.llm, question, plan.describe(),
-                                  self._verification_candidates(outcome),
-                                  dataset=self.ctx.dataset, method=self.name)
-                planning["chamadas_verificacao"] += int(verdict.called)
-                record["verificacao"] = verdict.to_dict()
-                if verdict.confirmed:
-                    kept = [item for number, item in enumerate(outcome["selecionadas"])
+                def check(candidate_plan, candidate):
+                    verdict = confirm(self.ctx.llm, question, candidate_plan.describe(),
+                                      self._verification_candidates(candidate),
+                                      dataset=self.ctx.dataset, method=self.name)
+                    planning["chamadas_verificacao"] += int(verdict.called)
+                    # Verdict ids index selected witnesses, not the full
+                    # candidate list. Explicitly rejected answers must not
+                    # re-enter fact delivery with the plan's priority.
+                    candidate["candidatas_recusadas"] = sorted({
+                        position for number, (position, _w) in
+                        enumerate(candidate["selecionadas"]) if number in verdict.rejected})
+                    if not verdict.confirmed:
+                        return verdict, None
+                    kept = [item for number, item in enumerate(candidate["selecionadas"])
                             if number in set(verdict.supported)]
                     pids = list(dict.fromkeys(pid for _p, w in kept for pid in w.pids))
-                    outcome = dict(outcome, selecionadas=kept, passagens=pids,
-                                   novas=[pid for pid in pids if pid not in order[:k]])
-                    accepted = outcome
+                    return verdict, dict(candidate, selecionadas=kept, passagens=pids,
+                                         novas=[pid for pid in pids if pid not in order[:k]])
+
+                verdict, confirmed = check(plan, outcome)
+                record["verificacao"] = verdict.to_dict()
+                if confirmed is not None:
+                    accepted = confirmed
                     diagnostics["motivo_parada"] = "prova_confirmada"
                     break
                 reasons = sorted(set(verdict.rejected.values())) or [verdict.error or "sem_decisao"]
                 feedback.append({"cycle": cycle, "plan": plan.describe(),
                                  "outcome": "proof rejected by the check (" + ", ".join(reasons) + ")"})
                 diagnostics["motivo_parada"] = "prova_recusada"
+                if cfg.plan_readings and main_plan.readings and not record.get("leituras"):
+                    # Robust plan: the main reading proved but the check refused
+                    # it. The other readings of the same call are executed and
+                    # the best usable one is checked, before any replanning.
+                    rejected = {"utilizavel": False, "motivo": "prova_recusada",
+                                "melhor_suporte": outcome.get("melhor_suporte", 0.0)}
+                    other_plan, other = self._try_readings(main_plan, rejected, evidence,
+                                                           order[:k], signatures, record)
+                    if other_plan is not main_plan and other.get("utilizavel"):
+                        verdict, confirmed = check(other_plan, other)
+                        record["verificacao_leitura"] = verdict.to_dict()
+                        last_outcome = other
+                        if confirmed is not None:
+                            accepted, final_plan = confirmed, other_plan
+                            diagnostics["motivo_parada"] = "prova_confirmada"
+                            break
+                        reasons = (sorted(set(verdict.rejected.values()))
+                                   or [verdict.error or "sem_decisao"])
+                        feedback.append({"cycle": cycle, "plan": other_plan.describe(),
+                                         "outcome": "proof rejected by the check ("
+                                                    + ", ".join(reasons) + ")"})
             else:
                 gap = outcome["lacuna"]
                 detail = _OUTCOME_FEEDBACK.get(outcome["motivo"], outcome["motivo"])
@@ -2269,6 +2436,10 @@ class WitnessRAGRetriever(Retriever):
                     detail += (f"; no fact matched '{gap.atom.relation}'"
                                + (f" for '{gap.anchor()}'" if gap.anchor() else ""))
                     probe_text = gap.probe()
+                others = [a for a in record.get("leituras", []) if a.get("leitura")]
+                if others:
+                    detail += "; the other readings failed too (" + ", ".join(
+                        f"reading {a['leitura']}: {a['resultado']}" for a in others) + ")"
                 feedback.append({"cycle": cycle, "plan": plan.describe(), "outcome": detail})
                 diagnostics["motivo_parada"] = outcome["motivo"]
         if final_plan is None and diagnostics["motivo_parada"] == "sem_prova":
@@ -2399,7 +2570,7 @@ class WitnessRAGRetriever(Retriever):
             extras = [{"title": "Facts from the memory", "text": facts_text}]
             if summary_text:
                 extras.append({"title": "Chunk summaries", "text": summary_text})
-            diagnostics["leitura_fatos"] = True
+            diagnostics["leitura_fatos"] = "bitemporal" if cfg.fact_time == "both" else True
             diagnostics["fatos_entregues"] = info
         if extras:
             diagnostics["trechos_extras"] = extras

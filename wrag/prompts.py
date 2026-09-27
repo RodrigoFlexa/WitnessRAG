@@ -928,13 +928,150 @@ Question: "Would Paulo enjoy a jazz festival?"
 """
 
 
-def plan_template(types: bool = False, hypothesis: bool = False) -> str:
+# Robust plan (docs/plano-robusto.md). Two independent additions, both off by
+# default: disjunctive atoms (other phrasings of the same relation, tried in
+# the same join) and other readings of the question (tried by the executor
+# when the main reading does not prove, without a new planning call).
+_PLAN_PART_ALTERNATIVES = """{n}. "alternatives" (REQUIRED in every atom): 1 to 3 other short relation
+   phrases the memory could use for the SAME fact, preferably relations shown
+   below from the memory. The atom matches a fact with any of them.
+   "live in" -> ["move to", "reside in"]; "check out" -> ["visit", "try"].
+   Never list a broader or a different fact ("visit" is not "live in"; "like"
+   is not "buy").
+"""
+
+_PLAN_PART_READINGS = """{n}. "other_readings" (REQUIRED; 1 to {k} readings, [] only for a question
+   with a single obvious reading): other ways the memory may store what the
+   question asks, tried in order ONLY if the first plan finds no proof. Each
+   is an object with "answer_var", "atoms" and "aggregation" (and "types" if
+   used). Good readings: a group subject split to the person who speaks
+   ("Kai and his wife" -> "Kai"); a chain instead of one atom ("Nora's
+   brother" as a person linked to Nora, or as the name itself); the other
+   direction (give(A, ?x) or receive from A(B, ?x)); a more general relation
+   plus a type. The first plan stays the most literal reading.
+"""
+
+_EXAMPLE_CHAIN_V3 = ('{{"relation":"located in","subject":"?y","object":"?x"}}')
+_EXAMPLE_CHAIN_ALT = ('{{"relation":"located in","alternatives":["based in","in city"],'
+                      '"subject":"?y","object":"?x"}}')
+_EXAMPLE_TOMAS_V3 = '{{"relation":"travel to","subject":"Tomas","object":"?x"}}'
+_EXAMPLE_TOMAS_ALT = ('{{"relation":"travel to","alternatives":["visit","trip to"],'
+                      '"subject":"Tomas","object":"?x"}}')
+_EXTRA_READINGS_EXAMPLE = """
+Question: "Where did Nora's brother move?"
+{{"answer_var":"x","atoms":[{{"relation":"sibling of","alternatives":["brother of"],"subject":"?y","object":"Nora"}},{{"relation":"move to","alternatives":["relocate to","live in"],"subject":"?y","object":"?x"}}],"aggregation":"none","expected_type":"place","period":{{"reference":"now","text":""}},"time_weight":"normal","importance_weight":"normal","other_readings":[{{"answer_var":"x","atoms":[{{"relation":"move to","alternatives":["relocate to","live in"],"subject":"Nora's brother","object":"?x"}}],"aggregation":"none"}}],"fallback":"Nora brother move city"}}
+"""
+
+
+def _robust_examples(types: bool, hypothesis: bool, alternatives: bool,
+                     readings: int) -> str:
+    """Worked examples for the robust plan. A small planner copies the
+    examples far more than it follows an instruction, so with the robust
+    fields on EVERY example shows them. Synthetic names only."""
+    now = {"reference": "now", "text": ""}
+
+    def atom(rel, subj, obj, alts, time=""):
+        out = {"relation": rel}
+        if alternatives:
+            out["alternatives"] = alts
+        out.update({"subject": subj, "object": obj})
+        if time:
+            out["time"] = time
+        return out
+
+    def plan(question, atoms, aggregation, expected, other=(), kind="", period=None,
+             time_weight="normal", importance="normal", fallback="", hypo=None):
+        data = {"answer_var": "t" if any(a.get("time") for a in atoms) else "x",
+                "atoms": atoms, "aggregation": aggregation}
+        if types and kind:
+            data["types"] = {"x": kind}
+        data.update({"expected_type": expected, "period": period or now,
+                     "time_weight": time_weight, "importance_weight": importance})
+        if hypo and hypothesis:
+            data["hypothesis"] = hypo
+        if readings > 0:
+            data["other_readings"] = [
+                dict({"answer_var": "x", "atoms": o[0], "aggregation": o[1]},
+                     **({"types": {"x": o[2]}} if types and len(o) > 2 and o[2] else {}))
+                for o in list(other)[:readings]]
+        data["fallback"] = fallback
+        body = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+        return f'Question: "{question}"\n' + body.replace("{", "{{").replace("}", "}}")
+
+    rows = [
+        plan("Which instrument does Nira play?",
+             [atom("play", "Nira", "?x", ["practise", "learn"])], "none", "other",
+             [([atom("own", "Nira", "?x", ["have", "buy"])], "none", "musical instrument")],
+             kind="musical instrument", fallback="Nira instrument play"),
+        plan("In which city is the laboratory led by Omar located?",
+             [atom("lead", "Omar", "?y", ["run", "head"]),
+              atom("located in", "?y", "?x", ["based in", "in city"])], "none", "place",
+             [([atom("work at", "Omar", "?y", ["employed at"]),
+                atom("located in", "?y", "?x", ["based in", "in city"])], "none")],
+             fallback="Omar laboratory city"),
+        plan("When did Lia adopt her dog?",
+             [atom("adopt", "Lia", "Lia's dog", ["get", "bring home"], time="?t")], "none",
+             "date", fallback="Lia adopt dog"),
+        plan("Where did Kai and his wife go last summer?",
+             [atom("go to", "Kai and his wife", "?x", ["visit", "travel to"])], "set", "place",
+             [([atom("go to", "Kai", "?x", ["visit", "travel to"])], "set")],
+             period={"reference": "window", "text": "summer 2022"}, time_weight="strong",
+             fallback="Kai wife trip summer"),
+        plan("Where has Tomas travelled?",
+             [atom("travel to", "Tomas", "?x", ["visit", "trip to"])], "set", "place", [],
+             fallback="Tomas travel trip"),
+        plan("What was the first job Ines had?",
+             [atom("work as", "Ines", "?x", ["job", "employed as"])], "none", "other",
+             [([atom("work at", "Ines", "?x", ["employed at", "job at"])], "none")],
+             period={"reference": "start", "text": ""}, time_weight="strong",
+             fallback="Ines first job"),
+        plan("How many concerts has Leo attended?",
+             [atom("attend", "Leo", "?x", ["go to", "see"])], "count", "number", [],
+             kind="concert", fallback="Leo concerts attended"),
+        plan("Where did Nora's brother move?",
+             [atom("sibling of", "?y", "Nora", ["brother of"]),
+              atom("move to", "?y", "?x", ["relocate to", "live in"])], "none", "place",
+             [([atom("move to", "Nora's brother", "?x", ["relocate to", "live in"])], "none")],
+             fallback="Nora brother move city"),
+        plan("What gifts did Mei receive from her aunt?",
+             [atom("receive from aunt", "Mei", "?x", ["get from aunt", "gift from aunt"])],
+             "set", "other",
+             [([atom("give to Mei", "Mei's aunt", "?x", ["send to Mei", "buy for Mei"])], "set",
+               "gift")], kind="gift", fallback="Mei gifts from aunt"),
+        plan("What moment did Sara find most meaningful at the retreat?",
+             [atom("find meaningful at retreat", "Sara", "?x", ["remember from retreat",
+                                                                 "enjoy most at retreat"])],
+             "none", "other", [], importance="strong", fallback="Sara retreat meaningful moment"),
+    ]
+    if hypothesis:
+        rows.append(plan(
+            "Would Paulo enjoy a jazz festival?",
+            [atom("like", "Paulo", "?x", ["enjoy", "love"])], "set", "other", [],
+            hypo={"about": "Paulo", "concepts": ["music Paulo likes",
+                                                  "concerts or festivals Paulo attended",
+                                                  "Paulo's hobbies", "crowds and noise"]},
+            fallback="Paulo music festivals"))
+    return ("Synthetic examples follow. Learn their structure; do not copy their names or\n"
+            "predicates into the answer.\n\n" + "\n\n".join(rows) + "\n")
+
+
+def plan_template(types: bool = False, hypothesis: bool = False,
+                  alternatives: bool = False, readings: int = 0) -> str:
     """PLAN_TEMPLATE, or its design-v4 variant with the requested fields in the
-    task, the JSON shape and the examples."""
-    if not types and not hypothesis:
+    task, the JSON shape and the examples. ``alternatives`` and ``readings``
+    add the robust-plan fields; with all options off the prompt is v3."""
+    if not types and not hypothesis and not alternatives and readings <= 0:
         return PLAN_TEMPLATE
     text = PLAN_TEMPLATE.replace("A plan has four parts.", "A plan has these parts.", 1)
     parts = (_PLAN_PART_TYPES if types else "") + (_PLAN_PART_HYPOTHESIS if hypothesis else "")
+    number = 5 + int(types) + int(hypothesis)
+    if not types and hypothesis:
+        parts = parts.replace("6. \"hypothesis\"", "5. \"hypothesis\"", 1)
+    if alternatives:
+        parts += _PLAN_PART_ALTERNATIVES.format(n=number)
+        number += 1
+    if readings > 0:
+        parts += _PLAN_PART_READINGS.format(n=number, k=readings)
     anchor = "\nAnswer with JSON exactly in this shape:"
     assert anchor in text
     text = text.replace(anchor, parts + anchor, 1)
@@ -946,15 +1083,29 @@ def plan_template(types: bool = False, hypothesis: bool = False) -> str:
     if hypothesis:
         shape_new += ('  "hypothesis": {{"about": "...", "concepts": ["..."]}} '
                       '(only for likely/would questions),\n')
+    if readings > 0:
+        shape_new += ('  "other_readings": [{{"answer_var": "x", "atoms": [...], '
+                      '"aggregation": "..."}}],\n')
     text = text.replace(shape_old, shape_new, 1)
+    if alternatives:
+        atom_old = '  "atoms": [{{"relation": "...", "subject": "...", "object": "?x"}}],\n'
+        assert atom_old in text
+        text = text.replace(atom_old, '  "atoms": [{{"relation": "...", "alternatives": ["..."], '
+                                      '"subject": "...", "object": "?x"}}],\n', 1)
     if types:
         for old, new in zip(_EXAMPLES_V3, _EXAMPLES_TYPED):
             assert old in text, old
             text = text.replace(old, new, 1)
     extra = ((_EXTRA_TYPED_EXAMPLES if types else "")
-             + (_EXTRA_HYPOTHESIS_EXAMPLE if hypothesis else ""))
+             + (_EXTRA_HYPOTHESIS_EXAMPLE if hypothesis else "")
+             + (_EXTRA_READINGS_EXAMPLE if readings > 0 else ""))
     closing = "\nReturn one JSON object only, without explanations or markdown."
     assert closing in text
+    if alternatives or readings > 0:
+        start = text.index("Synthetic examples follow.")
+        end = text.index(closing)
+        return (text[:start] + _robust_examples(types, hypothesis, alternatives, readings)
+                + text[end:])
     text = text.replace(closing, extra + closing, 1)
     return text
 
@@ -1058,19 +1209,44 @@ fact has no event date, use its session date. Return the unit requested: a year,
 month, calendar date, interval, or duration."""
 
 
-def qa_facts_template(yesno_rationale: bool = False) -> str:
+# Bitemporal notes (docs/plano-robusto.md, --fact-time both): a fact dated
+# from a relative expression also shows the words the speaker used, so the
+# notes carry the same time information the dialogue does (session date +
+# "last week"), and the resolved dates.
+QA_FACTS_HEADER_BITEMPORAL = """Answer the question using the memory notes below. They were written from
+a long dialogue between two people. Each note is one fact (a sentence, or
+"subject | relation | object"). Facts are grouped by the session in which they
+were said, oldest first. When the speaker dated the event relative to the day
+of the session, the note gives that time in words anchored to the session
+date ("event: the weekend before 24 October 2023") and then the dates it
+covers; otherwise it gives the dates of the event at the precision stated (a
+day, a month, a year). A plan shows the date it was planned for. A chunk
+summary, when present, only describes what a part of the dialogue was about;
+prefer the facts for details. Facts may be paraphrased, so match the meaning of
+the question, not only its words."""
+
+QA_FACTS_TIME_RULE_BITEMPORAL = """For time, give it at the precision the note
+states: a month as a month, a year as a year, and a time the note anchors to a
+session date ("the weekend before 24 October 2023") in that anchored form,
+unless the question asks for an exact calendar date or a duration. If a fact
+has no event date, use its session date. Return the unit requested: a year,
+month, calendar date, interval, or duration."""
+
+
+def qa_facts_template(yesno_rationale: bool = False, bitemporal: bool = False) -> str:
     """The evidence reader with memory notes instead of dialogue passages: same
     answer-form rules, a header that explains the notes, and the time rule that
-    uses the resolved event date."""
+    uses the resolved event date (and, bitemporal, the expression said)."""
     text = qa_evidence_template(yesno_rationale)
     head = "Answer the question using the dialogue passages below."
     assert head in text
-    text = text.replace(head, QA_FACTS_HEADER, 1)
+    text = text.replace(head, QA_FACTS_HEADER_BITEMPORAL if bitemporal else QA_FACTS_HEADER, 1)
     text = text.replace("Match every person, event and\nqualifier to the SAME supporting dialogue",
                         "Match every person, event and\nqualifier to the SAME supporting fact")
     start = text.index("For time, use the session date")
     end = text.index("Preserve distinctions")
-    text = text[:start] + QA_FACTS_TIME_RULE + "\n" + text[end:]
+    text = (text[:start] + (QA_FACTS_TIME_RULE_BITEMPORAL if bitemporal else QA_FACTS_TIME_RULE)
+            + "\n" + text[end:])
     return text.replace("PASSAGES:", "MEMORY:")
 
 

@@ -408,6 +408,22 @@ class WitnessConfig:
     fact_budget: int = 40                  # fatos entregues ao leitor
     fact_summary_chunks: int = 6           # resumos entregues (facts+summary)
     fact_plan_guided: bool = True          # ablação: False = só similaridade com a pergunta
+    # Plano robusto e seleção de fatos (docs/plano-robusto.md), tudo desligado:
+    # relation_alternatives: átomos disjuntivos (até 3 frases de relação por
+    # átomo; o fato casa com qualquer uma). plan_readings: até N leituras
+    # alternativas da pergunta na mesma chamada; a leitura principal vale se
+    # provar, senão a de maior suporte. fact_fill: "plan" (v4: pergunta e
+    # átomos) ou "question" (o resto do orçamento só pela pergunta).
+    # fact_rerank: cross-encoder que substitui a similaridade na seleção.
+    # fact_time: "resolved" (v4) ou "both" (também a expressão dita).
+    relation_alternatives: bool = False
+    plan_readings: int = 0
+    multiplan_portfolio: bool = False      # experimental contract-bound controller
+    portfolio_max_plans: int = 3          # distinct plans per planning call (1..4)
+    fact_fill: str = "plan"
+    fact_rerank: str = ""
+    fact_rerank_pool: int = 120
+    fact_time: str = "resolved"
     # Ablação dos componentes do WitnessRAG (docs/ablacao.md). "" = completo.
     #   no-plan            sem Planejador/Executor/Refletor: nenhuma chamada de
     #                      planejamento; fatos escolhidos só pela pergunta
