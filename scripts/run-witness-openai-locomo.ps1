@@ -85,6 +85,9 @@ switch ($Method) {
             "proof-1cycle" { $flags += @("--proof-cycles", "1") }
             "proof-v4" { $flags += @("--typed-variables", "--item-set-proofs", "--witness-delivery",
                                      "mixed", "--abductive-premises") }
+            "proof-v4-memory" { $flags += @("--typed-variables", "--item-set-proofs", "--witness-delivery",
+                                     "mixed", "--abductive-premises", "--ie-style", "memory",
+                                     "--fact-delivery", "facts+summary") }
             "v4-typed" { $flags += @("--typed-variables", "--item-set-proofs") }
             "v4-excerpts" { $flags += @("--witness-delivery", "excerpts") }
             "v4-abductive" { $flags += "--abductive-premises" }

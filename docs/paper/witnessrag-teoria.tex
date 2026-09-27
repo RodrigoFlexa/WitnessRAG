@@ -1,0 +1,1181 @@
+% =====================================================================
+% WitnessRAG explicado: guia de leitura (não é texto de artigo)
+% Compilar: latexmk -pdf witnessrag-teoria.tex
+% Descreve o controlador de prova como está no código em 25/09/2026
+% (wrag/methods/witnessrag.py::_retrieve_proof e wrag/witness/*).
+% =====================================================================
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[brazilian]{babel}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{microtype}
+\usepackage{booktabs,tabularx,array,multirow}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,shapes.geometric,decorations.pathreplacing}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+\usepackage[most]{tcolorbox}
+\usepackage[hidelinks]{hyperref}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{needspace}
+\usepackage{titlesec}
+\captionsetup{font=small,labelfont=bf,skip=4pt}
+\titleformat{\section}{\normalfont\Large\bfseries\color{blue!45!black}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{0.6em}{}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+\setlist{leftmargin=*,itemsep=2pt,topsep=3pt}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\newcommand{\rel}[1]{\textsf{#1}}
+\newcommand{\V}[1]{\mathord{?}\mathit{#1}}
+\newcommand{\op}[1]{\textsc{#1}}
+\newcommand{\sem}{\operatorname{sim}}
+\newcommand{\prox}{\operatorname{prox}}
+\DeclareMathOperator{\cost}{custo}
+\DeclareMathOperator{\supp}{sup}
+
+% Caixas
+\newtcolorbox{formula}[1][]{breakable,enhanced,colback=blue!3,colframe=blue!45!black,
+  fonttitle=\bfseries\small,title={Em fórmula#1},boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{exemplo}[1][]{breakable,enhanced,colback=orange!4,colframe=orange!60!black,
+  fonttitle=\bfseries\small,title={Exemplo#1},boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{porque}[1][]{breakable,enhanced,colback=gray!6,colframe=gray!55,coltitle=black,
+  fonttitle=\bfseries\small,title={Por que assim?#1},boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{resumo}{enhanced,colback=green!4,colframe=green!40!black,
+  fonttitle=\bfseries\small,title={Em uma frase},boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=3pt,bottom=3pt}
+
+\title{\textbf{Como o WitnessRAG funciona}\\[4pt]
+\large Um guia passo a passo: a memória, o plano, a busca e a prova}
+\author{}
+\date{Estado do código em 25/09/2026}
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\section*{Como ler este guia}
+
+Este texto explica o WitnessRAG para quem nunca viu o código: o que ele guarda,
+como procura uma resposta e por que cada decisão foi tomada. Ele não é um
+artigo: repete ideias quando isso ajuda e usa sempre o mesmo exemplo, uma
+conversa curta entre Melanie e Caroline (no formato do benchmark LoCoMo).
+
+Três tipos de caixa aparecem ao longo do texto:
+\begin{itemize}
+\item \textbf{Exemplo} (laranja): a ideia aplicada ao caso concreto, com números.
+\item \textbf{Em fórmula} (azul): a mesma ideia escrita em matemática. Dá para
+  pular na primeira leitura; o texto ao redor explica tudo sem ela.
+\item \textbf{Por que assim?} (cinza): o motivo de uma escolha de desenho.
+\end{itemize}
+No fim há um glossário (Seção~\ref{sec:glossario}) e um mapa de onde cada
+peça está no código (Seção~\ref{sec:codigo}).
+
+\tableofcontents
+
+% =====================================================================
+\section{O problema}
+\label{sec:problema}
+
+Um assistente que conversa com alguém durante meses acumula centenas de
+sessões. Quando chega uma pergunta (``Onde Melanie já acampou?''), ele não
+consegue reler tudo. O que se faz na prática é dividir a conversa em
+\emph{trechos}, escolher uns poucos (cinco, nos nossos experimentos) e
+entregá-los a um modelo de linguagem, o \emph{leitor}, que escreve a resposta.
+
+Tudo depende de escolher bem esses cinco trechos. O jeito mais comum é pegar
+os trechos mais \emph{parecidos} com a pergunta, por palavras (BM25) e por
+significado (embeddings). Isso funciona quando a resposta está em um trecho só
+e usa palavras parecidas com as da pergunta. Falha em três situações comuns:
+
+\begin{enumerate}
+\item \textbf{A resposta está espalhada.} Melanie acampou nas montanhas, na
+  praia e na floresta, e contou cada viagem em uma sessão diferente. Os cinco
+  trechos mais parecidos com a pergunta podem trazer só duas das três.
+\item \textbf{A resposta exige encadear fatos.} ``Para que cidade se mudou a
+  mentora de Caroline?'' Um trecho diz que Beth é mentora de Caroline; outro,
+  meses depois, diz que Beth se mudou para Boston. Esse segundo trecho
+  \emph{nem cita Caroline}: ele só fica relevante depois que se sabe quem é a
+  mentora. A similaridade com a pergunta não tem como achá-lo.
+\item \textbf{A resposta depende de datas.} ``Quando Melanie acampou em
+  junho?'' Os relatos de julho falam de acampamento tanto quanto o de junho.
+  Para a similaridade, eles são igualmente bons.
+\end{enumerate}
+
+Nos três casos falta a mesma coisa: a busca por similaridade mede o quanto um
+trecho se parece com a pergunta, mas não sabe dizer se os trechos escolhidos
+\emph{bastam} para responder.
+
+% =====================================================================
+\section{A ideia: procurar uma prova}
+\label{sec:ideia}
+
+O WitnessRAG muda a pergunta que a busca faz. Em vez de ``quais trechos se
+parecem com a pergunta?'', ele pergunta ``\emph{quais fatos provam a
+resposta?}''.
+
+Para isso, além do texto, a memória guarda \emph{fatos} curtos (``Beth é
+mentora de Caroline'', ``Beth se mudou para Boston''), cada um com a data e a
+fala de onde veio. Uma \textbf{testemunha} de uma resposta é o menor conjunto
+de fatos do qual a resposta decorre. O nome vem da teoria de proveniência em
+bancos de dados, onde a testemunha de um resultado é o conjunto de registros
+que o produz.
+
+\begin{exemplo}[: testemunhas]
+\begin{itemize}
+\item ``Para que cidade se mudou a mentora de Caroline?'' Resposta: Boston.
+  Testemunha: \{Beth é mentora de Caroline; Beth se mudou para Boston\}. Dois
+  fatos, e nenhum dos dois sozinho basta.
+\item ``Onde Melanie já acampou?'' Três respostas, cada uma com sua
+  testemunha de um fato só: \{Melanie acampou nas montanhas\},
+  \{\dots na praia\}, \{\dots na floresta\}.
+\end{itemize}
+\end{exemplo}
+
+A testemunha resolve os três problemas da seção anterior, porque dá duas
+coisas que a similaridade não dá:
+\begin{itemize}
+\item \textbf{Um critério de parada.} Enquanto não há testemunha, a busca não
+  terminou. Quando há, terminou.
+\item \textbf{Uma lista do que o contexto precisa conter.} Cada fato da
+  testemunha aponta para o trecho de onde veio. Esses trechos precisam estar
+  entre os cinco que o leitor recebe. No exemplo da mentora, o trecho sobre
+  Boston entra no contexto \emph{porque faz parte da prova}, mesmo sem se
+  parecer com a pergunta.
+\end{itemize}
+
+\begin{resumo}
+O WitnessRAG guarda a conversa também como fatos datados ligados entre si, e
+para cada pergunta procura os poucos fatos que provam a resposta; os trechos
+de onde vêm esses fatos entram no contexto do leitor.
+\end{resumo}
+
+% =====================================================================
+\section{Visão geral}
+\label{sec:visao}
+
+O método tem duas fases (Figura~\ref{fig:visao}).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw,rounded corners=3pt,thick,minimum height=10mm,minimum width=22mm,font=\sffamily\small,align=center},
+  llm/.style={box,fill=orange!15}, det/.style={box,fill=blue!8},
+  mem/.style={draw,rounded corners=3pt,thick,fill=gray!8,minimum height=11mm,align=center,font=\sffamily\small},
+  arr/.style={-{Stealth[length=2.2mm]},thick}, lab/.style={font=\scriptsize,align=center}]
+\node[font=\bfseries\small,anchor=west] at (-1.2,2.9) {Fase 1: uma vez por conversa};
+\node[font=\small\itshape] (conv) at (-0.4,1.8) {conversa};
+\node[llm,right=7mm of conv] (con) {Construir\\a memória};
+\node[mem,right=7mm of con,minimum width=62mm] (m) {Memória: texto datado \;+\; grafo de fatos datados};
+\draw[arr] (conv)--(con); \draw[arr] (con)--(m);
+\node[font=\bfseries\small,anchor=west] at (-1.2,0.2) {Fase 2: a cada pergunta};
+\node[font=\small\itshape] (q) at (-0.4,-1.0) {pergunta};
+\node[det,right=5mm of q] (b0) {Primeira\\busca};
+\node[llm,right=5mm of b0] (pl) {Planejador};
+\node[det,right=5mm of pl] (ex) {Executor};
+\node[llm,right=5mm of ex] (re) {Refletor};
+\node[det,right=5mm of re] (ct) {Montar\\contexto};
+\node[font=\small\itshape,below=5mm of ct] (lt) {leitor};
+\draw[arr] (q)--(b0); \draw[arr] (b0)--(pl); \draw[arr] (pl)--(ex); \draw[arr] (ex)--(re); \draw[arr] (re)--(ct); \draw[arr] (ct)--(lt);
+\draw[arr,dashed,rounded corners=4pt] (re.south)--++(0,-6mm)-|node[lab,pos=0.25,below]{sem prova ou prova recusada: o motivo volta ao Planejador (até 2 ciclos)}(pl.south);
+\draw[arr,dotted] (m.south) -- (ex.north);
+\end{tikzpicture}
+\caption{As duas fases. Caixas laranja usam o modelo de linguagem (LLM); caixas
+azuis são programas comuns, determinísticos. A seta pontilhada indica que a
+busca lê a memória construída na fase 1.}
+\label{fig:visao}
+\end{figure}
+
+\textbf{Fase 1: construir a memória.} Acontece uma vez, antes de qualquer
+pergunta. A conversa é guardada de duas formas ligadas entre si: como
+\emph{texto} (falas e trechos, com datas), que é o que o leitor vai ler, e como
+um \emph{grafo de fatos}, em que as provas são procuradas. Seção~\ref{sec:memoria}.
+
+\textbf{Fase 2: responder.} Para cada pergunta, três papéis trabalham em ciclo:
+\begin{itemize}
+\item o \textbf{Planejador} (LLM) decide \emph{o que procurar} e escreve um
+  plano de busca;
+\item o \textbf{Executor} (programa) \emph{segue o plano} pelo grafo e devolve
+  as provas que achou, ou o ponto exato em que a prova quebrou;
+\item o \textbf{Refletor} (LLM) \emph{confere} a prova lendo as falas
+  originais; se não há prova, ou ela não se sustenta, explica o motivo ao
+  Planejador, que tenta um novo plano.
+\end{itemize}
+Ao final, os trechos da prova confirmada entram no contexto do leitor.
+Seções~\ref{sec:plano} a~\ref{sec:contexto}.
+
+Essa divisão é a de um investigador: primeiro decide o que precisa descobrir,
+depois vai atrás, e antes de concluir confere se o que achou se sustenta. Se
+não se sustenta, entende por quê e muda a estratégia.
+
+\begin{porque}
+O LLM é bom para \emph{entender} (traduzir uma pergunta em plano, julgar se
+uma fala apoia uma resposta) e ruim para \emph{procurar} com garantia em
+milhares de fatos. Um programa é o contrário. Por isso o LLM planeja e julga,
+e o programa procura. Todo número que decide a busca (similaridades, limiares,
+custos) é calculado pelo Executor, e pode ser auditado.
+\end{porque}
+
+% =====================================================================
+\section{Fase 1: como a memória é construída}
+\label{sec:memoria}
+
+A construção transforma a conversa bruta em memória em cinco passos. A
+Figura~\ref{fig:grafo} mostra o resultado para a nossa conversa de exemplo.
+
+\subsection{Falas e trechos}
+
+A conversa é uma sequência de \textbf{falas}. Cada fala tem um identificador,
+o falante, o texto e a data da sessão em que foi dita. As falas são agrupadas
+em \textbf{trechos}: blocos contíguos de até 2048 tokens, sem cortar uma fala
+ao meio. Os trechos são a unidade que o leitor lê no final. Um trecho pode
+cobrir mais de uma sessão, então guarda o \emph{intervalo} das datas das suas
+falas.
+
+\begin{exemplo}[: uma fala]
+\texttt{[D4:6] Melanie: I just took my fam camping in the mountains last week!}\\
+Sessão de 27/6/2023. Essa fala está no trecho $p_2$, que cobre as sessões de
+9/6 a 3/7/2023.
+\end{exemplo}
+
+\subsection{Fatos extraídos}
+
+Um LLM lê o texto em janelas curtas e escreve os \textbf{fatos} que encontra,
+no formato \emph{(sujeito, relação, objeto)}, mais uma expressão de tempo
+quando houver. A extração é adaptada a diálogo: o falante é o sujeito
+(``I'' vira ``Melanie''), pronomes são resolvidos dentro da janela, e a
+expressão de tempo é copiada como está.
+
+\begin{exemplo}[: da fala ao fato]
+Da fala acima sai o fato (Melanie, \rel{camp at}, mountains), com a expressão
+de tempo ``last week''.
+\end{exemplo}
+
+A relação é \emph{o verbo que o texto usou}: não existe uma lista fixa de
+relações. Isso tem uma consequência importante que volta mais tarde: a busca
+não pode exigir que a relação do plano seja idêntica à da memória
+(``live in'' e ``move to''); ela compara relações por \emph{significado}.
+
+Cada fato guarda também a \textbf{fala de origem}: a fala do trecho que mais
+compartilha palavras com o fato (palavras do objeto contam em dobro, as da
+relação pela metade). É por essa ligação que, mais tarde, uma prova no grafo
+vira texto que o leitor e o verificador podem ler.
+
+\subsection{Datas: quando o evento aconteceu}
+
+A data que importa é a do \emph{evento}, não a da conversa. ``Last week'',
+dito em 27/6/2023, significa a semana de 19 a 25/6. A construção resolve a
+expressão de tempo usando a data da fala de origem. Quando não há expressão,
+o fato recebe o dia da sessão. Toda data é guardada como um
+\textbf{intervalo de dias}, porque ``last week'' ou ``in May'' não são um dia só.
+
+\begin{center}\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Fala dita em & Expressão & Data do evento guardada & Largura \\
+\midrule
+8/5/2023 & ``yesterday'' & 7/5/2023 & 1 dia \\
+27/6/2023 & ``last week'' & 19/6 a 25/6/2023 & 7 dias \\
+14/8/2023 & ``last month'' & 1/7 a 31/7/2023 & 31 dias \\
+6/7/2023 & (nenhuma) & 6/7/2023, o dia da sessão & 1 dia \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Importância: o quanto o evento foi marcante}
+
+Algumas coisas que alguém conta são corriqueiras (``fui ao mercado''), outras
+são marcantes (``foi incrível, estou tão feliz!''). A memória guarda uma nota
+de \textbf{importância} entre 0 e 1 para cada fala, e o fato herda a nota da
+sua fala de origem. A nota mede a intensidade emocional do texto, contando
+palavras de um léxico pequeno e auditável: palavras emotivas comuns valem 1
+(``happy'', ``amazing'', ``worried''), intensas valem 1,5 (``thrilled'',
+``devastated''), intensificadores valem 0,3 (``so'', ``really'') e cada
+exclamação vale 0,5 (até três). A soma é a ``energia'' $E$ da fala, e a nota
+satura: a primeira palavra emotiva pesa muito, a décima quase nada.
+
+\begin{formula}
+\[
+\iota(u)=1-e^{-E(u)/\kappa},\qquad \kappa=2 .
+\]
+$\iota$ (iota) é a importância da fala $u$. Com $E=0$, $\iota=0$; quanto maior
+$E$, mais $\iota$ se aproxima de 1, sem nunca chegar.
+\end{formula}
+
+\begin{exemplo}[: notas de importância]
+\begin{tabular}{@{}lcc@{}}
+``I went to the market.'' & $E=0$ & $\iota=0$ \\
+``I'm thrilled!!'' & $E=1{,}5+2\cdot0{,}5=2{,}5$ & $\iota=0{,}71$ \\
+``It was amazing, I'm so happy!'' & $E=1+1+0{,}3+0{,}5=2{,}8$ & $\iota=0{,}75$ \\
+\end{tabular}
+\end{exemplo}
+
+A importância é calculada uma vez e \emph{não depende da pergunta}. Ela só
+entra na busca quando o plano pede (``qual foi o momento mais marcante?'').
+
+\subsection{Nomes que são a mesma coisa, relações que são o mesmo verbo}
+
+``Mel'' e ``Melanie'' são a mesma pessoa e devem virar um único nó do grafo.
+Parece fácil juntar nomes parecidos, mas é perigoso: para um modelo de
+embeddings, ``the first half of the game'' e ``the second half of the game''
+são quase idênticos (cosseno 0,95) e não são a mesma coisa.
+
+Por isso dois nomes só são unidos quando as \emph{duas} condições valem:
+\begin{itemize}
+\item são parecidos em significado (cosseno $\ge0{,}80$); \emph{e}
+\item as palavras de um estão contidas nas do outro, com no máximo uma
+  palavra a mais para nomes curtos (``Mel'' $\subset$ ``Melanie'',
+  ``New York'' $\subset$ ``New York City'').
+\end{itemize}
+``First'' e ``second'' são palavras que nenhum dos dois lados contém no outro,
+então aqueles dois não se unem.
+
+\begin{porque}
+Unir dois nomes que são coisas diferentes \emph{fabrica provas falsas}: uma
+cadeia poderia passar de uma pessoa para outra. Deixar de unir dois nomes que
+são a mesma coisa só \emph{perde} uma prova. O primeiro erro é pior, então a
+regra é conservadora.
+\end{porque}
+
+Com as relações acontece algo parecido. Formas do mesmo verbo (``paint'',
+``painted'', ``painting'') são agrupadas em uma \emph{família} pelo radical de
+cada palavra, mas as preposições são mantidas: ``work at'' e ``work for''
+continuam diferentes. Relações de famílias diferentes são comparadas por
+significado, com embeddings.
+
+\subsection{O grafo}
+
+Com os nomes unidos, cada pessoa ou coisa vira um \textbf{nó}, e cada fato vira
+uma \textbf{seta} do sujeito para o objeto, com a relação escrita na seta. A
+seta carrega a data do evento, a importância, a confiança da extração e a
+ligação com a fala de origem (Figura~\ref{fig:grafo}).
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  ent/.style={draw,ellipse,thick,fill=orange!12,font=\small,inner sep=2pt,minimum height=7mm},
+  e/.style={-{Stealth[length=2.2mm]},thick},
+  el/.style={font=\scriptsize,inner sep=1pt,align=center},
+  pas/.style={draw,rounded corners=2pt,fill=gray!8,font=\scriptsize,align=left,inner sep=4pt,text width=6.2cm}]
+\node[ent] (bet) at (-7.2,1.0) {Beth};
+\node[ent] (car) at (-3.4,1.0) {Caroline};
+\node[ent] (bos) at (-7.2,-1.3) {Boston};
+\node[ent] (mel) at (-0.4,0) {Melanie};
+\node[ent] (pot) at (-4.0,-1.4) {pottery class};
+\node[ent] (mon) at (3.3,1.5) {mountains};
+\node[ent] (bea) at (3.7,0) {beach};
+\node[ent] (for) at (3.3,-1.5) {forest};
+\draw[e] (bet)--node[el,above]{$f_4$: mentor of\\8/5}(car);
+\draw[e] (bet)--node[el,left]{$f_5$: move to\\jul/2023}(bos);
+\draw[e] (mel)--node[el,above,sloped,pos=0.55]{$f_6$: sign up for, 2/7}(pot);
+\draw[e] (mel)--node[el,above,sloped,pos=0.4]{$f_1$: camp at, 19--25/6}(mon);
+\draw[e] (mel)--node[el,above]{$f_2$: camp at, 6/7}(bea);
+\draw[e] (mel)--node[el,below,sloped]{$f_3$: camp at, 15/7}(for);
+\node[pas,anchor=west] at (5.0,0) {%
+\textbf{De onde veio cada seta}\\[2pt]
+$f_1$: trecho $p_2$, fala D4:6 (27/6): ``I just took my fam camping in the mountains \emph{last week}!''\\[2pt]
+$f_2$: trecho $p_3$, fala D6:16 (6/7): ``Here's a pic of my family camping at the beach''\\[2pt]
+$f_3$: trecho $p_4$, fala D8:3 (15/7): ``we went camping in the forest''\\[2pt]
+$f_4$: trecho $p_1$ (8/5);\ \ $f_5$: trecho $p_5$ (14/8, ``\emph{last month}'');\ \ $f_6$: trecho $p_3$ (2/7)};
+\end{tikzpicture}}
+\caption{A memória da conversa de exemplo. Cada seta é um fato, com a relação e
+a data do evento. À direita, a ligação de cada seta com a fala de onde veio.
+(Conversa didática no formato do LoCoMo; as falas são simplificadas.)}
+\label{fig:grafo}
+\end{figure}
+
+Dois detalhes do grafo importam para a busca:
+\begin{itemize}
+\item \textbf{As setas têm direção.} ``Beth é mentora de Caroline'' vai de Beth
+  para Caroline. A busca respeita a direção: não inverte relações sozinha.
+\item \textbf{Pode haver várias setas entre os mesmos nós.} Se Melanie contou
+  duas vezes que acampou na praia, em sessões diferentes, são duas setas, cada
+  uma com sua data e sua fala. (Em matemática, isso é um \emph{multigrafo}.)
+\end{itemize}
+
+A Tabela~\ref{tab:mem} resume o que cada peça da memória guarda.
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}l Y Y@{}}
+\toprule
+Peça & O que guarda & Para que serve \\
+\midrule
+Fala & identificador, falante, texto, data da sessão, importância & ser a prova legível: o verificador e o leitor leem falas \\
+Trecho & as falas em ordem, intervalo de datas, importância média, vetor de embedding & ser lido pelo leitor; busca por palavras e por significado \\
+Nó & nome principal, variantes unidas (``Mel''), vetor & ancorar os nomes que aparecem no plano \\
+Seta (fato) & sujeito, relação, objeto, data do evento, importância, confiança, trecho e fala de origem, vetor da frase & compor a prova \\
+\bottomrule
+\end{tabularx}
+\caption{O que a memória guarda. A ligação seta $\to$ fala é a ponte entre o grafo (onde se prova) e o texto (o que se lê).}
+\label{tab:mem}
+\end{table}
+
+\begin{formula}[: a memória]
+Um \textbf{fato} é a lista de sete campos
+\[
+f=\big(s_f,\ r_f,\ o_f,\ \tau(f),\ \iota(f),\ c_f,\ \pi(f)\big):
+\]
+sujeito $s_f$, relação $r_f$, objeto $o_f$, intervalo do evento $\tau(f)$ (tau),
+importância $\iota(f)$, confiança da extração $c_f\in[0,1]$ e origem
+$\pi(f)=(p_f,u_f)$, o trecho e a fala de onde veio.
+
+O \textbf{grafo} é $\mathcal G=(V,F)$: $V$ são os nós (classes de nomes unidos)
+e $F$ são os fatos, cada um uma seta de $[s_f]$ para $[o_f]$, onde $[n]$ é o nó
+do nome $n$.
+
+Para comparar relações, $\sem_R(r,r')=1$ se $r$ e $r'$ são da mesma família e,
+caso contrário, $\sem_R(r,r')=\cos(\phi(r),\phi(r'))$, onde $\phi$ é o vetor de
+embedding (modelo BGE) e $\cos$ o cosseno entre vetores.
+\end{formula}
+
+% =====================================================================
+\section{O plano: a pergunta escrita na língua do grafo}
+\label{sec:plano}
+
+O grafo não entende português nem inglês. Para procurar nele, a pergunta
+precisa ser reescrita como um \textbf{padrão de setas}: quais setas procurar,
+entre quais nós. Esse padrão é o centro do plano.
+
+\subsection{Átomos e incógnitas}
+
+Cada seta procurada é um \textbf{átomo}, escrito
+\rel{relação}(sujeito, objeto). Onde o sujeito ou o objeto é conhecido, vai o
+nome (``Melanie''); onde é o que se quer descobrir, vai uma \textbf{incógnita},
+marcada com ``?'' ($\V x$, $\V y$). A incógnita $\V x$ é sempre a resposta.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{4.6cm} l Y@{}}
+\toprule
+Pergunta & Padrão & Forma \\
+\midrule
+Onde Melanie já acampou? & $\rel{camp at}(\text{Melanie},\V x)$ & um átomo \\
+Para que cidade se mudou a mentora de Caroline? & $\rel{mentor of}(\V y,\text{Caroline})\wedge\rel{move to}(\V y,\V x)$ & cadeia: $\V y$ liga os dois átomos \\
+Quem é amigo de Ana e trabalha com Bia? & $\rel{friend of}(\V x,\text{Ana})\wedge\rel{work with}(\V x,\text{Bia})$ & interseção: $\V x$ nos dois \\
+Quando Melanie acampou em junho? & $\rel{camp at}(\text{Melanie},\V x)\ @\ \V t$ & a resposta é a data $\V t$ do fato \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+O símbolo $\wedge$ quer dizer ``e'': todos os átomos precisam ser encontrados.
+O que dá força ao padrão é a \textbf{incógnita repetida}. Na cadeia, $\V y$
+aparece nos dois átomos, e isso obriga a mentora do primeiro fato a ser
+\emph{a mesma pessoa} que se mudou no segundo. Sem essa amarra, qualquer
+mudança de qualquer pessoa serviria.
+
+\subsection{As outras partes do plano}
+
+Além do padrão, o plano diz que \emph{forma} a resposta tem e \emph{onde no
+tempo} procurar:
+\begin{itemize}
+\item \textbf{Agregação}: um valor só (``qual cidade?''), um conjunto
+  (``onde já acampou?'': todos os lugares), uma contagem (``quantas vezes?'').
+  Comparações (``mais'', ``menos'') são tratadas como conjunto: o grafo traz os
+  fatos a comparar e o leitor compara.
+\item \textbf{Tipo da resposta} (opcional): ``martial art'', ``place''. Evita
+  que ``o que John pratica?'' case com tudo que John faz.
+\item \textbf{Período de referência}: \emph{hoje} (o padrão), \emph{início} da
+  conversa (``a primeira vez que\dots'') ou uma \emph{janela} citada (``em
+  junho de 2023'').
+\item \textbf{Pesos}: quanto o tempo e a importância devem contar na busca,
+  em três níveis (nenhum, normal, forte). A próxima seção explica.
+\end{itemize}
+
+O plano é escrito pelo Planejador em JSON. Para a pergunta da mentora:
+
+\begin{tcolorbox}[colback=gray!4,colframe=gray!40,boxrule=0.4pt,arc=1pt,left=4pt,right=4pt,top=2pt,bottom=2pt]
+\footnotesize\ttfamily
+\{"answer\_var": "x",\\
+\ "atoms": [\{"relation": "mentor of", "subject": "?y", "object": "Caroline"\},\\
+\ \ \ \ \ \ \ \ \ \ \ \{"relation": "move to", \ "subject": "?y", "object": "?x"\}],\\
+\ "aggregation": "none",\\
+\ "period": \{"reference": "now", "text": ""\},\\
+\ "time\_weight": "normal", "importance\_weight": "normal"\}
+\end{tcolorbox}
+
+\begin{formula}[: plano e testemunha]
+O padrão é uma \emph{consulta conjuntiva} com até 4 átomos:
+\[
+Q(\V x)\ \leftarrow\ r_1(t_1,t'_1)\ \wedge\ \dots\ \wedge\ r_n(t_n,t'_n)\qquad(n\le4),
+\]
+em que cada $t_i,t'_i$ é um nome ou uma incógnita. Lê-se: ``$\V x$ é resposta
+se existem setas $r_1,\dots,r_n$ ligadas desse jeito''. O plano completo é
+$\mathcal P=(Q,\ \alpha,\ \theta,\ I^\star,\ \mathbf w)$: padrão, agregação,
+tipo, período e pesos.
+
+Uma \textbf{testemunha} é uma escolha de nós para as incógnitas (chamada
+$\beta$) junto com um conjunto de fatos $W=\{f_1,\dots,f_n\}$, um para cada
+átomo, tal que cada $f_i$ é uma seta que liga os nós certos com uma relação
+parecida com $r_i$, e nenhum pedaço menor de $W$ basta. A resposta é
+$\beta(\V x)$, o nó escolhido para $\V x$.
+\end{formula}
+
+% =====================================================================
+\section{Uma nota para ordenar tudo}
+\label{sec:pontuacao}
+
+Em vários momentos a busca precisa ordenar coisas: quais trechos são
+melhores, quais setas casam melhor com um átomo. O WitnessRAG usa \emph{uma
+única nota} para tudo isso, somando três sinais entre 0 e 1:
+\begin{itemize}
+\item \textbf{Similaridade}: \emph{isso se parece com o que procuro?} Para um
+  trecho, é a busca por palavras (BM25) combinada com a busca por significado
+  (embeddings), normalizada entre 0 e 1. Para uma seta, é o quanto ela casa com
+  o átomo do plano (explicado na Seção~\ref{sec:executor}).
+\item \textbf{Importância}: \emph{foi marcante?} A nota guardada na memória.
+\item \textbf{Proximidade no tempo}: \emph{aconteceu perto do período pedido?}
+  Vale 1 dentro do período e cai conforme a distância em dias aumenta.
+\end{itemize}
+
+\begin{formula}[: a nota]
+\[
+S(x)=w_{\text{sim}}\cdot\sem(x)+w_{\text{imp}}\cdot\iota(x)+w_{\text{t}}\cdot\prox(x),
+\]
+\[
+\prox(x)=\exp\!\Big(-\frac{\text{dias entre }\tau(x)\text{ e o período}}{\lambda}\Big).
+\]
+Os pesos $w$ somam 1. A escala $\lambda$ (lambda) diz quão rápido a proximidade
+cai: para uma janela citada, é metade da largura da janela (no mínimo 7 dias);
+para \emph{hoje} ou \emph{início}, é um quarto da duração da conversa (no
+mínimo 7 dias).
+\end{formula}
+
+A Figura~\ref{fig:prox} mostra a proximidade para o período ``junho de 2023''.
+Dentro de junho vale 1. Seis dias depois do fim de junho vale 0,67; quinze dias
+depois, 0,37; um mês depois, 0,14.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=0.8\textwidth,height=4.6cm,xmin=-40,xmax=60,ymin=0,ymax=1.12,
+  xlabel={dias em relação a junho de 2023},ylabel={$\prox$},
+  xtick={-30,0,30,60},xticklabels={1/5,\ 1/6 a 30/6,30/7,29/8},
+  ytick={0,0.5,1},grid=major,grid style={gray!20},axis lines=left,
+  label style={font=\small},tick label style={font=\scriptsize}]
+\addplot[blue!60!black,very thick,domain=-40:-15,samples=40] {exp((x+15)/15)};
+\addplot[blue!60!black,very thick,domain=-15:15] {1};
+\addplot[blue!60!black,very thick,domain=15:60,samples=50] {exp(-(x-15)/15)};
+\fill[blue!8] (axis cs:-15,0) rectangle (axis cs:15,1);
+\node[font=\scriptsize] at (axis cs:0,0.5) {junho};
+\addplot[only marks,mark=*,orange!80!black,mark size=2.2pt] coordinates {(8,1) (21,0.670) (30,0.368)};
+\node[font=\scriptsize,above] at (axis cs:8,1) {$f_1$};
+\node[font=\scriptsize,above right] at (axis cs:21,0.67) {$f_2$ (6/7): 0,67};
+\node[font=\scriptsize,above right] at (axis cs:30,0.368) {$f_3$ (15/7): 0,37};
+\end{axis}
+\end{tikzpicture}
+\caption{Proximidade no tempo para o período ``junho de 2023'' ($\lambda=15$
+dias). Os pontos são os três acampamentos de Melanie. (O eixo horizontal está
+simplificado: junho aparece como a faixa central.)}
+\label{fig:prox}
+\end{figure}
+
+A mesma fórmula cobre três jeitos de uma pergunta falar de tempo:
+\begin{itemize}
+\item \textbf{Período = hoje}: favorece o mais recente (``onde Melanie mora
+  agora?'').
+\item \textbf{Período = início da conversa}: favorece o mais antigo (``qual
+  foi o primeiro emprego de Ines?'').
+\item \textbf{Período = janela citada}: favorece o que aconteceu naquela data
+  (``em junho'').
+\end{itemize}
+
+\textbf{Os pesos têm três níveis.} No nível \emph{normal} o tempo e a
+importância valem 0 e toda a nota é similaridade. No nível \emph{forte}, o
+tempo vale 0,3 e a importância 0,1. O Planejador liga o nível forte quando a
+pergunta cita uma data, fala de ``primeira vez'' ou ``mais recente'', ou pede
+o que foi mais marcante. A similaridade sempre fica com pelo menos metade do
+peso.
+
+\begin{porque}
+Os valores vieram de uma calibração sem LLM nas dez conversas do LoCoMo,
+medindo se o trecho certo entra entre os cinco escolhidos. Quando a pergunta
+não cita data, dar peso ao tempo mudou até 72\% dos contextos \emph{sem}
+melhorar nada, por isso o nível normal é zero. Quando a pergunta cita uma data,
+peso 0,3 no tempo melhorou em todas as categorias. E a similaridade fica com
+pelo menos metade para que um trecho sem relação com a pergunta nunca passe à
+frente só por ser recente ou emotivo. Uma consequência útil: com pesos normais,
+a ordem é \emph{exatamente} a da busca híbrida comum, então o método nunca
+piora o caso fácil por causa da nota.
+\end{porque}
+
+% =====================================================================
+\section{Fase 2: o ciclo Planejador, Executor, Refletor}
+\label{sec:ciclo}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw,rounded corners=3pt,thick,minimum height=11mm,minimum width=27mm,font=\sffamily\small,align=center},
+  llm/.style={box,fill=orange!15}, det/.style={box,fill=blue!8},
+  arr/.style={-{Stealth[length=2.2mm]},thick}, lab/.style={font=\scriptsize,align=center}]
+\node[det] (b0) {Primeira busca\\\scriptsize similaridade pura};
+\node[llm,right=18mm of b0] (pl) {Planejador\\\scriptsize o que procurar};
+\node[det,right=18mm of pl] (ex) {Executor\\\scriptsize segue o plano};
+\node[llm,below=22mm of ex] (re) {Refletor\\\scriptsize confere e explica};
+\node[det,below=22mm of b0] (ct) {Montar contexto};
+\draw[arr] (b0)--node[lab,above]{20 trechos\\(evidências)}(pl);
+\draw[arr] (pl)--node[lab,above]{plano}(ex);
+\draw[arr] (ex)--node[lab,right]{provas, ou\\onde quebrou}(re);
+\draw[arr] (re.south)--++(0,-5mm)-|node[lab,pos=0.25,below]{prova confirmada}(ct.south);
+\draw[arr,dashed] (re.west)-|node[lab,pos=0.75,left]{motivo da falha\\+ sonda\\(novo ciclo, até 2)}(pl.south);
+\end{tikzpicture}
+\caption{O ciclo de busca de uma pergunta.}
+\label{fig:ciclo}
+\end{figure}
+
+\subsection{Antes do ciclo: a primeira busca}
+
+Antes de planejar, o sistema faz uma busca comum por similaridade e separa os
+\textbf{20 trechos} mais parecidos com a pergunta. Eles são as
+\textbf{evidências}: não vão direto para o leitor, servem para o Planejador
+ver como a memória fala do assunto.
+
+\begin{porque}
+Planejar às cegas produz planos com palavras que a memória não usa. Se a
+pergunta diz ``live in'' e a memória diz ``move to'', um plano escrito só a
+partir da pergunta falha. Mostrando ao Planejador os fatos que a primeira busca
+achou, ele pode escrever o plano \emph{com as palavras da memória}.
+\end{porque}
+
+\subsection{Planejador: decide o que procurar}
+
+O Planejador é uma chamada ao LLM. Ele recebe:
+\begin{itemize}
+\item a pergunta;
+\item até 30 fatos tirados das evidências, os mais parecidos com a pergunta,
+  cada um com a data do evento, no formato
+  \texttt{Beth | move to | Boston | July 2023 (chunk 4)};
+\item o vocabulário da memória: relações e nomes mais próximos da pergunta;
+\item a partir do segundo ciclo, o que deu errado nos ciclos anteriores.
+\end{itemize}
+E devolve o plano em JSON (Seção~\ref{sec:plano}). Ele \textbf{nunca} vê a
+categoria da pergunta no benchmark, a resposta certa ou qualquer anotação. Se o
+JSON vier quebrado, o plano é marcado como inválido e o ciclo segue.
+
+\subsection{Executor: segue o plano no grafo}
+\label{sec:executor}
+
+O Executor é um programa comum, sem LLM. Ele recebe o plano e trabalha em
+quatro passos.
+
+\paragraph{Passo 1: ancorar os nomes.} Cada nome do plano precisa virar um
+ponto de partida no grafo. ``Caroline'' casa com o nó Caroline (idêntico,
+nota 1,0) e, se houver, com até cinco nós de nome parecido (cosseno
+$\ge0{,}55$). Esses nós são as \textbf{âncoras}.
+
+\paragraph{Passo 2: achar candidatos para cada átomo.} Para cada átomo, o
+Executor olha as setas que saem ou chegam às âncoras e dá a cada uma uma
+\textbf{nota de casamento} $m$, entre 0 e 1. A nota combina três perguntas:
+\begin{itemize}
+\item \emph{A relação é parecida?} (peso 0,45) Cosseno entre a relação do
+  átomo e a da seta, ou 1 se forem da mesma família.
+\item \emph{Os nomes batem?} (peso 0,35) A nota da âncora.
+\item \emph{A frase inteira é parecida?} (peso 0,20) Cosseno entre
+  ``Melanie camp at ?x'' e a frase do fato, ``Melanie camp at beach''.
+\end{itemize}
+Há dois vetos, que zeram a nota: a relação ser muito diferente (similaridade
+abaixo de 0,65), ou o nome estar do lado errado da seta (o plano pede Caroline
+como objeto e ela é o sujeito). As 60 setas de nota mais alta são os
+\textbf{candidatos} do átomo. Quando o plano liga os pesos de tempo ou
+importância, a nota usada para ordenar é a nota única da Seção~\ref{sec:pontuacao},
+com $m$ no lugar da similaridade.
+
+\begin{formula}[: nota de casamento]
+\[
+m(a,f)=\frac{0{,}45\cdot\sem_R(r_a,r_f)\ +\ 0{,}35\cdot s_{\text{nomes}}\ +\ 0{,}20\cdot s_{\text{frase}}}
+{0{,}45\ +\ 0{,}35\cdot[\text{o átomo tem nome}]\ +\ 0{,}20}
+\]
+É uma média ponderada. O denominador só muda quando o átomo não tem nenhum
+nome ($\rel{move to}(\V y,\V x)$): aí o peso dos nomes some e a média é refeita
+com os outros dois. $m=0$ se $\sem_R<0{,}65$ ou se um nome não casa com o lado
+certo da seta.
+\end{formula}
+
+\begin{exemplo}[: nota de uma seta]
+Átomo $\rel{camp at}(\text{Melanie},\V x)$ e seta $f_2$ = (Melanie, camp at,
+beach). Relação idêntica: 1. Nome idêntico: 1. Frases parecidas: 0,82
+(valor ilustrativo). Então $m=0{,}45\cdot1+0{,}35\cdot1+0{,}20\cdot0{,}82=0{,}964$.
+
+A seta $f_6$ = (Melanie, sign up for, pottery class) sai do mesmo nó, mas
+``sign up for'' não se parece com ``camp at'': abaixo de 0,65, veto, $m=0$.
+\end{exemplo}
+
+\paragraph{Passo 3: juntar os átomos (a caminhada).} Agora o Executor monta as
+provas. Ele anda \textbf{camada por camada}, um átomo por vez, começando pelo
+átomo com mais nomes (o mais restrito, com menos opções). A cada camada, cada
+prova parcial tenta crescer com um candidato do próximo átomo, e só cresce se
+as incógnitas \textbf{concordam}: se na camada anterior $\V y$ virou Beth, a
+seta da camada seguinte tem de sair de Beth. Provas parciais que não concordam
+são descartadas. A Figura~\ref{fig:caminhada} mostra a caminhada da pergunta
+da mentora.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  ent/.style={draw,ellipse,thick,fill=orange!12,font=\small,inner sep=2pt,minimum height=7mm},
+  e/.style={-{Stealth[length=2.2mm]},thick},
+  ok/.style={e,draw=green!50!black,line width=1.4pt},
+  no/.style={e,draw=red!70!black,line width=1.2pt,dashed},
+  el/.style={font=\scriptsize,align=center},
+  stepbox/.style={draw,rounded corners=2pt,fill=white,font=\scriptsize,align=left,text width=5.4cm,inner sep=4pt}]
+\node[ent] (car) at (0,0) {Caroline};
+\node[ent] (bet) at (-3.3,0) {Beth};
+\node[ent] (bos) at (-3.3,-2.2) {Boston};
+\draw[ok] (bet)--node[el,above]{$f_4$: mentor of\\$m=0{,}98$}(car);
+\draw[no] (bet)--node[el,left,text width=2.3cm,align=right]{$f_5$: move to\\ciclo 1: veto\\ciclo 2: $m=0{,}95$}(bos);
+\node[stepbox,anchor=west] at (1.6,0.3) {\textbf{Camada 1} (átomo com nome):\\ procurar setas \rel{mentor of} que \emph{chegam} a Caroline $\Rightarrow f_4$, e $\V y$ vira Beth.};
+\node[stepbox,anchor=west] at (1.6,-1.7) {\textbf{Camada 2}: procurar setas que \emph{saem} de Beth ($\V y$ já fixado) com relação parecida com a do plano.\\ Ciclo 1 (``live in''): só há $f_5$, com relação 0,58 $<$ 0,65: \textcolor{red!70!black}{camada vazia, prova quebra aqui}.\\ Ciclo 2 (``move to''): $f_5$ casa: \textcolor{green!40!black}{prova completa}.};
+\end{tikzpicture}
+\caption{A caminhada para ``Para que cidade se mudou a mentora de Caroline?''. A
+incógnita $\V y$ fixada na camada 1 restringe a camada 2 às setas que saem de
+Beth.}
+\label{fig:caminhada}
+\end{figure}
+
+Quando há muitas provas parciais ao mesmo tempo, o Executor guarda as 400
+melhores (uma \emph{busca em feixe}). ``Melhor'' é medido por um
+\textbf{custo}: a prova é mais barata quando suas setas casam bem e quando
+ela usa poucos trechos diferentes.
+
+\begin{formula}[: custo de uma prova]
+\[
+\cost(W)=-\sum_{f\in W}\log s(f)\ +\ 0{,}15\cdot(\text{número de trechos distintos usados por }W)
+\]
+$s(f)$ é a nota da seta (entre 0 e 1). O logaritmo transforma notas altas em
+custos pequenos: $-\log 0{,}98=0{,}02$, $-\log 0{,}5=0{,}69$. Cada trecho
+diferente custa 0,15 a mais, porque cada trecho vai ocupar uma das cinco vagas
+do leitor.
+\end{formula}
+
+\textbf{Quando a prova quebra.} Se uma camada fica vazia, nenhuma prova
+completa existe. O Executor não devolve só ``não achei'': devolve a
+\textbf{lacuna}, isto é, qual átomo faltou e o que já estava fixado. No
+exemplo: ``faltou \rel{live in} a partir de Beth''. Isso transforma a falha em
+informação útil para o próximo ciclo.
+
+\paragraph{Passo 4: a prova é boa o bastante?} Achar uma prova não basta; ela
+precisa ser \emph{confiável} e \emph{específica}. Cada prova recebe um
+\textbf{suporte}: o produto das notas das suas setas, vezes a confiança da
+extração de cada fato. Por ser um produto, a prova vale o seu elo mais fraco:
+uma seta ruim derruba a prova inteira.
+
+\begin{formula}[: suporte]
+\[
+\supp(W)=\prod_{f\in W} m(a_f,f)\cdot c_f
+\]
+$a_f$ é o átomo que o fato $f$ realiza e $c_f$ a confiança da extração (0,9 por
+padrão).
+\end{formula}
+
+As regras de aceitação dependem da forma da resposta:
+\begin{itemize}
+\item \textbf{Resposta de um valor} (``qual cidade?''): no máximo 3 respostas
+  diferentes e 3 provas, nenhum corte na busca, a melhor prova com suporte
+  $\ge0{,}45$, e os trechos novos que ela traz precisam caber no contexto
+  (Seção~\ref{sec:contexto}).
+\item \textbf{Resposta em conjunto} (``onde já acampou?''): muitas respostas
+  são esperadas, então o teste é item a item: cada item precisa da própria
+  prova com suporte $\ge0{,}45$. Se o plano tem tipo, os 12 melhores itens
+  seguem para o Refletor; sem tipo e com mais de 12 itens, o plano é
+  considerado vago demais.
+\end{itemize}
+
+\begin{porque}
+Se um plano de ``um valor'' encontra 8 respostas diferentes, o problema não é
+falta de prova: o plano está vago (``does(John, ?x)'' casa com tudo o que John
+faz). Aceitar isso encheria o contexto de ruído. Recusar e explicar o motivo
+ao Planejador (``8 respostas, seja mais específico'') leva a um plano melhor.
+\end{porque}
+
+\subsection{Refletor: confere a prova e explica a falha}
+
+O Refletor tem dois papéis.
+
+\paragraph{Verificar.} Quando o Executor acha uma prova que vai trazer um
+trecho novo para o contexto, o LLM lê a pergunta, o plano e, para cada
+resposta candidata, os fatos da prova \emph{junto com as falas originais}
+(com falante, data e as falas vizinhas). Por exemplo:
+
+\begin{tcolorbox}[colback=gray!4,colframe=gray!40,boxrule=0.4pt,arc=1pt,left=4pt,right=4pt,top=2pt,bottom=2pt]
+\footnotesize\ttfamily
+A1: Boston\\
+\ \ fact: Beth | mentor of | Caroline (event date: 8 May 2023)\\
+\ \ \ \ [D1:5] Caroline: My mentor Beth has helped me so much...\\
+\ \ fact: Beth | move to | Boston (event date: July 2023)\\
+\ \ \ \ (session date: 14 August 2023)\\
+\ \ \ \ [D12:8] Caroline: Beth moved to Boston last month...
+\end{tcolorbox}
+
+Para cada resposta, ele decide: \emph{apoiada}, ou \emph{recusada} por um de
+quatro motivos (entidade errada, período errado, tipo errado, falta de apoio).
+O verificador \emph{julga}, não procura; na dúvida, aceita. Se a prova já está
+inteira nos trechos que o leitor ia receber de qualquer jeito, não há o que
+verificar e a chamada é dispensada.
+
+\begin{porque}
+A extração de fatos erra, e a similaridade entre relações é aproximada. O
+grafo pode ``provar'' algo que o texto não diz. Ler a fala original pega esses
+erros antes que eles mudem o contexto. Por que mostrar a fala e não só o fato?
+Porque o fato é um resumo; a fala tem o contexto (quem disse, quando, sobre o
+quê).
+\end{porque}
+
+\paragraph{Diagnosticar.} Se não houve prova, ou ela foi recusada, o Refletor
+transforma o motivo em uma instrução para o próximo plano:
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}l Y@{}}
+\toprule
+O que aconteceu & O que o Planejador ouve no próximo ciclo \\
+\midrule
+Uma camada ficou vazia (lacuna) & nenhum fato casou com \rel{live in} para Beth \\
+Respostas demais & o plano casou com 8 respostas diferentes; seja mais específico \\
+Busca cortada & o plano é amplo demais; seja mais específico \\
+Só casamentos fracos & use as palavras de relação que a memória usa \\
+Prova não cabe no contexto & a prova precisa de trechos demais; use menos fatos \\
+Verificador recusou & a prova foi recusada (período errado, entidade errada\dots) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Quando há lacuna, ela vira também uma \textbf{sonda}: um texto curto (``Beth
+live in'') usado para escolher quais fatos mostrar ao Planejador no próximo
+ciclo. Assim o Planejador passa a ver os fatos sobre Beth, entre eles
+``Beth | move to | Boston''.
+
+\subsection{Quando o ciclo termina}
+
+O ciclo roda no máximo \textbf{2 vezes} e termina antes se:
+\begin{itemize}
+\item uma prova foi confirmada (sucesso);
+\item o Planejador repetiu um plano já tentado (não há o que ganhar).
+\end{itemize}
+Se terminar sem prova, o leitor recebe os cinco melhores trechos da busca comum:
+o sistema cai para o comportamento da busca híbrida, sem prejuízo. No pior caso,
+uma pergunta custa 4 chamadas ao LLM além do leitor (2 planos e 2 verificações).
+
+\begin{formula}[: o ciclo em pseudocódigo]
+\begin{tabbing}
+\quad\=\quad\=\quad\=\kill
+evidências $\leftarrow$ 20 melhores trechos por similaridade;\ \ feedback $\leftarrow$ vazio\\
+\textbf{para} ciclo $=1,2$:\\
+\> plano $\leftarrow$ \op{Planejador}(pergunta, fatos das evidências, vocabulário, feedback)\\
+\> \textbf{se} plano inválido: feedback += erro; \textbf{continue}\\
+\> \textbf{se} plano repetido: \textbf{pare}\\
+\> resultado $\leftarrow$ \op{Executor}(plano)\\
+\> \textbf{se} resultado tem prova aceitável:\\
+\> \> prova $\leftarrow$ \op{Refletor}.verificar(pergunta, plano, resultado)\\
+\> \> \textbf{se} prova confirmada: \textbf{devolva} contexto com a prova\\
+\> feedback += \op{Refletor}.diagnosticar(resultado)\quad(motivo e sonda)\\
+\textbf{devolva} os 5 melhores trechos da busca comum
+\end{tabbing}
+\end{formula}
+
+% =====================================================================
+\section{Montando o contexto do leitor}
+\label{sec:contexto}
+
+O leitor recebe $k=5$ trechos. O ponto de partida são os cinco melhores pela
+nota do plano (com pesos normais, os mesmos da busca híbrida). Uma prova
+confirmada muda esse contexto de um jeito controlado
+(Figura~\ref{fig:contexto}):
+\begin{itemize}
+\item os trechos da prova que já estão entre os cinco ficam onde estão;
+\item os que faltam entram \textbf{pelo fim da lista}, no lugar dos trechos
+  menos bem colocados;
+\item no máximo $k_W$ trocas: 2 para planos compostos (cadeia, interseção ou
+  conjunto) e 1 para um fato com um valor;
+\item as primeiras $\max(1,k-k_W)$ posições nunca mudam.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[slot/.style={draw,thick,minimum width=17mm,minimum height=8mm,font=\small},
+  prot/.style={slot,fill=blue!10},free/.style={slot,fill=white},newp/.style={slot,fill=green!18}]
+\node[font=\small,anchor=east] at (-0.3,0) {antes};
+\foreach \i/\t/\s in {1/$p_1$/prot,2/$p_8$/prot,3/$p_3$/prot,4/$p_9$/free,5/$p_{12}$/free}
+  \node[\s] at (\i*1.9,0) {\t};
+\node[font=\small,anchor=east] at (-0.3,-1.3) {depois};
+\foreach \i/\t/\s in {1/$p_1$/prot,2/$p_8$/prot,3/$p_3$/prot,4/$p_9$/free,5/$p_5$/newp}
+  \node[\s] at (\i*1.9,-1.3) {\t};
+\draw[decorate,decoration={brace,amplitude=5pt,mirror}] (1.1,-1.85)--(6.5,-1.85) node[midway,below=5pt,font=\scriptsize]{protegidas: $\max(1,5-2)=3$};
+\draw[decorate,decoration={brace,amplitude=5pt,mirror}] (6.9,-1.85)--(10.3,-1.85) node[midway,below=5pt,font=\scriptsize]{podem ser trocadas ($k_W=2$)};
+\draw[-{Stealth},thick,green!40!black] (9.5,-0.45)--(9.5,-0.85);
+\end{tikzpicture}
+\caption{A prova da mentora usa os trechos $p_1$ (já no contexto) e $p_5$
+(fora). $p_5$ entra no lugar do último trecho.}
+\label{fig:contexto}
+\end{figure}
+
+\begin{porque}
+A prova pode estar errada mesmo depois de verificada. Proteger as primeiras
+posições garante que o método \emph{só acrescenta} evidência provada: nunca
+tira do leitor o que a busca comum achou de melhor. Se não houver prova
+confirmada, o contexto é exatamente o da busca híbrida.
+\end{porque}
+
+\textbf{Opções da versão 4} (desligadas por padrão, usadas nos testes mais
+recentes):
+\begin{itemize}
+\item \textbf{Entrega como falas}: em vez de trocar trechos, as provas que não
+  cabem entram como um bloco curto (até 2400 caracteres) com as falas de
+  origem, depois dos cinco trechos. Só diálogo, sem os fatos extraídos nem a
+  resposta, para o leitor não copiar a extração.
+\item \textbf{Premissas para hipóteses}: para perguntas como ``Would Caroline
+  likely have Dr.\ Seuss books?'', não existe prova: a resposta depende de
+  fatos \emph{e} de conhecimento de mundo. O sistema entrega até 8 falas sobre
+  Caroline, escolhidas pelos conceitos que apoiariam ou contradiriam a
+  hipótese (``children's books'', ``reading habits''). São premissas para o
+  leitor raciocinar, não uma prova.
+\end{itemize}
+
+% =====================================================================
+\section{Três perguntas do começo ao fim}
+\label{sec:exemplos}
+
+Os três exemplos usam a memória da Figura~\ref{fig:grafo}. Os limiares e pesos
+são os do código; as similaridades (cossenos) são valores ilustrativos; a
+confiança de todos os fatos é 0,9.
+
+\needspace{10\baselineskip}\subsection*{Exemplo A: ``Onde Melanie já acampou?'' (resposta em conjunto)}
+
+\begin{enumerate}
+\item \textbf{Primeira busca.} Os trechos mais parecidos com a pergunta
+  incluem $p_2$ e $p_3$ (montanhas e praia). O trecho da floresta, $p_4$,
+  ficou em 7.º lugar: fora dos cinco.
+\item \textbf{Planejador.} Vê entre as evidências fatos como
+  ``Melanie | camp at | mountains''. Escreve:
+  $\rel{camp at}(\text{Melanie},\V x)$, agregação \emph{conjunto}, tipo
+  ``place'', pesos normais.
+\item \textbf{Executor.}
+  \begin{itemize}
+  \item Âncora: o nó Melanie.
+  \item Candidatos: as quatro setas que saem de Melanie. $f_1$, $f_2$ e $f_3$
+    casam com $m\approx0{,}96$; $f_6$ (\rel{sign up for}) é vetada.
+  \item Caminhada: um átomo só, então cada candidato já é uma prova completa.
+    Três provas: \{$f_1$\} $\to$ mountains, \{$f_2$\} $\to$ beach,
+    \{$f_3$\} $\to$ forest.
+  \item Teste: conjunto, então item a item. Cada suporte é
+    $0{,}96\times0{,}9\approx0{,}87\ge0{,}45$. Aceito.
+  \end{itemize}
+\item \textbf{Refletor.} A prova da floresta traz um trecho novo ($p_4$),
+  então há verificação. O LLM lê as três falas e confirma os três itens.
+\item \textbf{Contexto.} $p_4$ entra no lugar do 5.º trecho. O leitor recebe as
+  três viagens e responde ``mountains, beach and forest''.
+\end{enumerate}
+\emph{O que este exemplo mostra}: a resposta espalhada por várias sessões é
+reunida porque o plano pede \emph{todas} as setas \rel{camp at} de Melanie, e
+cada uma aponta para o seu trecho.
+
+\needspace{10\baselineskip}\subsection*{Exemplo B: ``Quando Melanie acampou em junho?'' (o tempo decide)}
+
+\begin{enumerate}
+\item \textbf{Planejador.} A pergunta cita um mês, então o plano usa
+  período \emph{janela} ``June 2023'' e tempo \emph{forte}:
+  $\rel{camp at}(\text{Melanie},\V x)\ @\ \V t$, resposta $\V t$ (a data),
+  pesos $(0{,}7;\ 0;\ 0{,}3)$.
+\item \textbf{Executor.} As três setas \rel{camp at} casam igualmente bem
+  ($m\approx0{,}96$). Sem o tempo, elas empatariam. Com o tempo:
+\end{enumerate}
+\begin{center}\small
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Seta & data do evento & dias fora de junho & $\prox$ & nota $=0{,}7\cdot m+0{,}3\cdot\prox$ \\
+\midrule
+$f_1$ & 19--25/6 & 0 & 1,000 & \textbf{0,972} \\
+$f_2$ & 6/7 & 6 & 0,670 & 0,873 \\
+$f_3$ & 15/7 & 15 & 0,368 & 0,782 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{enumerate}\setcounter{enumi}{2}
+\item \textbf{Teste.} Resposta de um valor: vale a prova mais bem colocada,
+  $f_1$. Três respostas no máximo, suporte alto: aceito.
+\item \textbf{Refletor e contexto.} O trecho $p_2$ já estava entre os cinco
+  (os mesmos pesos de tempo também reordenam os trechos, e $p_2$ sobe), então
+  não há verificação nem troca.
+\item \textbf{Leitor.} Responde ``the week before 27 June 2023''.
+\end{enumerate}
+\emph{O que este exemplo mostra}: a data certa existe porque a construção da
+memória resolveu o ``last week'' da fala. E é a proximidade no tempo, não a
+similaridade, que separa junho de julho.
+
+\needspace{10\baselineskip}\subsection*{Exemplo C: ``Para que cidade se mudou a mentora de Caroline?'' (cadeia com reflexão)}
+
+\needspace{8\baselineskip}\textbf{Ciclo 1.}
+\begin{enumerate}
+\item \textbf{Primeira busca.} Traz trechos sobre Caroline, entre eles $p_1$
+  (Beth é mentora). O trecho $p_5$, em que Beth se muda, não cita Caroline e
+  fica fora dos cinco (mas está entre os 20 das evidências).
+\item \textbf{Planejador.} Escreve a cadeia com o verbo da pergunta:
+  $\rel{mentor of}(\V y,\text{Caroline})\wedge\rel{live in}(\V y,\V x)$.
+\item \textbf{Executor.}
+  \begin{itemize}
+  \item Camada 1 (o átomo com nome): setas \rel{mentor of} que chegam a
+    Caroline. $f_4$ casa com $m=0{,}98$. $\V y$ vira Beth.
+  \item Camada 2: setas que saem de Beth com relação parecida com
+    \rel{live in}. A única é $f_5$ (\rel{move to}), mas a similaridade entre
+    ``live in'' e ``move to'' é 0,58, abaixo de 0,65: veto. Camada vazia.
+  \item Lacuna: faltou \rel{live in} a partir de Beth.
+  \end{itemize}
+\item \textbf{Refletor (diagnóstico).} Escreve ao Planejador ``nenhum fato
+  casou com \rel{live in} para Beth'' e cria a sonda ``Beth live in''. Com a
+  sonda, os fatos mostrados no próximo ciclo incluem
+  ``Beth | move to | Boston | July 2023''.
+\end{enumerate}
+
+\textbf{Ciclo 2.}
+\begin{enumerate}\setcounter{enumi}{4}
+\item \textbf{Planejador.} Vê como a memória fala da mudança e reescreve:
+  $\rel{mentor of}(\V y,\text{Caroline})\wedge\rel{move to}(\V y,\V x)$
+  (o JSON da Seção~\ref{sec:plano}).
+\item \textbf{Executor.} Camada 1 igual. Camada 2: agora $f_5$ casa. O átomo
+  \rel{move to}($\V y$, $\V x$) não tem nome, então a média é refeita sem o peso
+  dos nomes:
+  $m(f_5)=(0{,}45\cdot1+0{,}20\cdot0{,}85)/(0{,}45+0{,}20)=0{,}954$.
+  Prova: $W=\{f_4,f_5\}$, $\V y=$ Beth, $\V x=$ Boston.
+  \begin{itemize}
+  \item suporte $=0{,}98\times0{,}954\times0{,}9\times0{,}9=0{,}76\ge0{,}45$;
+  \item custo $=-\log0{,}98-\log0{,}954+0{,}15\times2=0{,}02+0{,}05+0{,}30=0{,}37$.
+  \end{itemize}
+  Uma resposta, uma prova: aceito.
+\item \textbf{Refletor (verificação).} $p_5$ é novo, então o LLM lê as duas
+  falas (a caixa da Seção~\ref{sec:ciclo}) e confirma.
+\item \textbf{Contexto.} $p_5$ entra na 5.ª posição (Figura~\ref{fig:contexto}).
+  O leitor responde ``Boston''.
+\end{enumerate}
+\emph{O que este exemplo mostra}: (i) a cadeia encontra um trecho que a
+similaridade nunca traria, porque ``Boston'' não aparece perto de
+``Caroline''; (ii) a falha do primeiro ciclo não foi um beco sem saída: a
+lacuna disse exatamente \emph{onde} a prova quebrou, e o segundo plano
+corrigiu só isso.
+
+% =====================================================================
+\section{O que o método garante e o que não garante}
+\label{sec:garantias}
+
+\textbf{Garante:}
+\begin{itemize}
+\item \textbf{Nunca piora o contexto sem prova.} Sem prova confirmada e com
+  pesos normais, o leitor recebe exatamente os trechos da busca híbrida. Com
+  prova, no máximo $k_W$ trechos mudam, e as primeiras posições ficam.
+\item \textbf{Não usa informação do benchmark.} Nenhuma etapa lê a categoria da
+  pergunta, a resposta ou anotações.
+\item \textbf{Custo limitado.} No máximo 4 chamadas ao LLM por pergunta além do
+  leitor; o Executor é só índice e contas.
+\item \textbf{Auditável.} Toda prova aceita tem os fatos, as notas e as falas de
+  origem registrados.
+\item \textbf{Correção no modo exato.} Se as relações e os nomes forem
+  comparados por igualdade (não por similaridade) e nenhum corte ocorrer, o
+  Executor encontra exatamente todas as respostas que o grafo prova.
+\end{itemize}
+
+\textbf{Não garante:}
+\begin{itemize}
+\item \textbf{Que os fatos estejam certos.} A prova é tão boa quanto a
+  extração. A confiança $c_f$ é um valor fixo, não calibrado.
+\item \textbf{Que nada ficou de fora.} Um conjunto contém o que a memória
+  prova; um lugar que a extração não registrou não aparece.
+\item \textbf{Exatidão no modo padrão.} Comparar relações por similaridade é uma
+  aproximação: ``live in'' e ``move to'' podem ou não casar, dependendo do
+  limiar.
+\item \textbf{Sinônimos sem palavras em comum.} ``TV'' e ``television'' não são
+  unidos, porque a regra de nomes é conservadora.
+\end{itemize}
+
+% =====================================================================
+\section{Glossário}
+\label{sec:glossario}
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}l Y@{}}
+\toprule
+Termo & Significado \\
+\midrule
+Fala & uma intervenção de um falante na conversa, com a data da sessão \\
+Trecho & bloco contíguo de falas (até 2048 tokens); é o que o leitor lê \\
+Fato & (sujeito, relação, objeto) extraído de uma fala, com data do evento, importância, confiança e origem \\
+Nó & uma pessoa ou coisa do grafo; nomes unidos (``Mel'', ``Melanie'') são um só nó \\
+Seta & um fato visto no grafo: vai do sujeito para o objeto \\
+Leitor & o LLM que escreve a resposta final a partir de 5 trechos \\
+Evidências & os 20 trechos da primeira busca, mostrados ao Planejador \\
+Plano & a pergunta reescrita como padrão de setas, com agregação, tipo, período e pesos \\
+Átomo & uma seta procurada: \rel{relação}(sujeito, objeto) \\
+Incógnita & o que se quer descobrir num átomo ($\V x$, $\V y$); $\V x$ é a resposta \\
+Âncora & nó do grafo que corresponde a um nome do plano \\
+Nota de casamento ($m$) & quanto uma seta corresponde a um átomo (relação, nomes, frase) \\
+Testemunha / prova & o menor conjunto de fatos do qual a resposta decorre \\
+Suporte & produto das notas e confianças dos fatos de uma prova \\
+Custo & o que a caminhada minimiza: notas baixas e trechos demais custam mais \\
+Lacuna & o átomo em que a prova quebrou, com o que já estava fixado \\
+Sonda & texto curto feito da lacuna, usado para mostrar novos fatos ao Planejador \\
+Período de referência & hoje, início da conversa ou uma janela citada \\
+Proximidade & 1 dentro do período, caindo com a distância em dias \\
+$k$, $k_W$ & trechos entregues ao leitor (5); trechos que uma prova pode trocar (1 ou 2) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% =====================================================================
+\section{Onde cada peça está no código}
+\label{sec:codigo}
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}l Y@{}}
+\toprule
+Peça & Arquivo e função \\
+\midrule
+Extração de fatos & \texttt{wrag/ie.py} (\texttt{extract\_corpus}) \\
+Datas, importância, fala de origem & \texttt{wrag/witness/dated\_memory.py} (\texttt{DatedMemory}, \texttt{arousal}) \\
+Grafo, nomes unidos, famílias de relações & \texttt{wrag/graph.py} (\texttt{build\_graph}, \texttt{relation\_signature}) \\
+Nota única e proximidade & \texttt{wrag/witness/scoring.py} (\texttt{MemoryScorer}, \texttt{proximity}) \\
+Planejador & \texttt{wrag/witness/plan.py} (\texttt{plan\_question}); prompt em \texttt{wrag/prompts.py} \\
+Executor: âncoras, candidatos, caminhada & \texttt{wrag/witness/search.py} (\texttt{match\_entity}, \texttt{ground}, \texttt{join}) \\
+Executor: suporte e teste de aceitação & \texttt{wrag/methods/witnessrag.py} (\texttt{\_prove}, \texttt{\_prove\_items}) \\
+Refletor: verificação & \texttt{wrag/witness/confirm.py} (\texttt{confirm}) \\
+Refletor: diagnóstico & \texttt{wrag/methods/witnessrag.py} (\texttt{\_OUTCOME\_FEEDBACK}) \\
+Ciclo inteiro e contexto & \texttt{wrag/methods/witnessrag.py} (\texttt{\_retrieve\_proof}) \\
+Parâmetros & \texttt{wrag/config.py} (\texttt{WitnessConfig}) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Observação: no código, o Refletor não é uma classe única; seus dois papéis
+estão em lugares diferentes (tabela acima). A divisão Planejador, Executor e
+Refletor deste guia é a forma de explicar o que o código faz.
+
+\subsection*{Parâmetros principais}
+
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Parâmetro & Valor & Onde aparece \\
+\midrule
+Trechos para o leitor ($k$) & 5 & contexto \\
+Evidências & 20 trechos, 30 fatos & Planejador \\
+Ciclos & 2 & ciclo \\
+Átomos por plano & até 4 & plano \\
+Pesos da nota de casamento & 0,45 / 0,35 / 0,20 & Executor, passo 2 \\
+Veto de relação & 0,65 & Executor, passo 2 \\
+Nomes: cosseno mínimo / âncoras & 0,55 / até 5 & Executor, passo 1 \\
+Candidatos por átomo & 60 & Executor, passo 2 \\
+Feixe & 400 & Executor, passo 3 \\
+Custo por trecho & 0,15 & Executor, passo 3 \\
+Suporte mínimo & 0,45 & Executor, passo 4 \\
+Máx. respostas / provas (um valor) & 3 / 3 & Executor, passo 4 \\
+Máx. itens de conjunto & 12 & Executor, passo 4 \\
+Peso forte: tempo / importância & 0,3 / 0,1 & nota única \\
+Trocas no contexto ($k_W$) & 2 composto / 1 simples & contexto \\
+União de nomes & cosseno $\ge0{,}80$ + palavras contidas & memória \\
+Importância ($\kappa$) & 2 & memória \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

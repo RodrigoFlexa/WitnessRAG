@@ -50,6 +50,9 @@ class Fact:
     confidence: float = 0.9
     acquired: bool = False
     time: str = ""        # escopo temporal declarado no texto; "" quando não há
+    statement: str = ""   # frase autocontida (extração "memory"); "" no OpenIE
+    turn_id: str = ""     # fala de origem declarada pelo extrator ("D4:6")
+    kind: str = ""        # past | plan | ongoing | said (extração "memory")
     subj_id: int = -1     # id canônico de entidade, preenchido na resolução
     obj_id: int = -1
     rel_id: int = -1      # id canônico de relação
@@ -62,7 +65,7 @@ class Fact:
         # O tempo entra na verbalização porque é o que distingue dois fatos com a
         # mesma tripla em sessões diferentes; a tripla em si continua com três
         # elementos, e as métricas de cobertura seguem comparando triplas.
-        base = f"{self.subject} {self.relation} {self.object}"
+        base = self.statement or f"{self.subject} {self.relation} {self.object}"
         return f"{base} ({self.time})" if self.time else base
 
     def to_dict(self) -> dict[str, Any]:
@@ -70,6 +73,8 @@ class Fact:
                "pid": self.pid, "conf": self.confidence, "acq": self.acquired}
         if self.time:
             out["t"] = self.time
+        if self.statement:
+            out.update({"st": self.statement, "turn": self.turn_id, "kind": self.kind})
         return out
 
 
@@ -124,6 +129,10 @@ def _cache_path(corpus: Corpus, llm: LLM, cfg: C.IEConfig) -> Path:
         templates += [prompts.OPENIE_DIALOGUE_SYSTEM, prompts.OPENIE_DIALOGUE_TEMPLATE]
     else:
         config.pop("dialogue_mode", None)
+    if cfg.style:
+        templates = [prompts.MEMORY_SYSTEM, prompts.MEMORY_TEMPLATE]
+    else:
+        config.pop("style", None)
     if not cfg.window_tokens:
         for name in ("window_tokens", "window_overlap_tokens", "window_tokenizer",
                      "window_tokenizer_revision"):
@@ -155,7 +164,9 @@ def extract_corpus(
         if cached:
             result = ExtractionResult(
                 facts=[Fact(fid=r["fid"], subject=r["s"], relation=r["r"], object=r["o"],
-                            pid=r["pid"], confidence=r.get("conf", 0.9), time=r.get("t", ""))
+                            pid=r["pid"], confidence=r.get("conf", 0.9), time=r.get("t", ""),
+                            statement=r.get("st", ""), turn_id=r.get("turn", ""),
+                            kind=r.get("kind", ""))
                        for r in cached["facts"]],
                 entities_by_passage=cached.get("entities", {}),
                 blocked_pids=cached.get("blocked", []),
@@ -181,7 +192,7 @@ def extract_corpus(
     entities_by_unit: dict[tuple[str, int], list[str]] = {}
     blocked_units: set[tuple[str, int]] = set()
     blocked: set[str] = set()
-    if cfg.two_step:
+    if cfg.two_step and not cfg.style:
         ner_prompts = [prompts.NER_TEMPLATE.format(text=text) for _p, _wi, text in units]
         ner_results = llm.chat_many(ner_prompts, system=prompts.NER_SYSTEM, params=params,
                                     stage="index.ner", desc="NER das passagens")
@@ -211,6 +222,8 @@ def extract_corpus(
     targets = [(p, wi, text) for p, wi, text in units if (p.pid, wi) not in blocked_units]
     template, system = ((prompts.OPENIE_DIALOGUE_TEMPLATE, prompts.OPENIE_DIALOGUE_SYSTEM)
                         if cfg.dialogue_mode else (prompts.OPENIE_TEMPLATE, prompts.OPENIE_SYSTEM))
+    if cfg.style == "memory":
+        template, system = prompts.MEMORY_TEMPLATE, prompts.MEMORY_SYSTEM
     ie_prompts = [
         template.format(
             text=text,
@@ -235,6 +248,11 @@ def extract_corpus(
             blocked_by_parent[passage.pid] = blocked_by_parent.get(passage.pid, 0) + 1
             LEDGER.add("index", corpus.name, "shared-ie", passage.pid,
                        f"OpenIE bloqueado; janela={window_index}")
+            continue
+        if cfg.style == "memory":
+            items = _facts_from_memories(result.json(), passage.pid, cfg.max_triples_per_passage)
+            facts_by_parent[passage.pid] += len(items)
+            facts.extend(items)
             continue
         triples = _parse_triples(result.json(), cfg.max_triples_per_passage)
         facts_by_parent[passage.pid] += len(triples)
@@ -317,6 +335,29 @@ def _parse_triples(data: Any, limit: int) -> list[tuple[str, str, str, str]]:
     return out
 
 
+def _facts_from_memories(data: Any, pid: str, limit: int) -> list[Fact]:
+    """Memory items (style "memory"): triple + statement + turn + kind."""
+    if not isinstance(data, dict):
+        return []
+    out: list[Fact] = []
+    for item in data.get("memories") or []:
+        if not isinstance(item, dict):
+            continue
+        s, r, o = (str(item.get(k) or "").strip() for k in ("subject", "relation", "object"))
+        statement = " ".join(str(item.get("statement") or "").split())[:300]
+        if not s or not r or not o or len(s) > 200 or len(o) > 200:
+            continue
+        kind = str(item.get("kind") or "").strip().lower()
+        kind = kind if kind in {"past", "plan", "ongoing", "said"} else ""
+        fid = sha(normalize(s), normalize(r), normalize(o), normalize(statement), pid)[:16]
+        out.append(Fact(fid=fid, subject=s, relation=r, object=o, pid=pid, confidence=0.9,
+                        time=str(item.get("time") or "").strip()[:80], statement=statement,
+                        turn_id=str(item.get("turn") or "").strip()[:20], kind=kind))
+        if len(out) >= limit:
+            break
+    return out
+
+
 def _facts_from_triples(triples: Iterable[Sequence[str]], pid: str,
                         acquired: bool = False, confidence: float | None = None) -> list[Fact]:
     facts = []
@@ -334,7 +375,8 @@ def _dedupe(facts: Sequence[Fact]) -> list[Fact]:
     """Uma ocorrência por fonte. Duplicação entre fontes não calibra confiança."""
     by_key: dict[tuple[str, str, str], list[Fact]] = {}
     for f in facts:
-        by_key.setdefault((normalize(f.subject), normalize(f.relation), normalize(f.object)), []).append(f)
+        by_key.setdefault((normalize(f.subject), normalize(f.relation), normalize(f.object),
+                           normalize(f.statement)), []).append(f)
 
     out: list[Fact] = []
     for group in by_key.values():

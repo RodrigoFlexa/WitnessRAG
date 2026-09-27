@@ -160,6 +160,7 @@ def read(
     passages_override: Sequence[tuple[str, str]] | None = None,
     count_mode: bool = False,
     extra_passages: Sequence[dict[str, str]] | None = None,
+    facts_mode: bool = False,
 ) -> ReadResult:
     cfg = cfg or C.QAConfig()
     passages = []
@@ -180,6 +181,9 @@ def read(
     for block in extra_passages or []:
         if block.get("text"):
             text = str(block["text"])
+            if facts_mode:
+                passages.append((str(block.get("title") or "Memory"), text))
+                continue
             if (cfg.temporal_annotations and question.dataset == "locomo" and
                     (question.qtype == "temporal" or cfg.evidence_reader)):
                 text = _temporal_reader_view(text)
@@ -190,7 +194,8 @@ def read(
         question.question, re.I))
     use_proof = bool(cfg.proof_reader and proof_context and
                      proof_context.get("hipoteses"))
-    template = (prompts.qa_evidence_template(cfg.yesno_rationale)
+    template = (prompts.qa_facts_template(cfg.yesno_rationale) if facts_mode else
+                prompts.qa_evidence_template(cfg.yesno_rationale)
                 if cfg.evidence_reader and question.dataset == "locomo" else
                 prompts.QA_INFERENCE_TEMPLATE if question.dataset == "locomo" and question.qtype == "open-domain" else
                 prompts.QA_TEMPORAL_MEMORY_TEMPLATE if question.dataset == "locomo" and question.qtype == "temporal" else

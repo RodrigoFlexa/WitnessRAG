@@ -1,0 +1,480 @@
+% =====================================================================
+% WitnessRAG: formulação teórica (Planejador, Executor, Refletor)
+% Compilar: latexmk -pdf witnessrag-teoria.tex
+% Descreve o controlador de prova como está implementado em 25/09/2026
+% (wrag/methods/witnessrag.py::_retrieve_proof e módulos wrag/witness/*).
+% =====================================================================
+\documentclass[10pt,twocolumn]{article}
+\usepackage[a4paper,top=1.3cm,bottom=1.5cm,left=1.4cm,right=1.4cm,columnsep=0.55cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[brazilian]{babel}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{microtype}
+\usepackage{booktabs,tabularx,array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,shapes.geometric}
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf,skip=3pt}
+
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.5em}{}
+\titlespacing*{\section}{0pt}{7pt plus 2pt}{3pt}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{5pt plus 1pt}{2pt}
+\titlespacing*{\paragraph}{0pt}{3pt plus 1pt}{0.6em}
+\setlength{\parskip}{1.5pt}
+\setlist{leftmargin=*,itemsep=0.5pt,topsep=2pt,parsep=0pt}
+
+\theoremstyle{definition}
+\newtheorem{definicao}{Definição}
+\newtheorem{proposicao}{Proposição}
+\newcommand{\rel}[1]{\textsf{#1}}
+\newcommand{\V}[1]{\mathord{?}\mathit{#1}}
+\newcommand{\op}[1]{\textsc{#1}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\G}{\mathcal{G}}
+\newcommand{\Pl}{\mathcal{P}}
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\sem}{\operatorname{sim}}
+\newcommand{\prox}{\operatorname{prox}}
+\newcommand{\sq}{\hspace{0.08em}}
+\DeclareMathOperator{\sig}{sig}
+\DeclareMathOperator{\cost}{custo}
+\DeclareMathOperator{\supp}{sup}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\SetAlCapFnt{\small}\SetAlCapNameFnt{\small}
+\SetKwInOut{Input}{Entrada}\SetKwInOut{Output}{Saída}
+\SetKw{Return}{devolva}\SetKw{Break}{pare}
+
+\title{\vspace{-8mm}\textbf{WitnessRAG: memória de fatos datados e busca de testemunhas}\\[2pt]
+\large Formulação com Planejador, Executor e Refletor}
+\author{}
+\date{\vspace{-10mm}}
+
+\raggedbottom
+\begin{document}
+\maketitle
+
+
+\begin{abstract}\noindent
+O WitnessRAG guarda a conversa de um agente em duas camadas ligadas: texto
+datado, que o leitor lê, e um grafo de fatos datados, em que a resposta é
+\emph{provada}. Para cada pergunta, um \op{Planejador} escreve um plano de
+busca, um \op{Executor} percorre o grafo seguindo o plano até achar uma
+\emph{testemunha} (os poucos fatos dos quais a resposta decorre) e um
+\op{Refletor} confere a prova no texto original ou explica ao Planejador por
+que ela falhou. O contexto do leitor só muda quando há prova confirmada.
+\end{abstract}
+
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  ent/.style={draw,ellipse,thick,fill=orange!12,font=\small,inner sep=1.5pt,minimum height=6mm},
+  e/.style={-{Stealth[length=2mm]},thick},
+  eA/.style={e,draw=blue!70!black,line width=1.3pt},
+  eC/.style={e,draw=red!70!black,line width=1.3pt},
+  el/.style={font=\scriptsize,fill=white,inner sep=1pt,align=center},
+  pas/.style={draw,rounded corners=2pt,fill=gray!8,font=\scriptsize,align=left,inner sep=3pt,text width=4.3cm}]
+\node[ent] (bet) at (-7.0,0.9) {Beth};
+\node[ent] (car) at (-3.4,0.9) {Caroline};
+\node[ent] (bos) at (-7.0,-1.1) {Boston};
+\node[ent] (mel) at (-0.6,0) {Melanie};
+\node[ent] (pot) at (-4.0,-1.25) {pottery class};
+\node[ent] (mon) at (3.1,1.35) {mountains};
+\node[ent] (bea) at (3.4,0) {beach};
+\node[ent] (for) at (3.1,-1.35) {forest};
+\draw[eC] (bet)--node[el,above=1pt,fill=none]{$f_4$ mentor of, 8/5}(car);
+\draw[eC] (bet)--node[el,left=1pt,fill=none]{$f_5$ move to\\ jul/2023}(bos);
+\draw[e] (mel)--node[el,above,sloped,pos=0.55,fill=none]{$f_6$ sign up for, 2/7}(pot);
+\draw[eA] (mel)--node[el,above,sloped,pos=0.38,fill=none]{$f_1$ camp at, 19--25/6}(mon);
+\draw[eA] (mel)--node[el,above,fill=none]{$f_2$ camp at, 6/7}(bea);
+\draw[eA] (mel)--node[el,below,sloped,fill=none]{$f_3$ camp at, 15/7}(for);
+\node[pas,anchor=west] (p) at (4.4,0.0) {%
+\textbf{origem $\pi(f)$: trecho, fala, sessão}\\[1pt]
+$f_1$: $p_2$, $u_{4:6}$, 27/6: ``I took my fam camping in the mountains \emph{last week}''\\[1pt]
+$f_2$: $p_3$, $u_{6:16}$, 6/7: ``\dots my family camping at the beach''\\[1pt]
+$f_3$: $p_4$, $u_{8:3}$, 15/7: ``we went camping in the forest''\\[1pt]
+$f_4$: $p_1$, 8/5;\quad $f_5$: $p_5$, 14/8 (``\emph{last month}'');\quad $f_6$: $p_3$, 2/7};
+\end{tikzpicture}
+\caption{Memória didática no formato do LoCoMo. Nós são classes de identidade; arestas são fatos com relação e data do
+\emph{evento} ($f_1$: ``last week'' resolvida pela sessão de 27/6; $f_5$: ``last month'' dito em 14/8). Em azul, as
+testemunhas do Exemplo A; em vermelho, a do Exemplo C. À direita, o ponteiro $\pi(f)$ para a camada de texto.}
+\label{fig:grafo}
+\vspace{-3mm}
+\end{figure*}
+
+% =====================================================================
+\section{A ideia}
+\label{sec:ideia}
+
+Um agente que conversa durante meses não consegue reler tudo a cada pergunta:
+ele escolhe poucos trechos ($k=5$) e um \emph{leitor} (o LLM) responde a partir
+deles. A escolha usual é por similaridade com a pergunta, e ela falha de três
+formas: quando a resposta está \emph{espalhada} (três acampamentos em três
+sessões), quando exige \emph{encadear} fatos (a cidade da mentora de Caroline
+está num trecho que nem cita Caroline) e quando depende de \emph{datas}
+(``em junho'' contra ``em julho''). Nos três casos falta a mesma coisa: saber
+se os trechos escolhidos \emph{bastam} para responder.
+
+O WitnessRAG troca a pergunta ``o que se parece com a pergunta?'' por ``que
+fatos provam a resposta?''. O conjunto mínimo de fatos que prova uma resposta
+é a sua \emph{testemunha}, termo da teoria de proveniência em bancos de dados.
+Ela serve para duas coisas: indica \emph{quando parar} de procurar (achou a
+prova) e \emph{o que o contexto precisa conter} (os trechos de onde vêm esses
+fatos). O processo imita um investigador: planeja o que procurar, procura, e
+confere o que achou antes de concluir; se falhar, entende o motivo e tenta de
+novo.
+
+% =====================================================================
+\section{A memória: o que é guardado}
+\label{sec:memoria}
+
+A memória é construída uma vez por conversa, antes de qualquer pergunta. Ela
+tem duas camadas: o \emph{texto}, para ser lido, e o \emph{grafo}, para
+raciocinar. Seja $\mathbb{D}$ o conjunto de intervalos de dias $[d_1,d_2]$
+(um dia, uma semana, um mês).
+
+\begin{definicao}[Fala e trecho]
+Uma \emph{fala} é $u=(\mathrm{id},\,\mathrm{falante},\,\mathrm{texto},\,d_u)$,
+com $d_u$ a data da sessão. Um \emph{trecho} $p$ é uma sequência contígua de
+falas com até 2048 tokens, com intervalo
+$\tau(p)=[\min_{u\in p}d_u,\max_{u\in p}d_u]$ e importância $\iota(p)$ (média
+de $\iota(u)$ nas falas, normalizada na memória).
+\end{definicao}
+
+\emph{Importância} mede o quanto o falante marcou um evento como significativo.
+Usamos a intensidade emocional do texto, contada por um léxico pequeno e
+auditável: $E(u)$ soma os pesos das palavras emotivas (1 ou 1{,}5), dos
+intensificadores (0{,}3) e das exclamações (0{,}5, até 3), e
+\begin{equation}\label{eq:imp}
+\iota(u)=1-e^{-E(u)/\kappa}\in[0,1),\qquad \kappa=2.
+\end{equation}
+A exponencial satura: a primeira palavra emotiva pesa muito, a décima quase
+nada. ``Foi incrível, estou tão feliz!'' fica perto de 0{,}9; ``fui ao
+mercado'', em 0.
+
+\begin{definicao}[Fato]
+Um \emph{fato} é
+$f=(s_f,\,r_f,\,o_f,\,\tau(f),\,\iota(f),\,c_f,\,\pi(f))$: sujeito e objeto,
+relação em texto livre, intervalo do \emph{evento} $\tau(f)\in\mathbb{D}$,
+importância $\iota(f)=\iota(u_f)$, confiança da extração $c_f\in[0,1]$ e origem
+$\pi(f)=(p_f,u_f)$, o trecho e a fala de onde veio.
+\end{definicao}
+
+Em palavras: um fato é uma frase curta do tipo ``Melanie acampou nas
+montanhas'', acompanhada de \emph{quando} aconteceu, \emph{quão marcante} foi
+e \emph{de onde} saiu. Os fatos são extraídos por um LLM em janelas curtas do
+diálogo, usando o falante como sujeito. A relação é o verbo que o texto usou
+(``camp at'', ``move to''); não existe lista fixa de relações. A data é a do
+\emph{evento}, não a da conversa: a expressão de tempo é resolvida pela data
+da fala, $\tau(f)=\mathrm{res}(\epsilon_f,d_{u_f})$, e ``last week'' dito em
+27/6/2023 vira $[19/6,25/6]$. Sem expressão de tempo, o fato recebe o dia da
+sessão. A fala de origem $u_f$ é a fala do trecho que mais compartilha
+palavras com o fato.
+
+\begin{definicao}[Grafo de memória]
+$\G=(V,F,\sigma,\omega)$ é um multigrafo dirigido. Os nós $V$ são
+\emph{classes de identidade} de nomes; cada fato $f\in F$ é uma aresta de
+$\sigma(f)=[s_f]$ para $\omega(f)=[o_f]$, rotulada por $r_f$ e com os
+atributos $(\tau,\iota,c,\pi)$.
+\end{definicao}
+
+Pessoas e coisas viram nós; cada fato vira uma seta do sujeito para o objeto
+(Fig.~\ref{fig:grafo}). É um \emph{multi}grafo porque o mesmo par pode ter
+várias setas: Melanie acampou em lugares e datas diferentes, e cada relato
+guarda sua data e sua origem. O ponteiro $\pi(f)$ é a ponte entre as camadas:
+a prova é encontrada no grafo, mas o leitor recebe o texto original.
+
+\paragraph{Quando dois nomes são a mesma coisa.} ``Mel'' e ``Melanie'' devem
+ser um só nó, mas ``primeira metade do jogo'' e ``segunda metade do jogo'' não,
+embora sejam quase idênticos para um embedding. Por isso dois nomes só se
+unem (union--find) se $\cos(\phi(n),\phi(n'))\ge0{,}80$ \emph{e} as palavras
+de um estão contidas nas do outro. Unir errado fabricaria provas falsas;
+deixar de unir só perde uma prova. Flexões de uma relação (``paint'',
+``painted'') compartilham uma família, e relações diferentes são comparadas
+por significado:
+$\sem_R(r,r')=1$ se são da mesma família e $\cos(\phi(r),\phi(r'))$ caso
+contrário, com $\phi$ o embedding (BGE).
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\columnwidth}{@{}l Y Y@{}}
+\toprule
+Componente & Guarda & Serve para \\
+\midrule
+Fala $u$ & id, falante, texto, $d_u$, $\iota(u)$ & ser a prova legível (verificação, bloco de falas) \\
+Trecho $p$ & falas, $\tau(p)$, $\iota(p)$, $\phi(p)$ & ser lido; busca densa+BM25 \\
+Nó $[n]$ & nome canônico, variantes, $\phi(n)$ & ancorar constantes do plano \\
+Aresta $f$ & $s,r,o,\tau,\iota,c,\pi$, $\phi(f)$ & compor a prova (junção) \\
+\bottomrule
+\end{tabularx}
+\caption{O que cada componente da memória $\M=(U,P,\G)$ guarda. O ponteiro
+$\pi(f)$ liga a camada lógica à camada de texto.}
+\label{tab:mem}
+\vspace{-3mm}
+\end{table}
+
+% =====================================================================
+\section{Planos, testemunhas e pontuação}
+\label{sec:plano}
+
+\begin{definicao}[Plano]
+Um \emph{plano} é $\Pl=(Q,\alpha,\theta,I^\star,\mathbf w)$, com
+\begin{equation*}
+Q(\V x)\leftarrow \textstyle\bigwedge_{i=1}^{n} r_i(t_i,t'_i)\,[@\,\V t],\qquad n\le4.
+\end{equation*}
+\end{definicao}
+
+O plano é a pergunta reescrita na língua do grafo. $Q$ é uma lista de fatos a
+encontrar, ligados por ``e'' ($\wedge$); termos com ``?'' são incógnitas e os
+demais são nomes. ``Onde mora a irmã de Ana?'' vira
+$\rel{sister\,of}(\V y,\text{Ana})\wedge\rel{live\,in}(\V y,\V x)$: a
+incógnita $\V y$ aparece nos dois átomos e \emph{amarra} a cadeia (a irmã do
+primeiro fato tem de ser a mesma pessoa do segundo). O marcador $@\,\V t$ pede
+a data do fato, para perguntas ``quando''. Os demais campos dizem que
+\emph{forma} tem a resposta e \emph{onde procurar}: $\alpha$ é a agregação
+(um valor, um conjunto, uma contagem), $\theta(\V x)$ um tipo opcional
+(``arte marcial''), $I^\star$ o período de referência (\emph{hoje},
+\emph{início} ou uma \emph{janela} citada, como ``junho de 2023'') e
+$\mathbf w$ os pesos da pontuação abaixo.
+
+\begin{definicao}[Testemunha]
+Uma atribuição $\beta$ das incógnitas e um conjunto de fatos
+$W=\{f_1,\dots,f_n\}$ formam uma \emph{testemunha} da resposta
+$a=\beta(\V x)$ se cada átomo $i$ é realizado por $f_i$
+($\sigma(f_i)=\beta(t_i)$, $\omega(f_i)=\beta(t'_i)$,
+$r_{f_i}\approx r_i$ e, havendo $\V t$, $\tau(f_i)=\beta(\V t)$) e nenhuma
+parte própria de $W$ basta (mínima).
+\end{definicao}
+
+Em palavras: uma testemunha é uma forma de preencher todas as incógnitas com
+nós do grafo tal que cada átomo do plano corresponda a uma seta que existe de
+fato. Ela é, literalmente, a prova. Uma resposta pode ter várias
+testemunhas (várias provas independentes); o conjunto de respostas é
+$\mathrm{Ans}(Q,\G)=\{\beta(\V x):\exists(\beta,W)\}$.
+
+\paragraph{Uma pontuação para tudo.} Toda escolha de ordem, de trechos e de
+fatos, usa a mesma fórmula, cujos pesos vêm do plano:
+\begin{equation}\label{eq:score}
+S_{\Pl}(x)=w_{\text{sim}}\sem(x)+w_{\text{imp}}\,\iota(x)+w_{\text{t}}\prox(x),
+\end{equation}
+\begin{equation}\label{eq:prox}
+\prox(x)=\exp\!\big(-\mathrm{dist}(\tau(x),I^\star)/\lambda\big).
+\end{equation}
+Os três sinais respondem a perguntas simples: \emph{parece com o que procuro?}
+($\sem$: para um trecho, busca densa+BM25 fundida por RRF; para um fato, o
+casamento com o átomo, Eq.~\ref{eq:match}); \emph{foi marcante?} ($\iota$);
+\emph{aconteceu perto do período pedido?} ($\prox$). A proximidade vale 1
+dentro do período e cai exponencialmente com os dias de distância, com escala
+$\lambda=\max(7,|I^\star|/2)$ para uma janela e $\max(7,0{,}25\,|\M|)$ para
+\emph{hoje} ou \emph{início}. A mesma fórmula cobre três ideias: recência
+(período \emph{hoje}), ``a primeira vez'' (\emph{início}) e ``em junho''
+(\emph{janela}). Os pesos têm três níveis: tempo forte vale 0{,}3,
+importância forte 0{,}1, normal vale 0; eles somam 1 e a similaridade fica
+sempre com pelo menos metade, para que nada irrelevante passe à frente só por
+ser recente ou emotivo. No nível normal, a ordem é exatamente a da busca
+híbrida.
+
+% =====================================================================
+\section{A busca: Planejador, Executor e Refletor}
+\label{sec:busca}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw,rounded corners=2pt,thick,minimum height=7mm,minimum width=16mm,font=\sffamily\small,align=center},
+  llm/.style={box,fill=orange!15}, det/.style={box,fill=blue!8},
+  arr/.style={-{Stealth[length=1.8mm]},thick}, lab/.style={font=\scriptsize,align=center}]
+\node[det] (ex0) {Executor\\[-1pt]\scriptsize busca $\Pl_0$};
+\node[llm,right=9mm of ex0] (pl) {Planejador\\[-1pt]\scriptsize $\Pi$};
+\node[det,right=9mm of pl] (ex) {Executor\\[-1pt]\scriptsize $\Xi$};
+\node[llm,below=5mm of ex] (re) {Refletor\\[-1pt]\scriptsize $\rho$};
+\node[det,below=4mm of re] (ct) {Contexto\\[-1pt]\scriptsize $C$};
+\node[font=\small,left=8mm of ct] (rd) {leitor};
+\draw[arr] (ex0)--node[lab,above]{$\E_0$}(pl);
+\draw[arr] (pl)--node[lab,above]{$\Pl_j$}(ex);
+\draw[arr] (ex)--node[lab,right]{$O_j$}(re);
+\draw[arr] (re)--node[lab,right]{$W^\star$ confirmada}(ct);
+\draw[arr] (ct)--(rd);
+\draw[arr,dashed] (re.west)-|node[lab,pos=0.3,below]{feedback $\varphi_j$, lacuna}node[lab,pos=0.8,left]{até\\$R$ ciclos}(pl.south);
+\end{tikzpicture}
+\caption{Laço de busca. Laranja chama o LLM; azul é determinístico.}
+\label{fig:loop}
+\vspace{-3mm}
+\end{figure}
+
+A busca é um diálogo entre três papéis (Fig.~\ref{fig:loop},
+Alg.~\ref{alg:loop}). O Planejador e o Refletor usam o LLM; o Executor é
+determinístico, só índices e contas. Antes do laço, uma busca por
+similaridade pura (plano nulo $\Pl_0$, $\mathbf w=(1,0,0)$) traz as
+\emph{evidências} $\E_0$: os $N=20$ trechos mais parecidos com a pergunta. O
+laço roda no máximo $R=2$ ciclos.
+
+\paragraph{Planejador $\Pi$: decide o que procurar.}
+$\Pl_j=\Pi(q,\;\mathrm{Fatos}(\E),\;\mathcal V,\;\varphi_{<j})$. Ele não
+planeja às cegas: vê até 30 fatos das evidências (com datas), o vocabulário de
+relações e nomes $\mathcal V$ que a memória realmente usa e o feedback dos
+ciclos anteriores. Assim escreve o plano ``com as palavras da memória''. Nunca
+vê categoria da pergunta nem resposta.
+
+\paragraph{Executor $\Xi$: segue o plano no grafo.} Em quatro passos.
+
+\emph{(1) Ancorar os nomes.} Cada nome do plano é ligado aos nós
+compatíveis: o nó idêntico e até 5 nós com cosseno $\ge0{,}55$.
+
+\emph{(2) Achar candidatos para cada átomo.} Entre as setas que saem ou chegam
+às âncoras, cada fato $f$ recebe uma nota de casamento com o átomo $a=r(t,t')$:
+\begin{equation}\label{eq:match}
+m(a,f)=\frac{0{,}45\,\sem_R(r,r_f)+0{,}35\,\bar s_{\text{arg}}+0{,}20\,\sem_V}{0{,}45+0{,}35\,\mathbb 1_{\text{const}}+0{,}20}.
+\end{equation}
+Pesam a relação ($\sem_R$), os nomes ($\bar s_{\text{arg}}$, similaridade das
+âncoras) e a frase inteira ($\sem_V$, cosseno entre ``Melanie camp at ?x'' e
+o fato verbalizado). É uma média ponderada, e o denominador só a renormaliza
+quando o átomo não tem nome. Há dois vetos: relação com $\sem_R<0{,}65$, ou
+nome no lado errado da seta, dão $m=0$. Os 60 melhores por
+$s(a,f)=w_{\text{sim}}m(a,f)+w_{\text{imp}}\iota(f)+w_{\text{t}}\prox(f)$
+formam $\Gamma(a)$.
+
+\emph{(3) Juntar os átomos.} A busca anda camada por camada, começando pelo
+átomo com mais nomes (o mais restrito). Cada estado parcial $(\beta,W)$ só
+aceita um novo fato se as incógnitas compartilhadas concordam: se $\V y$ já é
+Beth, o próximo fato tem de sair de Beth. Os estados são ordenados por
+\begin{equation}\label{eq:cost}
+\cost(W)=-\textstyle\sum_{f\in W}\log s(a_f,f)+0{,}15\,\big|\{p_f:f\in W\}\big|,
+\end{equation}
+que prefere fatos bem casados e provas espalhadas por poucos trechos (cada
+trecho distinto custa 0{,}15), com feixe de 400 estados. Se uma camada fica
+vazia, a busca para e registra a \emph{lacuna} $g=(a_i,\beta)$: qual átomo
+faltou e o que já estava ligado. Saber \emph{onde} a prova quebrou é o que
+permite corrigir o plano.
+
+\emph{(4) Testar se a prova é boa o bastante.} Cada testemunha recebe o
+suporte $\supp(W)=\prod_{f\in W}m(a_f,f)\,c_f$; o produto faz a prova valer o
+seu elo mais fraco. Um plano de \emph{valor} só é aceito se é seletivo: até 3
+respostas e 3 testemunhas, sem cortes, $\max\supp\ge0{,}45$ e trechos novos
+dentro do orçamento $k_W$. Muitas respostas indicam um plano vago, não uma
+prova. Num plano de \emph{conjunto}, muitas respostas são esperadas, então
+cada item precisa da própria testemunha com $\supp\ge0{,}45$ (com tipo, os 12
+melhores seguem; sem tipo e com mais de 12 itens, o plano é vago).
+
+\paragraph{Refletor $\rho$: confere e explica.} Tem dois papéis.
+\emph{Verificar}: se a prova vai trazer trecho novo ao contexto, o LLM lê a
+pergunta, o plano e, para cada resposta, os fatos com suas datas \emph{e as
+falas originais}; aceita ou recusa item a item (entidade, período ou tipo
+errados, ou falta de apoio). Ele julga, não procura; na dúvida, aceita. Se a
+prova já está no contexto, não há o que verificar. \emph{Diagnosticar}: se
+não houve prova, ou ela foi recusada, transforma o motivo numa instrução
+para o próximo plano: ``nenhum fato casou \rel{live in} para Beth'' (lacuna),
+``8 respostas: seja mais específico'', ``só casamentos fracos: use as
+relações da memória'', ``recusada: período errado''. A lacuna vira também uma
+sonda textual (``Beth live in'') que traz novos fatos às evidências. Plano
+repetido encerra o laço.
+
+\begin{algorithm}[t]
+\small
+\caption{Laço de prova (uma pergunta $q$)}\label{alg:loop}
+\Input{$q$, memória $\M$, $k$, $R$}
+$\E\gets\operatorname{top}_N S_{\Pl_0}$,\ \ $\varphi\gets[\,]$\;
+\For{$j=1,\dots,R$}{
+  $\Pl_j\gets\Pi(q,\mathrm{Fatos}(\E),\mathcal V,\varphi)$\;
+  \lIf{$\Pl_j$ inválido}{$\varphi\mathrel{+}=$erro; \textbf{continue}}
+  \lIf{$\Pl_j$ repetido}{\Break}
+  $\E\gets\E\cup\operatorname{top}_N S_{\Pl_j}$,\ \ $O_j\gets\Xi(\Pl_j,\E)$\;
+  \If{$O_j$ seletivo}{
+    $W^\star\gets\rho_{\text{verif}}(q,\Pl_j,O_j)$\;
+    \lIf{$W^\star\neq\emptyset$}{\Return $C(\Pl_j,W^\star)$}}
+  $\varphi\mathrel{+}=\rho_{\text{diag}}(O_j)$ \tcp*{causa e sonda}
+}
+\Return $\operatorname{top}_k S_{\Pl}$ \tcp*{sem prova: busca pura}
+\end{algorithm}
+
+\paragraph{Montar o contexto.} O leitor recebe $B=\operatorname{top}_k S_\Pl$
+($k=5$) e, havendo prova confirmada, os trechos da testemunha que faltam
+entram \emph{pela cauda}, até $k_W$ trocas ($k_W=2$ para cadeia, interseção
+ou conjunto; $1$ para um fato e um valor). Os $\max(1,k-k_W)$ primeiros
+trechos nunca mudam. Provas que não cabem entram como um bloco curto das
+falas de origem (até 2400 caracteres), sem triplas nem respostas extraídas,
+para o leitor não copiar a extração. Perguntas hipotéticas (``Would X\dots?'')
+recebem até 8 falas da vizinhança de X, como premissas e não como prova.
+
+\begin{proposicao}[Conservadorismo]
+Sem prova confirmada e com pesos normais, os $k$ trechos de $C$ são os do
+híbrido; em qualquer caso, $|C\setminus B|\le k_W$.
+Ou seja, o método só \emph{acrescenta} evidência provada.
+\end{proposicao}
+
+% =====================================================================
+\section{Exemplos de percurso}
+\label{sec:exemplos}
+
+Os exemplos usam a memória da Fig.~\ref{fig:grafo}. Limiares e pesos são os
+do código; as similaridades são ilustrativas; $c_f=0{,}9$.
+
+\paragraph{A: um salto, resposta em conjunto.} \emph{``Onde Melanie já
+acampou?''} Plano: $\rel{camp\,at}(\text{Melanie},\V x)$, conjunto, tipo
+``place''. O Executor ancora Melanie e olha as quatro setas que saem dela.
+Para $f_2$, relação idêntica, nome idêntico e frase parecida (0{,}82):
+$m=0{,}45+0{,}35+0{,}20\cdot0{,}82=0{,}964$. A seta $f_6$ (\rel{sign up for})
+é vetada, pois a relação não se parece com \rel{camp at}. Sobram três
+testemunhas de um fato só, montanhas, praia e floresta, cada uma com
+$\supp=0{,}964\cdot0{,}9\approx0{,}87$. O Refletor lê as três falas e confirma.
+Se o trecho $p_4$ (floresta) não estava entre os 5, ele entra no lugar do
+último.
+
+\paragraph{B: o tempo decide.} \emph{``Quando Melanie acampou em junho?''}
+Plano: $\rel{camp\,at}(\text{Melanie},\V x)\,@\,\V t$, resposta $\V t$,
+janela junho ($\lambda=15$ dias), tempo forte, $\mathbf w=(0{,}7;0;0{,}3)$.
+Os três fatos casam igualmente bem ($m\approx0{,}96$); só a data os separa:
+\begin{center}\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+ & dias fora & $\prox$ & $s=0{,}7m+0{,}3\prox$ \\
+\midrule
+$f_1$ (19--25/6) & 0 & 1{,}000 & \textbf{0{,}972} \\
+$f_2$ (6/7) & 6 & 0{,}670 & 0{,}873 \\
+$f_3$ (15/7) & 15 & 0{,}368 & 0{,}782 \\
+\bottomrule
+\end{tabular}
+\end{center}
+A resposta é ``19--25 June 2023'', a semana antes de 27/6. Note que a data
+correta existe graças à construção da memória: a fala dizia apenas ``last week''.
+
+\paragraph{C: uma cadeia que precisa de reflexão.} \emph{``Para que cidade
+se mudou a mentora de Caroline?''}\\
+\emph{Ciclo 1.} Plano:
+$\rel{mentor\,of}(\V y,\text{Caroline})\wedge\rel{live\,in}(\V y,\V x)$. O
+Executor começa pelo átomo com nome: entre as setas que chegam a Caroline,
+$f_4$ casa ($m=0{,}98$) e fixa $\V y=$ Beth. Na segunda camada, a única seta
+que sai de Beth é $f_5$ (\rel{move to}), mas
+$\sem_R(\rel{live in},\rel{move to})=0{,}58<0{,}65$: veto, camada vazia.
+Lacuna: $(\rel{live in},\ \V y{=}\text{Beth})$. O Refletor diz ao Planejador
+``nenhum fato casou \rel{live in} para Beth'', e a sonda ``Beth live in''
+põe o fato (Beth | move to | Boston) entre as evidências mostradas.\\
+\emph{Ciclo 2.} O Planejador reescreve com a relação da memória:\\[1pt]
+{\scriptsize\ttfamily\setlength{\parskip}{0pt}%
+\hspace*{1mm}"atoms":[\{"relation":"mentor of","subject":"?y",\\
+\hspace*{11mm}"object":"Caroline"\},\\
+\hspace*{11mm}\{"relation":"move to","subject":"?y","object":"?x"\}]}\\[2pt]
+Agora $m(f_5)=(0{,}45\cdot1+0{,}20\cdot0{,}85)/0{,}65=0{,}954$ (sem nome no
+átomo, a média é renormalizada). A testemunha é $W=\{f_4,f_5\}$, com
+$\V y=$ Beth e $\V x=$ Boston, $\supp=0{,}98\cdot0{,}954\cdot0{,}9^2=0{,}76$ e
+$\cost=0{,}02+0{,}05+0{,}15\cdot2=0{,}37$. O Refletor lê as duas falas e
+confirma; o trecho $p_5$ entra na 5.ª posição. O leitor recebe um trecho que
+a similaridade não traria: ``Boston'' nunca aparece perto de ``Caroline''.
+
+\paragraph{Propriedades e limites.} O laço custa no máximo $2R=4$ chamadas de
+LLM além do leitor, e nada nele lê categoria ou resposta do benchmark. Com
+casamento exato e sem cortes, o Executor devolve exatamente
+$\mathrm{Ans}(Q,\G)$; no modo semântico (padrão), é uma aproximação. A prova
+herda os erros da extração, e um conjunto contém o que a memória prova, sem
+garantir que nada ficou de fora.
+
+\end{document}

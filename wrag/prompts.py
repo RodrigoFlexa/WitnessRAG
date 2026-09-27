@@ -131,6 +131,80 @@ Named entities found in this block: {entities}
 {text}"""
 
 
+MEMORY_SYSTEM = (
+    "You build the long-term memory of a conversational agent. You turn dialogue "
+    "turns into precise, self-contained memory items. You always answer with a single "
+    "JSON object and nothing else."
+)
+
+MEMORY_TEMPLATE = """Turn the conversation block below into memory items.
+
+Each line is "[turn id] Speaker: text" (a line "[turn id] Image caption" describes a
+photo shared in that turn). The block starts with the session date.
+
+Goal: someone who later reads ONLY these items must be able to answer any question
+about this block, including why, how, what someone said, advised, felt, described
+or compared. Work turn by turn: EVERY turn that carries information gives 1 to 4
+atomic items (one proposition each; split lists and "and"). This includes:
+events, plans, possessions, relationships, preferences and favorites, reasons and
+motivations ("because", "so that"), advice and recommendations (write their
+content, item by item), opinions and descriptions of things ("the dancers look
+graceful", "dance feels magical"), what something means or symbolizes, how
+someone does something, and what a shared photo shows. Skip only greetings,
+thanks and pure small talk.
+
+Each item has:
+- "turn": the id of the turn that states it (for example "D4:6").
+- "subject", "relation", "object": a graph triple.
+  * subject: a name, never a pronoun. "I"/"my" is the speaker of that turn; "you"
+    is the other participant. Scope unnamed relatives and things to their owner
+    ("Melanie's son", "Jon's dance studio").
+  * relation: SHORT canonical predicate, 1-4 words, base form plus required
+    preposition ("camp at", "read", "plan to open", "work as", "give advice to").
+    Reuse the same relation for paraphrases.
+  * object: the MOST SPECIFIC phrase in the text. Keep names, titles, brands,
+    types, numbers and quantities exactly: "Marley flooring", not "flooring";
+    "The Lean Startup", not "a book"; "contemporary dance", not "dance".
+- "statement": one self-contained sentence (at most 25 words) with names resolved,
+  keeping the specific details and the speaker's own key words (for example
+  "Jon said creating a special experience is the key to making customers feel
+  welcome and come back"). Include the reason, purpose, manner or companions when
+  the turn gives them. No interpretation beyond the text.
+- "time": the time expression of the event exactly as the text gives it ("last
+  week", "next month", "in 2019", "on Friday"), or "" when none.
+- "kind": "past" (it happened), "plan" (intended or scheduled), "ongoing" (a habit,
+  preference, state or trait), or "said" (an opinion or advice given in the turn).
+
+Advice, opinions and preferences are memory too: "Gina: build relationships with
+customers" gives (Gina, give advice to, Jon) with the statement "Gina advised Jon to
+build relationships with customers." Things seen in a shared photo are memory:
+"Image caption: a photo of a dog in a snowy field" gives a statement about what
+the speaker shared.
+
+At most {max_triples} items; a block of about ten informative turns usually
+gives 15 to 30. Answer with JSON exactly in this shape:
+{{"memories": [{{"turn": "D1:3", "subject": "...", "relation": "...", "object": "...",
+  "statement": "...", "time": "", "kind": "past"}}]}}
+
+Example. For the block
+
+  Session date: 8 May, 2023
+  [D1:1] Ravi: I finally finished The Secret Garden with my son Niko last week!
+  [D1:2] Lea: Nice! I'm going to open a pottery studio next month, with Marley floors.
+
+the memories are
+{{"memories": [
+ {{"turn": "D1:1", "subject": "Ravi", "relation": "read", "object": "The Secret Garden",
+   "statement": "Ravi finished reading The Secret Garden with his son Niko.", "time": "last week", "kind": "past"}},
+ {{"turn": "D1:1", "subject": "Niko", "relation": "child of", "object": "Ravi",
+   "statement": "Niko is Ravi's son.", "time": "", "kind": "ongoing"}},
+ {{"turn": "D1:2", "subject": "Lea", "relation": "plan to open", "object": "a pottery studio",
+   "statement": "Lea plans to open a pottery studio with Marley floors.", "time": "next month", "kind": "plan"}}]}}
+
+### INPUT
+{text}"""
+
+
 # Extração dirigida, usada pela aquisição adaptativa do WITNESS-RAG. A diferença
 # em relação ao OpenIE geral é o alvo: aqui já sabemos qual buraco da testemunha
 # queremos fechar, então pedimos exatamente aquela relação.
@@ -968,6 +1042,43 @@ def qa_evidence_template(yesno_rationale: bool = False) -> str:
         assert old in text, old
         text = text.replace(old, new)
     return text
+
+
+QA_FACTS_HEADER = """Answer the question using the memory notes below. They were written from
+a long dialogue between two people. Each note is one fact (a sentence, or
+"subject | relation | object") with the date the event happened when it differs
+from the session (already resolved from expressions such as "last week"), or the
+date a plan was made for. Facts are grouped
+by session, oldest first. A chunk summary, when present, only describes what a
+part of the dialogue was about; prefer the facts for details. Facts may be
+paraphrased, so match the meaning of the question, not only its words."""
+
+QA_FACTS_TIME_RULE = """For time, use the event date given with the fact; if a
+fact has no event date, use its session date. Return the unit requested: a year,
+month, calendar date, interval, or duration."""
+
+
+def qa_facts_template(yesno_rationale: bool = False) -> str:
+    """The evidence reader with memory notes instead of dialogue passages: same
+    answer-form rules, a header that explains the notes, and the time rule that
+    uses the resolved event date."""
+    text = qa_evidence_template(yesno_rationale)
+    head = "Answer the question using the dialogue passages below."
+    assert head in text
+    text = text.replace(head, QA_FACTS_HEADER, 1)
+    text = text.replace("Match every person, event and\nqualifier to the SAME supporting dialogue",
+                        "Match every person, event and\nqualifier to the SAME supporting fact")
+    start = text.index("For time, use the session date")
+    end = text.index("Preserve distinctions")
+    text = text[:start] + QA_FACTS_TIME_RULE + "\n" + text[end:]
+    return text.replace("PASSAGES:", "MEMORY:")
+
+
+SUMMARY_TEMPLATE = """Summarize this part of a dialogue in at most 3 short sentences. Say who talked
+about what: the main events, plans and feelings, with the names used in the
+dialogue. Use only what is said; no interpretation. Answer with the summary only.
+
+{text}"""
 
 
 def format_passages(passages: Sequence[tuple[str, str]], max_chars: int | None = None) -> str:

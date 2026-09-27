@@ -357,10 +357,12 @@ def _answer_standard(name: str, retriever, corpus: Corpus, question: Question,
     from wrag.llm.filters import LEDGER
     blocked = retrieval.filtered or LEDGER.question_blocked(corpus.name, name, question.qid)
     reading = (ReadResult(filtered=True) if blocked else
-               read(retriever.ctx.llm, corpus, question, retrieval.pids,
+               read(retriever.ctx.llm, corpus, question,
+                    [] if retrieval.diagnostics.get("leitura_fatos") else retrieval.pids,
                     replace(run_cfg.qa, top_k=run_cfg.top_k), method=name,
                     proof_context=retrieval.diagnostics.get("leitura_provas"),
-                    extra_passages=retrieval.diagnostics.get("trechos_extras")))
+                    extra_passages=retrieval.diagnostics.get("trechos_extras"),
+                    facts_mode=bool(retrieval.diagnostics.get("leitura_fatos"))))
 
     diagnostics = retrieval.diagnostics
     witness_facts = []

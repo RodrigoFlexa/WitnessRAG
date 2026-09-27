@@ -133,6 +133,31 @@ def parser():
                         "(excerpts) ou trocas até k_W e falas para o resto (mixed)")
     p.add_argument("--abductive-premises", action="store_true",
                    help="v4: hipóteses (would/likely) recebem premissas da vizinhança da pessoa")
+    p.add_argument("--type-model", choices=["gliner"], default=None,
+                   help="tipos por NER de rótulos livres na fala de origem (exige --typed-variables)")
+    p.add_argument("--type-min-score", type=float, default=None,
+                   help="nota mínima do tipo para manter uma resposta localizada (padrão 0.3)")
+    p.add_argument("--proof-dominance", type=float, default=None,
+                   help="aceita plano de valor com respostas demais se a melhor domina a segunda (razão)")
+    p.add_argument("--anchor-relations", type=int, default=None,
+                   help="planejador vê as N relações incidentes às entidades da pergunta")
+    p.add_argument("--relation-threshold", type=float, default=None,
+                   help="limiar de similaridade de relação no aterramento (padrão 0.65)")
+    p.add_argument("--plan-to-reader", action="store_true",
+                   help="o leitor recebe o plano final (forma da resposta, período), sem respostas")
+    p.add_argument("--fact-delivery", choices=["facts", "facts+summary"], default=None,
+                   help="o leitor recebe fatos (e resumos de trechos) em vez de trechos")
+    p.add_argument("--fact-budget", type=int, default=None, help="fatos entregues ao leitor (40)")
+    p.add_argument("--fact-no-plan", action="store_true",
+                   help="ablação: fatos escolhidos só pela similaridade com a pergunta (sem plano/prova)")
+    p.add_argument("--ie-style", choices=["memory"], default=None,
+                   help="extração como itens de memória (tripla + frase + fala + tipo temporal)")
+    p.add_argument("--set-union", action="store_true",
+                   help="planos de conjunto: paráfrases viram união e relação mais frouxa (0.5)")
+    p.add_argument("--type-mode", choices=["rank", "veto"], default=None,
+                   help="rank (padrão): tipos só reordenam as respostas; veto: removem (ablação)")
+    p.add_argument("--type-expected", action="store_true",
+                   help="usa também a classe grossa do plano (person/place/organization)")
     p.add_argument("--proof-edit-fraction", type=float, default=None,
                    help="k_W proporcional a k (0,4 reproduz 2/1 em k=5); para orçamento fixo")
     p.add_argument("--yesno-rationale", action="store_true",
@@ -194,6 +219,8 @@ def make_plan(args, output):
     elif (getattr(args, "proof_cycles", None) is not None or getattr(args, "no_proof_verify", False)
           or getattr(args, "partial_evidence", False)):
         raise ValueError("--proof-cycles/--no-proof-verify/--partial-evidence exigem --proof-controller")
+    if getattr(args, "type_model", None) and not getattr(args, "typed_variables", False):
+        raise ValueError("--type-model exige --typed-variables")
     v4 = [name for name in ("typed_variables", "item_set_proofs", "abductive_premises")
           if getattr(args, name, False)]
     if getattr(args, "witness_delivery", None):
@@ -538,6 +565,23 @@ def _run_config(settings, n_questions):
     cfg.witness.item_set_proofs = settings.get("item_set_proofs", False)
     cfg.witness.witness_delivery = settings.get("witness_delivery") or "pages"
     cfg.witness.abductive_premises = settings.get("abductive_premises", False)
+    cfg.witness.type_model = settings.get("type_model") or ""
+    if settings.get("type_min_score") is not None:
+        cfg.witness.type_min_score = float(settings["type_min_score"])
+    cfg.witness.type_expected = settings.get("type_expected", False)
+    cfg.witness.type_mode = settings.get("type_mode") or "rank"
+    cfg.witness.set_union = settings.get("set_union", False)
+    cfg.witness.plan_to_reader = settings.get("plan_to_reader", False)
+    cfg.witness.fact_delivery = settings.get("fact_delivery") or ""
+    cfg.witness.fact_plan_guided = not settings.get("fact_no_plan", False)
+    if settings.get("fact_budget") is not None:
+        cfg.witness.fact_budget = int(settings["fact_budget"])
+    if settings.get("proof_dominance") is not None:
+        cfg.witness.proof_dominance = float(settings["proof_dominance"])
+    if settings.get("anchor_relations") is not None:
+        cfg.witness.anchor_relations = int(settings["anchor_relations"])
+    if settings.get("relation_threshold") is not None:
+        cfg.witness.relation_match_threshold = float(settings["relation_threshold"])
     fraction = settings.get("proof_edit_fraction")
     cfg.witness.proof_edit_fraction = 0.0 if fraction is None else float(fraction)
     cfg.qa.yesno_rationale = settings.get("yesno_rationale", False)
@@ -549,6 +593,9 @@ def _run_config(settings, n_questions):
     cfg.witness.lens_max_swaps = 1 if swaps is None else int(swaps)
     cfg.qa.evidence_reader = settings.get("evidence_reader", False)
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
+    cfg.ie.style = settings.get("ie_style") or ""
+    if cfg.ie.style == "memory":
+        cfg.ie.max_tokens = max(cfg.ie.max_tokens, 4000)
     cfg.graph.merge_relation_inflections = not settings.get("no_relation_family_merge", False)
     cfg.ie.window_tokens = settings.get("locomo_ie_window_tokens", 0)
     cfg.ie.window_tokenizer = settings.get("tokenizer_model", settings["model"]) if cfg.ie.window_tokens else ""
@@ -814,6 +861,8 @@ def _validate_resume(old, new):
               "agnostic_router", "memory_lenses", "lens_max_swaps", "route_override", "lenses",
               "proof_controller", "proof_cycles", "no_proof_verify", "partial_evidence",
               "typed_variables", "item_set_proofs", "witness_delivery", "abductive_premises",
+              "type_model", "type_min_score", "type_expected", "type_mode",
+              "proof_dominance", "anchor_relations", "relation_threshold", "set_union", "plan_to_reader", "fact_delivery", "fact_budget", "ie_style", "fact_no_plan",
               "proof_edit_fraction", "yesno_rationale",
               "qa_max_tokens",
               "hybrid_fallback", "dialogue_ie",

@@ -25,7 +25,9 @@ from wrag import prompts
 from wrag.data import Question
 from wrag.embed import cosine_topk
 from wrag.ie import Fact, extract_targeted
+from wrag.llm import GenParams
 from wrag.llm.filters import LEDGER
+from wrag.witness.timeline import Interval, format_interval
 from wrag.methods.base import IndexContext, RetrievalResult, Retriever, pad_with_dense
 from wrag.methods.dense import DenseRetriever, HybridRetriever
 from wrag.util import get_logger, canonical_symbol
@@ -56,6 +58,8 @@ log = get_logger("wrag.methods.witnessrag")
 # Observable outcome of a failed proof, in the planner's language. Only search
 # state goes back to the planner: never gold answers or benchmark labels.
 _OUTCOME_FEEDBACK = {
+    "tipo_incompativel": ("none of the answers found is of the requested type; use the relation "
+                          "the memory uses for this kind of thing"),
     "join_incompleto": "the graph search found no complete match",
     "respostas_demais": "the plan matched too many different answers ({n}); make it more specific",
     "testemunhas_demais": "too many matching fact combinations; make the plan more specific",
@@ -362,7 +366,47 @@ class WitnessRAGRetriever(Retriever):
         if memory.entity_vectors.size and cfg.vocabulary_entities:
             idx, _ = cosine_topk(vector, memory.entity_vectors, cfg.vocabulary_entities)
             entities = [memory.entities[int(i)] for i in idx]
-        return prompts.format_vocabulary(relations, entities)
+        block = prompts.format_vocabulary(relations, entities)
+        if cfg.anchor_relations > 0:
+            block += self._anchor_relations(question, vector, cfg.anchor_relations)
+        return block
+
+    def _anchor_relations(self, question: Question, vector, limit: int) -> str:
+        """RoG-style: the relations that actually leave or reach the entities
+        named in the question, ranked by similarity to the question. Tells the
+        planner which predicates exist around its anchors."""
+        import re as _re
+        memory, searcher = self.memory, self.searcher
+        if memory is None or searcher is None or not memory.relation_vectors.size:
+            return ""
+        words = set(_re.findall(r"[a-z0-9']+", question.question.lower()))
+        anchors: dict[int, str] = {}
+        for eid, name in enumerate(memory.entities):
+            tokens = _re.findall(r"[a-z0-9']+", name.lower())
+            if tokens and name[:1].isupper() and len(tokens) <= 3 and set(tokens) <= words:
+                anchors.setdefault(memory.cluster(eid), name)
+        lines = []
+        for cluster, name in list(anchors.items())[:3]:
+            for direction, table in (("out", searcher._facts_by_cluster_subject),
+                                     ("in", searcher._facts_by_cluster_object)):
+                counts: dict[int, int] = {}
+                for fid in table.get(cluster, []):
+                    rid = memory.facts[fid].rel_id
+                    if rid >= 0:
+                        counts[rid] = counts.get(rid, 0) + 1
+                if not counts:
+                    continue
+                rids = list(counts)
+                sims = memory.relation_vectors[rids] @ vector
+                ranked = [rids[int(i)] for i in np.argsort(-sims)[:limit]]
+                rels = ", ".join(f"{memory.relations[r]} ({counts[r]})" for r in ranked)
+                arrow = f"{name} -[relation]-> ?" if direction == "out" else f"? -[relation]-> {name}"
+                lines.append(f"- {arrow}: {rels}")
+        if not lines:
+            return ""
+        return ("\nRelations that exist in the graph around the names in the question "
+                "(count of facts). A relation not listed here has no fact for that name:\n"
+                + "\n".join(lines) + "\n")
 
     def _planning_feedback(self, plans: list[ConjunctiveQuery],
                            attempts: list[tuple[int, ConjunctiveQuery, SearchResult]],
@@ -1601,8 +1645,13 @@ class WitnessRAGRetriever(Retriever):
             if saved[0] is not None:
                 local_ids &= saved[0]
         searches: list[tuple[str, SearchResult]] = []
+        union = (cfg.set_union and plan.cardinality == CARDINALITY_ALL)
+        if union:
+            self.searcher.relation_threshold_override = cfg.set_relation_threshold
         try:
-            if local_ids is not None and plan.cardinality != CARDINALITY_ALL:
+            if union and self._paraphrase_atoms(query):
+                searches.append(("grafo_uniao", self._union_join(query)))
+            elif local_ids is not None and plan.cardinality != CARDINALITY_ALL:
                 self.searcher.allowed = local_ids
                 self.searcher._allowed_horizon = len(self.memory.facts)
                 searches.append(("evidencias", self.searcher.join(query)))
@@ -1610,6 +1659,7 @@ class WitnessRAGRetriever(Retriever):
             if not searches or not searches[-1][1].complete:
                 searches.append(("grafo", self.searcher.join(query)))
         finally:
+            self.searcher.relation_threshold_override = 0.0
             self.searcher.allowed, self.searcher._allowed_horizon = saved
             self.searcher.clear_scoring()
         scope, search = searches[-1]
@@ -1634,14 +1684,27 @@ class WitnessRAGRetriever(Retriever):
             return float(value)
 
         candidates = score_answers(search.witnesses, self.memory, cfg)
+        self._log_candidates(plan, query, candidates)
+        if cfg.type_model:
+            candidates, typing = self._type_filter(query, candidates)
+            if typing is not None:
+                outcome["tipos"] = typing
+                if not candidates:
+                    outcome["candidatas"] = []
+                    outcome["motivo"] = "tipo_incompativel"
+                    return outcome
         outcome["candidatas"] = candidates
         item_mode = cfg.item_set_proofs and plan.cardinality == CARDINALITY_ALL
         if item_mode:
             return self._prove_items(plan, query, outcome, candidates, support, context_pids)
-        if len(candidates) > cfg.proof_max_answers:
+        dominant = (cfg.proof_dominance > 0 and len(candidates) >= 2
+                    and candidates[0].score >= cfg.proof_dominance * candidates[1].score)
+        if dominant:
+            outcome["dominancia"] = round(candidates[0].score / max(candidates[1].score, 1e-9), 3)
+        if len(candidates) > cfg.proof_max_answers and not dominant:
             outcome["motivo"] = "respostas_demais"
             return outcome
-        if len(search.witnesses) > cfg.proof_max_witnesses:
+        if len(search.witnesses) > cfg.proof_max_witnesses and not dominant:
             outcome["motivo"] = "testemunhas_demais"
             return outcome
         if search.truncations:
@@ -1681,6 +1744,258 @@ class WitnessRAGRetriever(Retriever):
                         "selecionadas": chosen, "passagens": pids,
                         "novas": [pid for pid in pids if pid not in top]})
         return outcome
+
+    def _fact_context(self, question: Question, plan: ProofPlan | None,
+                      accepted: dict[str, Any] | None, outcome: dict[str, Any] | None,
+                      context_pids: list[str]) -> tuple[str, str, dict[str, Any]]:
+        """Facts for the reader instead of passages.
+
+        Selection (budget ``fact_budget``): (1) facts of the verified proof;
+        (2) facts of the best answers the plan reached, even when the plan was
+        not selective enough to prove; (3) the rest by relevance: the best of
+        the similarity to the question and to each atom of the plan, with a
+        small bonus for facts from the top passages. At most 4 facts per source
+        turn keeps one long turn from taking the budget. Rendered by session,
+        oldest first, each fact with its resolved event date.
+        """
+        assert self.memory is not None and self.dated is not None
+        cfg = self.ctx.run.witness
+        memory, dated = self.memory, self.dated
+        n = min(len(memory.facts), len(memory.fact_vectors))
+        info: dict[str, Any] = {"prova": 0, "plano": 0, "relevancia": 0}
+        if n == 0:
+            return "(no facts)", "", info
+        probes = [question.question]
+        if not cfg.fact_plan_guided:
+            plan, accepted, outcome = None, None, None
+        if plan is not None and plan.valid:
+            probes += [a.verbalize() for a in plan.query.atoms if a.verbalize().strip()]
+        vectors = self.ctx.embedder.encode(probes)
+        sims = memory.fact_vectors[:n] @ vectors.T
+        score = np.maximum(sims[:, 0], sims[:, 1:].max(axis=1) - 0.02) if len(probes) > 1 else sims[:, 0]
+        top = set(context_pids[:5])
+        bonus = np.array([0.05 if memory.facts[i].pid in top else 0.0 for i in range(n)],
+                         dtype=np.float32)
+        score = score + bonus
+        priority: dict[int, float] = {}
+        if accepted is not None:
+            for _p, witness in accepted.get("selecionadas", []):
+                for index in witness.facts:
+                    if index < n:
+                        priority[index] = max(priority.get(index, 0.0), 2.0)
+        if outcome is not None:
+            for candidate in outcome.get("candidatas", [])[:5]:
+                for witness in candidate.witnesses[:1]:
+                    for index in witness.facts:
+                        if index < n:
+                            priority[index] = max(priority.get(index, 0.0), 1.0)
+        order = sorted(range(n), key=lambda i: -(score[i] + priority.get(i, 0.0)))
+        chosen: list[int] = []
+        seen: set = set()
+        per_turn: dict[tuple, int] = {}
+        for index in order:
+            fact = memory.facts[index]
+            key = ((canonical_symbol(fact.statement),) if fact.statement else
+                   (canonical_symbol(fact.subject), canonical_symbol(fact.relation),
+                    canonical_symbol(fact.object), dated.fact_time_text(index)))
+            turn = dated.fact_turn[index] if index < len(dated.fact_turn) else ("", -1)
+            if key in seen or per_turn.get(turn, 0) >= 4:
+                continue
+            seen.add(key)
+            per_turn[turn] = per_turn.get(turn, 0) + 1
+            chosen.append(index)
+            kind = ("prova" if priority.get(index, 0) >= 2 else
+                    "plano" if priority.get(index, 0) >= 1 else "relevancia")
+            info[kind] += 1
+            if len(chosen) >= cfg.fact_budget:
+                break
+
+        def session_of(index: int):
+            pid, position = dated.fact_turn[index]
+            turns = dated.turns.get(pid) or []
+            when = turns[position].when if 0 <= position < len(turns) else None
+            if when is None:
+                interval = dated.passage_interval.get(pid)
+                when = interval.start if interval else None
+            return when
+
+        groups: dict[Any, list[int]] = {}
+        for index in chosen:
+            groups.setdefault(session_of(index), []).append(index)
+        lines: list[str] = []
+        for when in sorted(groups, key=lambda d: (d is None, d)):
+            label = format_interval(Interval(when, when)) if when else "unknown date"
+            lines.append(f"Session of {label}:")
+            for index in groups[when]:
+                fact = memory.facts[index]
+                event = dated.fact_time_text(index)
+                from_text = (index < len(dated.fact_time_source)
+                             and dated.fact_time_source[index] == "expressao")
+                if getattr(fact, "kind", "") == "plan":
+                    suffix = f" (planned for: {event})" if from_text and event else " (plan)"
+                else:
+                    suffix = f" (event: {event})" if event and event != label else ""
+                body = fact.statement or f"{fact.subject} | {fact.relation} | {fact.object}"
+                lines.append(f"- {body}{suffix}")
+        summary = ""
+        if cfg.fact_delivery == "facts+summary":
+            weight: dict[str, float] = {}
+            for index in chosen:
+                pid = memory.facts[index].pid
+                weight[pid] = weight.get(pid, 0.0) + float(score[index]) + priority.get(index, 0.0)
+            pids = sorted(weight, key=lambda p: -weight[p])[:cfg.fact_summary_chunks]
+            position = {p.pid: i for i, p in enumerate(self.corpus.passages)}
+            parts = []
+            for pid in sorted(pids, key=lambda p: position.get(p, 0)):
+                text = self._chunk_summary(pid)
+                if text:
+                    interval = dated.passage_interval.get(pid)
+                    parts.append(f"- ({format_interval(interval) if interval else 'undated'}) {text}")
+            summary = "\n".join(parts)
+            info["resumos"] = len(parts)
+        info["n"] = len(chosen)
+        return "\n".join(lines), summary, info
+
+    def _chunk_summary(self, pid: str) -> str:
+        """Short summary of one chunk, written once per chunk (memory
+        construction cost, cached) and never conditioned on a question."""
+        cache = getattr(self, "_summaries", None)
+        if cache is None:
+            cache = self._summaries = {}
+        if pid in cache:
+            return cache[pid]
+        passage = self.corpus.get(pid)
+        result = self.ctx.llm.chat(
+            prompts.SUMMARY_TEMPLATE.format(text=passage.text[:12000]),
+            system="You summarize dialogues faithfully and briefly.",
+            params=GenParams(temperature=0.0, max_tokens=160),
+            stage="memory.summary")
+        text = "" if result.filtered else " ".join((result.text or "").split())
+        cache[pid] = text
+        return text
+
+    @staticmethod
+    def _paraphrase_atoms(query: ConjunctiveQuery) -> bool:
+        """Two or more atoms that share only the answer variable and have the
+        same constant subject: loves(X, ?x) AND enjoys(X, ?x). In a set question
+        these are paraphrases of one relation, i.e. a union."""
+        atoms = query.atoms
+        if len(atoms) < 2:
+            return False
+        answer = "?" + query.answer_var
+        subjects = {a.subject for a in atoms}
+        return (len(subjects) == 1 and not next(iter(subjects)).startswith("?")
+                and all(a.object == answer for a in atoms))
+
+    def _union_join(self, query: ConjunctiveQuery) -> SearchResult:
+        """Join each atom alone and merge the witnesses (disjunction)."""
+        merged: list = []
+        truncations: list[str] = []
+        seen: set = set()
+        last = None
+        for atom in query.atoms:
+            single = dataclasses.replace(query, atoms=[atom])
+            result = self.searcher.join(single)
+            last = result
+            truncations += [t for t in result.truncations if t not in truncations]
+            for witness in result.witnesses:
+                if witness.facts not in seen:
+                    seen.add(witness.facts)
+                    merged.append(witness)
+        merged.sort(key=lambda w: w.cost)
+        return SearchResult(witnesses=merged, gap=None if merged else (last.gap if last else None),
+                            n_candidates=last.n_candidates if last else [],
+                            depth_reached=1 if merged else 0, truncations=truncations,
+                            grounding_mode=last.grounding_mode if last else "semantic")
+
+    def _answer_kind(self, query: ConjunctiveQuery) -> str:
+        """Type of the answer variable: the plan's unary atom or, with
+        type_expected, the coarse class (person/place/organization)."""
+        from wrag.witness.typing import EXPECTED_TO_LABEL
+        answer = query.answer_var
+        if any(a.time_is_var and a.time.lstrip("?") == answer for a in query.atoms):
+            return ""
+        kind = query.types.get(answer, "")
+        if not kind and self.ctx.run.witness.type_expected:
+            kind = EXPECTED_TO_LABEL.get((query.expected_type or "").lower(), "")
+        return kind
+
+    def _candidate_turns(self, candidate: AnswerCandidate, limit: int = 3) -> list[str]:
+        assert self.dated is not None
+        texts: list[str] = []
+        for witness in candidate.witnesses[:limit]:
+            for index in witness.facts:
+                if not 0 <= index < len(self.dated.fact_turn):
+                    continue
+                pid, position = self.dated.fact_turn[index]
+                turns = self.dated.turns.get(pid) or []
+                if 0 <= position < len(turns) and turns[position].text not in texts:
+                    texts.append(turns[position].text)
+        return texts
+
+    def _type_filter(self, query: ConjunctiveQuery, candidates: list[AnswerCandidate]
+                     ) -> tuple[list[AnswerCandidate], dict[str, Any] | None]:
+        """Answer types by NER with free labels on the source turns.
+
+        type_mode="rank" (default): nothing is removed. When the type is
+        nameable in this memory (some candidate labelled with it at
+        >= type_nameable_score), candidates are reordered by
+        support x type score (0.5 when the answer is not located in its turn).
+        Otherwise the order is untouched and the item ranking keeps the v4
+        cosine. type_mode="veto": answers located and labelled below
+        type_min_score are removed (measured offline: removes half of the
+        correct answers; kept as an ablation)."""
+        from wrag.witness.typing import get_typer
+        cfg = self.ctx.run.witness
+        kind = self._answer_kind(query)
+        if not kind or not candidates:
+            return candidates, None
+        typer = get_typer(cfg.type_model_name, 0.1)
+        scores: dict[str, float | None] = {}
+        for candidate in candidates:
+            scores[candidate.answer] = typer.score(candidate.answer,
+                                                   self._candidate_turns(candidate), kind)
+        rounded = {a: (None if v is None else round(v, 3)) for a, v in scores.items()}
+        if cfg.type_mode == "veto":
+            kept = [c for c in candidates
+                    if scores[c.answer] is None or scores[c.answer] >= cfg.type_min_score]
+            return kept, {"tipo": kind, "modo": "veto", "antes": len(candidates),
+                          "depois": len(kept), "notas": rounded}
+        best = max((v for v in scores.values() if v is not None), default=0.0)
+        if best < cfg.type_nameable_score:
+            return candidates, {"tipo": kind, "modo": "ordem", "aplicado": False,
+                                "maior_nota": round(best, 3)}
+        def weight(c: AnswerCandidate) -> float:
+            value = scores[c.answer]
+            return c.score * max(0.05, 0.5 if value is None else value)
+        ranked = sorted(candidates, key=lambda c: (-weight(c), -c.score, c.answer))
+        return ranked, {"tipo": kind, "modo": "ordem", "aplicado": True,
+                        "mudou_primeira": ranked[0].answer != candidates[0].answer,
+                        "maior_nota": round(best, 3), "notas": rounded}
+
+    def _log_candidates(self, plan: ProofPlan, query: ConjunctiveQuery,
+                        candidates: list[AnswerCandidate]) -> None:
+        """Offline analysis log (env WRAG_TYPE_LOG): every candidate answer with
+        its source turns. Never read by the method."""
+        import os
+        import threading
+        path = os.environ.get("WRAG_TYPE_LOG")
+        if not path or not candidates:
+            return
+        question = getattr(getattr(self, "_local", None), "question", None)
+        record = {"qid": getattr(question, "qid", ""),
+                  "pergunta": getattr(question, "question", ""),
+                  "ciclo": plan.cycle, "plano": plan.describe(),
+                  "answer_var": query.answer_var, "tipos": dict(query.types),
+                  "expected_type": query.expected_type, "agregacao": query.aggregation,
+                  "tipo_resposta": self._answer_kind(query) if self.dated else "",
+                  "candidatas": [{"resposta": c.answer, "score": round(c.score, 4),
+                                  "falas": self._candidate_turns(c)} for c in candidates[:30]]}
+        lock = getattr(WitnessRAGRetriever, "_log_lock", None)
+        if lock is None:
+            lock = WitnessRAGRetriever._log_lock = threading.Lock()
+        with lock, open(path, "a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
 
     @staticmethod
     def _type_from_question(plan: ProofPlan, question: Question) -> None:
@@ -1735,7 +2050,14 @@ class WitnessRAGRetriever(Retriever):
             outcome["motivo"] = "casamento_abaixo_do_limiar"
             return outcome
         kind = query.types.get(query.answer_var, "")
-        if kind:
+        typed_scores = (outcome.get("tipos") or {}).get("notas") or {}
+        if kind and typed_scores:
+            # Tipo por NER na fala de origem: resposta não localizada vale 0,5
+            # (sem evidência contra nem a favor).
+            for item in items:
+                value = typed_scores.get(item[1].answer)
+                item.append(0.5 if value is None else float(value))
+        elif kind:
             vectors = self.ctx.embedder.encode([kind] + [c.answer for _p, c, _w, _s in items])
             affinity = vectors[1:] @ vectors[0]
             for item, value in zip(items, affinity):
@@ -1828,6 +2150,10 @@ class WitnessRAGRetriever(Retriever):
         }
         planning = diagnostics["planejamento"]
 
+        import threading
+        if not hasattr(self, "_local"):
+            self._local = threading.local()
+        self._local.question = question
         plan0 = default_plan(self.dated, levels, question_time)
         evidence = self._rank_memory(plan0, fused, list(pool_pids))[:cfg.candidate_pool_k]
         hypothesis: dict[str, Any] = {}
@@ -1875,6 +2201,8 @@ class WitnessRAGRetriever(Retriever):
                            "candidatos_por_atomo": outcome["n_candidatos_por_atomo"],
                            "cortes": outcome["cortes"],
                            "respostas": [c.answer for c in outcome["candidatas"][:5]]})
+            if outcome.get("tipos"):
+                record["tipos"] = {k: v for k, v in outcome["tipos"].items() if k != "notas"}
             if outcome["utilizavel"]:
                 # Excerpts of a set are new text for the reader even when their
                 # passages are already retrieved, so they are always verified.
@@ -2026,6 +2354,29 @@ class WitnessRAGRetriever(Retriever):
             if block:
                 extras.append({"title": prompts.PREMISE_BLOCK_TITLE.format(
                     about=hypothesis["about"]), "text": block})
+        if cfg.plan_to_reader and final_plan is not None and final_plan.valid:
+            q = final_plan.query
+            form = {"set": "every distinct matching item (a list)", "count": "a count of distinct items",
+                    "none": "one value"}.get(q.aggregation, "the items to compare")
+            if any(a.time_is_var and a.time.lstrip("?") == q.answer_var for a in q.atoms):
+                form = "the date of the event"
+            kind = q.types.get(q.answer_var, "")
+            lines = [f"What the question asks for: {form}" + (f", each a {kind}" if kind else "") + ".",
+                     "Facts sought: " + " AND ".join(a.verbalize() for a in q.atoms) + "."]
+            if final_plan.period.kind == "window" and final_plan.period.text:
+                lines.append(f"Time the question refers to: {final_plan.period.text}.")
+            extras.append({"title": "Reading of the question (not evidence)", "text": "\n".join(lines)})
+        if cfg.fact_delivery:
+            # Entrega por fatos: substitui trechos e blocos por fatos datados
+            # (e resumos de trechos). Os pids continuam no registro para as
+            # métricas de revocação, mas o leitor não os recebe.
+            facts_text, summary_text, info = self._fact_context(
+                question, final_plan, accepted, last_outcome, base)
+            extras = [{"title": "Facts from the memory", "text": facts_text}]
+            if summary_text:
+                extras.append({"title": "Chunk summaries", "text": summary_text})
+            diagnostics["leitura_fatos"] = True
+            diagnostics["fatos_entregues"] = info
         if extras:
             diagnostics["trechos_extras"] = extras
         diagnostics["contexto_alterado_por_trechos"] = bool(extras)

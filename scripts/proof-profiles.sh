@@ -10,6 +10,9 @@
 #                    item a item, entrega mista (trocas v3 até k_W e falas de
 #                    origem para o resto) e premissas abdutivas
 #                    (docs/witnessrag-v4.md)
+#   proof-v4-memory  método B (docs/memoria-v2.md): proof-v4 + memória de
+#                    proposições (--ie-style memory) e leitor com fatos +
+#                    resumos (--fact-delivery facts+summary)
 #   v4-typed         só tipos + conjuntos item a item, entrega por trechos (pages)
 #   v4-excerpts      só a entrega como falas de origem, sem trocar trechos
 #   v4-mixed         só a entrega mista
@@ -27,6 +30,8 @@ proof_profile_flags() {
     proof-1cycle) PROOF_FLAGS+=(--proof-cycles 1) ;;
     proof-v4) PROOF_FLAGS+=(--typed-variables --item-set-proofs --witness-delivery mixed
       --abductive-premises) ;;
+    proof-v4-memory) PROOF_FLAGS+=(--typed-variables --item-set-proofs --witness-delivery mixed
+      --abductive-premises --ie-style memory --fact-delivery facts+summary) ;;
     v4-typed) PROOF_FLAGS+=(--typed-variables --item-set-proofs) ;;
     v4-excerpts) PROOF_FLAGS+=(--witness-delivery excerpts) ;;
     v4-abductive) PROOF_FLAGS+=(--abductive-premises) ;;

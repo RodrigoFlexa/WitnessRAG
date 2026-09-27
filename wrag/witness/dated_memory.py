@@ -107,6 +107,29 @@ def _terms(text: str) -> set[str]:
             if len(w) > 2 and w not in _STOP}
 
 
+_WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+_IN_N = re.compile(r"\bin\s+(a|an|one|two|three|four|five|six|\d+)\s+(day|week|month)s?\b", re.I)
+_NUM = {"a": 1, "an": 1, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6}
+
+
+def _future_view(text: str, reference: date, resolved: Interval | None) -> Interval | None:
+    """A plan points forward: "on Friday" said on a Tuesday is the NEXT Friday,
+    and "in two weeks" is two weeks after the session."""
+    from datetime import timedelta
+    low = text.lower()
+    match = _IN_N.search(low)
+    if match:
+        n = _NUM.get(match.group(1).lower()) or int(match.group(1))
+        unit = match.group(2).lower()
+        days = n * (1 if unit == "day" else 7 if unit == "week" else 30)
+        when = reference + timedelta(days=days)
+        return Interval(when, when, "plan")
+    if resolved is not None and resolved.end < reference and any(d in low for d in _WEEKDAYS):
+        return Interval(resolved.start + timedelta(days=7), resolved.end + timedelta(days=7),
+                        "plan")
+    return resolved
+
+
 class DatedMemory:
     """Datas, importância e fala de origem de cada trecho e de cada fato."""
 
@@ -152,7 +175,13 @@ class DatedMemory:
 
     def _best_turn(self, fact: Any) -> int:
         """A fala que mais provavelmente originou o fato: sobreposição de termos
-        do objeto (peso 2), do sujeito e da relação. Desempate pela primeira."""
+        do objeto (peso 2), do sujeito e da relação. Desempate pela primeira.
+        Se o extrator declarou a fala (extração "memory"), ela vale."""
+        declared = getattr(fact, "turn_id", "")
+        if declared:
+            for index, turn in enumerate(self.turns.get(fact.pid) or []):
+                if turn.turn_id == declared:
+                    return index
         options = self._turn_terms.get(fact.pid) or []
         if not options:
             return -1
@@ -178,6 +207,8 @@ class DatedMemory:
             interval = self.passage_interval.get(fact.pid)
             reference = interval.start if interval else None
         resolved = resolve_expression(getattr(fact, "time", "") or "", reference)
+        if getattr(fact, "kind", "") == "plan" and reference is not None:
+            resolved = _future_view(getattr(fact, "time", "") or "", reference, resolved)
         if resolved is not None:
             self.fact_time_source[index] = "expressao"
         elif reference is not None:

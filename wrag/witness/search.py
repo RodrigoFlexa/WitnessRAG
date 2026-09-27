@@ -178,6 +178,8 @@ class WitnessSearcher:
 
     # -- pontuação dependente do plano (desenho v3) ---------------------------
 
+    relation_threshold_override: float = 0.0
+
     def set_scoring(self, similarity_weight: float, prior: np.ndarray | None) -> None:
         """score(f|α) = w_sim·casamento(f,α) + prior[f]. Identity when prior is None."""
         if prior is None or (similarity_weight >= 1.0 - 1e-12 and not np.any(prior)):
@@ -399,7 +401,7 @@ class WitnessSearcher:
             rel_sim = float(np.dot(rel_vector, kg.relation_vectors[fact.rel_id]))
         if normalize(atom.relation) == normalize(fact.relation):
             rel_sim = 1.0
-        if rel_sim < cfg.relation_match_threshold:
+        if rel_sim < (self.relation_threshold_override or cfg.relation_match_threshold):
             return 0.0
         verb_sim = float(np.dot(verb_vector, kg.fact_vectors[fid])) if kg.fact_vectors.size else 0.0
 

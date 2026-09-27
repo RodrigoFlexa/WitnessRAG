@@ -160,6 +160,10 @@ class IEConfig:
     # ("I", "my kids") e nenhuma junção fecha. Muda a base F compartilhada por
     # todos os métodos com grafo, e por isso é uma condição do experimento.
     dialogue_mode: bool = False
+    # Estilo da extração: "" (OpenIE de triplas) ou "memory": itens de memória
+    # com tripla + frase autocontida + fala de origem + tipo temporal (passado,
+    # plano, contínuo, dito). Um passo só (sem NER). Muda a memória inteira.
+    style: str = ""
 
 
 @dataclass
@@ -374,6 +378,40 @@ class WitnessConfig:
     # ao leitor como bloco de premissas. Suporte, nunca prova: não troca trechos.
     abductive_premises: bool = False
     abductive_max_premises: int = 8
+    # Tipos por NER de rótulos livres (GLiNER), desligado por padrão. Com
+    # type_model="gliner", o tipo da variável de resposta (do plano ou, com
+    # type_expected, a classe grossa person/place/organization) é conferido na
+    # fala de origem de cada resposta; respostas localizadas e rotuladas abaixo
+    # de type_min_score saem antes do teste de seletividade.
+    type_model: str = ""
+    type_model_name: str = "urchade/gliner_medium-v2.1"
+    type_min_score: float = 0.3
+    # Hipóteses de 26/09 (desligadas por padrão):
+    # proof_dominance > 0: um plano de valor com respostas/testemunhas demais é
+    # aceito quando a melhor resposta domina a segunda (suporte >= r x suporte).
+    proof_dominance: float = 0.0
+    # anchor_relations > 0: o planejador vê as relações que saem/chegam aos nós
+    # nomeados na pergunta (estilo RoG), as N mais próximas da pergunta.
+    anchor_relations: int = 0
+    # set_union: planos de conjunto viram união. Átomos que só compartilham a
+    # resposta e o sujeito (paráfrases: loves/enjoys/likes) são executados um a
+    # um e as respostas somadas; e a relação usa set_relation_threshold (mais
+    # frouxo). Cada item continua precisando da própria testemunha e do Verificar.
+    set_union: bool = False
+    # plan_to_reader: o leitor recebe o plano final (o que a pergunta pede, forma da
+    # resposta, período) como um bloco curto; não recebe respostas nem fatos.
+    plan_to_reader: bool = False
+    # Entrega por fatos (economia de tokens). "facts": o leitor recebe só fatos
+    # (tripla + data do evento + sessão), sem trechos; "facts+summary": mais um
+    # resumo curto de cada trecho de onde os fatos vieram. "" = trechos (padrão).
+    fact_delivery: str = ""
+    fact_budget: int = 40                  # fatos entregues ao leitor
+    fact_summary_chunks: int = 6           # resumos entregues (facts+summary)
+    fact_plan_guided: bool = True          # ablação: False = só similaridade com a pergunta
+    set_relation_threshold: float = 0.5
+    type_mode: str = "rank"            # rank: só reordena; veto: remove (ablação)
+    type_nameable_score: float = 0.5   # o tipo só ordena se alguma resposta o recebe >= isto
+    type_expected: bool = False
 
     # -- proveniência e risco
     fact_confidence: float = 0.90      # p_e default de um fato extraído uma vez
