@@ -13,6 +13,9 @@
 #   proof-v4-memory  método B (docs/memoria-v2.md): proof-v4 + memória de
 #                    proposições (--ie-style memory) e leitor com fatos +
 #                    resumos (--fact-delivery facts+summary)
+#   witnessrag       o método completo (igual a proof-v4-memory)
+#   abl-no-plan | abl-no-proof | abl-no-verify | abl-no-temporal-score
+#                    ablações de um componente (docs/ablacao.md)
 #   v4-typed         só tipos + conjuntos item a item, entrega por trechos (pages)
 #   v4-excerpts      só a entrega como falas de origem, sem trocar trechos
 #   v4-mixed         só a entrega mista
@@ -32,6 +35,13 @@ proof_profile_flags() {
       --abductive-premises) ;;
     proof-v4-memory) PROOF_FLAGS+=(--typed-variables --item-set-proofs --witness-delivery mixed
       --abductive-premises --ie-style memory --fact-delivery facts+summary) ;;
+    witnessrag|abl-no-plan|abl-no-proof|abl-no-verify|abl-no-temporal-score)
+      # WitnessRAG completo (= proof-v4-memory) e as ablações de um componente
+      # (docs/ablacao.md). Todas usam a mesma memória e o mesmo leitor.
+      PROOF_FLAGS+=(--typed-variables --item-set-proofs --witness-delivery mixed
+        --abductive-premises --ie-style memory --fact-delivery facts+summary)
+      [[ "$profile" == abl-* ]] && PROOF_FLAGS+=(--ablation "${profile#abl-}")
+      ;;
     v4-typed) PROOF_FLAGS+=(--typed-variables --item-set-proofs) ;;
     v4-excerpts) PROOF_FLAGS+=(--witness-delivery excerpts) ;;
     v4-abductive) PROOF_FLAGS+=(--abductive-premises) ;;

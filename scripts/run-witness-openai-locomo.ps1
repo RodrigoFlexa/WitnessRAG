@@ -88,6 +88,11 @@ switch ($Method) {
             "proof-v4-memory" { $flags += @("--typed-variables", "--item-set-proofs", "--witness-delivery",
                                      "mixed", "--abductive-premises", "--ie-style", "memory",
                                      "--fact-delivery", "facts+summary") }
+            { $_ -in @("witnessrag", "abl-no-plan", "abl-no-proof", "abl-no-verify", "abl-no-temporal-score") } {
+                $flags += @("--typed-variables", "--item-set-proofs", "--witness-delivery", "mixed",
+                            "--abductive-premises", "--ie-style", "memory", "--fact-delivery", "facts+summary")
+                if ($Profile -like "abl-*") { $flags += @("--ablation", $Profile.Substring(4)) }
+            }
             "v4-typed" { $flags += @("--typed-variables", "--item-set-proofs") }
             "v4-excerpts" { $flags += @("--witness-delivery", "excerpts") }
             "v4-abductive" { $flags += "--abductive-premises" }

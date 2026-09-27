@@ -150,6 +150,8 @@ def parser():
     p.add_argument("--fact-budget", type=int, default=None, help="fatos entregues ao leitor (40)")
     p.add_argument("--fact-no-plan", action="store_true",
                    help="ablação: fatos escolhidos só pela similaridade com a pergunta (sem plano/prova)")
+    p.add_argument("--ablation", choices=["no-plan", "no-proof", "no-verify", "no-temporal-score"],
+                   default=None, help="ablação de um componente do WitnessRAG (docs/ablacao.md)")
     p.add_argument("--ie-style", choices=["memory"], default=None,
                    help="extração como itens de memória (tripla + frase + fala + tipo temporal)")
     p.add_argument("--set-union", action="store_true",
@@ -574,6 +576,13 @@ def _run_config(settings, n_questions):
     cfg.witness.plan_to_reader = settings.get("plan_to_reader", False)
     cfg.witness.fact_delivery = settings.get("fact_delivery") or ""
     cfg.witness.fact_plan_guided = not settings.get("fact_no_plan", False)
+    ablation = settings.get("ablation") or ""
+    cfg.witness.ablation = ablation
+    if ablation == "no-verify":
+        cfg.witness.proof_verify = False
+    if ablation == "no-temporal-score":
+        cfg.witness.proof_time_normal = cfg.witness.proof_time_strong = 0.0
+        cfg.witness.proof_importance_normal = cfg.witness.proof_importance_strong = 0.0
     if settings.get("fact_budget") is not None:
         cfg.witness.fact_budget = int(settings["fact_budget"])
     if settings.get("proof_dominance") is not None:
@@ -862,7 +871,7 @@ def _validate_resume(old, new):
               "proof_controller", "proof_cycles", "no_proof_verify", "partial_evidence",
               "typed_variables", "item_set_proofs", "witness_delivery", "abductive_premises",
               "type_model", "type_min_score", "type_expected", "type_mode",
-              "proof_dominance", "anchor_relations", "relation_threshold", "set_union", "plan_to_reader", "fact_delivery", "fact_budget", "ie_style", "fact_no_plan",
+              "proof_dominance", "anchor_relations", "relation_threshold", "set_union", "plan_to_reader", "fact_delivery", "fact_budget", "ie_style", "fact_no_plan", "ablation",
               "proof_edit_fraction", "yesno_rationale",
               "qa_max_tokens",
               "hybrid_fallback", "dialogue_ie",

@@ -408,6 +408,14 @@ class WitnessConfig:
     fact_budget: int = 40                  # fatos entregues ao leitor
     fact_summary_chunks: int = 6           # resumos entregues (facts+summary)
     fact_plan_guided: bool = True          # ablação: False = só similaridade com a pergunta
+    # Ablação dos componentes do WitnessRAG (docs/ablacao.md). "" = completo.
+    #   no-plan            sem Planejador/Executor/Refletor: nenhuma chamada de
+    #                      planejamento; fatos escolhidos só pela pergunta
+    #   no-proof           o plano é escrito, mas não há junção no grafo nem
+    #                      verificação: os átomos só orientam a similaridade
+    #   no-verify          a prova entra sem a confirmação nas falas de origem
+    #   no-temporal-score  nota = só similaridade (pesos de tempo e importância zerados)
+    ablation: str = ""
     set_relation_threshold: float = 0.5
     type_mode: str = "rank"            # rank: só reordena; veto: remove (ablação)
     type_nameable_score: float = 0.5   # o tipo só ordena se alguma resposta o recebe >= isto

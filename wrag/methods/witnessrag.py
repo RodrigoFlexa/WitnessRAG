@@ -2156,6 +2156,22 @@ class WitnessRAGRetriever(Retriever):
         self._local.question = question
         plan0 = default_plan(self.dated, levels, question_time)
         evidence = self._rank_memory(plan0, fused, list(pool_pids))[:cfg.candidate_pool_k]
+        if cfg.ablation == "no-plan":
+            # Ablation: no Planner, Executor or Reflector. The reader gets the
+            # hybrid context or, with fact delivery, the facts closest to the
+            # question alone. No planning or verification call is made.
+            diagnostics.update({"ablacao": "no-plan", "motivo_parada": "ablacao_sem_plano",
+                                "contexto_hibrido": hybrid})
+            if cfg.fact_delivery:
+                facts_text, summary_text, info = self._fact_context(
+                    question, None, None, None, hybrid)
+                extras = [{"title": "Facts from the memory", "text": facts_text}]
+                if summary_text:
+                    extras.append({"title": "Chunk summaries", "text": summary_text})
+                diagnostics.update({"leitura_fatos": True, "fatos_entregues": info,
+                                    "trechos_extras": extras})
+            return RetrievalResult(pids=hybrid, scores=[1.0 / (i + 1) for i in range(len(hybrid))],
+                                   diagnostics=diagnostics)
         hypothesis: dict[str, Any] = {}
         feedback: list[dict[str, Any]] = []
         signatures: set[tuple] = set()
@@ -2192,6 +2208,14 @@ class WitnessRAGRetriever(Retriever):
                 break
             signatures.add(plan.signature())
             final_plan = plan
+            if cfg.ablation == "no-proof":
+                # Ablation: the plan is written but never executed on the graph
+                # (no join, no proof, no verification, no replanning). Its atoms
+                # still guide which facts or passages are read.
+                diagnostics["ablacao"] = "no-proof"
+                diagnostics["motivo_parada"] = "ablacao_sem_prova"
+                record["resultado"] = "ablacao_sem_prova"
+                break
             order = self._rank_memory(plan, fused, list(pool_pids))
             evidence = list(dict.fromkeys(evidence + order[:cfg.candidate_pool_k]))
             outcome = self._prove(plan, evidence, order[:k])
