@@ -424,6 +424,10 @@ class WitnessConfig:
     fact_rerank: str = ""
     fact_rerank_pool: int = 120
     fact_time: str = "resolved"
+    # Cascata (docs/cascata.md): "llm" = uma chamada curta decide se a
+    # pergunta precisa do plano (PLAN) ou só dos fatos mais próximos (DIRECT).
+    # "" = sempre planeja (padrão). Falha do roteador => PLAN.
+    plan_router: str = ""
     # Ablação dos componentes do WitnessRAG (docs/ablacao.md). "" = completo.
     #   no-plan            sem Planejador/Executor/Refletor: nenhuma chamada de
     #                      planejamento; fatos escolhidos só pela pergunta

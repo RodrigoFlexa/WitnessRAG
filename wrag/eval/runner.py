@@ -466,7 +466,7 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
              "trechos_extras", "contexto_alterado_por_trechos", "premissas",
              "itens_conjunto",
              # entrega por fatos e plano robusto
-             "leitura_fatos", "fatos_entregues", "ablacao")
+             "leitura_fatos", "fatos_entregues", "ablacao", "roteador")
             if k in diagnostics}
     cycles = diagnostics.get("ciclos")
     if isinstance(cycles, list):

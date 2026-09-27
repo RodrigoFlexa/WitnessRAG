@@ -159,6 +159,8 @@ def parser():
                    help="átomos disjuntivos: o planejador dá até 3 relações alternativas por átomo")
     p.add_argument("--plan-readings", type=int, default=None,
                    help="até N leituras alternativas da pergunta na mesma chamada de planejamento")
+    p.add_argument("--plan-router", choices=["llm"], default=None,
+                   help="cascata: uma chamada curta decide se a pergunta usa o plano ou só os fatos")
     p.add_argument("--multiplan-portfolio", action="store_true",
                    help="experimental: contrato fixo, planos complementares e verificação de cobertura")
     p.add_argument("--portfolio-max-plans", type=int, default=None,
@@ -626,6 +628,7 @@ def _run_config(settings, n_questions):
     if settings.get("fact_rerank_pool") is not None:
         cfg.witness.fact_rerank_pool = int(settings["fact_rerank_pool"])
     cfg.witness.fact_time = settings.get("fact_time") or "resolved"
+    cfg.witness.plan_router = settings.get("plan_router") or ""
     if settings.get("proof_dominance") is not None:
         cfg.witness.proof_dominance = float(settings["proof_dominance"])
     if settings.get("anchor_relations") is not None:
@@ -915,7 +918,7 @@ def _validate_resume(old, new):
               "proof_dominance", "anchor_relations", "relation_threshold", "set_union", "plan_to_reader", "fact_delivery", "fact_budget", "ie_style", "fact_no_plan", "ablation",
               "relation_alternatives", "plan_readings", "fact_fill", "fact_rerank",
               "multiplan_portfolio", "portfolio_max_plans",
-              "fact_rerank_pool", "fact_time",
+              "fact_rerank_pool", "fact_time", "plan_router",
               "proof_edit_fraction", "yesno_rationale",
               "qa_max_tokens",
               "hybrid_fallback", "dialogue_ie",

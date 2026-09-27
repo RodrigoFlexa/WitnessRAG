@@ -19,6 +19,9 @@
 #   witnessrag-robust  WitnessRAG + plano robusto (relações alternativas,
 #                    leituras alternativas) + fatos pela pergunta + reranker +
 #                    datas bitemporais (docs/plano-robusto.md)
+#   witnessrag-cascade  witnessrag-robust + roteador: uma chamada curta decide
+#                    se a pergunta usa o plano ou só os fatos (docs/cascata.md)
+#   robust-no-plan   a entrega do witnessrag-robust sem plano (ablação)
 #   wr-no-rerank     witnessrag-robust sem o reranker (sem custo de CPU)
 #   wr-plan | wr-alt | wr-readings | wr-fill | wr-rerank | wr-time
 #                    uma parte do witnessrag-robust de cada vez
@@ -50,7 +53,7 @@ proof_profile_flags() {
       # command made the function fail and the caller exit silently.
       if [[ "$profile" == abl-* ]]; then PROOF_FLAGS+=(--ablation "${profile#abl-}"); fi
       ;;
-    witnessrag-robust|witnessrag-multiplan|robust-no-plan|wr-no-rerank|wr-plan|wr-alt|wr-readings|wr-fill|wr-rerank|wr-time)
+    witnessrag-robust|witnessrag-cascade|witnessrag-multiplan|robust-no-plan|wr-no-rerank|wr-plan|wr-alt|wr-readings|wr-fill|wr-rerank|wr-time)
       # Plano robusto e seleção de fatos (docs/plano-robusto.md), sobre o
       # WitnessRAG completo. witnessrag-robust liga tudo; wr-* liga uma parte
       # (wr-plan = relações alternativas + leituras alternativas).
@@ -62,6 +65,8 @@ proof_profile_flags() {
           --portfolio-max-plans 3) ;;
         witnessrag-robust) PROOF_FLAGS+=(--relation-alternatives --plan-readings 2
           --fact-fill question --fact-rerank --fact-time both) ;;
+        witnessrag-cascade) PROOF_FLAGS+=(--relation-alternatives --plan-readings 2
+          --fact-fill question --fact-rerank --fact-time both --plan-router llm) ;;
         robust-no-plan) PROOF_FLAGS+=(--ablation no-plan --fact-fill question
           --fact-rerank --fact-time both) ;;
         wr-no-rerank) PROOF_FLAGS+=(--relation-alternatives --plan-readings 2

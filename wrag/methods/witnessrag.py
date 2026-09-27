@@ -2281,12 +2281,28 @@ class WitnessRAGRetriever(Retriever):
         self._local.question = question
         plan0 = default_plan(self.dated, levels, question_time)
         evidence = self._rank_memory(plan0, fused, list(pool_pids))[:cfg.candidate_pool_k]
-        if cfg.ablation == "no-plan":
+        direct = False
+        if cfg.plan_router == "llm" and not cfg.ablation:
+            # Cascade (docs/cascata.md): one short call on the question text
+            # alone decides PLAN or DIRECT. DIRECT takes exactly the no-plan
+            # path below; PLAN (and any router failure) runs the full method.
+            from wrag.witness.router import route_question
+            decision = route_question(self.ctx.llm, question, dataset=self.ctx.dataset,
+                                      method=self.name)
+            diagnostics["roteador"] = decision.to_dict()
+            planning["chamadas_roteador"] = int(decision.called)
+            direct = not decision.plan
+        if cfg.ablation == "no-plan" or direct:
             # Ablation: no Planner, Executor or Reflector. The reader gets the
             # hybrid context or, with fact delivery, the facts closest to the
             # question alone. No planning or verification call is made.
-            diagnostics.update({"ablacao": "no-plan", "motivo_parada": "ablacao_sem_plano",
-                                "contexto_hibrido": hybrid})
+            if direct:
+                diagnostics.update({"motivo_parada": "roteador_direto", "rota": "direta",
+                                    "contexto_hibrido": hybrid})
+                planning["chamadas"] = planning.get("chamadas_roteador", 0)
+            else:
+                diagnostics.update({"ablacao": "no-plan", "motivo_parada": "ablacao_sem_plano",
+                                    "contexto_hibrido": hybrid})
             if cfg.fact_delivery:
                 facts_text, summary_text, info = self._fact_context(
                     question, None, None, None, hybrid)
@@ -2446,7 +2462,8 @@ class WitnessRAGRetriever(Retriever):
             diagnostics["motivo_parada"] = "plano_invalido"
         planning["planos_distintos"] = len(signatures)
         planning["replanejamentos"] = max(0, planning["chamadas_plano"] - 1)
-        planning["chamadas"] = planning["chamadas_plano"] + planning["chamadas_verificacao"]
+        planning["chamadas"] = (planning["chamadas_plano"] + planning["chamadas_verificacao"]
+                                + planning.get("chamadas_roteador", 0))
 
         # -- RESPONDER: montar o contexto ------------------------------------
         plan_for_context = final_plan or plan0

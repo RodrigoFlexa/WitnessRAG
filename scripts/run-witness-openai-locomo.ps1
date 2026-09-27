@@ -93,7 +93,7 @@ switch ($Method) {
                             "--abductive-premises", "--ie-style", "memory", "--fact-delivery", "facts+summary")
                 if ($Profile -like "abl-*") { $flags += @("--ablation", $Profile.Substring(4)) }
             }
-            { $_ -in @("witnessrag-robust", "witnessrag-multiplan", "robust-no-plan", "wr-no-rerank", "wr-plan", "wr-alt", "wr-readings", "wr-fill", "wr-rerank", "wr-time") } {
+            { $_ -in @("witnessrag-robust", "witnessrag-cascade", "witnessrag-multiplan", "robust-no-plan", "wr-no-rerank", "wr-plan", "wr-alt", "wr-readings", "wr-fill", "wr-rerank", "wr-time") } {
                 # Plano robusto e seleção de fatos (docs/plano-robusto.md).
                 $flags += @("--typed-variables", "--item-set-proofs", "--witness-delivery", "mixed",
                             "--abductive-premises", "--ie-style", "memory", "--fact-delivery", "facts+summary")
@@ -104,6 +104,9 @@ switch ($Method) {
                     "witnessrag-robust" { $flags += @("--relation-alternatives", "--plan-readings", "2",
                                                       "--fact-fill", "question", "--fact-rerank",
                                                       "--fact-time", "both") }
+                    "witnessrag-cascade" { $flags += @("--relation-alternatives", "--plan-readings", "2",
+                                                       "--fact-fill", "question", "--fact-rerank",
+                                                       "--fact-time", "both", "--plan-router", "llm") }
                     "robust-no-plan" { $flags += @("--ablation", "no-plan", "--fact-fill", "question",
                                                   "--fact-rerank", "--fact-time", "both") }
                     "wr-no-rerank" { $flags += @("--relation-alternatives", "--plan-readings", "2",
