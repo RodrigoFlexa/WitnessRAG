@@ -1257,29 +1257,33 @@ dialogue. Use only what is said; no interpretation. Answer with the summary only
 {text}"""
 
 
-READER_REFLECTION_INSTRUCTION = """Perform reflection and answering together in this call.
-Before committing to an answer, determine the requested operation, entity type,
-options, time scope and qualifiers. A question offering alternatives requests
-the appropriate option even if it starts with Would, Could or Is.
-Separate observations in memory from interpretations and ordinary world knowledge.
-Use relevant observations as premises. When the answer is implicit, apply only
-the necessary world-knowledge bridge: a place's geographic category, a concept
-recognized from its defining features, or a likely implication of preferences.
-Do not just repeat a premise if the question requests the resulting concept or
-another level of description. Conversely, prefer an explicit supported answer
-when it already satisfies the question. Never invent a person's experiences.
-Evaluate counterevidence, ambiguity and every requested qualifier. Treat any
-HIGH-LEVEL MEMORIES as tentative interpretations to review, not as verified events.
-For likely judgments, give the best supported inference; abstain when there is
-no relevant premise or a decisive ambiguity, not merely because the conclusion
-is not quoted. Check the final answer's type and form: an option must be an
-option, a country a country, a requested concept its name, and a count a number.
-Keep all reflection internal. Preserve the existing list, date and answer-length
-rules. Return only JSON with two REQUIRED fields:
-{{"answer_kind":"choice|boolean|value|list|count|time","answer":"short final answer"}}
-Select ONE answer_kind. Example for a choice question:
-{{"answer_kind":"choice","answer":"Mira"}}
-The answer field contains no reasoning, citations or explanatory lead-in.
+READER_REFLECTION_INSTRUCTION = """Perform reflection internally before answering.
+Check that the answer completes the operation requested, for the right person,
+event, time and qualifiers. Preserve an explicit answer when it already does so.
+Use observations as premises; review HIGH-LEVEL MEMORIES as tentative
+interpretations. If necessary, apply ordinary world knowledge to infer the
+requested category, concept or preference. Never invent personal experiences.
+Return the conclusion the question asks for, not just its supporting premise.
+An offered choice needs the option, including questions beginning Does or Would.
+A duration needs its unit and approximation; only a count of items is digits
+alone. Preserve the stated wording of quantities. A starting date is not a
+duration, and an age does not establish a calendar year without a birth date.
+For lists use a comma AND a space between complete items. Keep only supported
+members. Prefer the shortest COMPLETE answer, never a fragment missing its unit.
+
+Synthetic examples (unrelated to the supplied memory):
+- Memory: Lian has hiked for about six years.
+  Question: How long has Lian been hiking?
+  Answer: {{"answer":"about six years"}}
+- Memory: Noor lives by the sea.
+  Question: Does Noor live near the coast or the mountains?
+  Answer: {{"answer":"the coast"}}
+- Memory: Tessa bought tickets to Lisbon.
+  Question: Which country did Tessa buy tickets for?
+  Answer: {{"answer":"Portugal"}}
+Use only the ACTUAL memory for the actual question. Check counterevidence and
+ambiguity. Abstain only when relevant premises or a justified bridge are missing.
+Return the original JSON shape with answer only; do not output your reflection.
 """
 
 
@@ -1289,10 +1293,11 @@ def qa_reflection_template(template: str) -> str:
         "Do not invent\nfacts absent from the passages.",
         "Do not invent personal events or claims absent from the observations.\n"
         "Ordinary knowledge may supply the bridge from observations to an inference.")
-    template = template.replace(
-        'Return exactly\none JSON object and no other text: {{"answer":"..."}}.',
-        'Return exactly one JSON object with answer_kind and answer, and no other text.')
-    return READER_REFLECTION_INSTRUCTION + "\n" + template
+    # Keep the established output schema. Put the operation check next to the
+    # actual question, after the evidence, rather than adding a competing header.
+    anchor = "QUESTION: {question}"
+    assert anchor in template
+    return template.replace(anchor, READER_REFLECTION_INSTRUCTION + "\n" + anchor, 1)
 
 
 def format_passages(passages: Sequence[tuple[str, str]], max_chars: int | None = None) -> str:

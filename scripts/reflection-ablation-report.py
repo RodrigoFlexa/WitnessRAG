@@ -21,11 +21,14 @@ def extra(row, title):
                  if e.get("title") == title), "")
 
 
-def retrieval_control(rows, ids):
+def retrieval_control(rows, ids, require_shared=False):
     """Factor changes must not quietly change route, facts or summary selection."""
     errors = []
+    require_shared = require_shared or any(
+        row.get("diagnosticos", {}).get("reflection_study") for data in rows.values() for row in data.values())
     for q in ids:
         baseline = rows["cascade"][q]
+        shared = baseline.get("diagnosticos", {}).get("reflection_study")
         route = (baseline.get("diagnosticos", {}).get("roteador") or {}).get("rota")
         if route not in {"PLAN", "DIRECT"}:
             errors.append({"qid": q, "field": "missing_cascade_route"})
@@ -40,6 +43,15 @@ def retrieval_control(rows, ids):
             other = item.get("diagnosticos", {}).get("fatos_entregues", {}).get("resumos_selecionados")
             if selected is None or selected != other:
                 errors.append({"qid": q, "variant": name, "field": "summary_selection"})
+            if require_shared:
+                shared = shared or {}
+                other_shared = item.get("diagnosticos", {}).get("reflection_study") or {}
+                for field in ("base_snapshot_hash", "memory_hash"):
+                    if not shared.get(field) or shared[field] != other_shared.get(field):
+                        errors.append({"qid": q, "variant": name, "field": field})
+                if name in {"summary-reflection", "both"} and not extra(item, "Chunk summaries").startswith(
+                        extra(baseline, "Chunk summaries")):
+                    errors.append({"qid": q, "variant": name, "field": "literal_summaries"})
         for a, b in [("cascade", "reader-reflection"), ("summary-reflection", "both")]:
             if extra(rows[a][q], "Chunk summaries") != extra(rows[b][q], "Chunk summaries"):
                 errors.append({"qid": q, "variant": b, "field": "summaries"})
@@ -63,7 +75,9 @@ def report(root):
     ids = sorted(rows["cascade"])
     for name in NAMES[1:]:
         paired.paired_ids(rows[name], rows["cascade"])
-    control = retrieval_control(rows, ids)
+    manifest_path = root / "ablation-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
+    control = retrieval_control(rows, ids, require_shared=manifest.get("protocol") == "cascade-reflection-2x2-v2")
     (root / "reflection-retrieval-control.json").write_text(json.dumps(control, indent=2), encoding="utf-8")
     if control["mismatches"]:
         raise ValueError("A recuperação mudou entre células. Consulte reflection-retrieval-control.json; "
@@ -139,6 +153,9 @@ def report(root):
     lines += ["", "A variante de resumos adiciona contexto: consultar tokens do reader antes de atribuir "
               "um ganho exclusivamente à qualidade da inferência. Todas mantêm 40 fatos por padrão, "
               "seis resumos e o mesmo teto de 128 tokens de saída do reader. "
+              "Na v2, no máximo summary_reflection_limit inferências são selecionadas por pergunta "
+              "entre os chunks congelados; o teto de geração continua por chunk. Recuperação e memória "
+              "são compartilhadas por snapshots: não somar seu custo real quatro vezes. "
               "Inferências armazenadas não são fatos certificados. Casos usados para ajustar prompts "
               "são desenvolvimento; a promoção do método requer validação reservada.", ""]
     (root / "reflection-ablation.json").write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")

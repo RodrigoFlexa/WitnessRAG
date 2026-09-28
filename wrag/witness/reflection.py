@@ -16,6 +16,10 @@ Prefer distinct, informative interpretations: sustained preferences, goals,
 motivations, likely implications, or recognition of a concept from its described
 features. Combine compatible statements when available. Ordinary world knowledge
 may connect a described feature to a concept; record that bridge separately.
+Prioritize useful changes of category or recognition of defining features when
+present, not several near-identical statements about motivation or support.
+Keep these bridges specific: a named location's country, a described activity's
+concept, or a preference implication. Do not merely restate an explicit fact.
 Do not invent personal events, identities, dates, ownership, or commitments.
 A single mention is not a permanent personality trait. Preserve negation,
 uncertainty, speaker identity and temporal scope. Avoid repeating explicit facts
@@ -35,6 +39,11 @@ Return JSON only, for example:
 {{"memories":[{{"subject":"Mira","inference":"Mira likely prefers activities that allow creative expression.",
 "confidence":"likely","bridge":"","basis":[{{"turn_id":"S2:4","quote":"I love inventing new designs for my ceramics."}}]}}]}}
 Use the example's structure; derive all content and IDs from the actual segment.
+Other synthetic illustrations: a booked destination of Lisbon supports the
+interpretation "the booked destination is in Portugal", with the bridge
+"Lisbon is in Portugal". Reviewing material at increasing intervals supports
+recognition of spaced repetition. These examples are not observations about
+the actual participants: never copy their entities or citations into a memory.
 
 DIALOGUE SEGMENT:
 {text}"""

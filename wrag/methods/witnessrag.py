@@ -204,6 +204,9 @@ class WitnessRAGRetriever(Retriever):
         self.signals: MemorySignals | None = None
         self.dated: DatedMemory | None = None
         self.scorer: MemoryScorer | None = None
+        self._summaries = {}
+        self._reflections = {}
+        self._reflection_diagnostics = {}
 
     # -- indexação ----------------------------------------------------------
 
@@ -1938,16 +1941,15 @@ class WitnessRAGRetriever(Retriever):
             info["resumos_selecionados"] = sorted(pids, key=lambda p: position.get(p, 0))
             parts = []
             for pid in sorted(pids, key=lambda p: position.get(p, 0)):
-                text = self._chunk_summary(pid)
+                text = self._chunk_summary(pid, include_reflection=False)
                 if text:
                     interval = dated.passage_interval.get(pid)
                     parts.append(f"- ({format_interval(interval) if interval else 'undated'}) {text}")
             summary = "\n".join(parts)
             info["resumos"] = len(parts)
             if cfg.summary_reflection:
-                info["summary_reflection"] = [
-                    {"pid": pid, **getattr(self, "_reflection_diagnostics", {}).get(pid, {})}
-                    for pid in pids]
+                summary, info["summary_reflection"] = self._reflect_summary_context(
+                    question, summary, info["resumos_selecionados"])
         info["n"] = len(chosen)
         # Provenance of what was actually delivered; retrieved passage ids
         # alone do not describe a fact-only reader's context.
@@ -1983,45 +1985,125 @@ class WitnessRAGRetriever(Retriever):
                                                          -relevance[j], j))
         return [pool[j] for j in ranked] + order[len(pool):], len(pool)
 
-    def _chunk_summary(self, pid: str) -> str:
+    def _chunk_summary(self, pid: str, include_reflection: bool = True) -> str:
         """Short summary of one chunk, written once per chunk (memory
         construction cost, cached) and never conditioned on a question."""
         cache = getattr(self, "_summaries", None)
         if cache is None:
             cache = self._summaries = {}
         passage = self.corpus.get(pid)
-        if pid not in cache:
-            result = self.ctx.llm.chat(
-                prompts.SUMMARY_TEMPLATE.format(text=passage.text[:12000]),
-                system="You summarize dialogues faithfully and briefly.",
-                params=GenParams(temperature=0.0, max_tokens=160),
-                stage="memory.summary")
-            cache[pid] = "" if result.filtered else " ".join((result.text or "").split())
+        from contextlib import nullcontext
+        from wrag.eval import reflection_study
+        from wrag.util import sha
+        path = (reflection_study.root() / "shared" / "summaries" /
+                (sha(pid, passage.text[:12000]) + ".json")) if reflection_study.root() else None
+        with reflection_study.file_lock(path.with_suffix(".lock")) if path else nullcontext():
+            if pid not in cache:
+                if path and path.exists():
+                    saved = json.loads(path.read_text(encoding="utf-8"))
+                    if sha(saved["text"]) != saved["hash"]:
+                        raise ValueError("Shared summary checksum mismatch")
+                    cache[pid] = saved["text"]
+                else:
+                    result = self.ctx.llm.chat(
+                        prompts.SUMMARY_TEMPLATE.format(text=passage.text[:12000]),
+                        system="You summarize dialogues faithfully and briefly.",
+                        params=GenParams(temperature=0.0, max_tokens=160),
+                        stage="memory.summary")
+                    if path and (result.filtered or result.error or not result.ok):
+                        raise RuntimeError("Summary generation failed; resume after checking the model log")
+                    cache[pid] = "" if result.filtered else " ".join((result.text or "").split())
+                    if path:
+                        reflection_study.atomic_json(path, {"text": cache[pid], "hash": sha(cache[pid])})
         text = cache[pid]
         cfg = self.ctx.run.witness
-        if not cfg.summary_reflection:
+        if not cfg.summary_reflection or not include_reflection:
             return text
+        from wrag.witness.reflection import render_memories
+        memories, _ = self._chunk_reflections(pid)
+        rendered = render_memories(memories)
+        return text + ("\n" + rendered if rendered else "")
+
+    def _chunk_reflections(self, pid: str):
+        """Question-independent interpretations, shared safely across workers."""
+        from contextlib import nullcontext
+        from wrag.eval import reflection_study
         from wrag.witness.reflection import (SUMMARY_REFLECTION_SYSTEM,
-            SUMMARY_REFLECTION_TEMPLATE, render_memories, validate_memories)
+            SUMMARY_REFLECTION_TEMPLATE, validate_memories)
+        from wrag.util import sha
+        cfg = self.ctx.run.witness
+        source = self.corpus.get(pid).text[:12000]
         reflected = getattr(self, "_reflections", None)
         if reflected is None:
             reflected = self._reflections = {}
             self._reflection_diagnostics = {}
         key = (pid, cfg.summary_reflection_limit)
-        if key not in reflected:
-            source = passage.text[:12000]
-            result = self.ctx.llm.chat(
-                SUMMARY_REFLECTION_TEMPLATE.format(text=source, limit=cfg.summary_reflection_limit),
-                system=SUMMARY_REFLECTION_SYSTEM,
-                params=GenParams(temperature=0.0, max_tokens=384 * cfg.summary_reflection_limit,
-                                 json_mode=True), stage="memory.reflection")
-            memories, info = validate_memories(result.json(), source, cfg.summary_reflection_limit)
-            if result.filtered or not result.ok or result.error:
-                memories = []
-                info = {"accepted": 0, "rejected": 0, "status": "filtered_or_error"}
-            reflected[key] = render_memories(memories)
-            self._reflection_diagnostics[pid] = info
-        return text + ("\n" + reflected[key] if reflected[key] else "")
+        path = (reflection_study.root() / "shared" / "reflections" /
+                (sha(pid, source, cfg.summary_reflection_limit) + ".json")) if reflection_study.root() else None
+        lock = reflection_study.file_lock(path.with_suffix(".lock")) if path else nullcontext()
+        with lock:
+            if key not in reflected:
+                if path and path.exists():
+                    cached = json.loads(path.read_text(encoding="utf-8"))
+                    memories, _ = validate_memories({"memories": cached["memories"]}, source,
+                                                   cfg.summary_reflection_limit)
+                    if memories != cached["memories"]:
+                        raise ValueError("Invalid shared reflection provenance")
+                    info = cached["info"]
+                else:
+                    result = self.ctx.llm.chat(
+                        SUMMARY_REFLECTION_TEMPLATE.format(text=source, limit=cfg.summary_reflection_limit),
+                        system=SUMMARY_REFLECTION_SYSTEM,
+                        params=GenParams(temperature=0.0, max_tokens=384 * cfg.summary_reflection_limit,
+                                         json_mode=True), stage="memory.reflection")
+                    memories, info = validate_memories(result.json(), source, cfg.summary_reflection_limit)
+                    if result.filtered or not result.ok or result.error:
+                        if path:
+                            raise RuntimeError("Reflection generation failed; resume after checking the model log")
+                        memories = []
+                        info = {"accepted": 0, "rejected": 0, "status": "filtered_or_error"}
+                    if path:
+                        reflection_study.atomic_json(path, {"memories": memories, "info": info})
+                reflected[key] = memories
+                self._reflection_diagnostics[pid] = info
+        return reflected[key], self._reflection_diagnostics[pid]
+
+    def _reflect_summary_context(self, question, summary, pids):
+        """Rank conclusions individually; preserve literal summaries verbatim."""
+        from wrag.witness.reflection import render_memories
+        cfg = self.ctx.run.witness
+        candidates, diagnostics = [], []
+        for pid in pids:
+            memories, info = self._chunk_reflections(pid)
+            diagnostics.append({"pid": pid, **info, "generated": len(memories), "accepted": 0})
+            candidates.extend((pid, memory) for memory in memories)
+        if not candidates:
+            return summary, diagnostics
+        texts = [m["inference"] + " " + m["bridge"] + " " + " ".join(c["quote"] for c in m["basis"])
+                 for _, m in candidates]
+        if cfg.fact_rerank:
+            from wrag.witness.rerank import get_reranker
+            scores = get_reranker(cfg.fact_rerank).score(question.question, texts)
+        else:
+            terms = set(canonical_symbol(question.question).split())
+            scores = [len(terms & set(canonical_symbol(text).split())) for text in texts]
+        order = sorted(range(len(candidates)), key=lambda i: (-round(float(scores[i]), 6), i))
+        selected = [candidates[i] for i in order[:cfg.summary_reflection_limit]]
+        for item in diagnostics:
+            item["accepted"] = sum(pid == item["pid"] for pid, _ in selected)
+        rendered = render_memories([memory for _, memory in selected])
+        return summary + ("\n" + rendered if rendered else ""), diagnostics
+
+    def _enrich_summary_result(self, result, question):
+        """Append interpretations to a frozen retrieval, without reranking facts."""
+        info = result.diagnostics.get("fatos_entregues", {})
+        pids = info.get("resumos_selecionados", [])
+        for block in result.diagnostics.get("trechos_extras", []):
+            if block.get("title") == "Chunk summaries":
+                block["text"], info["summary_reflection"] = self._reflect_summary_context(
+                    question, block["text"], pids)
+                break
+        return result
 
     @staticmethod
     def _paraphrase_atoms(query: ConjunctiveQuery) -> bool:

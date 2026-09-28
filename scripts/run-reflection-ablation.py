@@ -19,6 +19,7 @@ sys.path.insert(0, str(ROOT))
 spec = importlib.util.spec_from_file_location("comparison", ROOT / "scripts/run-multiplan-comparison.py")
 comparison = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(comparison)
+from wrag.eval.reflection_study import atomic_json, file_lock
 
 VARIANTS = {"cascade": (False, False), "summary-reflection": (True, False),
             "reader-reflection": (False, True), "both": (True, True)}
@@ -26,7 +27,7 @@ VARIANTS = {"cascade": (False, False), "summary-reflection": (True, False),
 
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--output", type=Path, default=Path("runs/cascade-reflection-ablation"))
+    p.add_argument("--output", type=Path, default=Path("runs/cascade-reflection-ablation-v2"))
     p.add_argument("--conversation", default="all", help="all, índice 0..9 ou lista como 0,3,5")
     p.add_argument("--questions", type=int, help="limite por conversa; padrão: todas")
     p.add_argument("--model", default="Qwen/Qwen2.5-14B-Instruct")
@@ -99,25 +100,31 @@ def main():
     for relative in ["scripts/run-reflection-ablation.py", "scripts/reflection-ablation-report.py",
                      "scripts/run-reflection-ablation-qwen.sh"]:
         sources[relative] = hashlib.sha256((ROOT / relative).read_bytes()).hexdigest()
-    manifest = {"protocol": "cascade-reflection-2x2-v1", "commands": commands,
-                "sources": sources, "factors": VARIANTS}
+    manifest = {"protocol": "cascade-reflection-2x2-v2", "commands": commands,
+                "sources": sources, "factors": VARIANTS,
+                "model_revision": os.environ.get("WRAG_MODEL_REVISION", ""),
+                "control": "one frozen graph and cascade retrieval; interpretations appended afterward"}
     # JSON turns tuples into lists: compare canonical serializations on resume.
     manifest = json.loads(json.dumps(manifest))
     path = root / "ablation-manifest.json"
-    if path.exists():
-        previous = json.loads(path.read_text(encoding="utf-8"))
-        if any(previous.get(k) != v for k, v in manifest.items()):
-            raise SystemExit("Código/configuração mudou. Use outro --output para preservar a comparação.")
-    elif any((root / name).exists() for name in VARIANTS):
-        raise SystemExit("Saídas existentes sem manifesto. Use outro --output.")
-    elif args.report_only:
-        raise SystemExit("Estudo ausente: execute primeiro sem --report-only.")
-    else:
-        root.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps({**manifest, "created": datetime.now(timezone.utc).isoformat()},
-                                   indent=2), encoding="utf-8")
+    with file_lock(root / ".manifest.lock"):
+        if path.exists():
+            previous = json.loads(path.read_text(encoding="utf-8"))
+            if any(previous.get(k) != v for k, v in manifest.items()):
+                raise SystemExit("Código/configuração mudou. Use outro --output para preservar a comparação.")
+        elif any((root / name).exists() for name in VARIANTS):
+            raise SystemExit("Saídas existentes sem manifesto. Use outro --output.")
+        elif args.report_only:
+            raise SystemExit("Estudo ausente: execute primeiro sem --report-only.")
+        else:
+            atomic_json(path, {**manifest, "created": datetime.now(timezone.utc).isoformat()})
     env = dict(os.environ, PYTHONUTF8="1", PYTHONHASHSEED="42", WRAG_LLM_CACHE="1",
-               WRAG_EMBED_CACHE="1", WRAG_CONTINUE_ON_CONTENT_FILTER="1")
+               WRAG_EMBED_CACHE="1", WRAG_CONTINUE_ON_CONTENT_FILTER="1",
+               WRAG_REFLECTION_STUDY_ROOT=str(root),
+               WRAG_EXPERIMENT_CACHE_ID="reflection-v2-" + hashlib.sha256(
+                   json.dumps([str(root), manifest], sort_keys=True).encode("utf-8")).hexdigest())
+    env.pop("WRAG_CONTROLLED_ROOT", None)
+    env.pop("WRAG_FROZEN_MEMORY_SOURCE", None)
     only_names = set(n.strip() for n in args.only.split(",")) if args.only else None
     if only_names and not only_names <= set(VARIANTS):
         raise SystemExit(f"--only desconhecido: {only_names - set(VARIANTS)}; use {list(VARIANTS)}")
@@ -125,27 +132,29 @@ def main():
         if only_names and name not in only_names:
             continue
         folder = root / name
-        if comparison.completed(folder):
-            print(f"[{index}/4] {name}: completo, preservado.", flush=True)
-            continue
-        if args.report_only:
-            raise SystemExit(f"{name} incompleto; repita sem --report-only para retomar.")
-        resume = ["--resume"] if (folder / "pilot.json").exists() else []
-        print(f"[{index}/4] {name}: execução {'retomada' if resume else 'nova'}. "
-              f"Log: {folder / 'benchmark.log'}", flush=True)
-        result = subprocess.run(command + resume, cwd=ROOT, env=env)
-        if result.returncode or not comparison.completed(folder):
-            raise SystemExit(f"{name} incompleto. Repita o mesmo comando para retomar; "
-                             f"veja {folder / 'benchmark.log'}.")
+        with file_lock(root / "shared" / "locks" / (name + ".worker.lock")):
+            if comparison.completed(folder):
+                print(f"[{index}/4] {name}: completo, preservado.", flush=True)
+                continue
+            if args.report_only:
+                raise SystemExit(f"{name} incompleto; repita sem --report-only para retomar.")
+            resume = ["--resume"] if (folder / "pilot.json").exists() else []
+            print(f"[{index}/4] {name}: execução {'retomada' if resume else 'nova'}. "
+                  f"Log: {folder / 'benchmark.log'}", flush=True)
+            result = subprocess.run(command + resume, cwd=ROOT, env=env)
+            if result.returncode or not comparison.completed(folder):
+                raise SystemExit(f"{name} incompleto. Repita o mesmo comando para retomar; "
+                                 f"veja {folder / 'benchmark.log'}.")
     if only_names and not all(comparison.completed(root / n) for n in VARIANTS):
         print(f"--only={sorted(only_names)} feito. Rode a(s) outra(s) variante(s) (mesmo --output) "
               f"e depois --report-only para o relatório combinado.", flush=True)
         return 0
-    corpora = comparison.compare_corpora(root, list(VARIANTS))
-    (root / "corpus-hashes.json").write_text(json.dumps(corpora, indent=2), encoding="utf-8")
-    for report, names in [("paired-report.py", list(VARIANTS)), ("reflection-ablation-report.py", [])]:
-        subprocess.run([sys.executable, str(ROOT / "scripts" / report), str(root), *names],
-                       cwd=ROOT, env=env, check=True)
+    with file_lock(root / ".report.lock"):
+        corpora = comparison.compare_corpora(root, list(VARIANTS))
+        atomic_json(root / "corpus-hashes.json", corpora)
+        for report, names in [("paired-report.py", list(VARIANTS)), ("reflection-ablation-report.py", [])]:
+            subprocess.run([sys.executable, str(ROOT / "scripts" / report), str(root), *names],
+                           cwd=ROOT, env=env, check=True)
     print(f"Concluído: {root / 'reflection-ablation.md'}", flush=True)
     return 0
 

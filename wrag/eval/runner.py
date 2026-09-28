@@ -350,7 +350,8 @@ def _answer_one(name: str, retriever, corpus: Corpus, question: Question,
 def _answer_standard(name: str, retriever, corpus: Corpus, question: Question,
                      run_cfg: C.RunConfig) -> dict[str, Any]:
     before = retriever.ctx.llm.usage.snapshot()
-    retrieval = retriever.retrieve(question, run_cfg.top_k)
+    from wrag.eval import reflection_study
+    retrieval = reflection_study.retrieve(retriever, corpus, question, run_cfg)
     # A corporate content-policy block on any query-time stage excludes this
     # question from answer evaluation. Do not ask the reader to reconstruct an
     # answer after its compiler, verifier or targeted extraction was refused.
@@ -467,7 +468,8 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
              "trechos_extras", "contexto_alterado_por_trechos", "premissas",
              "itens_conjunto",
              # entrega por fatos e plano robusto
-             "leitura_fatos", "fatos_entregues", "ablacao", "roteador")
+             "leitura_fatos", "fatos_entregues", "ablacao", "roteador",
+             "reflection_study", "reflection_summary_snapshot_hit")
             if k in diagnostics}
     cycles = diagnostics.get("ciclos")
     if isinstance(cycles, list):

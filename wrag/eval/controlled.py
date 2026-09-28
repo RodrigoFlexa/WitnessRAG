@@ -44,11 +44,12 @@ def conversation_dir(corpus):
     return root() / "controlled" / corpus.stats()["corpus_hash"][:24]
 
 
-def frozen_graph(ctx, builder, source_root=None):
+def frozen_graph(ctx, builder, source_root=None, destination_root=None):
     """Freeze graph + vectors + extraction, and refuse incompatible resumes."""
     folder = ((Path(source_root) / "controlled" /
                ctx.corpus.stats()["corpus_hash"][:24]) if source_root else
-              conversation_dir(ctx.corpus))
+              (Path(destination_root) / "controlled" / ctx.corpus.stats()["corpus_hash"][:24]
+               if destination_root else conversation_dir(ctx.corpus)))
     if source_root and not folder.exists():
         raise FileNotFoundError(f"Frozen memory missing for this corpus: {folder}")
     if not source_root:

@@ -48,6 +48,9 @@ def _canonicalize_short_answer(question: str, answer: str, keep_reason: bool = F
     does not guess an entity span from an arbitrary sentence.
     """
     text = answer.strip().strip('"').strip()
+    # Natural-language list separators must not fuse adjacent names. Apply
+    # equally to all readers, leaving numeric separators such as 1,000 intact.
+    text = re.sub(r",(?=[^\W\d_])", ", ", text)
     if re.search(r"\bhow many\b", question, re.I):
         digits = re.findall(r"(?<![\w.])\d+(?![\w.])", text)
         words = re.findall(r"\b(?:" + "|".join(_NUMBER_WORDS) + r")\b",
@@ -235,12 +238,12 @@ def read(
 
     raw_answer = answer
     answer_kind = data.get("answer_kind", "") if isinstance(data, dict) else ""
-    reflection = ({"mode": "joint", "answer_kind": answer_kind,
-                   "schema_valid": answer_kind in ("choice", "boolean", "value", "list", "count", "time")}
+    reflection = ({"mode": "joint-v2", "answer_kind": answer_kind,
+                   "schema_valid": isinstance(data, dict) and isinstance(data.get("answer"), str)}
                   if cfg.reader_reflection else None)
     answer = _canonicalize_short_answer(question.question, answer,
                                         keep_reason=cfg.yesno_rationale or
-                                        (cfg.reader_reflection and answer_kind != "boolean"))
+                                        cfg.reader_reflection)
     guard = None
     prompt_tokens, completion_tokens, latency = (result.prompt_tokens,
                                                   result.completion_tokens, result.latency_s)

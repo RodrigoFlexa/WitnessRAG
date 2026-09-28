@@ -65,9 +65,11 @@ def build_methods(ctx: IndexContext, names: list[str]) -> dict[str, Retriever]:
         # HippoRAG 1 fatia o bloco de frases para não usá-los.
         before = ctx.llm.usage.snapshot()
         started = time.perf_counter()
-        from wrag.eval import controlled
+        from wrag.eval import controlled, reflection_study
         source_memory = os.environ.get("WRAG_FROZEN_MEMORY_SOURCE")
-        if source_memory:
+        if reflection_study.root():
+            reflection_study.freeze_graph(ctx, ensure_graph)
+        elif source_memory:
             controlled.frozen_graph(ctx, ensure_graph, source_root=source_memory)
         elif controlled.root():
             controlled.frozen_graph(ctx, ensure_graph)

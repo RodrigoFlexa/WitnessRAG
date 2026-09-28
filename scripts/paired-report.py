@@ -83,6 +83,15 @@ def tokens(r: dict, stage: str | None) -> float:
     if stage:
         s = stages.get(stage) or {}
         return s.get("tokens_prompt", 0) + s.get("tokens_resposta", 0)
+    shared = (r.get("diagnosticos") or {}).get("reflection_study")
+    if shared:
+        retrieval = (shared.get("shared_retrieval_usage") or {}).get("por_estagio") or {}
+        # Logical per-cell budget: one shared retrieval plus this cell's reader.
+        # Actual construction is recorded in shared snapshots, never duplicated.
+        return (sum(v.get("tokens_prompt", 0) + v.get("tokens_resposta", 0)
+                    for k, v in retrieval.items() if k not in BUILD)
+                + sum(v.get("tokens_prompt", 0) + v.get("tokens_resposta", 0)
+                      for k, v in stages.items() if k == "qa" or k.startswith("qa.")))
     return sum(v.get("tokens_prompt", 0) + v.get("tokens_resposta", 0)
                for k, v in stages.items() if k not in BUILD)
 
@@ -180,7 +189,9 @@ def main() -> None:
               f"com penalidade de brevidade, normalização e stemming; não é uma "
               f"métrica oficial do LoCoMo nem equivalência confirmada com Zero-Mem. Perguntas por categoria: "
               + ", ".join(f"{c} {n}" for c, n in counts.items())
-              + ". Tokens por pergunta sem a construção da memória.\n\n")
+              + ". Tokens por pergunta sem a construção da memória. Em estudos de reflexão v2, "
+              "o total lógico usa a recuperação compartilhada mais o reader de cada célula; "
+              "não somar quatro vezes o custo real da recuperação.\n\n")
     output = args.output or root
     output.mkdir(parents=True, exist_ok=True)
     lines.extend(["", "BLEU-1 local por categoria:", "",

@@ -2,7 +2,7 @@
 # Existing Qwen2.5-14B vLLM server; four cascade variants, resume + reports.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-TASK_OUTPUT=${1:-runs/cascade-reflection-ablation}
+TASK_OUTPUT=${1:-runs/cascade-reflection-ablation-v2}
 if (( $# )); then shift; fi
 TASK_PYTHON=${BENCH_PYTHON:-}
 if [[ -z "$TASK_PYTHON" ]]; then
