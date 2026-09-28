@@ -23,7 +23,16 @@ def parser():
     p.add_argument("--output", type=Path, default=Path("runs/multiplan-comparison"))
     p.add_argument("--conversation", default="all", help="all ou índice 0..9")
     p.add_argument("--questions", type=int, help="limite por conversa; omita para todas")
-    p.add_argument("--model", default="gpt-4o-mini")
+    p.add_argument("--backend", choices=["openai", "vllm"], default="openai")
+    p.add_argument("--model", default=None, help="padrão: gpt-4o-mini (openai) ou Qwen/Qwen2.5-14B-Instruct (vllm)")
+    p.add_argument("--ports", default=None,
+                    help="vllm: uma porta por variante, na ordem de build_commands (ex.: 8095,8096); "
+                         "reaproveita em round-robin se houver mais variantes que portas")
+    p.add_argument("--gpus", default=None,
+                    help="vllm: um índice/UUID de GPU por variante, mesma ordem/round-robin de --ports")
+    p.add_argument("--parallel", action="store_true",
+                    help="lança todas as variantes pendentes ao mesmo tempo (subprocess.Popen) em vez de uma por vez; "
+                         "use com --ports para não competir pelo mesmo servidor vLLM")
     p.add_argument("--device", choices=["auto", "cpu", "cuda", "cuda:0"], default="auto")
     p.add_argument("--embed-model", default="BAAI/bge-m3")
     p.add_argument("--reranker", default="BAAI/bge-reranker-v2-m3")
@@ -33,7 +42,8 @@ def parser():
     p.add_argument("--fact-budget", type=int, default=40)
     p.add_argument("--hours", type=float, default=72, help="prazo POR variante")
     p.add_argument("--locomo-file", type=Path)
-    p.add_argument("--cache-dir", type=Path, default=ROOT / "runs/.cache/witness-openai")
+    p.add_argument("--cache-dir", type=Path, default=None,
+                    help="padrão: runs/.cache/witness-openai ou runs/.cache/witness-qwen (conforme --backend)")
     p.add_argument("--include-controls", action="store_true", help="inclui WitnessRAG antigo e robusto sem plano")
     p.add_argument("--dry-run", action="store_true", help="mostra comandos; nenhuma chamada de API")
     p.add_argument("--report-only", action="store_true", help="recalcula relatório de rodada completa")
@@ -50,25 +60,51 @@ def device_choice(device):
         return "cpu"
 
 
+def resolve_defaults(args):
+    """--model/--cache-dir depend on --backend; fill them in once, after parsing."""
+    if args.model is None:
+        args.model = "Qwen/Qwen2.5-14B-Instruct" if args.backend == "vllm" else "gpt-4o-mini"
+    if args.cache_dir is None:
+        args.cache_dir = ROOT / ("runs/.cache/witness-qwen" if args.backend == "vllm" else "runs/.cache/witness-openai")
+    return args
+
+
+def backend_flags_for(args, index):
+    """--backend openai: one shared client, no port. --backend vllm: round-robin
+    over --ports/--gpus so each variant hits its own already-running server
+    (scripts/serve-qwen-vllm.sh) instead of competing for one."""
+    if args.backend == "openai":
+        return ["--backend", "openai", "--model", args.model, "--gpu", "0"]
+    ports = [p.strip() for p in (args.ports or "8095").split(",") if p.strip()]
+    gpus = [g.strip() for g in (args.gpus or "1").split(",") if g.strip()]
+    port = ports[index % len(ports)]
+    gpu = gpus[index % len(gpus)]
+    return ["--backend", "vllm", "--existing-server", "--port", port, "--model", args.model, "--gpu", gpu]
+
+
 def build_commands(args, device):
     root = args.output.resolve()
-    base = [sys.executable, "-m", "wrag.pilot", "--backend", "openai", "--model", args.model,
-            "--gpu", "0", "--concurrency", str(args.concurrency), "--dataset", "locomo",
-            "--locomo-conversation", args.conversation, "--methods", "witnessrag",
-            "--embed-model", args.embed_model, "--embed-device", device,
-            "--tokenizer-model", "Qwen/Qwen2.5-14B-Instruct", "--locomo-chunk-tokens", "2048",
-            "--locomo-ie-window-tokens", "512", "--top-k", "5", "--qa-max-tokens", "128",
-            "--witness-candidate-pool", "20", "--answer-set", "--temporal-annotations",
-            "--evidence-reader", "--binding-aware-grounding", "--vocab-compile", "--hybrid-fallback",
-            "--dialogue-ie", "--gap-context-rescue", "--proof-controller", "--typed-variables",
-            "--item-set-proofs", "--witness-delivery", "mixed", "--abductive-premises",
-            "--ie-style", "memory", "--fact-delivery", "facts+summary", "--fact-budget", str(args.fact_budget),
-            "--proof-cycles", str(args.cycles), "--cache-dir", str(args.cache_dir.resolve()),
-            "--hours", str(args.hours), "--seed", "42"]
-    if args.questions:
-        base += ["--questions", str(args.questions)]
-    if args.locomo_file:
-        base += ["--locomo-file", str(args.locomo_file.resolve())]
+
+    def base_for(index):
+        cmd = [sys.executable, "-m", "wrag.pilot", *backend_flags_for(args, index),
+               "--concurrency", str(args.concurrency), "--dataset", "locomo",
+               "--locomo-conversation", args.conversation, "--methods", "witnessrag",
+               "--embed-model", args.embed_model, "--embed-device", device,
+               "--tokenizer-model", "Qwen/Qwen2.5-14B-Instruct", "--locomo-chunk-tokens", "2048",
+               "--locomo-ie-window-tokens", "512", "--top-k", "5", "--qa-max-tokens", "128",
+               "--witness-candidate-pool", "20", "--answer-set", "--temporal-annotations",
+               "--evidence-reader", "--binding-aware-grounding", "--vocab-compile", "--hybrid-fallback",
+               "--dialogue-ie", "--gap-context-rescue", "--proof-controller", "--typed-variables",
+               "--item-set-proofs", "--witness-delivery", "mixed", "--abductive-premises",
+               "--ie-style", "memory", "--fact-delivery", "facts+summary", "--fact-budget", str(args.fact_budget),
+               "--proof-cycles", str(args.cycles), "--cache-dir", str(args.cache_dir.resolve()),
+               "--hours", str(args.hours), "--seed", "42"]
+        if args.questions:
+            cmd += ["--questions", str(args.questions)]
+        if args.locomo_file:
+            cmd += ["--locomo-file", str(args.locomo_file.resolve())]
+        return cmd
+
     robust = ["--relation-alternatives", "--plan-readings", "2", "--fact-fill", "question",
               "--fact-rerank", args.reranker, "--fact-time", "both"]
     variants = {"witnessrag-robust": robust,
@@ -76,7 +112,8 @@ def build_commands(args, device):
     if args.include_controls:
         variants["witnessrag-original"] = []
         variants["robust-no-plan"] = robust + ["--ablation", "no-plan"]
-    return {name: base + flags + ["--output", str(root / name)] for name, flags in variants.items()}
+    return {name: base_for(i) + flags + ["--output", str(root / name)]
+            for i, (name, flags) in enumerate(variants.items())}
 
 
 def source_hashes():
@@ -124,7 +161,7 @@ def compare_corpora(root, names):
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
-    args = parser().parse_args()
+    args = resolve_defaults(parser().parse_args())
     if args.questions is not None and args.questions < 1:
         raise SystemExit("--questions deve ser >= 1")
     if args.conversation != "all" and (not args.conversation.isdigit() or not 0 <= int(args.conversation) <= 9):
@@ -158,6 +195,7 @@ def main():
         path.write_text(json.dumps(dict(manifest, created=datetime.now().isoformat()), indent=2), encoding="utf-8")
     env = dict(os.environ, PYTHONUTF8="1", PYTHONHASHSEED="42", WRAG_LLM_CACHE="1",
                WRAG_EMBED_CACHE="1", WRAG_CONTINUE_ON_CONTENT_FILTER="1")
+    pending = {}
     for name, command in commands.items():
         folder = root / name
         if completed(folder):
@@ -166,10 +204,29 @@ def main():
         if args.report_only:
             raise SystemExit(f"Rodada incompleta: {folder}; execute sem --report-only para retomar.")
         resume = ["--resume"] if (folder / "pilot.json").exists() else []
-        print(f"Executando {name} ({device}). Log: {folder / 'benchmark.log'}", flush=True)
-        result = subprocess.run(command + resume, cwd=ROOT, env=env)
-        if result.returncode or not completed(folder):
-            raise SystemExit(f"{name} incompleto. Corrija a falha e repita o mesmo comando para retomar.")
+        pending[name] = command + resume
+
+    if args.parallel:
+        # Uma variante por servidor vLLM (scripts/serve-qwen-vllm.sh): lança todas
+        # de uma vez em vez de esperar cada wrag.pilot terminar antes da próxima.
+        procs = {}
+        for name, command in pending.items():
+            folder = root / name
+            print(f"Executando {name} ({device}), em paralelo. Log: {folder / 'benchmark.log'}", flush=True)
+            procs[name] = subprocess.Popen(command, cwd=ROOT, env=env)
+        failed = []
+        for name, proc in procs.items():
+            if proc.wait() or not completed(root / name):
+                failed.append(name)
+        if failed:
+            raise SystemExit(f"{', '.join(failed)} incompleto(s). Corrija a falha e repita o mesmo comando para retomar.")
+    else:
+        for name, command in pending.items():
+            folder = root / name
+            print(f"Executando {name} ({device}). Log: {folder / 'benchmark.log'}", flush=True)
+            result = subprocess.run(command, cwd=ROOT, env=env)
+            if result.returncode or not completed(folder):
+                raise SystemExit(f"{name} incompleto. Corrija a falha e repita o mesmo comando para retomar.")
     corpora = compare_corpora(root, list(commands))
     (root / "corpus-hashes.json").write_text(json.dumps(corpora, indent=2), encoding="utf-8")
     subprocess.run([sys.executable, str(ROOT / "scripts/paired-report.py"), str(root), *commands],
