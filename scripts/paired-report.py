@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from wrag.eval.locomo_official import score_record  # noqa: E402
 
 CATS = ["single-hop", "multi-hop", "temporal", "open-domain"]
-BUILD = {"memory.summary", "index.openie", "index.ner"}
+BUILD = {"memory.summary", "memory.reflection", "index.openie", "index.ner"}
 
 
 def load(folder: Path) -> dict[str, dict]:

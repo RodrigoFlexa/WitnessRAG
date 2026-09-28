@@ -73,6 +73,7 @@ class ReadResult:
     latency_s: float = 0.0
     raw_answer: str = ""
     guard: dict[str, Any] | None = None
+    reflection: dict[str, Any] | None = None
 
 
 ANSWER_GUARD_TEMPLATE = """Check the proposed short answer against the question
@@ -204,6 +205,8 @@ def read(
                 prompts.QA_PROOF_TEMPLATE if use_proof else
                 prompts.QA_OPERATOR_TEMPLATE if cfg.operator_reader and operator_question
                 else prompts.QA_SET_TEMPLATE if cfg.answer_set else prompts.QA_TEMPLATE)
+    if cfg.reader_reflection:
+        template = prompts.qa_reflection_template(template)
     pending = ", ".join(str(x) for x in proof_context.get("condicoes_pendentes", [])[:4]) \
         if proof_context else ""
     result = llm.chat(
@@ -231,8 +234,13 @@ def read(
         answer = result.text.strip().splitlines()[0][:200]
 
     raw_answer = answer
+    answer_kind = data.get("answer_kind", "") if isinstance(data, dict) else ""
+    reflection = ({"mode": "joint", "answer_kind": answer_kind,
+                   "schema_valid": answer_kind in ("choice", "boolean", "value", "list", "count", "time")}
+                  if cfg.reader_reflection else None)
     answer = _canonicalize_short_answer(question.question, answer,
-                                        keep_reason=cfg.yesno_rationale)
+                                        keep_reason=cfg.yesno_rationale or
+                                        (cfg.reader_reflection and answer_kind != "boolean"))
     guard = None
     prompt_tokens, completion_tokens, latency = (result.prompt_tokens,
                                                   result.completion_tokens, result.latency_s)
@@ -244,7 +252,7 @@ def read(
         latency += extra_latency
     return ReadResult(answer=answer, prompt_tokens=prompt_tokens,
                       completion_tokens=completion_tokens, latency_s=latency,
-                      raw_answer=raw_answer, guard=guard)
+                      raw_answer=raw_answer, guard=guard, reflection=reflection)
 
 
 def _temporal_reader_view(text: str) -> str:

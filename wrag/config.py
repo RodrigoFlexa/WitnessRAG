@@ -407,6 +407,8 @@ class WitnessConfig:
     fact_delivery: str = ""
     fact_budget: int = 40                  # fatos entregues ao leitor
     fact_summary_chunks: int = 6           # resumos entregues (facts+summary)
+    summary_reflection: bool = False      # question-independent, source-linked interpretations
+    summary_reflection_limit: int = 4
     fact_plan_guided: bool = True          # ablação: False = só similaridade com a pergunta
     # Plano robusto e seleção de fatos (docs/plano-robusto.md), tudo desligado:
     # relation_alternatives: átomos disjuntivos (até 3 frases de relação por
@@ -478,6 +480,7 @@ class QAConfig:
     # One-call, operation-aware reading for conversational memory. Off by
     # default so earlier runs remain reproducible.
     evidence_reader: bool = False
+    reader_reflection: bool = False       # joint inference + answer review, one reader call
     # Sim/não com justificativa curta ("likely no; she wants to be a
     # counselor"). É opção do LEITOR, igual para todos os métodos; muda a forma
     # da resposta, não a evidência. Desligado por padrão.

@@ -83,6 +83,7 @@ def backend_flags_for(args, index):
 
 
 def build_commands(args, device):
+    args = resolve_defaults(args)
     root = args.output.resolve()
 
     def base_for(index):

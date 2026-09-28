@@ -148,6 +148,12 @@ def parser():
     p.add_argument("--fact-delivery", choices=["facts", "facts+summary"], default=None,
                    help="o leitor recebe fatos (e resumos de trechos) em vez de trechos")
     p.add_argument("--fact-budget", type=int, default=None, help="fatos entregues ao leitor (40)")
+    p.add_argument("--summary-reflection", action="store_true",
+                   help="memórias de alto nível nos resumos, inferidas só do diálogo e com falas de origem")
+    p.add_argument("--summary-reflection-limit", type=int, default=None,
+                   help="máximo de interpretações por resumo (1..6; padrão 4)")
+    p.add_argument("--reader-reflection", action="store_true",
+                   help="inferência e revisão da forma da resposta na mesma chamada do leitor")
     p.add_argument("--fact-no-plan", action="store_true",
                    help="ablação: fatos escolhidos só pela similaridade com a pergunta (sem plano/prova)")
     p.add_argument("--ablation", choices=["no-plan", "no-proof", "no-verify", "no-temporal-score"],
@@ -208,6 +214,13 @@ def parser():
 
 
 def make_plan(args, output):
+    if getattr(args, "summary_reflection", False) and getattr(args, "fact_delivery", None) != "facts+summary":
+        raise ValueError("--summary-reflection exige --fact-delivery facts+summary")
+    if getattr(args, "summary_reflection_limit", None) is not None:
+        if not getattr(args, "summary_reflection", False) or not 1 <= args.summary_reflection_limit <= 6:
+            raise ValueError("--summary-reflection-limit exige --summary-reflection e valor 1..6")
+    if getattr(args, "reader_reflection", False) and not getattr(args, "evidence_reader", False):
+        raise ValueError("--reader-reflection exige --evidence-reader")
     if getattr(args, "multiplan_portfolio", False):
         if not (getattr(args, "proof_controller", False) and getattr(args, "fact_delivery", None)):
             raise ValueError("--multiplan-portfolio exige --proof-controller e --fact-delivery")
@@ -603,6 +616,8 @@ def _run_config(settings, n_questions):
     cfg.witness.set_union = settings.get("set_union", False)
     cfg.witness.plan_to_reader = settings.get("plan_to_reader", False)
     cfg.witness.fact_delivery = settings.get("fact_delivery") or ""
+    cfg.witness.summary_reflection = settings.get("summary_reflection", False)
+    cfg.witness.summary_reflection_limit = int(settings.get("summary_reflection_limit") or 4)
     cfg.witness.fact_plan_guided = not settings.get("fact_no_plan", False)
     ablation = settings.get("ablation") or ""
     cfg.witness.ablation = ablation
@@ -645,6 +660,7 @@ def _run_config(settings, n_questions):
     swaps = settings.get("lens_max_swaps")
     cfg.witness.lens_max_swaps = 1 if swaps is None else int(swaps)
     cfg.qa.evidence_reader = settings.get("evidence_reader", False)
+    cfg.qa.reader_reflection = settings.get("reader_reflection", False)
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
     cfg.ie.style = settings.get("ie_style") or ""
     if cfg.ie.style == "memory":
@@ -919,6 +935,7 @@ def _validate_resume(old, new):
               "relation_alternatives", "plan_readings", "fact_fill", "fact_rerank",
               "multiplan_portfolio", "portfolio_max_plans",
               "fact_rerank_pool", "fact_time", "plan_router",
+              "summary_reflection", "summary_reflection_limit", "reader_reflection",
               "proof_edit_fraction", "yesno_rationale",
               "qa_max_tokens",
               "hybrid_fallback", "dialogue_ie",

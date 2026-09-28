@@ -1257,6 +1257,44 @@ dialogue. Use only what is said; no interpretation. Answer with the summary only
 {text}"""
 
 
+READER_REFLECTION_INSTRUCTION = """Perform reflection and answering together in this call.
+Before committing to an answer, determine the requested operation, entity type,
+options, time scope and qualifiers. A question offering alternatives requests
+the appropriate option even if it starts with Would, Could or Is.
+Separate observations in memory from interpretations and ordinary world knowledge.
+Use relevant observations as premises. When the answer is implicit, apply only
+the necessary world-knowledge bridge: a place's geographic category, a concept
+recognized from its defining features, or a likely implication of preferences.
+Do not just repeat a premise if the question requests the resulting concept or
+another level of description. Conversely, prefer an explicit supported answer
+when it already satisfies the question. Never invent a person's experiences.
+Evaluate counterevidence, ambiguity and every requested qualifier. Treat any
+HIGH-LEVEL MEMORIES as tentative interpretations to review, not as verified events.
+For likely judgments, give the best supported inference; abstain when there is
+no relevant premise or a decisive ambiguity, not merely because the conclusion
+is not quoted. Check the final answer's type and form: an option must be an
+option, a country a country, a requested concept its name, and a count a number.
+Keep all reflection internal. Preserve the existing list, date and answer-length
+rules. Return only JSON with two REQUIRED fields:
+{{"answer_kind":"choice|boolean|value|list|count|time","answer":"short final answer"}}
+Select ONE answer_kind. Example for a choice question:
+{{"answer_kind":"choice","answer":"Mira"}}
+The answer field contains no reasoning, citations or explanatory lead-in.
+"""
+
+
+def qa_reflection_template(template: str) -> str:
+    """An optional joint reader; baseline templates stay byte-for-byte intact."""
+    template = template.replace(
+        "Do not invent\nfacts absent from the passages.",
+        "Do not invent personal events or claims absent from the observations.\n"
+        "Ordinary knowledge may supply the bridge from observations to an inference.")
+    template = template.replace(
+        'Return exactly\none JSON object and no other text: {{"answer":"..."}}.',
+        'Return exactly one JSON object with answer_kind and answer, and no other text.')
+    return READER_REFLECTION_INSTRUCTION + "\n" + template
+
+
 def format_passages(passages: Sequence[tuple[str, str]], max_chars: int | None = None) -> str:
     """Formata (título, texto) para o prompt de leitura. Mesma formatação para
     todos os métodos: a diferença entre eles tem que ser o que foi recuperado,

@@ -1935,6 +1935,7 @@ class WitnessRAGRetriever(Retriever):
                 weight[pid] = weight.get(pid, 0.0) + float(score[index]) + priority.get(index, 0.0)
             pids = sorted(weight, key=lambda p: -weight[p])[:cfg.fact_summary_chunks]
             position = {p.pid: i for i, p in enumerate(self.corpus.passages)}
+            info["resumos_selecionados"] = sorted(pids, key=lambda p: position.get(p, 0))
             parts = []
             for pid in sorted(pids, key=lambda p: position.get(p, 0)):
                 text = self._chunk_summary(pid)
@@ -1943,6 +1944,10 @@ class WitnessRAGRetriever(Retriever):
                     parts.append(f"- ({format_interval(interval) if interval else 'undated'}) {text}")
             summary = "\n".join(parts)
             info["resumos"] = len(parts)
+            if cfg.summary_reflection:
+                info["summary_reflection"] = [
+                    {"pid": pid, **getattr(self, "_reflection_diagnostics", {}).get(pid, {})}
+                    for pid in pids]
         info["n"] = len(chosen)
         # Provenance of what was actually delivered; retrieved passage ids
         # alone do not describe a fact-only reader's context.
@@ -1984,17 +1989,39 @@ class WitnessRAGRetriever(Retriever):
         cache = getattr(self, "_summaries", None)
         if cache is None:
             cache = self._summaries = {}
-        if pid in cache:
-            return cache[pid]
         passage = self.corpus.get(pid)
-        result = self.ctx.llm.chat(
-            prompts.SUMMARY_TEMPLATE.format(text=passage.text[:12000]),
-            system="You summarize dialogues faithfully and briefly.",
-            params=GenParams(temperature=0.0, max_tokens=160),
-            stage="memory.summary")
-        text = "" if result.filtered else " ".join((result.text or "").split())
-        cache[pid] = text
-        return text
+        if pid not in cache:
+            result = self.ctx.llm.chat(
+                prompts.SUMMARY_TEMPLATE.format(text=passage.text[:12000]),
+                system="You summarize dialogues faithfully and briefly.",
+                params=GenParams(temperature=0.0, max_tokens=160),
+                stage="memory.summary")
+            cache[pid] = "" if result.filtered else " ".join((result.text or "").split())
+        text = cache[pid]
+        cfg = self.ctx.run.witness
+        if not cfg.summary_reflection:
+            return text
+        from wrag.witness.reflection import (SUMMARY_REFLECTION_SYSTEM,
+            SUMMARY_REFLECTION_TEMPLATE, render_memories, validate_memories)
+        reflected = getattr(self, "_reflections", None)
+        if reflected is None:
+            reflected = self._reflections = {}
+            self._reflection_diagnostics = {}
+        key = (pid, cfg.summary_reflection_limit)
+        if key not in reflected:
+            source = passage.text[:12000]
+            result = self.ctx.llm.chat(
+                SUMMARY_REFLECTION_TEMPLATE.format(text=source, limit=cfg.summary_reflection_limit),
+                system=SUMMARY_REFLECTION_SYSTEM,
+                params=GenParams(temperature=0.0, max_tokens=384 * cfg.summary_reflection_limit,
+                                 json_mode=True), stage="memory.reflection")
+            memories, info = validate_memories(result.json(), source, cfg.summary_reflection_limit)
+            if result.filtered or not result.ok or result.error:
+                memories = []
+                info = {"accepted": 0, "rejected": 0, "status": "filtered_or_error"}
+            reflected[key] = render_memories(memories)
+            self._reflection_diagnostics[pid] = info
+        return text + ("\n" + reflected[key] if reflected[key] else "")
 
     @staticmethod
     def _paraphrase_atoms(query: ConjunctiveQuery) -> bool:
