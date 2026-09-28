@@ -422,6 +422,15 @@ class WitnessConfig:
     plan_readings: int = 0
     multiplan_portfolio: bool = False      # experimental contract-bound controller
     portfolio_max_plans: int = 3          # distinct plans per planning call (1..4)
+    # Local program search: no generative calls during retrieval. Experimental.
+    local_plans: bool = False
+    local_plan_beam: int = 12
+    local_plan_candidates: int = 48
+    local_plan_depth: int = 3
+    local_plan_keep: int = 3
+    local_plan_version: str = "v1"  # v1, v2 or experimental lexical lite
+    local_plan_executions: int = 4000
+    local_plan_starts: int = 12
     fact_fill: str = "plan"
     fact_rerank: str = ""
     fact_rerank_pool: int = 120

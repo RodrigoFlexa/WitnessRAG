@@ -213,12 +213,19 @@ class WitnessRAGRetriever(Retriever):
     def index(self) -> None:
         if self.ctx.kg is None:
             raise RuntimeError("o grafo compartilhado precisa ser construído antes dos métodos")
-        self._dense.index()
+        lite = self.ctx.run.witness.local_plans and self.ctx.run.witness.local_plan_version == 'lite'
+        if not lite:
+            self._dense.index()
         self.memory = MemoryView(self.kg)
         self.searcher = WitnessSearcher(self.memory, self.ctx.embedder, self.ctx.run.witness)
         cfg = self.ctx.run.witness
         if cfg.proof_controller:
             self._build_dated_memory()
+        if lite:
+            if not cfg.proof_controller or cfg.fact_rerank:
+                raise ValueError('Lite requires --proof-controller and no --fact-rerank')
+            from wrag.witness.local_lite import LexicalMemory
+            self._local_lexical = LexicalMemory(self)
         if cfg.memory_lenses:
             # Etapa de memorização: sinais offline, sem LLM, calculados uma vez
             # por corpus (relógio de referência, ensaio, corroboração, falas).
@@ -451,7 +458,10 @@ class WitnessRAGRetriever(Retriever):
         assert self.memory is not None and self.searcher is not None
         cfg = self.ctx.run.witness
         pool_k = max(k, cfg.candidate_pool_k)
-        dense_pids, dense_scores = self._dense.search(question.question, pool_k)
+        if cfg.local_plans and cfg.local_plan_version == 'lite':
+            dense_pids, dense_scores = self._local_lexical.search(question.question, pool_k)
+        else:
+            dense_pids, dense_scores = self._dense.search(question.question, pool_k)
 
         before_events = len(LEDGER.events)
         try:
@@ -1806,7 +1816,8 @@ class WitnessRAGRetriever(Retriever):
         assert self.memory is not None and self.dated is not None
         cfg = self.ctx.run.witness
         memory, dated = self.memory, self.dated
-        n = min(len(memory.facts), len(memory.fact_vectors))
+        lite = cfg.local_plans and cfg.local_plan_version == 'lite'
+        n = len(memory.facts) if lite else min(len(memory.facts), len(memory.fact_vectors))
         info: dict[str, Any] = {"prova": 0, "plano": 0, "relevancia": 0}
         if n == 0:
             return "(no facts)", "", info
@@ -1815,9 +1826,12 @@ class WitnessRAGRetriever(Retriever):
             plan, accepted, outcome = None, None, None
         if plan is not None and plan.valid and cfg.fact_fill != "question":
             probes += [a.verbalize() for a in plan.query.atoms if a.verbalize().strip()]
-        vectors = self.ctx.embedder.encode(probes)
-        sims = memory.fact_vectors[:n] @ vectors.T
-        score = np.maximum(sims[:, 0], sims[:, 1:].max(axis=1) - 0.02) if len(probes) > 1 else sims[:, 0]
+        if lite:
+            score = self._local_lexical.facts.scores(question.question, normalized=True)
+        else:
+            vectors = self.ctx.embedder.encode(probes)
+            sims = memory.fact_vectors[:n] @ vectors.T
+            score = np.maximum(sims[:, 0], sims[:, 1:].max(axis=1) - 0.02) if len(probes) > 1 else sims[:, 0]
         top = set(context_pids[:5])
         bonus = np.array([0.05 if memory.facts[i].pid in top else 0.0 for i in range(n)],
                          dtype=np.float32)
@@ -1846,7 +1860,7 @@ class WitnessRAGRetriever(Retriever):
         chosen: list[int] = []
         seen: set = set()
         per_turn: dict[tuple, int] = {}
-        if cfg.multiplan_portfolio and accepted is not None:
+        if (cfg.multiplan_portfolio or cfg.local_plans) and accepted is not None:
             from wrag.witness.portfolio import atomic_seed
             chosen, dropped = atomic_seed(accepted.get("pacotes", []), cfg.fact_budget, n)
             info["pacotes_descartados"] = dropped
@@ -2368,6 +2382,9 @@ class WitnessRAGRetriever(Retriever):
         assert self.dated is not None
         cfg = self.ctx.run.witness
         levels = self._weight_levels()
+        if cfg.local_plans:
+            from wrag.witness.local_plans import retrieve_local
+            return retrieve_local(self, question, k, pool_pids, pool_scores)
         if cfg.multiplan_portfolio:
             from wrag.witness.portfolio import retrieve_portfolio
             return retrieve_portfolio(self, question, k, pool_pids, pool_scores)

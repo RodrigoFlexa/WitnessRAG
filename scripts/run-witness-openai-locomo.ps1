@@ -79,6 +79,11 @@ switch ($Method) {
         $flags += @("--binding-aware-grounding", "--vocab-compile", "--hybrid-fallback",
                     "--dialogue-ie", "--gap-context-rescue", "--proof-controller")
         switch ($Profile) {
+            "witnessrag-local" { $flags += @("--ie-style", "memory", "--fact-delivery", "facts",
+                "--fact-fill", "question", "--fact-rerank", "--fact-time", "both",
+                "--local-plans", "--reader-reflection", "--no-proof-verify",
+                "--local-plan-version", "v2", "--local-plan-beam", "32", "--local-plan-candidates", "96",
+                "--local-plan-executions", "4000", "--local-plan-starts", "12") }
             "proof" { }
             "proof-no-verify" { $flags += "--no-proof-verify" }
             "proof-partial" { $flags += "--partial-evidence" }

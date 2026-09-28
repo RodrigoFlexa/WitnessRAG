@@ -447,7 +447,8 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
     if len(text) <= max_chars:
         return diagnostics
     keep = {k: diagnostics[k] for k in
-            ("consulta", "forma", "planos_compilados", "historico_planos",
+            ("consulta", "forma", "planos_compilados", "historico_planos", "local_plans",
+             "support_reflector", "online_inference",
              "classe_falha_plano", "motivo_parada", "plano_escolhido", "planejamento",
              "lacuna", "fallback", "rodadas_aquisicao",
              "profundidade_alcancada", "risco", "risco_bruto", "score_estrutural", "n_testemunhas",

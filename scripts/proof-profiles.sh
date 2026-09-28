@@ -36,6 +36,12 @@ proof_profile_flags() {
   PROOF_FLAGS=(--binding-aware-grounding --vocab-compile --hybrid-fallback
     --dialogue-ie --gap-context-rescue --proof-controller)
   case "$profile" in
+    witnessrag-local)
+      PROOF_FLAGS+=(--ie-style memory --fact-delivery facts --fact-fill question
+        --fact-rerank --fact-time both --local-plans --reader-reflection --no-proof-verify
+        --local-plan-version v2 --local-plan-beam 32 --local-plan-candidates 96
+        --local-plan-executions 4000 --local-plan-starts 12)
+      ;;
     proof) ;;
     proof-no-verify) PROOF_FLAGS+=(--no-proof-verify) ;;
     proof-partial) PROOF_FLAGS+=(--partial-evidence) ;;

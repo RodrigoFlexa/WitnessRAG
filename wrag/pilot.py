@@ -171,6 +171,15 @@ def parser():
                    help="experimental: contrato fixo, planos complementares e verificação de cobertura")
     p.add_argument("--portfolio-max-plans", type=int, default=None,
                    help="planos distintos por ciclo do portfólio (1..4; padrão 3)")
+    p.add_argument("--local-plans", action="store_true",
+                   help="experimental: busca local de múltiplos planos, sem LLM de planejamento ou resumos")
+    p.add_argument("--local-plan-beam", type=int, default=None)
+    p.add_argument("--local-plan-candidates", type=int, default=None)
+    p.add_argument("--local-plan-depth", type=int, default=None)
+    p.add_argument("--local-plan-keep", type=int, default=None)
+    p.add_argument("--local-plan-version", choices=["v1", "v2", "lite"], default=None)
+    p.add_argument("--local-plan-executions", type=int, default=None)
+    p.add_argument("--local-plan-starts", type=int, default=None)
     p.add_argument("--fact-fill", choices=["plan", "question"], default=None,
                    help="fatos além da prova e das respostas do plano: pela pergunta e átomos (plan) ou só pela pergunta")
     p.add_argument("--fact-rerank", nargs="?", const="BAAI/bge-reranker-v2-m3", default=None,
@@ -214,6 +223,21 @@ def parser():
 
 
 def make_plan(args, output):
+    if getattr(args, "local_plans", False):
+        if not getattr(args, "proof_controller", False):
+            raise ValueError("--local-plans exige --proof-controller")
+        if (getattr(args, "fact_delivery", None) != "facts"
+                or getattr(args, "summary_reflection", False)
+                or getattr(args, "plan_router", None)
+                or getattr(args, "multiplan_portfolio", False)
+                or getattr(args, "ablation", None)):
+            raise ValueError("--local-plans exige --fact-delivery facts e não admite resumo/roteador/portfólio antigo/ablação")
+    for key in ("local_plan_beam", "local_plan_candidates", "local_plan_depth", "local_plan_keep", "local_plan_executions", "local_plan_starts"):
+        value = getattr(args, key, None)
+        if value is not None and (not getattr(args, "local_plans", False) or value < 1):
+            raise ValueError(f"--{key.replace('_', '-')} exige --local-plans e valor positivo")
+    if getattr(args, "local_plan_depth", None) is not None and args.local_plan_depth > getattr(args, "max_atoms", 4):
+        raise ValueError("--local-plan-depth não pode exceder --max-atoms")
     if getattr(args, "summary_reflection", False) and getattr(args, "fact_delivery", None) != "facts+summary":
         raise ValueError("--summary-reflection exige --fact-delivery facts+summary")
     if getattr(args, "summary_reflection_limit", None) is not None:
@@ -632,6 +656,16 @@ def _run_config(settings, n_questions):
     cfg.witness.plan_readings = int(settings.get("plan_readings") or 0)
     cfg.witness.multiplan_portfolio = settings.get("multiplan_portfolio", False)
     cfg.witness.portfolio_max_plans = int(settings.get("portfolio_max_plans") or 3)
+    cfg.witness.local_plans = settings.get("local_plans", False)
+    for key in ("local_plan_beam", "local_plan_candidates", "local_plan_depth", "local_plan_keep", "local_plan_executions", "local_plan_starts"):
+        if settings.get(key) is not None:
+            setattr(cfg.witness, key, int(settings[key]))
+    if cfg.witness.local_plans:
+        cfg.witness.local_plan_version = settings.get("local_plan_version") or "v1"
+        cfg.witness.proof_verify = False
+        cfg.witness.proof_importance_normal = 0.0
+        cfg.witness.proof_importance_strong = 0.0
+        cfg.witness.fact_plan_guided = True
     if cfg.witness.multiplan_portfolio:
         cfg.witness.typed_variables = True
         cfg.witness.item_set_proofs = True
@@ -934,6 +968,8 @@ def _validate_resume(old, new):
               "proof_dominance", "anchor_relations", "relation_threshold", "set_union", "plan_to_reader", "fact_delivery", "fact_budget", "ie_style", "fact_no_plan", "ablation",
               "relation_alternatives", "plan_readings", "fact_fill", "fact_rerank",
               "multiplan_portfolio", "portfolio_max_plans",
+              "local_plans", "local_plan_beam", "local_plan_candidates", "local_plan_depth", "local_plan_keep",
+              "local_plan_version", "local_plan_executions", "local_plan_starts",
               "fact_rerank_pool", "fact_time", "plan_router",
               "summary_reflection", "summary_reflection_limit", "reader_reflection",
               "proof_edit_fraction", "yesno_rationale",
