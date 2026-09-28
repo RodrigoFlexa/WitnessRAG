@@ -32,6 +32,14 @@ def parser():
     p.add_argument("--model", default="Qwen/Qwen2.5-14B-Instruct")
     p.add_argument("--port", type=int, default=8095)
     p.add_argument("--gpu", default="1", help="GPU física/UUID para embeddings e reranker")
+    p.add_argument("--ports", default=None,
+                    help="uma porta por variante, round-robin na ordem cascade/summary-reflection/"
+                         "reader-reflection/both (ex.: 8095,8096); sobrepõe --port")
+    p.add_argument("--gpus", default=None, help="idem, para --gpu; sobrepõe --gpu")
+    p.add_argument("--only", default=None,
+                    help="roda só estas variantes agora (ex.: cascade,summary-reflection); as outras "
+                         "ficam de fora desta execução, mas o manifesto continua cobrindo as 4 — "
+                         "rode a outra metade em paralelo com --only complementar e o mesmo --output")
     p.add_argument("--device", choices=["cpu", "cuda", "cuda:0"], default="cuda")
     p.add_argument("--embed-model", default="BAAI/bge-m3")
     p.add_argument("--reranker", default="BAAI/bge-reranker-v2-m3")
@@ -50,12 +58,19 @@ def parser():
 def build_commands(args):
     # Reuse the actual robust configuration, then add the same cascade router
     # to every cell. No separate copy of the scientific baseline's flags.
-    settings = argparse.Namespace(**vars(args), backend="vllm", ports=str(args.port),
-                                  gpus=args.gpu, max_plans=3, include_controls=False)
-    base = comparison.build_commands(settings, comparison.device_choice(args.device))["witnessrag-robust"]
-    base = base[:-2] + ["--plan-router", "llm"]  # remove only the old --output
+    # --ports/--gpus (round-robin per variant, fixed VARIANTS order) let two
+    # halves of this same manifest run against two different vLLM servers;
+    # the manifest always covers all 4 regardless of which ones --only runs.
+    ports = str(args.ports if args.ports else args.port)
+    gpus = str(args.gpus if args.gpus else args.gpu)
+    device = comparison.device_choice(args.device)
+    base_kwargs = {k: v for k, v in vars(args).items() if k not in ("port", "gpu", "ports", "gpus", "only")}
     commands = {}
-    for name, (summary, reader) in VARIANTS.items():
+    for index, (name, (summary, reader)) in enumerate(VARIANTS.items()):
+        settings = argparse.Namespace(**base_kwargs, backend="vllm", ports=ports, gpus=gpus,
+                                      max_plans=3, include_controls=False)
+        base = comparison.build_commands(settings, device, variant_index=index)["witnessrag-robust"]
+        base = base[:-2] + ["--plan-router", "llm"]  # remove only the old --output
         flags = (["--summary-reflection", "--summary-reflection-limit", str(args.reflection_limit)]
                  if summary else [])
         if reader:
@@ -103,7 +118,12 @@ def main():
                                    indent=2), encoding="utf-8")
     env = dict(os.environ, PYTHONUTF8="1", PYTHONHASHSEED="42", WRAG_LLM_CACHE="1",
                WRAG_EMBED_CACHE="1", WRAG_CONTINUE_ON_CONTENT_FILTER="1")
+    only_names = set(n.strip() for n in args.only.split(",")) if args.only else None
+    if only_names and not only_names <= set(VARIANTS):
+        raise SystemExit(f"--only desconhecido: {only_names - set(VARIANTS)}; use {list(VARIANTS)}")
     for index, (name, command) in enumerate(commands.items(), 1):
+        if only_names and name not in only_names:
+            continue
         folder = root / name
         if comparison.completed(folder):
             print(f"[{index}/4] {name}: completo, preservado.", flush=True)
@@ -117,6 +137,10 @@ def main():
         if result.returncode or not comparison.completed(folder):
             raise SystemExit(f"{name} incompleto. Repita o mesmo comando para retomar; "
                              f"veja {folder / 'benchmark.log'}.")
+    if only_names and not all(comparison.completed(root / n) for n in VARIANTS):
+        print(f"--only={sorted(only_names)} feito. Rode a(s) outra(s) variante(s) (mesmo --output) "
+              f"e depois --report-only para o relatório combinado.", flush=True)
+        return 0
     corpora = comparison.compare_corpora(root, list(VARIANTS))
     (root / "corpus-hashes.json").write_text(json.dumps(corpora, indent=2), encoding="utf-8")
     for report, names in [("paired-report.py", list(VARIANTS)), ("reflection-ablation-report.py", [])]:

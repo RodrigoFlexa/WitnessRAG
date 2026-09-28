@@ -82,7 +82,7 @@ def backend_flags_for(args, index):
     return ["--backend", "vllm", "--existing-server", "--port", port, "--model", args.model, "--gpu", gpu]
 
 
-def build_commands(args, device):
+def build_commands(args, device, variant_index=0):
     args = resolve_defaults(args)
     root = args.output.resolve()
 
@@ -113,7 +113,7 @@ def build_commands(args, device):
     if args.include_controls:
         variants["witnessrag-original"] = []
         variants["robust-no-plan"] = robust + ["--ablation", "no-plan"]
-    return {name: base_for(i) + flags + ["--output", str(root / name)]
+    return {name: base_for(i + variant_index) + flags + ["--output", str(root / name)]
             for i, (name, flags) in enumerate(variants.items())}
 
 
