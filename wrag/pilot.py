@@ -154,6 +154,8 @@ def parser():
                    help="máximo de interpretações por resumo (1..6; padrão 4)")
     p.add_argument("--reader-reflection", action="store_true",
                    help="inferência e revisão da forma da resposta na mesma chamada do leitor")
+    p.add_argument("--reflection-replan", action="store_true",
+                   help="LoCoMo experimental: reflexão conjunta permite uma única nova busca guiada")
     p.add_argument("--fact-no-plan", action="store_true",
                    help="ablação: fatos escolhidos só pela similaridade com a pergunta (sem plano/prova)")
     p.add_argument("--ablation", choices=["no-plan", "no-proof", "no-verify", "no-temporal-score"],
@@ -245,6 +247,10 @@ def make_plan(args, output):
             raise ValueError("--summary-reflection-limit exige --summary-reflection e valor 1..6")
     if getattr(args, "reader_reflection", False) and not getattr(args, "evidence_reader", False):
         raise ValueError("--reader-reflection exige --evidence-reader")
+    if getattr(args, "reflection_replan", False) and not (
+            args.dataset == "locomo" and args.local_plans and args.local_plan_version == "v2"
+            and args.reader_reflection and args.evidence_reader and args.fact_delivery == "facts"):
+        raise ValueError("--reflection-replan requires LoCoMo, local-v2, facts and joint evidence reflection")
     if getattr(args, "multiplan_portfolio", False):
         if not (getattr(args, "proof_controller", False) and getattr(args, "fact_delivery", None)):
             raise ValueError("--multiplan-portfolio exige --proof-controller e --fact-delivery")
@@ -695,6 +701,7 @@ def _run_config(settings, n_questions):
     cfg.witness.lens_max_swaps = 1 if swaps is None else int(swaps)
     cfg.qa.evidence_reader = settings.get("evidence_reader", False)
     cfg.qa.reader_reflection = settings.get("reader_reflection", False)
+    cfg.qa.reflection_replan = settings.get("reflection_replan", False)
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
     cfg.ie.style = settings.get("ie_style") or ""
     if cfg.ie.style == "memory":
@@ -971,7 +978,7 @@ def _validate_resume(old, new):
               "local_plans", "local_plan_beam", "local_plan_candidates", "local_plan_depth", "local_plan_keep",
               "local_plan_version", "local_plan_executions", "local_plan_starts",
               "fact_rerank_pool", "fact_time", "plan_router",
-              "summary_reflection", "summary_reflection_limit", "reader_reflection",
+              "summary_reflection", "summary_reflection_limit", "reader_reflection", "reflection_replan",
               "proof_edit_fraction", "yesno_rationale",
               "qa_max_tokens",
               "hybrid_fallback", "dialogue_ie",

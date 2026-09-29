@@ -7,7 +7,9 @@ case "$TASK" in
   locomo|memoryagentbench) ;;
   *) echo "Usage: bash scripts/run-standard-qwen-variants.sh {locomo|memoryagentbench} [output-root]" >&2; exit 2 ;;
 esac
-OUTPUT_ROOT=${2:-runs/standard-$TASK-qwen14b}
+MODE=standard
+if [[ "${REFLECTION_REPLAN:-0}" == 1 ]]; then MODE=replan1; fi
+OUTPUT_ROOT=${2:-runs/$MODE-$TASK-qwen14b}
 for budget in 20 40; do
   echo "Running $TASK with $budget facts (GPU ${GPU:-7})."
   FACT_BUDGET=$budget bash scripts/run-standard-qwen.sh "$TASK" "$OUTPUT_ROOT/facts$budget"

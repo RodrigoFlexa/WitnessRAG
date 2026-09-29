@@ -350,7 +350,7 @@ class MultiOriginPlanner(LocalPlanner):
                 evidence='\n'.join(self.memory.facts[i].verbalize() for i in w.facts)
                 source='\n'.join(self.dated.excerpt(i)[:360] for i in w.facts)
                 texts.append(f'Directed retrieval program: {program}\nEvidence:\n{evidence}\nSource:\n{source}')
-            semantic=get_reranker(self.cfg.fact_rerank).score(self.text,texts)
+            semantic=get_reranker(self.cfg.fact_rerank).score(self.search_text,texts)
             scorer='cross_encoder_relevance_experimental'
         else:
             semantic=[max(0.,float(np.mean(self.sim[list(w.facts)]))) for _,w in pairs]
@@ -421,7 +421,7 @@ def retrieve_local_v2(r,question,k,pool_pids,pool_scores,planner_class=MultiOrig
     if not hasattr(r,'_local_source_index') or r._local_source_index_identity!=(id(r.dated),len(r.memory.facts)):
         r._local_source_index=SourceIndex(r.dated)
         r._local_source_index_identity=(id(r.dated),len(r.memory.facts))
-    supports=r._local_source_index.support(question.question,planner.reading)
+    supports=r._local_source_index.support(planner.search_text,planner.reading)
     # Original-turn rescue does not assert any new memory fact or resolved
     # reference. Keep an independent, bounded literal source budget.
     support_lines=[];used_chars=0;seen_turns=set(turn_ids)

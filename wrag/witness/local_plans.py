@@ -116,6 +116,8 @@ class LocalPlanner:
         self.memory, self.dated = retriever.memory, retriever.dated
         self.cfg = retriever.ctx.run.witness
         self.text = question.question   # deliberately never retain the Question/gold
+        hint = getattr(retriever, "_reflection_search_hint", "")
+        self.search_text = self.text + ("\nSearch focus: " + hint if hint else "")
         self.contract = contract(self.text, self.dated)
         self.tokens = terms(self.text)
         self.sim = self.similarities()
@@ -149,7 +151,7 @@ class LocalPlanner:
         return self.searcher._identity(eid) if eid >= 0 else -1
 
     def similarities(self):
-        self.vector = self.r.ctx.embedder.encode([self.text])[0]
+        self.vector = self.r.ctx.embedder.encode([self.search_text])[0]
         return self.memory.fact_vectors @ self.vector if self.memory.fact_vectors.size else np.zeros(len(self.memory.facts))
 
     def grounding_ids(self, atom):

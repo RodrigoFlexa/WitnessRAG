@@ -96,7 +96,21 @@ GPU=7 FACT_BUDGET=20 bash scripts/run-standard-qwen.sh locomo runs/locomo-qwen14
 GPU=7 FACT_BUDGET=40 bash scripts/run-standard-qwen.sh locomo runs/locomo-qwen14b-facts40
 ```
 
-## 3. MemoryAgentBench: depois do LoCoMo
+## 3. LoCoMo experimental: um replanejamento
+
+Antes ou depois da execução padrão do LoCoMo, você também pode avaliar a
+[variante experimental de reflexão com um replanejamento](replanejamento-reflexao.md),
+em outra sessão, executando:
+
+```bash
+GPU=7 REFLECTION_REPLAN=1 bash scripts/run-standard-qwen-variants.sh locomo
+```
+
+Ela grava `runs/replan1-locomo-qwen14b/facts20` e `facts40`. Execute as
+variantes sequencialmente para comparar os tempos na mesma GPU. Essa opção
+está disponível somente para LoCoMo; a solução padrão permanece como controle.
+
+## 4. MemoryAgentBench: depois do LoCoMo
 
 Mantenha o mesmo vLLM ativo e inicie outra sessão:
 

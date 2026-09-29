@@ -458,10 +458,12 @@ class WitnessRAGRetriever(Retriever):
         assert self.memory is not None and self.searcher is not None
         cfg = self.ctx.run.witness
         pool_k = max(k, cfg.candidate_pool_k)
+        hint = getattr(self, "_reflection_search_hint", "")
+        search_text = question.question + ("\nSearch focus: " + hint if hint else "")
         if cfg.local_plans and cfg.local_plan_version == 'lite':
             dense_pids, dense_scores = self._local_lexical.search(question.question, pool_k)
         else:
-            dense_pids, dense_scores = self._dense.search(question.question, pool_k)
+            dense_pids, dense_scores = self._dense.search(search_text, pool_k)
 
         before_events = len(LEDGER.events)
         try:
@@ -1822,6 +1824,9 @@ class WitnessRAGRetriever(Retriever):
         if n == 0:
             return "(no facts)", "", info
         probes = [question.question]
+        hint = getattr(self, "_reflection_search_hint", "")
+        if hint:
+            probes.append(hint)
         if not cfg.fact_plan_guided:
             plan, accepted, outcome = None, None, None
         if plan is not None and plan.valid and cfg.fact_fill != "question":
@@ -1855,7 +1860,12 @@ class WitnessRAGRetriever(Retriever):
         # never let a fill fact displace a fact from an accepted witness.
         order = sorted(range(n), key=lambda i: (-priority.get(i, 0.0), -score[i], i))
         if cfg.fact_rerank:
-            order, reranked = self._rerank_facts(question, order, score, priority)
+            if hint:
+                from dataclasses import replace
+                ranking_question = replace(question, question=question.question + "\nSearch focus: " + hint)
+            else:
+                ranking_question = question
+            order, reranked = self._rerank_facts(ranking_question, order, score, priority)
             info["reordenados"] = reranked
         chosen: list[int] = []
         seen: set = set()

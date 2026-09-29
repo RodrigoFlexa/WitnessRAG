@@ -9,10 +9,19 @@ case "$TASK" in
   *) echo "Usage: bash scripts/run-standard-qwen.sh {locomo|memoryagentbench} [output]" >&2; exit 2 ;;
 esac
 export FACT_BUDGET=${FACT_BUDGET:-40}
+export REFLECTION_REPLAN=${REFLECTION_REPLAN:-0}
+if [[ "$REFLECTION_REPLAN" != 0 && "$REFLECTION_REPLAN" != 1 ]]; then
+  echo "REFLECTION_REPLAN must be 0 or 1." >&2; exit 2
+fi
+if [[ "$TASK" != locomo && "$REFLECTION_REPLAN" == 1 ]]; then
+  echo "The experimental reflection-replan variant currently supports LoCoMo only." >&2; exit 2
+fi
 if [[ ! "$FACT_BUDGET" =~ ^[1-9][0-9]*$ ]]; then
   echo "FACT_BUDGET must be a positive integer." >&2; exit 2
 fi
-OUTPUT=${2:-runs/standard-$TASK-qwen14b-facts$FACT_BUDGET}
+MODE=standard
+if [[ "$REFLECTION_REPLAN" == 1 ]]; then MODE=replan1; fi
+OUTPUT=${2:-runs/$MODE-$TASK-qwen14b-facts$FACT_BUDGET}
 BENCH_PYTHON=${BENCH_PYTHON:-"$PWD/.venv-bench/bin/python"}
 [[ -x "$BENCH_PYTHON" ]] || { echo "Benchmark Python not found: $BENCH_PYTHON" >&2; exit 1; }
 export GPU=${GPU:-7} PORT=${PORT:-8095}

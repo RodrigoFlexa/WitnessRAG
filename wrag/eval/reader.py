@@ -165,6 +165,7 @@ def read(
     count_mode: bool = False,
     extra_passages: Sequence[dict[str, str]] | None = None,
     facts_mode: bool | str = False,
+    replan_catalog: str = "",
 ) -> ReadResult:
     cfg = cfg or C.QAConfig()
     passages = []
@@ -212,15 +213,21 @@ def read(
         template = prompts.qa_reflection_template(template)
     pending = ", ".join(str(x) for x in proof_context.get("condicoes_pendentes", [])[:4]) \
         if proof_context else ""
-    result = llm.chat(
-        template.format(passages=prompts.format_passages(passages),
+    prompt = template.format(passages=prompts.format_passages(passages),
                         question=question.question,
                         proof_status=proof_context.get("grau", "") if proof_context else "",
                         pending=pending or "none",
-                        proof_hints=proof_context.get("hipoteses", "") if proof_context else ""),
+                        proof_hints=proof_context.get("hipoteses", "") if proof_context else "")
+    if cfg.reflection_replan:
+        from wrag.witness.reflection_replan import GATE_INSTRUCTION
+        prompt += "\n\n" + replan_catalog + "\n" + GATE_INSTRUCTION
+    result = llm.chat(
+        prompt,
         system=prompts.QA_SYSTEM,
-        params=GenParams(temperature=cfg.temperature, max_tokens=cfg.max_tokens, json_mode=True),
-        stage="qa",
+        params=GenParams(temperature=cfg.temperature,
+                         max_tokens=384 if cfg.reflection_replan else cfg.max_tokens, json_mode=True,
+                         exact_max_tokens=cfg.reflection_replan),
+        stage="qa.replan_gate" if cfg.reflection_replan else "qa",
     )
     if result.filtered:
         LEDGER.add("qa", question.dataset, method, question.qid, "leitura bloqueada")
@@ -241,6 +248,9 @@ def read(
     reflection = ({"mode": "joint-v2", "answer_kind": answer_kind,
                    "schema_valid": isinstance(data, dict) and isinstance(data.get("answer"), str)}
                   if cfg.reader_reflection else None)
+    if cfg.reflection_replan:
+        from wrag.witness.reflection_replan import parse_gate
+        reflection = {"mode": "joint-replan-v1", **parse_gate(data)}
     answer = _canonicalize_short_answer(question.question, answer,
                                         keep_reason=cfg.yesno_rationale or
                                         cfg.reader_reflection)

@@ -491,6 +491,7 @@ class QAConfig:
     # default so earlier runs remain reproducible.
     evidence_reader: bool = False
     reader_reflection: bool = False       # joint inference + answer review, one reader call
+    reflection_replan: bool = False       # optional joint gate; at most one additional retrieval/read
     # Sim/não com justificativa curta ("likely no; she wants to be a
     # counselor"). É opção do LEITOR, igual para todos os métodos; muda a forma
     # da resposta, não a evidência. Desligado por padrão.

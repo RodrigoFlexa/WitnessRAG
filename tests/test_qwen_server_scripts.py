@@ -43,7 +43,7 @@ def launch_workspace(tmp_path):
                 "GPU": "7", "PORT": "8095", "MODEL": "Qwen/Qwen2.5-14B-Instruct",
                 "BASH_ENV": bash_env.as_posix()})
     for key in ("FACT_BUDGET", "EXTRA_FLAGS", "LOCOMO_CONVERSATION", "EMBED_GPU", "CACHE_DIR",
-                "MODEL_REVISION", "VLLM_API_KEY", "PROTOCOL", "SUITE"):
+                "MODEL_REVISION", "VLLM_API_KEY", "PROTOCOL", "SUITE", "REFLECTION_REPLAN"):
         env.pop(key, None)
     return tmp_path, capture, env
 
@@ -122,6 +122,22 @@ def test_server_reserves_memory_and_pins_weights_tokenizer(launch_workspace):
 def test_invalid_budget_does_not_start_any_job(launch_workspace):
     result, calls = launch(launch_workspace, "run-standard-qwen.sh", "locomo", FACT_BUDGET="0")
     assert result.returncode == 2 and not calls
+
+
+def test_replan_script_uses_separate_outputs_and_real_pilot_option(launch_workspace):
+    result, calls = launch(launch_workspace, "run-standard-qwen-variants.sh", "locomo", REFLECTION_REPLAN="1")
+    assert result.returncode == 0, result.stderr
+    for i, budget in enumerate((20, 40)):
+        args = pilot.parser().parse_args(calls[i*2+1][3:])
+        assert args.reflection_replan and args.fact_budget == budget
+        assert args.output.as_posix() == f"runs/replan1-locomo-qwen14b/facts{budget}"
+        assert pilot._run_config(pilot.make_plan(args, args.output)["settings"], 152).qa.reflection_replan
+
+
+def test_unvalidated_benchmark_does_not_silently_enable_replanning(launch_workspace):
+    result, calls = launch(launch_workspace, "run-standard-qwen.sh", "memoryagentbench", REFLECTION_REPLAN="1")
+    assert result.returncode == 2 and not calls
+    assert "LoCoMo only" in result.stderr
 
 
 def test_failed_preflight_stops_variants(launch_workspace):

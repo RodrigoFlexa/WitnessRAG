@@ -357,13 +357,19 @@ def _answer_standard(name: str, retriever, corpus: Corpus, question: Question,
     # answer after its compiler, verifier or targeted extraction was refused.
     from wrag.llm.filters import LEDGER
     blocked = retrieval.filtered or LEDGER.question_blocked(corpus.name, name, question.qid)
-    reading = (ReadResult(filtered=True) if blocked else
-               read(retriever.ctx.llm, corpus, question,
+    if blocked:
+        reading = ReadResult(filtered=True)
+    elif run_cfg.qa.reflection_replan:
+        from wrag.witness.reflection_replan import adaptive_read
+        retrieval, reading = adaptive_read(retriever, corpus, question, retrieval,
+                            replace(run_cfg.qa, top_k=run_cfg.top_k), name)
+    else:
+        reading = read(retriever.ctx.llm, corpus, question,
                     [] if retrieval.diagnostics.get("leitura_fatos") else retrieval.pids,
                     replace(run_cfg.qa, top_k=run_cfg.top_k), method=name,
                     proof_context=retrieval.diagnostics.get("leitura_provas"),
                     extra_passages=retrieval.diagnostics.get("trechos_extras"),
-                    facts_mode=retrieval.diagnostics.get("leitura_fatos") or False))
+                    facts_mode=retrieval.diagnostics.get("leitura_fatos") or False)
 
     diagnostics = retrieval.diagnostics
     witness_facts = []
@@ -470,7 +476,7 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
              "itens_conjunto",
              # entrega por fatos e plano robusto
              "leitura_fatos", "fatos_entregues", "ablacao", "roteador",
-             "reflection_study", "reflection_summary_snapshot_hit")
+             "reflection_study", "reflection_summary_snapshot_hit", "reflection_replan")
             if k in diagnostics}
     cycles = diagnostics.get("ciclos")
     if isinstance(cycles, list):

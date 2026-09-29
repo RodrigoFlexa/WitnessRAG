@@ -185,6 +185,8 @@ Para a solução padrão com **Qwen2.5-14B na GPU 7**, LoCoMo completo e depois
 MemoryAgentBench, veja [o guia do servidor](docs/servidor-qwen.md).
 `scripts/run-standard-qwen-variants.sh` compara **20 e 40 fatos**, com
 embeddings e reranker em CUDA, saídas separadas e retomada automática.
+`REFLECTION_REPLAN=1` habilita, somente no LoCoMo, a
+[variante experimental com um replanejamento](docs/replanejamento-reflexao.md).
 
 Para testar os sete métodos na A100 de 80 GB com Qwen2.5-14B, seleção `--gpu 5`, prazo de 6,5 horas e gráficos automáticos, veja [o guia do piloto](docs/piloto-vllm.md). O launcher é `python -m wrag.pilot --gpu 5`; o guia inclui a instalação em ambientes separados e os limites da comparação.
 
