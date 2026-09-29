@@ -128,9 +128,17 @@ class SentenceTransformerEmbedder(Embedder):
         device = device or C.EMBED_DEVICE
         try:
             self._model = SentenceTransformer(self.model_name, device=device)
-        except Exception:  # noqa: BLE001 - cai para CPU se a GPU não estiver lá
+        except Exception as exc:  # noqa: BLE001 - optional CPU fallback for legacy runs
+            if C.EMBED_STRICT_DEVICE:
+                raise RuntimeError(f"Could not load {self.model_name} on requested device {device}; "
+                                   "strict device selection forbids CPU fallback") from exc
             log.warning("não consegui usar device=%s; caindo para cpu", device)
             self._model = SentenceTransformer(self.model_name, device="cpu")
+        if C.EMBED_STRICT_DEVICE:
+            actual_device = str(self._model.device)
+            matches = (actual_device.startswith("cuda") if device == "cuda" else actual_device == device)
+            if not matches:
+                raise RuntimeError(f"Embedding device mismatch: requested {device}, actual {actual_device}")
         self.batch_size = batch_size or C.EMBED_BATCH_SIZE
         self.max_seq_length = int(C.EMBED_MAX_SEQ_LENGTH or 0)
         if self.max_seq_length > 0:

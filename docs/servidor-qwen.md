@@ -143,6 +143,8 @@ Antes de cada variante, o script verifica se o modelo correto está servido
 e se o ambiente de benchmark realmente enxerga CUDA. Registra a versão
 do servidor e a GPU em `cache/server.json` dentro da pasta de saída.
 Erros interrompem a execução, sem trocar o dispositivo automaticamente.
+`WRAG_EMBED_STRICT_DEVICE=1` também impede que uma falha de carregamento do
+BGE-M3 leve a uma execução em CPU.
 
 As saídas e caches são separados entre LoCoMo e MemoryAgentBench. Dentro
 de um benchmark, as duas variantes compartilham apenas os caches que

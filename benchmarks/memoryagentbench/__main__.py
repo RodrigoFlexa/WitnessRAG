@@ -154,6 +154,7 @@ def main(argv=None) -> None:
                 raise RuntimeError("CUDA requested but unavailable; choose --embed-device cpu or auto")
         os.environ["WRAG_EMBED_DEVICE"] = device
         C.EMBED_DEVICE, C.EMBED_MODEL = device, args.embed_model
+        C.EMBED_STRICT_DEVICE = device == "cuda"
         C.EMBED_MAX_SEQ_LENGTH = 0
         from wrag.embed import get_embedder
         from .engine import WitnessEngine, standard_config
