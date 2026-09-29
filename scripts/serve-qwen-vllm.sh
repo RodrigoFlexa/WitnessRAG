@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-GPU=${GPU:-1}
+GPU=${GPU:-7}
 PORT=${PORT:-8095}
 MODEL=${MODEL:-Qwen/Qwen2.5-14B-Instruct}
 VLLM_PYTHON=${VLLM_PYTHON:-"$PWD/.venv-vllm/bin/python"}
@@ -18,7 +18,12 @@ export CUDA_DEVICE_ORDER=PCI_BUS_ID
 # The host exposes an older /usr/bin/nvcc. FlashInfer 0.6.18 adds
 # --compress-mode=size during sampler JIT compilation, which that nvcc rejects.
 # Greedy decoding at temperature zero does not require the FlashInfer sampler.
-export VLLM_USE_FLASHINFER_SAMPLER=0
+export VLLM_USE_FLASHINFER_SAMPLER=${VLLM_USE_FLASHINFER_SAMPLER:-0}
+
+REVISION_FLAGS=()
+if [[ -n "${MODEL_REVISION:-}" ]]; then
+  REVISION_FLAGS=(--revision "$MODEL_REVISION" --tokenizer-revision "$MODEL_REVISION")
+fi
 
 echo "Serving $MODEL on physical GPU $GPU at http://127.0.0.1:$PORT/v1"
 echo "FlashInfer sampler disabled (host nvcc compatibility)."
@@ -27,9 +32,9 @@ exec "$VLLM_PYTHON" -m vllm.entrypoints.cli.main serve "$MODEL" \
   --served-model-name "$MODEL" \
   --host 127.0.0.1 \
   --port "$PORT" \
-  --dtype bfloat16 \
-  --max-model-len "${MAX_MODEL_LEN:-16384}" \
-  --gpu-memory-utilization "${GPU_MEMORY_UTILIZATION:-0.85}" \
+  --dtype "${DTYPE:-bfloat16}" \
+  --max-model-len "${MAX_MODEL_LEN:-32768}" \
+  --gpu-memory-utilization "${GPU_MEMORY_UTILIZATION:-0.80}" \
   --max-num-seqs "${MAX_NUM_SEQS:-4}" \
-  --tensor-parallel-size 1 \
-  --generation-config vllm
+  --tensor-parallel-size "${TENSOR_PARALLEL_SIZE:-1}" \
+  --generation-config vllm "${REVISION_FLAGS[@]}"

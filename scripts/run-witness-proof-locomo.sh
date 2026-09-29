@@ -70,12 +70,12 @@ export WRAG_LLM_CACHE=1 WRAG_EMBED_CACHE=1 PYTHONHASHSEED=42
 if [[ "$LLM" == qwen ]]; then
   PORT=${PORT:-8095}
   MODEL=${MODEL:-Qwen/Qwen2.5-14B-Instruct}
-  if ! curl -fsS "http://127.0.0.1:$PORT/v1/models" >/dev/null 2>&1; then
+  if ! curl --connect-timeout 5 --max-time 15 -fsS "http://127.0.0.1:$PORT/v1/models" >/dev/null 2>&1; then
     echo "No vLLM server at http://127.0.0.1:$PORT/v1; start scripts/serve-qwen-vllm.sh first." >&2
     exit 1
   fi
   BACKEND_FLAGS=(--backend vllm --existing-server --port "$PORT" --model "$MODEL"
-    --concurrency "${CONCURRENCY:-16}")
+    --model-revision "${MODEL_REVISION:-}" --concurrency "${CONCURRENCY:-8}")
 else
   export WRAG_LLM_BACKEND=azure
   export WRAG_AZURE_DEPLOYMENT="$DEPLOYMENT"
