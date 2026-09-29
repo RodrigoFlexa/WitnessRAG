@@ -96,17 +96,20 @@ GPU=7 FACT_BUDGET=20 bash scripts/run-standard-qwen.sh locomo runs/locomo-qwen14
 GPU=7 FACT_BUDGET=40 bash scripts/run-standard-qwen.sh locomo runs/locomo-qwen14b-facts40
 ```
 
-## 3. LoCoMo experimental: um replanejamento
+## 3. LoCoMo experimental: checker de suficiência e um replanejamento
 
 Antes ou depois da execução padrão do LoCoMo, você também pode avaliar a
-[variante experimental de reflexão com um replanejamento](replanejamento-reflexao.md),
+[variante experimental com checker antes da leitura padrão](replanejamento-reflexao.md),
 em outra sessão, executando:
 
 ```bash
 GPU=7 REFLECTION_REPLAN=1 bash scripts/run-standard-qwen-variants.sh locomo
 ```
 
-Ela grava `runs/replan1-locomo-qwen14b/facts20` e `facts40`. Execute as
+O checker recebe apenas query e fatos datados. Ele pode pedir uma nova busca;
+depois, em ambos os caminhos, executa-se a reflexão/reader padrão.
+Ela grava `runs/replan2-locomo-qwen14b/facts20` e `facts40`. Não reutilize
+as pastas antigas `replan1`. Execute as
 variantes sequencialmente para comparar os tempos na mesma GPU. Essa opção
 está disponível somente para LoCoMo; a solução padrão permanece como controle.
 

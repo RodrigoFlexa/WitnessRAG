@@ -20,7 +20,7 @@ if [[ ! "$FACT_BUDGET" =~ ^[1-9][0-9]*$ ]]; then
   echo "FACT_BUDGET must be a positive integer." >&2; exit 2
 fi
 MODE=standard
-if [[ "$REFLECTION_REPLAN" == 1 ]]; then MODE=replan1; fi
+if [[ "$REFLECTION_REPLAN" == 1 ]]; then MODE=replan2; fi
 OUTPUT=${2:-runs/$MODE-$TASK-qwen14b-facts$FACT_BUDGET}
 BENCH_PYTHON=${BENCH_PYTHON:-"$PWD/.venv-bench/bin/python"}
 [[ -x "$BENCH_PYTHON" ]] || { echo "Benchmark Python not found: $BENCH_PYTHON" >&2; exit 1; }

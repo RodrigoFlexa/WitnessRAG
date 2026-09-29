@@ -130,7 +130,7 @@ def test_replan_script_uses_separate_outputs_and_real_pilot_option(launch_worksp
     for i, budget in enumerate((20, 40)):
         args = pilot.parser().parse_args(calls[i*2+1][3:])
         assert args.reflection_replan and args.fact_budget == budget
-        assert args.output.as_posix() == f"runs/replan1-locomo-qwen14b/facts{budget}"
+        assert args.output.as_posix() == f"runs/replan2-locomo-qwen14b/facts{budget}"
         assert pilot._run_config(pilot.make_plan(args, args.output)["settings"], 152).qa.reflection_replan
 
 

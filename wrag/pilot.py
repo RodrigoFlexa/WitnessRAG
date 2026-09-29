@@ -155,7 +155,7 @@ def parser():
     p.add_argument("--reader-reflection", action="store_true",
                    help="inferência e revisão da forma da resposta na mesma chamada do leitor")
     p.add_argument("--reflection-replan", action="store_true",
-                   help="LoCoMo experimental: reflexão conjunta permite uma única nova busca guiada")
+                   help="LoCoMo experimental: verificador de suficiência permite uma nova busca antes do leitor padrão")
     p.add_argument("--fact-no-plan", action="store_true",
                    help="ablação: fatos escolhidos só pela similaridade com a pergunta (sem plano/prova)")
     p.add_argument("--ablation", choices=["no-plan", "no-proof", "no-verify", "no-temporal-score"],

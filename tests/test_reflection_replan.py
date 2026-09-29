@@ -20,7 +20,10 @@ class Replies(LLM):
     def _complete(self, messages, params, stage="misc"):
         assert "SECRET_GOLD" not in str(messages)
         self.calls.append((messages, params, stage))
-        return LLMResult(text=json.dumps(next(self.replies)), prompt_tokens=10, completion_tokens=3,
+        reply = next(self.replies)
+        if isinstance(reply, LLMResult):
+            return reply
+        return LLMResult(text=json.dumps(reply), prompt_tokens=10, completion_tokens=3,
                          latency_s=.1)
 
 
@@ -54,7 +57,7 @@ class Memory(Retriever):
 
 
 def gate(**changes):
-    return {"answer": "insufficient information", "decision": "replan", "missing": "Iris destination",
+    return {"decision": "replan", "missing": "Iris destination",
             "searches": ["Iris travel destination"], "keep": [0, 1, 999], **changes}
 
 
@@ -75,38 +78,54 @@ def test_single_retry_keeps_provenance_budget_and_original_question():
     assert final.diagnostics["reflection_replan"]["rejected_keep_ids"] == [999]
     assert final.diagnostics["reflection_replan"]["stop_reason"] == "one_retry_exhausted"
     assert llm.calls[0][1].max_tokens == 384 and llm.calls[0][1].exact_max_tokens
+    assert llm.calls[0][2] == "memory.sufficiency"
     assert llm.calls[1][1].max_tokens == 128 and llm.calls[1][2] == "qa"
     final_prompt = str(llm.calls[1][0])
     assert "fact=0; source=p0/t0" in final_prompt
     assert "SECRET_GOLD" not in final_prompt and "Iris travel destination" not in final_prompt
+    assert "Are these facts minimally sufficient" not in final_prompt
+    assert "Final retry reading contract" not in final_prompt
+    assert reading.reflection["mode"] == "joint-v2"
     assert reading.prompt_tokens == 20 and reading.completion_tokens == 6
 
 
-def test_sufficient_evidence_uses_one_joint_call_no_search():
-    llm = Replies([gate(decision="continue", answer="City0", missing="", searches=[], keep=[])])
+def test_sufficient_evidence_always_calls_the_standard_reader_without_search():
+    from wrag.eval.reader import read
+    llm = Replies([gate(decision="continue", missing="", searches=[], keep=[]), {"answer": "City0"}])
     r = Memory(llm)
-    result, answer = adaptive_read(r, r.corpus, Q, r.packet(range(10)), r.ctx.run.qa)
-    assert answer.answer == "City0" and len(llm.calls) == 1 and not r.calls
+    initial = r.packet(range(10))
+    result, answer = adaptive_read(r, r.corpus, Q, initial, r.ctx.run.qa)
+    assert answer.answer == "City0" and len(llm.calls) == 2 and not r.calls
     assert result.diagnostics["reflection_replan"]["stop_reason"] == "sufficient"
+    baseline = Replies([{"answer": "City0"}])
+    read(baseline, r.corpus, Q, [], replace(r.ctx.run.qa, reflection_replan=False),
+         extra_passages=initial.diagnostics["trechos_extras"], facts_mode="bitemporal")
+    assert llm.calls[1] == baseline.calls[0]
+    assert result.diagnostics["trechos_extras"] == initial.diagnostics["trechos_extras"]
+    assert answer.prompt_tokens == 20 and answer.completion_tokens == 6
 
 
 @pytest.mark.parametrize("changes", [{"searches": []}, {"searches": ["x"] * 3}, {"keep": [True]},
-                                     {"missing": ""}, {"decision": "loop"}, {"searches": "x"}])
+                                     {"missing": ""}, {"decision": "loop"}, {"searches": "x"},
+                                     {"decision": []}, {"keep": None}])
 def test_invalid_control_does_not_trigger_unbounded_or_guessed_search(changes):
     assert parse_gate(gate(**changes))["decision"] == "continue"
-    llm = Replies([gate(**changes)])
+    llm = Replies([gate(**changes), {"answer": "City0"}])
     r = Memory(llm)
     _, answer = adaptive_read(r, r.corpus, Q, r.packet(range(10)), r.ctx.run.qa)
-    assert len(llm.calls) == 1 and not r.calls
+    assert answer.answer == "City0" and len(llm.calls) == 2 and not r.calls
 
 
-def test_no_new_evidence_does_not_spend_second_reader_call():
-    llm = Replies([gate()])
+def test_no_new_evidence_still_reaches_the_standard_reader_with_original_context():
+    llm = Replies([gate(), {"answer": "City0"}])
     r = Memory(llm)
     r.no_new = True
-    result, answer = adaptive_read(r, r.corpus, Q, r.packet(range(10)), r.ctx.run.qa)
-    assert len(r.calls) == len(llm.calls) == 1
+    initial = r.packet(range(10))
+    result, answer = adaptive_read(r, r.corpus, Q, initial, r.ctx.run.qa)
+    assert len(r.calls) == 1 and len(llm.calls) == 2 and answer.answer == "City0"
     assert result.diagnostics["reflection_replan"]["stop_reason"] == "no_new_evidence"
+    assert result.diagnostics["trechos_extras"] == initial.diagnostics["trechos_extras"]
+    assert result.diagnostics["fatos_entregues"]["entregues"] == 10
 
 
 def test_filter_blocks_final_reader_instead_of_reusing_old_answer():
@@ -167,7 +186,7 @@ def test_full_runner_records_both_calls_and_replan_trace():
     row = _answer_standard("witnessrag", r, r.corpus, question, r.ctx.run)
     assert row["resposta"] == "City10"
     assert row["uso_llm"]["total"]["chamadas"] == 2
-    assert set(row["uso_llm"]["por_estagio"]) == {"qa.replan_gate", "qa"}
+    assert set(row["uso_llm"]["por_estagio"]) == {"memory.sufficiency", "qa"}
     assert row["diagnosticos"]["reflection_replan"]["max_replans"] == 1
     assert row["diagnosticos"]["reflection_replan"]["performed"]
 
@@ -184,3 +203,41 @@ def test_retry_quotes_receive_source_session_date_not_current_clock():
     r.packet = packet
     adaptive_read(r, r.corpus, Q, r.packet(range(10)), r.ctx.run.qa)
     assert "[t10; session=2023-08-17]" in str(llm.calls[-1][0])
+
+
+def test_checker_sees_only_query_and_delivered_dated_triples():
+    llm = Replies([gate(decision="continue", missing="", searches=[], keep=[]), {"answer": "City0"}])
+    r = Memory(llm)
+    packet = r.packet(range(10))
+    packet.diagnostics["trechos_extras"].append({"title": "Source", "text": "SOURCE_LITERAL_ONLY"})
+    adaptive_read(r, r.corpus, Q, packet, r.ctx.run.qa)
+    verifier = str(llm.calls[0][0])
+    assert Q.question in verifier and "Iris | visited | City0" in verifier
+    assert "event=2023-07-01; session=2023-07-01" in verifier
+    assert "City29" not in verifier and "SOURCE_LITERAL_ONLY" not in verifier
+    assert "SOURCE_LITERAL_ONLY" in str(llm.calls[1][0])
+
+
+def test_unrequested_checker_answer_is_discarded_before_final_reader():
+    llm = Replies([gate(decision="continue", missing="", searches=[], keep=[], answer="ANSWER_POISON"),
+                   {"answer": "City0"}])
+    r = Memory(llm)
+    result, answer = adaptive_read(r, r.corpus, Q, r.packet(range(10)), r.ctx.run.qa)
+    assert answer.answer == "City0" and "ANSWER_POISON" not in str(llm.calls[1][0])
+    assert "initial_answer" not in result.diagnostics["reflection_replan"]
+    assert "ANSWER_POISON" not in str(result.diagnostics)
+
+
+def test_continue_discards_unneeded_control_fields_without_rejecting_decision():
+    assert parse_gate({"decision": "continue", "keep": [0], "missing": "No gap", "searches": None}) == {
+        "decision": "continue", "valid": True, "missing": "", "searches": [], "keep": []}
+
+
+def test_filtered_verifier_blocks_answer_and_preserves_usage():
+    llm = Replies([LLMResult(filtered=True, prompt_tokens=12, latency_s=.3)])
+    r = Memory(llm)
+    result, answer = adaptive_read(r, r.corpus, replace(Q, qid="filtered-verifier"),
+                                  r.packet(range(10)), r.ctx.run.qa)
+    assert result.filtered and answer.filtered and len(llm.calls) == 1 and not r.calls
+    assert answer.prompt_tokens == 12 and answer.latency_s == .3
+    assert result.diagnostics["reflection_replan"]["stop_reason"] == "verifier_filtered"
