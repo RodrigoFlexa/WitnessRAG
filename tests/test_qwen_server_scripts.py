@@ -26,7 +26,10 @@ def launch_workspace(tmp_path):
     scripts = tmp_path / "scripts"
     scripts.mkdir()
     for name in ("run-standard-qwen.sh", "run-standard-qwen-variants.sh", "run-local-plans-qwen.sh",
-                 "run-witness-proof-locomo.sh", "proof-profiles.sh", "serve-qwen-vllm.sh", "setup-qwen-server.sh"):
+                 "run-witness-proof-locomo.sh", "proof-profiles.sh", "serve-qwen-vllm.sh", "setup-qwen-server.sh",
+                 "run-replan-frozen-qwen20.sh", "run-replan-gap-qwen20.sh",
+                 "run-memoryagentbench-sf-qwen.sh", "run-memoryagentbench-after-sf-qwen.sh",
+                 "run-memoryagentbench-ar-adapted-qwen.sh"):
         (scripts / name).write_text((ROOT / "scripts" / name).read_text(encoding="utf-8"),
                                    encoding="utf-8", newline="\n")
     fake = tmp_path / "fake-python"
@@ -35,7 +38,9 @@ def launch_workspace(tmp_path):
     fake.chmod(0o755)
     # Git Bash prepends its own binaries to PATH; export a function instead.
     bash_env = tmp_path / "bash-env"
-    bash_env.write_text("curl() { return 0; }\nexport -f curl\n", encoding="utf-8", newline="\n")
+    bash_env.write_text("curl() { return 0; }\nexport -f curl\n"
+                        "flock() { return ${FLOCK_EXIT:-0}; }\nexport -f flock\n",
+                        encoding="utf-8", newline="\n")
     capture = tmp_path / "calls.txt"
     env = {k: v for k, v in os.environ.items() if not k.startswith(("WRAG_", "OPENAI_"))}
     env.update({"BENCH_PYTHON": fake.as_posix(), "VLLM_PYTHON": fake.as_posix(),
@@ -60,6 +65,66 @@ def launch(workspace, script, *args, **extra_env):
         else:
             calls[-1].append(line)
     return result, calls
+
+
+def test_adapted_ar_launcher_uses_only_authorized_tasks_and_gpu_zero(launch_workspace):
+    result, calls = launch(launch_workspace, "run-memoryagentbench-ar-adapted-qwen.sh")
+    assert result.returncode == 0, result.stderr
+    evaluations = [c for c in calls if "run" in c and "benchmarks.memoryagentbench" in c]
+    assert len(evaluations) == 1
+    c = evaluations[0]
+    args = mab_parser().parse_args(c[c.index("benchmarks.memoryagentbench") + 1:])
+    assert args.adaptation == "ar-source-v2" and args.fact_budget == 40
+    assert args.splits == ["Accurate_Retrieval"]
+    assert args.sources == ["ruler_qa1_197K", "ruler_qa2_421K", "longmemeval_s*", "eventqa_full"]
+    assert args.model == "Qwen/Qwen2.5-14B-Instruct" and args.protocol == args.suite == "paper"
+    assert args.resume and args.source_excerpt_chars == 2400 and c[0] == "CUDA=0"
+    assert all("judge" not in c for c in calls)
+
+
+def test_adapted_ar_launcher_rejects_duplicate_before_model_calls(launch_workspace):
+    result, calls = launch(launch_workspace, "run-memoryagentbench-ar-adapted-qwen.sh", FLOCK_EXIT="1")
+    assert result.returncode == 2 and "already running" in result.stderr and not calls
+
+
+def test_frozen_replan_runs_only_twenty_facts_all_ten_conversations(launch_workspace):
+    result, calls = launch(launch_workspace, "run-replan-frozen-qwen20.sh", "full")
+    assert result.returncode == 0, result.stderr
+    evaluations = [call for call in calls if "scripts/test-reflection-replan.py" in call]
+    assert len(evaluations) == 10
+    assert [call[call.index("--conversation") + 1] for call in evaluations] == list(map(str, range(10)))
+    for call in evaluations:
+        assert "CUDA=7" in call
+        assert call[call.index("--expected-fact-budget") + 1] == "20"
+        assert call[call.index("--embed-device") + 1] == "cuda:0"
+        assert "--all-questions" in call and "--resume" in call
+    assert "scripts/analyze-replan-frozen.py" in calls[-1]
+
+
+def test_frozen_replan_pilot_declares_cases_and_does_not_select_full_benchmark(launch_workspace):
+    result, calls = launch(launch_workspace, "run-replan-frozen-qwen20.sh", "pilot")
+    assert result.returncode == 0, result.stderr
+    evaluations = [call for call in calls if "scripts/test-reflection-replan.py" in call]
+    assert all("--all-questions" not in call for call in evaluations)
+    assert "locomo:conv-26:qa11" in evaluations[0]
+    assert "locomo:conv-50:qa40" in evaluations[9] and "locomo:conv-50:qa56" in evaluations[9]
+
+
+def test_gap_replan_launcher_limits_evaluation_to_first_conversation_and_twenty(launch_workspace):
+    result, calls = launch(launch_workspace, "run-replan-gap-qwen20.sh")
+    assert result.returncode == 0, result.stderr
+    evaluations = [call for call in calls if "scripts/test-reflection-replan.py" in call]
+    assert len(evaluations) == 1
+    call = evaluations[0]
+    assert call[call.index("--conversation") + 1] == "0"
+    assert call[call.index("--expected-fact-budget") + 1] == "20"
+    assert "--all-questions" in call and "--resume" in call
+
+
+def test_gap_replan_lock_rejects_a_second_writer_before_inference(launch_workspace):
+    result, calls = launch(launch_workspace, "run-replan-gap-qwen20.sh", FLOCK_EXIT="1")
+    assert result.returncode == 2 and "already running" in result.stderr
+    assert not calls
 
 
 def test_locomo_two_budgets_preserve_the_standard_and_resume(launch_workspace):
@@ -207,3 +272,24 @@ def test_shell_syntax(launch_workspace):
     for script in (root / "scripts").glob("*.sh"):
         result = subprocess.run([BASH, "-n", script.as_posix()], env=env, capture_output=True, text=True)
         assert result.returncode == 0, result.stderr
+
+
+def test_memoryagentbench_queue_only_remaining_paper_tasks_on_gpu_zero(launch_workspace):
+    result, calls = launch(launch_workspace, "run-memoryagentbench-after-sf-qwen.sh")
+    assert result.returncode == 0, result.stderr
+    runs = [call for call in calls if "benchmarks.memoryagentbench" in call and "run" in call]
+    assert len(runs) == 1
+    call = runs[0]
+    assert "CUDA=0" in call
+    splits = call[call.index("--splits") + 1:call.index("--cache")]
+    assert splits == ["Accurate_Retrieval", "Test_Time_Learning", "Long_Range_Understanding"]
+    assert call[call.index("--suite") + 1] == "paper"
+    assert call[call.index("--fact-budget") + 1] == "40"
+    assert "--resume" in call
+    assert all("judge" not in call for call in calls)
+
+
+def test_memoryagentbench_queue_lock_prevents_duplicate_writer(launch_workspace):
+    result, calls = launch(launch_workspace, "run-memoryagentbench-after-sf-qwen.sh", FLOCK_EXIT="1")
+    assert result.returncode == 2
+    assert calls == []

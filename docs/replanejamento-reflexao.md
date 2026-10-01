@@ -1,59 +1,117 @@
-# Experimental: suficiência, um replanejamento e leitura padrão
+# Experimental: suficiência, uma nova busca e cobertura da lacuna
 
-A solução padrão continua sendo `witnessrag-local`: planos locais v2,
-executor relacional, reranker MiniLM, fatos datados e reflexão na chamada
-do leitor. A variante acrescenta um checker simples antes dessa leitura,
-na versão `sufficiency-first-v2`. Não ativa o antigo reflector separado.
+A versão atual é `sufficiency-gap-v5`. A solução padrão mantém planos locais v2,
+executor relacional, reranking MiniLM e reflexão na chamada do reader. A variante
+acrescenta controle de suficiência antes dessa leitura. Não ativa o reflector
+separado das variantes de memória.
 
-## Fluxo
+## Fluxo e responsabilidade pela relevância
 
-1. O planner e o executor recuperam o contexto normalmente.
-2. Um checker recebe somente a query e as triplas recuperadas, com IDs,
-   datas de evento/sessão e origem. Não recebe os trechos literais maiores
-   do reader nem produz resposta, inferências escritas ou contexto reformulado.
-3. `continue` encaminha o contexto original à reflexão e ao reader padrão.
-   É apropriado quando as premissas são minimamente suficientes, inclusive
-   quando a resposta exige uma inferência comum ou recência.
-4. `replan` identifica a lacuna, propõe até duas consultas direcionadas e
-   aponta os IDs dos fatos úteis que devem ser preservados.
-5. O executor refaz a busca sobre a mesma memória, guiado pelas consultas.
-   O planner mantém a pergunta, a operação e o contrato temporal originais;
-   a sugestão influencia busca semântica, reranking e busca de falas.
-6. A reflexão e o reader padrão recebem o contexto combinado, respondendo
-   ou se abstendo. Seus prompts e parâmetros são os mesmos da solução padrão;
-   não recebem a decisão do checker, as sugestões nem uma resposta provisória.
-   Não há uma segunda verificação ou possibilidade de replanejar.
+1. Planner e executor recuperam a evidência inicial normalmente.
+2. O checker recebe somente a pergunta e os fatos com IDs, enunciados,
+   datas de evento/sessão e modalidade. Decide `continue` ou `replan`.
+3. Para `continue`, o contexto original segue à reflexão/reader padrão.
+   Para `replan`, o checker aponta a lacuna, até duas buscas, fatos úteis
+   (`keep`) e fatos irrelevantes (`irrelevant`). Não produz resposta.
+4. O executor faz no máximo uma recuperação adicional sobre a mesma memória.
+   As sugestões guiam busca e reranking; a pergunta e o contrato temporal
+   originais permanecem no planner.
+5. Se houver candidatos novos, um segundo checker verifica se cobrem a lacuna.
+   Ele recebe os fatos iniciais, os fatos candidatos, a lacuna e até quatro
+   citações novas delimitadas. Seleciona fatos iniciais a reter (`retain`),
+   unidades novas úteis (`use`), unidades irrelevantes (`irrelevant`) e
+   citações novas necessárias (`sources`). Pode reconsiderar a classificação
+   inicial de irrelevância quando aparecer uma ligação nova.
+6. Somente uma seleção válida com cobertura confirmada substitui o contexto.
+   Sem cobertura ou com controle inválido, o contexto original é preservado.
+   A reflexão/reader padrão então executa com os mesmos prompts e parâmetros.
 
-A decisão de suficiência é uma avaliação falível do modelo, não uma prova
-de que a resposta está completa. Pedidos de busca devem indicar uma lacuna
-factual, relacional, temporal ou de referência; incerteza genérica e problemas
-de formato são tratados pela própria leitura.
+A relevância e a cobertura são julgadas pelo modelo. Não há limiar de
+similaridade para descartar fatos nem divisão fixa de 12 antigos/8 novos na
+v5. A decisão é falível; `covered=true` não constitui uma prova lógica.
+Nas respostas negativas do segundo checker, as listas são vazias: esse caminho
+registra ausência de cobertura, não classifica cada candidato como irrelevante.
 
-## Cache e orçamento
+## Validação, cache e custo
 
-O cache é exclusivo daquela pergunta. Guarda apenas fatos efetivamente
-entregues na primeira busca, com seus IDs, texto, fonte e informações de
-tempo. A sugestão não vira uma tripla nem atualiza a memória persistente.
-IDs inventados são rejeitados.
+O código valida somente controles estruturais: IDs existentes, tipos,
+conflitos de seleção, pacotes completos, novidade e orçamento. A união final
+contém no máximo **20 fatos únicos** neste experimento. Um pacote novo é
+indivisível; não é cortado para caber. Citações adicionais precisam ter sido
+mostradas ao checker e efetivamente entregues ao reader. Se uma citação
+selecionada não couber no orçamento literal, a seleção inteira é rejeitada
+em favor do contexto original. Sugestões nunca viram fatos ou respostas.
 
-Até um quarto do orçamento pode ser reservado a premissas anteriores,
-limitado a oito fatos: até cinco no orçamento 20 e até oito no orçamento 40.
-O restante fica disponível para a nova busca. Duplicatas são removidas;
-o contexto final continua com **no máximo 20 ou 40 fatos**, respectivamente.
-As testemunhas da nova busca seguem a regra existente de entrega de
-pacotes completos. As premissas retidas permanecem explicitamente não
-verificadas e podem ser contraditas por evidência nova.
+A memória retida é exclusiva da pergunta. Não altera a memória persistente.
+O checker inicial usa somente os fatos compactos; o checker de cobertura
+acrescenta citações limitadas para avaliar informação ausente das triplas.
+As duas chamadas de controle têm teto de 384 tokens de saída cada. O reader
+Qwen mantém o teto padrão de 128. São duas chamadas lógicas quando não há
+candidatos novos e três quando se verifica cobertura após a nova busca.
+Hits de cache são registrados e podem evitar execução física de geração.
+Bloqueios por filtro preservam a política existente de interrupção da resposta.
 
-A chamada do checker tem teto de 384 tokens para controle. No Qwen, a
-leitura final mantém o teto padrão de 128 tokens. São **duas chamadas lógicas
-por pergunta**, com ou sem replanejamento: checker e reflexão/reader padrão.
-O cache de LLM pode evitar novas chamadas ao provedor para prompts repetidos.
-Se a nova recuperação não trouxer fatos ou falas adicionais, o reader recebe
-o contexto original. JSON de controle inválido não dispara busca, mas também
-segue para o reader padrão. Bloqueios por filtro continuam interrompendo a
-resposta, conforme a política já existente no projeto.
+## Teste Qwen da v5: primeira conversa, 20 fatos
 
-## Avaliação local da versão atual
+Foram avaliadas todas as 152 perguntas da conversa zero, sem seleção por F1.
+A evidência inicial e a extração foram congeladas a partir da run padrão de
+20 fatos. A recuperação adicional usou BGE-M3 e MiniLM na GPU 7 e o mesmo
+Qwen2.5-14B-Instruct. Gabaritos foram usados somente na avaliação.
+
+| F1 oficial nas mesmas perguntas | Padrão 20 | Replan v2 | Replan v4 | Replan v5 |
+|---|---:|---:|---:|---:|
+| Todas, 152 perguntas | 59,42 | 58,66 | 57,21 | 59,42 |
+| Multi-hop, 32 perguntas | 53,75 | 50,62 | 50,00 | 53,75 |
+| Temporal, 37 perguntas | 65,27 | 65,99 | 62,33 | 65,27 |
+
+Houve 25 buscas adicionais. Nenhuma teve cobertura confirmada: 24 avaliações
+negativas e uma saída de controle inválida. Cinco controles iniciais também
+foram inválidos. Todos os contextos finais foram preservados; todos os F1
+individuais coincidem com a padrão. O checker inicial anotou 239 IDs como
+irrelevantes ao longo das perguntas que solicitaram busca, contando repetições
+entre perguntas. Essas anotações não são validação humana de irrelevância.
+
+O total lógico de entrada e saída foi 565.411 tokens, contra 331.093 da padrão
+(+70,8%) e 514.684 da v4 (+9,9%). Foram 329 chamadas lógicas, incluindo 25 de
+cobertura; 245 foram atendidas pelo cache. Extração histórica não foi cobrada
+novamente. Os totais não medem tempo físico de GPU nem custo monetário.
+
+A v5 evitou as regressões da v4 nesta conversa, mas não demonstrou melhoria
+de recuperação ou economia. O teste real exercitou apenas rejeição de novidades;
+a aceitação positiva foi verificada em testes unitários. É necessário investigar
+os candidatos e os julgamentos negativos antes de recomendar esta variante
+como padrão. Relatório: `runs/replan5-gap-conv00/report.md`.
+
+A run completa v4 foi cancelada a pedido do usuário. Seus resultados parciais
+foram preservados; nenhum benchmark ficou em execução após concluir este teste.
+
+## Histórico: piloto Qwen da v4 (20 fatos)
+
+123 perguntas selecionadas nas dez conversas: 60 com F1 zero, 60 controles
+perfeitos e três casos adicionais de regressão (podem ter F1 parcial).
+É uma amostra de desenvolvimento escolhida por resultados históricos;
+os valores abaixo não representam o F1 nas 1.540 perguntas.
+
+| Métrica nas mesmas perguntas | Padrão 20 | Replan v2 de 20 | Replan v4 de 20 |
+|---|---:|---:|---:|
+| F1 oficial, 123 perguntas | 51,02 | 48,87 | 52,61 |
+| F1 multi-hop, 21 perguntas | 36,90 | 24,46 | 34,52 |
+
+A v4 melhora sobre o replan antigo nesta amostra, mas ainda fica abaixo da
+padrão no multi-hop. Foram 40 buscas adicionais, nenhum controle inválido,
+seis aumentos e duas quedas de F1 em relação à padrão. Nos retries, 13,45 fatos
+iniciais foram preservados em média. O custo lógico foi 422.107 tokens contra
+267.880 da padrão (+57,6%); extração histórica reutilizada e hits de cache
+contabilizados separadamente. Não equivale a tempo físico de GPU.
+
+O caso `conv-26:qa11` conserva o fato sobre Sweden e a fala literal que
+identifica o país de origem, porém o Qwen ainda responde `her home country`.
+A preservação do contexto corrige um mecanismo de perda sem garantir
+inferência correta do leitor. O relatório detalhado fica em
+`runs/replan4-analysis-20260930/report.md`, com artefatos da v4 separados do primeiro
+protótipo de união da v3.
+
+## Avaliação local da versão v2
 
 O reteste usa as mesmas seis perguntas com F1 zero e seis controles perfeitos
 do piloto anterior: GPT-4o-mini, CPU, primeira conversa, orçamento 40.
@@ -140,35 +198,38 @@ Para reproduzir o piloto com a run e o cache locais correspondentes:
   --output runs/reflection-replan-sufficiency-novo --reader-control
 ```
 
-## Servidor
+## Servidor: reproduzir a primeira conversa
 
-Com o vLLM Qwen ativo na GPU 7:
+Com o vLLM Qwen ativo em `http://127.0.0.1:8095/v1`, execute uma pasta nova:
 
 ```bash
-# Controle padrão: 20 e 40 fatos, dez conversas.
-GPU=7 bash scripts/run-standard-qwen-variants.sh locomo
-
-# Experimental: 20 e 40 fatos, no máximo um replanejamento.
-GPU=7 REFLECTION_REPLAN=1 bash scripts/run-standard-qwen-variants.sh locomo
+mkdir -p runs
+OUTPUT_DIR="$PWD/runs/replan5-gap-conv00-repeat/facts20" \
+  nohup bash scripts/run-replan-gap-qwen20.sh > runs/replan5-gap-conv00-repeat.log 2>&1 < /dev/null &
+tail -f runs/replan5-gap-conv00-repeat.log
 ```
 
-Saídas padrão em `runs/standard-locomo-qwen14b/facts20` e `facts40`;
-experimentais em `runs/replan2-locomo-qwen14b/facts20` e `facts40`.
-O cache de extração e embeddings é compartilhado. O prompt final do reader
-é o padrão; contextos idênticos também podem reutilizar sua resposta em cache.
-O flag faz parte da configuração de retomada; não é possível misturar padrão
-e experimental na mesma pasta. Não reutilize os checkpoints antigos de
-`replan1`: houve uma mudança de método, registrada no código e nos manifestos.
+O lançador executa somente a conversa zero, todas as perguntas, orçamento 20.
+Usa GPU 7 para embeddings/reranking (`cuda:0` dentro do processo), verifica o
+modelo servido e a fonte de 20 fatos e impede dois escritores na mesma saída.
+`--resume` verifica modelo, versão, código, configuração e IDs selecionados.
+Para retomar, use a mesma pasta e o mesmo código. `SOURCE_RUN`, `CACHE_DIR`,
+`OUTPUT_DIR`, `BENCH_PYTHON`, `MODEL` e `GPU` permitem caminhos/configurações
+explícitos. O resultado concluído no servidor está em
+`runs/replan5-gap-conv00-final/facts20`; não misture outras versões nessa pasta.
+
+O teste concluído usou código isolado em `.audit-code/replan-gap-v5-final`.
+Os históricos v2/v4 e o protótipo v5 interrompido permanecem separados.
+Os lançadores `run-replan-frozen-qwen20.sh` são históricos e seus nomes de
+saída v4 não identificam a versão carregada: o módulo Python determina a versão.
 
 **A integração experimental está limitada ao LoCoMo nesta proposta.**
-MemoryAgentBench mantém a solução padrão com seus formatos de saída e
-juízes oficiais. A adaptação do controle aos diversos formatos desse
-benchmark precisa de uma avaliação própria.
+MemoryAgentBench mantém a solução padrão e precisa de avaliação própria
+para adaptar este controle aos seus formatos de saída e juízes oficiais.
 
-O relatório por pergunta registra decisão, lacuna, consultas, fatos retidos,
-fatos novos, motivo de parada e tempo da nova busca. A contabilidade separa
-`memory.sufficiency` e `qa`. Os testes verificam o limite de uma nova busca,
-isolamento por pergunta, conservação do orçamento, rejeição de IDs falsos,
-contrato temporal preservado e ausência de gabaritos nos prompts. Também
-comparam literalmente prompt e parâmetros do reader com a solução padrão,
-e confirmam que o checker não recebe os trechos grandes do reader.
+Os traces registram decisões, lacunas, consultas, irrelevância, candidatos,
+seleção, novidade e motivo de parada. A contabilidade separa
+`memory.sufficiency`, `memory.gap_coverage` e `qa`. Os testes verificam
+orçamento, pacotes completos, rejeição de IDs falsos, citações selecionadas,
+fallback exato e ausência de gabaritos nos prompts. O reader permanece
+idêntico ao da solução padrão.

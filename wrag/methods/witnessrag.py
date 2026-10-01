@@ -1913,6 +1913,42 @@ class WitnessRAGRetriever(Retriever):
             if len(chosen) >= cfg.fact_budget:
                 break
 
+        facts_text = self._render_fact_ids(chosen)
+        summary = ""
+        if cfg.fact_delivery == "facts+summary":
+            weight: dict[str, float] = {}
+            for index in chosen:
+                pid = memory.facts[index].pid
+                weight[pid] = weight.get(pid, 0.0) + float(score[index]) + priority.get(index, 0.0)
+            pids = sorted(weight, key=lambda p: -weight[p])[:cfg.fact_summary_chunks]
+            position = {p.pid: i for i, p in enumerate(self.corpus.passages)}
+            info["resumos_selecionados"] = sorted(pids, key=lambda p: position.get(p, 0))
+            parts = []
+            for pid in sorted(pids, key=lambda p: position.get(p, 0)):
+                text = self._chunk_summary(pid, include_reflection=False)
+                if text:
+                    interval = dated.passage_interval.get(pid)
+                    parts.append(f"- ({format_interval(interval) if interval else 'undated'}) {text}")
+            summary = "\n".join(parts)
+            info["resumos"] = len(parts)
+            if cfg.summary_reflection:
+                summary, info["summary_reflection"] = self._reflect_summary_context(
+                    question, summary, info["resumos_selecionados"])
+        info["n"] = len(chosen)
+        # Provenance of what was actually delivered; retrieved passage ids
+        # alone do not describe a fact-only reader's context.
+        info["indices"] = chosen
+        info["fontes"] = [
+            {"indice": i, "fid": memory.facts[i].fid, "pid": memory.facts[i].pid,
+             "turn_id": (dated.turns[pid][pos].turn_id
+                         if 0 <= pos < len(dated.turns.get(pid, [])) else "")}
+            for i in chosen for pid, pos in [dated.fact_turn[i]]]
+        return facts_text, summary, info
+
+    def _render_fact_ids(self, chosen: list[int]) -> str:
+        """Render selected facts with the standard reader dates, without retrieval."""
+        cfg = self.ctx.run.witness
+        memory, dated = self.memory, self.dated
         def session_of(index: int):
             pid, position = dated.fact_turn[index]
             turns = dated.turns.get(pid) or []
@@ -1954,36 +1990,7 @@ class WitnessRAGRetriever(Retriever):
                     suffix = f" (event: {event})" if event and event != label else ""
                 body = fact.statement or f"{fact.subject} | {fact.relation} | {fact.object}"
                 lines.append(f"- {body}{suffix}")
-        summary = ""
-        if cfg.fact_delivery == "facts+summary":
-            weight: dict[str, float] = {}
-            for index in chosen:
-                pid = memory.facts[index].pid
-                weight[pid] = weight.get(pid, 0.0) + float(score[index]) + priority.get(index, 0.0)
-            pids = sorted(weight, key=lambda p: -weight[p])[:cfg.fact_summary_chunks]
-            position = {p.pid: i for i, p in enumerate(self.corpus.passages)}
-            info["resumos_selecionados"] = sorted(pids, key=lambda p: position.get(p, 0))
-            parts = []
-            for pid in sorted(pids, key=lambda p: position.get(p, 0)):
-                text = self._chunk_summary(pid, include_reflection=False)
-                if text:
-                    interval = dated.passage_interval.get(pid)
-                    parts.append(f"- ({format_interval(interval) if interval else 'undated'}) {text}")
-            summary = "\n".join(parts)
-            info["resumos"] = len(parts)
-            if cfg.summary_reflection:
-                summary, info["summary_reflection"] = self._reflect_summary_context(
-                    question, summary, info["resumos_selecionados"])
-        info["n"] = len(chosen)
-        # Provenance of what was actually delivered; retrieved passage ids
-        # alone do not describe a fact-only reader's context.
-        info["indices"] = chosen
-        info["fontes"] = [
-            {"indice": i, "fid": memory.facts[i].fid, "pid": memory.facts[i].pid,
-             "turn_id": (dated.turns[pid][pos].turn_id
-                         if 0 <= pos < len(dated.turns.get(pid, [])) else "")}
-            for i in chosen for pid, pos in [dated.fact_turn[i]]]
-        return "\n".join(lines), summary, info
+        return "\n".join(lines)
 
     def _rerank_facts(self, question: Question, order: list[int], score: np.ndarray,
                       priority: dict[int, float]) -> tuple[list[int], int]:

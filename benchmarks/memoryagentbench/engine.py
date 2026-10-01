@@ -67,37 +67,70 @@ class Selection:
 
 
 class WitnessEngine:
-    def __init__(self, llm, embedder, cfg: C.RunConfig, conflict_recency_weight: float = .65):
+    def __init__(self, llm, embedder, cfg: C.RunConfig, conflict_recency_weight: float = .65,
+                 adaptation: str = "standard"):
         if not 0 <= conflict_recency_weight <= 1:
             raise ValueError("Conflict recency weight must be between 0 and 1")
         self.llm, self.embedder, self.cfg = llm, embedder, cfg
         self.conflict_recency_weight = conflict_recency_weight
+        if adaptation not in {"standard", "ar-source-v2"}:
+            raise ValueError(f"Unknown adaptation: {adaptation}")
+        self.adaptation = adaptation
         self.corpus = None
         self.retriever = None
 
     def protocol_identity(self):
-        return {"conflict_recency_weight": self.conflict_recency_weight,
-                "conflict_recency_policy": "ordinal-subject-relation-v2"}
+        identity = {"conflict_recency_weight": self.conflict_recency_weight,
+                    "conflict_recency_policy": "ordinal-subject-relation-v2"}
+        if self.adaptation != "standard":
+            from .source_memory import REFERENCE_REPAIR_VERSION
+            identity.update(adapter=self.adaptation, source_order=["ruler_qa1_197K", "ruler_qa2_421K",
+                            "longmemeval_s*", "eventqa_full"],
+                            source_policy="literal_offsets; no_ingestion_wrapper; conversational_dates_only",
+                            plan_policy="soft_predicate_alignment; no_gold; local_execution",
+                            source_excerpt_chars=self.cfg.witness.excerpt_max_chars,
+                            extraction_format_repair=REFERENCE_REPAIR_VERSION)
+        return identity
 
     def prepare(self, context_key: str, source: str, chunks: list[str],
                 raw_context: str) -> dict:
         from wrag.methods import build_context, build_methods
         # Reset first: a failed new context must never reuse a previous memory.
         self.corpus = self.retriever = None
-        start, before = time.perf_counter(), self.llm.usage.snapshot()
         passages, extraction, cached_chunks = [], ExtractionResult(), 0
+        records, source_rejections = {}, {}
+        current_session, current_speaker = None, "Source"
+        adapted = self.adaptation == "ar-source-v2"
+        if adapted:
+            from .source_memory import (AR_ORDER, conversational, extract_source,
+                                        source_spans, session_date, session_role)
+            if source not in AR_ORDER:
+                raise ValueError("ar-source-v2 supports only the four Accurate Retrieval tasks")
+        start, before = time.perf_counter(), self.llm.usage.snapshot()
         short_key = digest(context_key)[:20]
         for index, chunk in enumerate(chunks):
             text = annotate_serials(chunk, raw_context) if source.startswith("factconsolidation_") else chunk
             passage = Passage(f"mab-{short_key}-c{index}", "",
-                              memorize_message(source, text, index), sequence=index,
+                              text if adapted else memorize_message(source, text, index), sequence=index,
                               source_ids=(context_key,))
             passages.append(passage)
             # Only the current incoming message is visible to its registration
             # call. Graph consolidation after all chunks is allowed by §3.2.
             registration_before = self.llm.usage.snapshot()
-            registered = extract_corpus(Corpus(f"mab-{short_key}-c{index}", [passage], []),
-                                        self.llm, self.cfg.ie)
+            if adapted:
+                spans = source_spans(text, index, conversation=conversational(source),
+                                     initial_date=current_session, initial_speaker=current_speaker)
+                records[passage.pid] = spans
+                registered, rejected = extract_source(passage, self.llm, self.cfg.ie, spans,
+                                                      conversation=conversational(source))
+                for reason, count in rejected.items():
+                    source_rejections[reason] = source_rejections.get(reason, 0) + count
+                if conversational(source):
+                    current_session = session_date(text, current_session)
+                    current_speaker = session_role(text, current_speaker)
+            else:
+                registered = extract_corpus(Corpus(f"mab-{short_key}-c{index}", [passage], []),
+                                            self.llm, self.cfg.ie)
             if not usage_delta(self.llm.usage.snapshot(), registration_before)["total"].get("chamadas", 0):
                 cached_chunks += 1
             extraction.facts.extend(registered.facts)
@@ -112,28 +145,36 @@ class WitnessEngine:
         ctx = build_context(self.corpus, self.cfg, llm=self.llm, embedder=self.embedder)
         ctx.extraction = extraction
         self._conflicts = source.startswith("factconsolidation_")
-        if self._conflicts and self.conflict_recency_weight:
+        if adapted or (self._conflicts and self.conflict_recency_weight):
             from wrag.methods import ensure_graph
             from .recency import SerialWitnessRetriever
             graph_before, graph_started = self.llm.usage.snapshot(), time.perf_counter()
             ensure_graph(ctx, with_passage_nodes=True)
             ctx.shared_index_cost = {"seconds": time.perf_counter() - graph_started,
                                      "usage": usage_delta(self.llm.usage.snapshot(), graph_before)}
-            self.retriever = SerialWitnessRetriever(ctx)
-            self.retriever.conflict_recency_weight = self.conflict_recency_weight
+            if adapted:
+                from .source_memory import SourceWitnessRetriever
+                self.retriever = SourceWitnessRetriever(ctx, records, conversation=conversational(source))
+            else:
+                self.retriever = SerialWitnessRetriever(ctx)
+                self.retriever.conflict_recency_weight = self.conflict_recency_weight
             index_before, index_started = self.llm.usage.snapshot(), time.perf_counter()
             self.retriever.index()
             self.retriever.index_cost = {"seconds": time.perf_counter() - index_started,
                                         "usage": usage_delta(self.llm.usage.snapshot(), index_before)}
         else:
             self.retriever = build_methods(ctx, ["witnessrag"])["witnessrag"]
-        return {"seconds": time.perf_counter() - start,
+        result = {"seconds": time.perf_counter() - start,
                 "usage": usage_delta(self.llm.usage.snapshot(), before),
                 "chunks": len(chunks), "extraction": extraction.stats(),
                 "registration_cached_chunks": cached_chunks,
                 "registration_new_chunks": len(chunks) - cached_chunks,
                 "cost_scope": "observed_attempt; prior cached extraction cost is not charged again",
                 "index": self.retriever.index_report()}
+        if adapted:
+            result["source_validation"] = {"adapter": self.adaptation, "rejections": source_rejections,
+                                           "spans": sum(len(s) for s in records.values())}
+        return result
 
     def select(self, qid: str, text: str) -> Selection:
         if self.retriever is None or self.corpus is None:

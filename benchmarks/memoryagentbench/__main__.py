@@ -37,10 +37,13 @@ def parser() -> argparse.ArgumentParser:
             cmd.add_argument("--model-revision", default="", help="HF revision used by the already running server")
             cmd.add_argument("--embed-device", choices=("auto", "cpu", "cuda"), default="auto")
             cmd.add_argument("--embed-model", default="BAAI/bge-m3")
-            cmd.add_argument("--embed-backend", choices=("st", "tfidf"), default="st")
+            cmd.add_argument("--embed-backend", choices=("st", "azure", "tfidf"), default="st",
+                             help="azure uses --embed-model as the embedding deployment ID")
             cmd.add_argument("--fact-budget", type=int, default=40)
             cmd.add_argument("--fact-rerank", default="cross-encoder/ms-marco-MiniLM-L6-v2")
             cmd.add_argument("--conflict-recency-weight", type=float, default=.65)
+            cmd.add_argument("--adaptation", choices=("standard", "ar-source-v2"), default="standard")
+            cmd.add_argument("--source-excerpt-chars", type=int, default=2400)
             cmd.add_argument("--no-reflection", action="store_true")
             cmd.add_argument("--resume", action="store_true")
             cmd.add_argument("--max-questions", type=int, default=0)
@@ -111,6 +114,9 @@ def main(argv=None) -> None:
         missing = set(args.sources) - {s.source for s in samples}
         if missing:
             raise ValueError(f"Requested sources not present in selected splits/suite: {sorted(missing)}")
+    if args.command == "run" and args.adaptation == "ar-source-v2":
+        from .source_memory import order_samples
+        samples = order_samples(samples)
     if args.command == "inspect":
         groups = {}
         for sample in samples:
@@ -154,6 +160,10 @@ def main(argv=None) -> None:
                 raise RuntimeError("CUDA requested but unavailable; choose --embed-device cpu or auto")
         os.environ["WRAG_EMBED_DEVICE"] = device
         C.EMBED_DEVICE, C.EMBED_MODEL = device, args.embed_model
+        C.EMBED_BACKEND = args.embed_backend
+        if args.embed_backend == "azure":
+            os.environ["WRAG_AZURE_EMBED_DEPLOYMENT"] = args.embed_model
+            C.AZURE_EMBED_DEPLOYMENT = args.embed_model
         C.EMBED_STRICT_DEVICE = device == "cuda"
         C.EMBED_MAX_SEQ_LENGTH = 0
         from wrag.embed import get_embedder
@@ -162,14 +172,20 @@ def main(argv=None) -> None:
         logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
         llm = get_llm(args.backend, deployment=args.model)
         embedder = get_embedder(args.embed_backend, force_new=True)
-        actual_device = str(getattr(getattr(embedder, "_model", None), "device", device))
-        if device == "cuda" and not actual_device.startswith("cuda"):
+        actual_device = ("azure" if args.embed_backend == "azure" else
+                         str(getattr(getattr(embedder, "_model", None), "device", device)))
+        if args.embed_backend == "st" and device == "cuda" and not actual_device.startswith("cuda"):
             raise RuntimeError("Embedder fell back to CPU although CUDA was requested")
         cfg = standard_config(fact_budget=args.fact_budget, rerank=args.fact_rerank)
+        if args.source_excerpt_chars < 1:
+            raise ValueError("Source excerpt budget must be positive")
+        cfg.witness.excerpt_max_chars = args.source_excerpt_chars
         cfg.qa.reader_reflection = not args.no_reflection
         print(f"Standard local-v2, {args.fact_budget} facts, embedder={embedder.name}/{args.embed_model} "
               f"device={actual_device}, protocol={args.protocol}", flush=True)
-        result = run(samples, WitnessEngine(llm, embedder, cfg, args.conflict_recency_weight), llm, args.cache, args.output,
+        print(f"Source adaptation: {args.adaptation}; source excerpt budget={args.source_excerpt_chars} chars", flush=True)
+        result = run(samples, WitnessEngine(llm, embedder, cfg, args.conflict_recency_weight,
+                                           adaptation=args.adaptation), llm, args.cache, args.output,
                      protocol=args.protocol, reflection=not args.no_reflection, resume=args.resume,
                      max_questions=args.max_questions, max_contexts=args.max_contexts, seed=args.seed,
                      identity_extra={"code_hash": P.code_hash(ROOT), "backend": args.backend,

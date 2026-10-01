@@ -270,3 +270,90 @@ por tarefa. Para executá-los:
 
 Uma execução com `--backend stub`/`--embed-backend tfidf` serve para depuração e
 é marcada como tal no manifesto. Ela não representa um score publicável.
+
+## Executar somente selective forgetting com Qwen no servidor
+
+O lançador específico seleciona apenas `factconsolidation_sh_262k` e
+`factconsolidation_mh_262k`, as duas colunas SF da tabela principal. São
+100 perguntas por tarefa, protocolo paper e orçamento padrão de 40 fatos.
+Utiliza o vLLM existente; não inicia outro modelo ou benchmark.
+
+```bash
+mkdir -p runs
+EMBED_GPU=0 FACT_BUDGET=40 \
+  nohup bash scripts/run-memoryagentbench-sf-qwen.sh > runs/standard-memoryagentbench-sf-qwen14b-facts40.log 2>&1 < /dev/null &
+tail -f runs/standard-memoryagentbench-sf-qwen14b-facts40.log
+```
+
+`EMBED_GPU` controla somente embeddings e reranking. O Qwen permanece na GPU
+do vLLM em `http://127.0.0.1:8095/v1`. `BENCH_PYTHON`, `CACHE_DIR`,
+`OUTPUT_DIR` e `OPENAI_BASE_URL` permitem caminhos e endpoint explícitos.
+O lançador retoma a mesma configuração e impede dois escritores na mesma
+saída. Não o execute enquanto uma run dessa saída estiver ativa.
+Os scores são substring exact match oficial; esta seleção não precisa dos
+juízes GPT-4o e não gera overall das quatro competências.
+
+### Fila depois do SF
+
+`run-memoryagentbench-after-sf-qwen.sh` aguarda um SF concluído e avaliado
+com 200 IDs únicos, orçamento 40, Qwen2.5-14B e protocolo paper. Só então
+inicia as oito tarefas restantes da tabela principal: 124 contextos e
+1.471 perguntas. A morte do processo SF não é condição de conclusão.
+
+```bash
+EMBED_GPU=0 nohup bash scripts/run-memoryagentbench-after-sf-qwen.sh > runs/standard-memoryagentbench-rest-qwen14b-facts40.log 2>&1 < /dev/null &
+```
+
+A saída é `runs/standard-memoryagentbench-rest-qwen14b/facts40`.
+`SF_OUTPUT_DIR`, `OUTPUT_DIR`, `CACHE_DIR` e `BENCH_PYTHON` permitem
+caminhos explícitos. O script usa retomada e bloqueio contra outra fila
+para a mesma pasta. Não agenda os juízes oficiais de LongMemEval/sumarização.
+As duas saídas precisam ser combinadas na análise para apresentar a tabela
+completa; não há overall válido enquanto os julgamentos estiverem pendentes.
+
+### Adaptação AR com fontes literais (`ar-source-v2`)
+
+O perfil opcional `--adaptation ar-source-v2` é restrito à Accurate Retrieval.
+Ele registra o conteúdo bruto dos chunks oficiais, sem o diálogo artificial de
+ingestão. SH-QA, MH-QA e EventQA usam instruções documentais; LME(S*) conserva os
+papéis da conversa e datas `Chat Time` observáveis, inclusive na continuação dos
+chunks. A extração usa sentenças completas, IDs e offsets de origem, exige uma
+citação literal por fato e registra rejeições de fonte e metadados.
+Se o JSON da extração ultrapassar o limite de saída ou vier sem o esquema
+esperado, a extração tenta grupos menores dos mesmos registros completos;
+para um único registro, reduz o teto de itens. Há no máximo três níveis de
+retentativa, registrados como `schema_split_retries`, sem aceitar JSON parcial.
+O custo das chamadas continua contabilizado e falhas persistentes interrompem
+a execução para diagnóstico.
+Uma resposta curta e incompleta que esgota o orçamento, ou uma falha de esquema,
+também pode usar a recuperação `source-record-reference-v1`: o modelo retorna
+triplas e IDs, sem reescrever a citação. O código resolve cada ID no grupo de
+entrada e usa seu registro literal como evidência. IDs inexistentes são rejeitados.
+Essa chamada não usa `response_format=json_object`, mas continua exigindo JSON
+válido e o mesmo teto de tokens. Seu custo fica em `index.openie.repair`, com
+cache separado e política no manifesto. Os caches válidos da extração principal
+continuam aproveitáveis; a resolução por ID confirma origem, não verdade semântica.
+
+O executor continua local-v2 sem chamadas generativas. O perfil adiciona uma
+preferência suave de alinhamento do predicado com os embeddings já disponíveis,
+elimina joins sobre metadados de ingestão apenas nos documentos e fornece até
+2.400 caracteres de citações originais por pergunta. Cobertura lexical zero
+não é um veto universal; planos e seus scores continuam hipóteses.
+
+Chunks, consultas, temperatura, limites de saída e métricas permanecem oficiais.
+Os caches da extração incluem o novo prompt e a política de fontes. O manifesto
+registra a adaptação e impede retomada misturando código ou configurações.
+LoCoMo e o adaptador `standard` não são alterados.
+
+```bash
+BENCH_PYTHON="$PWD/.venv-bench/bin/python" EMBED_GPU=0 \
+  nohup bash scripts/run-memoryagentbench-ar-adapted-qwen.sh \
+  > runs/adapted-memoryagentbench-ar-qwen14b-facts40.log 2>&1 < /dev/null &
+```
+
+A ordem é **SH-QA → MH-QA → LME(S*) → EventQA**, com 12 contextos e
+1.000 perguntas (100 + 100 + 300 + 500). A saída é
+`runs/adapted-memoryagentbench-ar-qwen14b/facts40`. O Qwen existente na GPU 7
+atende as chamadas; embeddings e reranking usam a GPU 0. O lançador utiliza
+bloqueio e retomada, e não inicia SF, TTL ou LRU. LME(S*) exige o juiz oficial
+para obter sua pontuação final; este lançador não agenda chamadas pagas.

@@ -45,6 +45,8 @@ def parser():
     p.add_argument("--vllm-python", default=sys.executable, help="Python do ambiente que contém vLLM")
     p.add_argument("--existing-server", action="store_true", help="usa servidor já ativo em localhost:port")
     p.add_argument("--embed-model", default="BAAI/bge-base-en-v1.5")
+    p.add_argument("--embed-backend", choices=["st", "azure"], default="st",
+                   help="azure usa --embed-model como ID do deployment de embedding")
     p.add_argument("--embed-device", default="cuda:0", help="cuda:0 é a GPU selecionada após remapeamento; ou cpu")
     p.add_argument("--dataset", choices=["2wikimultihopqa", "musique", "hotpotqa", "narrativeqa", "ruler", "sample", "locomo"], default="2wikimultihopqa")
     p.add_argument("-n", "--questions", type=int, default=None,
@@ -366,7 +368,7 @@ def make_plan(args, output):
         "CUDA_VISIBLE_DEVICES": args.gpu, "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
         "WRAG_LLM_BACKEND": args.backend,
         "WRAG_MODEL_REVISION": args.model_revision,
-        "WRAG_AZURE_CONCURRENCY": str(args.concurrency), "WRAG_EMBED_BACKEND": "st",
+        "WRAG_AZURE_CONCURRENCY": str(args.concurrency), "WRAG_EMBED_BACKEND": args.embed_backend,
         "WRAG_EMBED_MODEL": args.embed_model, "WRAG_EMBED_DEVICE": args.embed_device,
         "WRAG_EMBED_BATCH_SIZE": "32", "WRAG_SEED": str(args.seed),
         "WRAG_DATA_DIR": str(output / "data"), "WRAG_RUNS_DIR": str(output / "benchmark"),
@@ -376,6 +378,8 @@ def make_plan(args, output):
         # A decodificação é gulosa (temperature=0), logo o sampler nativo não altera saídas.
         "VLLM_USE_FLASHINFER_SAMPLER": "0",
     }
+    if args.embed_backend == "azure":
+        env["WRAG_AZURE_EMBED_DEPLOYMENT"] = args.embed_model
     if args.backend == "vllm":
         env.update({"OPENAI_MODEL": args.model,
                     "OPENAI_BASE_URL": f"http://127.0.0.1:{args.port}/v1",
@@ -987,6 +991,8 @@ def _validate_resume(old, new):
     differences = [name for name in fields
                    if (old.get("settings", {}).get(name) or 0) !=
                       (new.get("settings", {}).get(name) or 0)]
+    if old.get("settings", {}).get("embed_backend", "st") != new.get("settings", {}).get("embed_backend", "st"):
+        differences.append("embed_backend")
     if old.get("methods") != new.get("methods"):
         differences.append("methods")
     if old.get("frozen_memory") != new.get("frozen_memory"):

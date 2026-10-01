@@ -247,6 +247,23 @@ class DatedMemory:
             return ""
         return format_interval(self.fact_interval[index])
 
+    def fact_session_time(self, index: int) -> str:
+        """Date of the fact's source turn, independent of its event interval.
+
+        A passage may span several sessions. Its first session cannot date a
+        later turn; without a matched turn only a single-session passage is safe.
+        """
+        if not 0 <= index < len(self.fact_turn):
+            return ""
+        pid, position = self.fact_turn[index]
+        turns = self.turns.get(pid) or []
+        if 0 <= position < len(turns) and turns[position].when is not None:
+            return turns[position].when.isoformat()
+        interval = self.passage_interval.get(pid)
+        if interval is not None and interval.start == interval.end:
+            return interval.start.isoformat()
+        return ""
+
     def excerpt(self, index: int, window: int = 1, max_chars: int = 900) -> str:
         """A fala de origem de um fato, com as vizinhas e a data da sessão."""
         if not 0 <= index < len(self.fact_turn):

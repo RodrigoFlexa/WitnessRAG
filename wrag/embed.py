@@ -104,17 +104,43 @@ class AzureEmbedder(Embedder):
         self.dim = 0
 
     def _encode(self, texts: Sequence[str]) -> np.ndarray:
+        # Embedding endpoints cap each input at 8192 tokens. Keep every token
+        # of oversized documentary sentences via weighted pooling, not cutting.
+        import tiktoken
+        encoding = tiktoken.get_encoding("cl100k_base")
+        inputs, owners, weights = [], [], []
+        for owner, text in enumerate(texts):
+            tokens = encoding.encode(text if text.strip() else " ", disallowed_special=())
+            for start in range(0, len(tokens), 8191):
+                part = tokens[start:start + 8191]
+                inputs.append(part)
+                owners.append(owner)
+                weights.append(len(part))
         out: list[list[float]] = []
-        for i in progress(range(0, len(texts), self.batch_size), desc="embed(azure)"):
-            batch = [t if t.strip() else " " for t in texts[i:i + self.batch_size]]
+        for i in progress(range(0, len(inputs), self.batch_size), desc="embed(azure)"):
+            batch = inputs[i:i + self.batch_size]
             response = self._client.embeddings.create(model=self.deployment, input=batch)
-            out.extend(item.embedding for item in response.data)
-        array = np.asarray(out, dtype=np.float32)
+            rows = sorted(response.data, key=lambda item: item.index)
+            if [item.index for item in rows] != list(range(len(batch))):
+                raise RuntimeError("Azure embedding response has missing or duplicate indices")
+            out.extend(item.embedding for item in rows)
+        pieces = np.asarray(out, dtype=np.float32)
+        if pieces.ndim != 2 or not np.isfinite(pieces).all():
+            raise RuntimeError("Azure returned invalid embedding vectors")
+        array = np.zeros((len(texts), pieces.shape[1]), dtype=np.float32)
+        total = np.zeros(len(texts), dtype=np.float32)
+        for owner, weight, vector in zip(owners, weights, pieces):
+            array[owner] += weight * vector
+            total[owner] += weight
+        array /= total[:, None]
         self.dim = array.shape[1] if array.size else 0
         return array
 
     def cache_key(self) -> str:
-        return f"azure-{self.deployment}"
+        scope = sha(os.environ.get(C.AZURE_BASE_URL_VAR, ""),
+                    os.environ.get(C.AZURE_ENDPOINT_VAR, ""), C.AZURE_EMBED_API_VERSION)[:16]
+        safe = self.deployment.replace("/", "_").replace("\\", "_")
+        return f"azure-v2-{safe}-{scope}"
 
 
 class SentenceTransformerEmbedder(Embedder):

@@ -79,9 +79,12 @@ class Reranker:
                     activation_fn=torch.nn.Identity())]
                 rows = []
                 for i, out in zip(missing, outputs):
-                    value = 1.0 / (1.0 + math.exp(-out))
+                    # Cold and warm runs must rank the same scores. Previously
+                    # the first process used full precision, while a restart
+                    # loaded six decimals, changing near ties in plan ranking.
+                    value = round(1.0 / (1.0 + math.exp(-out)), 6)
                     self._cache[keys[i]] = value
-                    rows.append(json.dumps({"k": keys[i], "s": round(value, 6)}))
+                    rows.append(json.dumps({"k": keys[i], "s": value}))
                 with self._path.open("a", encoding="utf-8") as handle:
                     handle.write("\n".join(rows) + "\n")
             return [self._cache[k] for k in keys]
