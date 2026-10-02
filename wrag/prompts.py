@@ -1233,6 +1233,14 @@ has no event date, use its session date. Return the unit requested: a year,
 month, calendar date, interval, or duration."""
 
 
+def qa_atemporal_facts_template(yesno_rationale: bool = False) -> str:
+    """Same reader and answer schema, with only literal time expressions."""
+    text = qa_facts_template(yesno_rationale)
+    text = text.replace(QA_FACTS_HEADER, "Answer the question using the memory notes and original sources below.\nEach note is a paraphrased fact from the dialogue; its time expressions, if any,\nare ordinary text. No resolved temporal metadata is provided.")
+    start = text.index(QA_FACTS_TIME_RULE)
+    return text[:start] + "Use only the information stated in the memory and original sources.\n" + text[start + len(QA_FACTS_TIME_RULE):]
+
+
 def qa_facts_template(yesno_rationale: bool = False, bitemporal: bool = False) -> str:
     """The evidence reader with memory notes instead of dialogue passages: same
     answer-form rules, a header that explains the notes, and the time rule that

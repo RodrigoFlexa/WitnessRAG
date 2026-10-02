@@ -448,6 +448,24 @@ class WitnessConfig:
     #   no-verify          a prova entra sem a confirmação nas falas de origem
     #   no-temporal-score  nota = só similaridade (pesos de tempo e importância zerados)
     ablation: str = ""
+    # Controlled local-v2 study; independent of legacy controller ablations.
+    study_ablation: str = ""
+    # Temporal reference declared by a question-only LLM call in planning,
+    # grounded by the local executor (docs/reflexao-tempo-v3.md). Off by default.
+    temporal_reference: bool = False
+    # Proof requirements (docs/requisitos-prova.md): question-only requirements
+    # from the planner, support checked by the cross-encoder, completed by the
+    # reflection from the whole memory. Off by default.
+    requirements: bool = False
+    requirement_threshold: float = 0.5
+    requirement_member_threshold: float = 0.5   # set members (calibrated on the dev conversation)
+    requirement_max_members: int = 8
+    requirement_member_candidates: int = 80     # facts of the named people shown to the membership judge
+    # Exhaustive member scan over the named people's original turns
+    # (wrag/witness/member_scan.py). Off by default.
+    member_scan: bool = False
+    member_scan_batch: int = 40
+    member_scan_max: int = 12
     set_relation_threshold: float = 0.5
     type_mode: str = "rank"            # rank: só reordena; veto: remove (ablação)
     type_nameable_score: float = 0.5   # o tipo só ordena se alguma resposta o recebe >= isto
@@ -492,6 +510,9 @@ class QAConfig:
     evidence_reader: bool = False
     reader_reflection: bool = False       # joint inference + answer review, one reader call
     reflection_replan: bool = False       # sufficiency verifier, one optional retry, then standard reader
+    # Reflection loop (docs/reflexao-tempo-v3.md): two readings, an explicit
+    # verifier that accepts, revises or requests one gap search. Off by default.
+    reflection_loop: bool = False
     # Sim/não com justificativa curta ("likely no; she wants to be a
     # counselor"). É opção do LEITOR, igual para todos os métodos; muda a forma
     # da resposta, não a evidência. Desligado por padrão.

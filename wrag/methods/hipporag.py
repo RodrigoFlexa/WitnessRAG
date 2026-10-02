@@ -139,6 +139,12 @@ def ensure_graph(ctx: IndexContext, with_passage_nodes: bool = True) -> None:
         from wrag.ie import extract_corpus
 
         ctx.extraction = extract_corpus(ctx.corpus, ctx.llm, ctx.run.ie)
+    if ctx.run.witness.study_ablation == "no-time-model" and ctx.kg is None:
+        # Reuse paid acquisition, but build fresh vectors/graph without temporal
+        # metadata. Never mutate the shared extraction or its on-disk cache.
+        from dataclasses import replace
+        ctx.extraction = replace(ctx.extraction, facts=[replace(f, time="", kind="")
+                                                       for f in ctx.extraction.facts])
     if ctx.kg is None:
         ctx.kg = build_graph(ctx.corpus, ctx.extraction, ctx.embedder, ctx.run.graph,
                              with_passage_nodes=with_passage_nodes)

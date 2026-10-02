@@ -210,6 +210,11 @@ def read(
                 else prompts.QA_SET_TEMPLATE if cfg.answer_set else prompts.QA_TEMPLATE)
     if cfg.reader_reflection:
         template = prompts.qa_reflection_template(template)
+    if facts_mode == "atemporal":
+        # Do not describe a nonexistent resolved-time representation to the reader.
+        template = prompts.qa_atemporal_facts_template(cfg.yesno_rationale)
+        if cfg.reader_reflection:
+            template = prompts.qa_reflection_template(template)
     pending = ", ".join(str(x) for x in proof_context.get("condicoes_pendentes", [])[:4]) \
         if proof_context else ""
     prompt = template.format(passages=prompts.format_passages(passages),

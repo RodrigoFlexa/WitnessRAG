@@ -156,12 +156,28 @@ def parser():
                    help="máximo de interpretações por resumo (1..6; padrão 4)")
     p.add_argument("--reader-reflection", action="store_true",
                    help="inferência e revisão da forma da resposta na mesma chamada do leitor")
+    p.add_argument("--reflection-loop", action="store_true",
+                   help="reflexão explícita: duas leituras, verificador que aceita, revisa ou pede uma busca de lacuna")
+    p.add_argument("--requirements", action="store_true",
+                   help="requisitos de prova: planejador lista fatos necessários, executor checa suporte, reflexão completa")
+    p.add_argument("--requirement-threshold", type=float, default=None,
+                   help="relevância mínima do cross-encoder para um requisito ter suporte (padrão 0.5)")
+    p.add_argument("--requirement-member-threshold", type=float, default=None,
+                   help="relevância mínima de um membro enumerado em perguntas de conjunto (padrão 0.5)")
+    p.add_argument("--requirement-max-members", type=int, default=None,
+                   help="máximo de membros acrescentados por requisito de conjunto (padrão 8)")
+    p.add_argument("--member-scan", action="store_true",
+                   help="conjuntos: varre todas as falas das pessoas nomeadas e entrega a tabela de membros")
+    p.add_argument("--temporal-reference", action="store_true",
+                   help="referência temporal declarada no plano por uma chamada curta só com a pergunta")
     p.add_argument("--reflection-replan", action="store_true",
                    help="LoCoMo experimental: verificador de suficiência permite uma nova busca antes do leitor padrão")
     p.add_argument("--fact-no-plan", action="store_true",
                    help="ablação: fatos escolhidos só pela similaridade com a pergunta (sem plano/prova)")
     p.add_argument("--ablation", choices=["no-plan", "no-proof", "no-verify", "no-temporal-score"],
                    default=None, help="ablação de um componente do WitnessRAG (docs/ablacao.md)")
+    p.add_argument("--study-ablation", choices=["full", "no-witness", "no-time-reference", "no-time-model", "no-reflection"],
+                   default=None, help="estudo controlado LoCoMo local-v2, sem replanejamento")
     p.add_argument("--ie-style", choices=["memory"], default=None,
                    help="extração como itens de memória (tripla + frase + fala + tipo temporal)")
     # Plano robusto e seleção de fatos (27/09/2026, docs/plano-robusto.md). Desligados por padrão.
@@ -227,6 +243,14 @@ def parser():
 
 
 def make_plan(args, output):
+    if getattr(args, "study_ablation", None):
+        if not (args.dataset == "locomo" and args.local_plans and args.local_plan_version == "v2"
+                and args.fact_delivery == "facts" and args.evidence_reader):
+            raise ValueError("--study-ablation requires LoCoMo, local-v2, facts and evidence reader")
+        if args.reflection_replan or args.ablation or args.fact_no_plan:
+            raise ValueError("--study-ablation cannot be combined with replanning or legacy ablations")
+        if not args.reader_reflection:
+            raise ValueError("Study baseline requires --reader-reflection; no-reflection disables it internally")
     if getattr(args, "local_plans", False):
         if not getattr(args, "proof_controller", False):
             raise ValueError("--local-plans exige --proof-controller")
@@ -249,6 +273,21 @@ def make_plan(args, output):
             raise ValueError("--summary-reflection-limit exige --summary-reflection e valor 1..6")
     if getattr(args, "reader_reflection", False) and not getattr(args, "evidence_reader", False):
         raise ValueError("--reader-reflection exige --evidence-reader")
+    if getattr(args, "reflection_loop", False) and not (
+            args.dataset == "locomo" and getattr(args, "local_plans", False)
+            and getattr(args, "local_plan_version", None) == "v2" and args.evidence_reader
+            and getattr(args, "fact_delivery", None) == "facts" and args.reader_reflection
+            and not getattr(args, "reflection_replan", False)):
+        raise ValueError("--reflection-loop requires LoCoMo, local-v2, facts, --reader-reflection and no --reflection-replan")
+    if getattr(args, "requirements", False) and not (
+            getattr(args, "local_plans", False) and getattr(args, "local_plan_version", None) == "v2"
+            and getattr(args, "fact_rerank", None)):
+        raise ValueError("--requirements requires local-v2 plans and --fact-rerank (the support scorer)")
+    if getattr(args, "member_scan", False) and not getattr(args, "requirements", False):
+        raise ValueError("--member-scan requires --requirements (the planner declares set requirements)")
+    if getattr(args, "temporal_reference", False) and not (
+            getattr(args, "local_plans", False) and getattr(args, "local_plan_version", None) == "v2"):
+        raise ValueError("--temporal-reference requires --local-plans with --local-plan-version v2")
     if getattr(args, "reflection_replan", False) and not (
             args.dataset == "locomo" and args.local_plans and args.local_plan_version == "v2"
             and args.reader_reflection and args.evidence_reader and args.fact_delivery == "facts"):
@@ -370,7 +409,7 @@ def make_plan(args, output):
         "WRAG_MODEL_REVISION": args.model_revision,
         "WRAG_AZURE_CONCURRENCY": str(args.concurrency), "WRAG_EMBED_BACKEND": args.embed_backend,
         "WRAG_EMBED_MODEL": args.embed_model, "WRAG_EMBED_DEVICE": args.embed_device,
-        "WRAG_EMBED_BATCH_SIZE": "32", "WRAG_SEED": str(args.seed),
+        "WRAG_EMBED_BATCH_SIZE": os.environ.get("WRAG_EMBED_BATCH_SIZE", "32"), "WRAG_SEED": str(args.seed),
         "WRAG_DATA_DIR": str(output / "data"), "WRAG_RUNS_DIR": str(output / "benchmark"),
         "WRAG_CACHE_DIR": str(args.cache_dir.resolve() if args.cache_dir else output / "cache"), "WRAG_NO_PROGRESS": "1", "PYTHONUNBUFFERED": "1",
         # O sampler FlashInfer compila kernels via JIT e resolve o nvcc por `which nvcc`,
@@ -655,6 +694,7 @@ def _run_config(settings, n_questions):
     cfg.witness.fact_plan_guided = not settings.get("fact_no_plan", False)
     ablation = settings.get("ablation") or ""
     cfg.witness.ablation = ablation
+    cfg.witness.study_ablation = settings.get("study_ablation") or ""
     if ablation == "no-verify":
         cfg.witness.proof_verify = False
     if ablation == "no-temporal-score":
@@ -705,7 +745,32 @@ def _run_config(settings, n_questions):
     cfg.witness.lens_max_swaps = 1 if swaps is None else int(swaps)
     cfg.qa.evidence_reader = settings.get("evidence_reader", False)
     cfg.qa.reader_reflection = settings.get("reader_reflection", False)
+    cfg.witness.requirements = settings.get("requirements", False)
+    if settings.get("requirement_threshold") is not None:
+        cfg.witness.requirement_threshold = float(settings["requirement_threshold"])
+    if settings.get("requirement_member_threshold") is not None:
+        cfg.witness.requirement_member_threshold = float(settings["requirement_member_threshold"])
+    cfg.witness.member_scan = settings.get("member_scan", False)
+    if settings.get("requirement_max_members") is not None:
+        cfg.witness.requirement_max_members = int(settings["requirement_max_members"])
+    if cfg.witness.study_ablation == "no-reflection" and not cfg.witness.requirements:
+        # v2 study: "reflection" was the reader's joint instruction. With proof
+        # requirements, reflection is the completion step, which this variant
+        # removes inside the executor; the reader stays the same.
+        cfg.qa.reader_reflection = False
+    if cfg.witness.study_ablation == "no-time-model":
+        cfg.witness.fact_time = "none"
+        cfg.qa.temporal_annotations = False
     cfg.qa.reflection_replan = settings.get("reflection_replan", False)
+    cfg.qa.reflection_loop = settings.get("reflection_loop", False)
+    cfg.witness.temporal_reference = settings.get("temporal_reference", False)
+    if cfg.witness.study_ablation == "no-reflection":
+        # Single plain reading: no joint instruction, no verifier, no search.
+        cfg.qa.reflection_loop = False
+    if cfg.witness.study_ablation in {"no-time-reference", "no-time-model"}:
+        # Removes the declared reference in planning, its grounding and the
+        # reflection's temporal checks (the planner also zeroes time weights).
+        cfg.witness.temporal_reference = False
     cfg.ie.dialogue_mode = settings.get("dialogue_ie", False)
     cfg.ie.style = settings.get("ie_style") or ""
     if cfg.ie.style == "memory":
@@ -977,12 +1042,14 @@ def _validate_resume(old, new):
               "typed_variables", "item_set_proofs", "witness_delivery", "abductive_premises",
               "type_model", "type_min_score", "type_expected", "type_mode",
               "proof_dominance", "anchor_relations", "relation_threshold", "set_union", "plan_to_reader", "fact_delivery", "fact_budget", "ie_style", "fact_no_plan", "ablation",
-              "relation_alternatives", "plan_readings", "fact_fill", "fact_rerank",
+              "relation_alternatives", "plan_readings", "fact_fill", "fact_rerank", "study_ablation",
               "multiplan_portfolio", "portfolio_max_plans",
               "local_plans", "local_plan_beam", "local_plan_candidates", "local_plan_depth", "local_plan_keep",
               "local_plan_version", "local_plan_executions", "local_plan_starts",
               "fact_rerank_pool", "fact_time", "plan_router",
               "summary_reflection", "summary_reflection_limit", "reader_reflection", "reflection_replan",
+              "reflection_loop", "temporal_reference", "requirements", "requirement_threshold",
+              "requirement_member_threshold", "requirement_max_members", "member_scan",
               "proof_edit_fraction", "yesno_rationale",
               "qa_max_tokens",
               "hybrid_fallback", "dialogue_ie",

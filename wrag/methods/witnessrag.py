@@ -1578,7 +1578,8 @@ class WitnessRAGRetriever(Retriever):
         """REGISTRAR: datas, importância e fala de origem de trechos e fatos."""
         assert self.memory is not None and self.searcher is not None
         cfg = self.ctx.run.witness
-        self.dated = DatedMemory(self.corpus, self.memory.facts)
+        self.dated = DatedMemory(self.corpus, self.memory.facts,
+                                  model_time=cfg.study_ablation != "no-time-model")
         self.scorer = MemoryScorer(self.dated, cfg.proof_min_scale_days,
                                    cfg.proof_point_scale_fraction)
         self.searcher.fact_times = [self.dated.fact_time_text(i)
@@ -1945,10 +1946,18 @@ class WitnessRAGRetriever(Retriever):
             for i in chosen for pid, pos in [dated.fact_turn[i]]]
         return facts_text, summary, info
 
-    def _render_fact_ids(self, chosen: list[int]) -> str:
-        """Render selected facts with the standard reader dates, without retrieval."""
+    def _render_fact_ids(self, chosen: list[int], with_ids: bool = False) -> str:
+        """Render selected facts with the standard reader dates, without retrieval.
+
+        ``with_ids`` tags each line with its memory index ("[F12]") for a
+        control call that must cite facts; the reader never sees the tags."""
         cfg = self.ctx.run.witness
         memory, dated = self.memory, self.dated
+        tag = (lambda i: f"[F{i}] ") if with_ids else (lambda i: "")
+        if cfg.study_ablation == "no-time-model":
+            return "\n".join("- " + tag(i) + (memory.facts[i].statement or
+                f"{memory.facts[i].subject} | {memory.facts[i].relation} | {memory.facts[i].object}")
+                for i in chosen)
         def session_of(index: int):
             pid, position = dated.fact_turn[index]
             turns = dated.turns.get(pid) or []
@@ -1989,7 +1998,7 @@ class WitnessRAGRetriever(Retriever):
                 else:
                     suffix = f" (event: {event})" if event and event != label else ""
                 body = fact.statement or f"{fact.subject} | {fact.relation} | {fact.object}"
-                lines.append(f"- {body}{suffix}")
+                lines.append(f"- {tag(index)}{body}{suffix}")
         return "\n".join(lines)
 
     def _rerank_facts(self, question: Question, order: list[int], score: np.ndarray,

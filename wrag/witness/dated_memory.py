@@ -82,18 +82,18 @@ class Turn:
     line: int = -1
 
 
-def split_turns(text: str, session_time: str = "") -> list[Turn]:
+def split_turns(text: str, session_time: str = "", model_time: bool = True) -> list[Turn]:
     """Falas de um trecho conversacional; frases, em corpus sem falas."""
     turns: list[Turn] = []
-    current = parse_date(session_time)
+    current = parse_date(session_time) if model_time else None
     for number, line in enumerate((text or "").splitlines()):
         session = _SESSION.match(line)
         if session:
-            current = parse_date(session.group(1)) or current
+            current = (parse_date(session.group(1)) or current) if model_time else None
             continue
         match = _TURN.match(line.strip())
         if match:
-            when = parse_date(match.group(2) or "") or current
+            when = (parse_date(match.group(2) or "") or current) if model_time else None
             turns.append(Turn(match.group(1), match.group(3).strip(),
                               match.group(4).strip(), when, number))
     if turns:
@@ -133,13 +133,14 @@ def _future_view(text: str, reference: date, resolved: Interval | None) -> Inter
 class DatedMemory:
     """Datas, importância e fala de origem de cada trecho e de cada fato."""
 
-    def __init__(self, corpus: Any, facts: Sequence[Any]) -> None:
+    def __init__(self, corpus: Any, facts: Sequence[Any], model_time: bool = True) -> None:
+        self.model_time = model_time
         self.turns: dict[str, list[Turn]] = {}
         self.passage_interval: dict[str, Interval | None] = {}
         self.passage_importance: dict[str, float] = {}
         dates: list[date] = []
         for passage in corpus.passages:
-            turns = split_turns(passage.text, getattr(passage, "session_time", ""))
+            turns = split_turns(passage.text, getattr(passage, "session_time", ""), model_time=model_time)
             self.turns[passage.pid] = turns
             when = sorted({t.when for t in turns if t.when is not None})
             self.passage_interval[passage.pid] = (Interval(when[0], when[-1])
@@ -202,6 +203,9 @@ class DatedMemory:
         turns = self.turns.get(fact.pid) or []
         turn = turns[turn_index] if 0 <= turn_index < len(turns) else None
         self.fact_turn[index] = (fact.pid, turn_index)
+        self.fact_importance[index] = arousal(turn.text) if turn else 0.0
+        if not self.model_time:
+            return
         reference = turn.when if turn else None
         if reference is None:
             interval = self.passage_interval.get(fact.pid)

@@ -65,7 +65,11 @@ class ReadingContract:
         if self.temporal.operation == 'premises':
             lines.append("For an inferred or hypothetical answer, distinguish the observed facts from the scenario in the question. Check how a changed premise affects the inference; an observed intention alone does not settle a counterfactual.")
         period=self.temporal.period
-        if period.interval and (period.kind!='now' or self.temporal.temporal_side=='recent'):
+        if period.interval and self.temporal.temporal_side=='near':
+            # Grounded only by the date the reference event was mentioned:
+            # a ranking hint, not a constraint on the answer.
+            lines.append(f"Temporal reference (hypothesis): the reference event \"{period.text}\" was mentioned around {period.interval.start} to {period.interval.end}; verify its actual time in the sources.")
+        elif period.interval and (period.kind!='now' or self.temporal.temporal_side=='recent'):
             lines.append(f"Temporal reference (hypothesis): {period.interval.start} to {period.interval.end}; relation: {self.temporal.temporal_side or period.kind}; reference: {period.text}.")
             lines.append("The requested event's answer date must satisfy that relation to the reference. Session dates and dates of other events are not substitutes. Verify event-relative anchors in the quoted sources.")
         lines += ["Return the requested value rather than its owner or a generic description. Resolve descriptive references using corroborating source turns when supported; mark ambiguity when multiple antecedents remain.",

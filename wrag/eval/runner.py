@@ -359,6 +359,10 @@ def _answer_standard(name: str, retriever, corpus: Corpus, question: Question,
     blocked = retrieval.filtered or LEDGER.question_blocked(corpus.name, name, question.qid)
     if blocked:
         reading = ReadResult(filtered=True)
+    elif run_cfg.qa.reflection_loop:
+        from wrag.witness.reflection_loop import reflective_read
+        retrieval, reading = reflective_read(retriever, corpus, question, retrieval,
+                                             replace(run_cfg.qa, top_k=run_cfg.top_k), name)
     elif run_cfg.qa.reflection_replan:
         from wrag.witness.reflection_replan import adaptive_read
         retrieval, reading = adaptive_read(retriever, corpus, question, retrieval,
@@ -476,7 +480,8 @@ def _trim(diagnostics: dict[str, Any], max_chars: int = 6000) -> dict[str, Any]:
              "itens_conjunto",
              # entrega por fatos e plano robusto
              "leitura_fatos", "fatos_entregues", "ablacao", "roteador",
-             "reflection_study", "reflection_summary_snapshot_hit", "reflection_replan")
+             "reflection_study", "reflection_summary_snapshot_hit", "reflection_replan",
+             "reflection_loop", "temporal_reference", "requisitos")
             if k in diagnostics}
     cycles = diagnostics.get("ciclos")
     if isinstance(cycles, list):

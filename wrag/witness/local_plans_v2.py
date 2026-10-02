@@ -50,6 +50,30 @@ class MultiOriginPlanner(LocalPlanner):
         self._all = {}
         self.timings = {}
         self._source_terms = {}
+        self.reference = None
+        self.anchor_resolution = None
+        self.reference_applied = []
+        if self.cfg.temporal_reference and self.cfg.study_ablation not in {"no-time-reference", "no-time-model"}:
+            from wrag.witness.temporal_reference import plan_reference
+            self.reference = plan_reference(self.r, self.text)
+            self.apply_reference()
+
+    def apply_reference(self):
+        """Record the declared temporal reference; never rewrite the search.
+
+        In the conv03 study (v3), letting the LLM reference change the program
+        search (date operation, event anchors, order periods) cost 9.6 F1
+        points on the 17 questions it touched, while projecting candidate times
+        for date questions gained 4.7 on 20. The reference therefore keeps the
+        rule-based contract intact (explicit question dates still scope the
+        search through the grammar) and acts where it helped: deciding that a
+        question asks for a time and projecting that time from the witnesses.
+        """
+        from wrag.witness.temporal_reference import asks_time
+        ref = self.reference
+        if ref is None or not ref.valid:
+            return
+        self.reference_applied = ["date_question"] if asks_time(ref, self.text, self.contract.operation) else []
 
     def temporal_ok(self,fid,scoped):
         # A proposed future event cannot witness an explicitly occurred event.
@@ -378,8 +402,83 @@ class MultiOriginPlanner(LocalPlanner):
         return ('source_mention',*self.dated.fact_turn[fid])
 
 
+def refresh_delivery(r,info,indices,acquired):
+    """Delivery record after the reflection replaced filler facts."""
+    dated,memory=r.dated,r.memory
+    info=dict(info)
+    info.update(indices=list(indices),n=len(indices),adquiridos=list(acquired),fontes=[
+        {"indice":i,"fid":memory.facts[i].fid,"pid":memory.facts[i].pid,
+         "turn_id":(dated.turns[pid][pos].turn_id if 0<=pos<len(dated.turns.get(pid,[])) else "")}
+        for i in indices for pid,pos in [dated.fact_turn[i]]])
+    return info
+
+
+def complete_requirements(r,question,info,protected):
+    """Planner requirements -> executor support check -> reflection completion.
+
+    Returns (re-rendered facts or None, delivery info, acquired facts,
+    diagnostics, member-table text)."""
+    cfg=r.ctx.run.witness
+    if not cfg.requirements:
+        return None,info,[],None,''
+    from wrag.witness.requirements import check_and_complete
+    indices=list(info.get('indices',[]))
+    new,acquired,diag=check_and_complete(r,question.question,indices,protected,
+                                         acquire=cfg.study_ablation!='no-reflection')
+    table=''
+    scans=diag.pop('_scan_objects',[]) if diag else []
+    if scans:
+        from wrag.witness.member_scan import render_table
+        table=render_table(scans,cfg.member_scan_max)
+    if not acquired:
+        return None,info,[],diag,table
+    return r._render_fact_ids(new),refresh_delivery(r,info,new,acquired),acquired,diag,table
+
+
+def reference_diagnostics(planner,times):
+    if planner.reference is None:
+        return None
+    from wrag.witness.timeline import format_interval
+    anchor=None
+    if planner.anchor_resolution:
+        anchor={key:(format_interval(value) if key=='interval' else value)
+                for key,value in planner.anchor_resolution.items()}
+    period=planner.contract.period
+    return {'reference':planner.reference.to_dict(),'applied':list(planner.reference_applied),
+            'anchor':anchor,'candidate_times':times,'operation':planner.contract.operation,
+            'period':period.to_dict(),'side':planner.contract.temporal_side,
+            'time_weight':planner.contract.time_weight,
+            'now':planner.dated.last.isoformat() if planner.dated.last else ''}
+
+
 def retrieve_local_v2(r,question,k,pool_pids,pool_scores,planner_class=MultiOriginPlanner):
     cfg=r.ctx.run.witness
+    if cfg.study_ablation == 'no-witness':
+        # The literal requested baseline: individual relevance-ranked facts,
+        # no conjunctive compiler, graph search, source rescue or plan hints.
+        facts,summary,info=r._fact_context(question,None,None,None,pool_pids[:k])
+        assert not summary
+        rendered,info,acquired,requirements,table=complete_requirements(r,question,info,set())
+        if rendered is not None:facts=rendered
+        if table:facts+='\n\n'+table
+        reference=None
+        if cfg.temporal_reference:
+            from wrag.witness.local_plans import contract as temporal_contract
+            from wrag.witness.temporal_reference import asks_time,plan_reference
+            reference=plan_reference(r,question.question)
+        return RetrievalResult(pids=pool_pids[:k],scores=pool_scores[:k],diagnostics={
+            'controlador':'local-v2-ablation','study_ablation':'no-witness',
+            'planejamento':{'chamadas':0,'chamadas_plano':0,'chamadas_verificacao':0,
+                            'replanejamentos':0,'planos_distintos':0},
+            'local_plans':{'version':'v2','generated':0,'executed':0,'selected':[]},
+            'requisitos':requirements,
+            'fatos_entregues':info,'trechos_extras':[{'title':'Retrieved memory facts','text':facts}],
+            'temporal_reference':({'reference':reference.to_dict(),
+                                   'applied':(['date_question'] if asks_time(reference,question.question,
+                                              temporal_contract(question.question,r.dated).operation) else []),
+                                   'anchor':None,'candidate_times':[],'operation':'',
+                                   'now':r.dated.last.isoformat() if r.dated.last else ''} if reference else None),
+            'leitura_fatos':'bitemporal' if cfg.fact_time=='both' else True})
     if cfg.fact_delivery!='facts' or cfg.summary_reflection or cfg.plan_router or cfg.multiplan_portfolio:
         raise ValueError('Local plans require facts only, no summaries or LLM router')
     if min(cfg.local_plan_beam,cfg.local_plan_candidates,cfg.local_plan_depth,cfg.local_plan_keep,
@@ -413,9 +512,16 @@ def retrieve_local_v2(r,question,k,pool_pids,pool_scores,planner_class=MultiOrig
     accepted={'selecionadas':[(ProofPlan(query=c.query,valid=True),w) for _,c,w,_,_ in selected], 'pacotes':packages}
     facts,summary,info=r._fact_context(question,None,accepted,None,pool_pids[:k])
     assert not summary,'Local retrieval unexpectedly generated a summary'
+    # Proof facts (packages of the selected witnesses) are never displaced.
+    before=set(info.get('indices',[]))
+    protected={i for ids in packages if set(ids)<=before for i in ids}|set(info.get('indices',[])[:info.get('prova',0)])
+    rendered,info,acquired,requirements,table=complete_requirements(r,question,info,protected)
+    if rendered is not None:facts=rendered
     delivered=set(info.get('indices',[]))
     retained=[item for item,ids in zip(selected,packages) if set(ids)<=delivered]
     source_ids=[i for ids in packages if set(ids)<=delivered for i in ids]
+    # Facts acquired by the reflection bring their original turns.
+    source_ids += [i for i in acquired if i not in source_ids]
     source_ids += [i for i in info.get('indices',[]) if i not in source_ids][:4]
     excerpts,turn_ids=r._dialogue_block([(i,) for i in dict.fromkeys(source_ids)],0)
     if not hasattr(r,'_local_source_index') or r._local_source_index_identity!=(id(r.dated),len(r.memory.facts)):
@@ -431,7 +537,8 @@ def retrieve_local_v2(r,question,k,pool_pids,pool_scores,planner_class=MultiOrig
         seen_turns.add(key)
         body=row['text'][:650]
         if len(body)<len(row['text']):body+=' [excerpt truncated]'
-        line=f"[{row['turn_id'] or row['pid']}] {row['speaker']} ({row['when']}): {body}"
+        date_label=f" ({row['when']})" if row['when'] else ''
+        line=f"[{row['turn_id'] or row['pid']}] {row['speaker']}{date_label}: {body}"
         if used_chars+len(line)>cfg.excerpt_max_chars:continue
         support_lines.append(line);used_chars+=len(line)
     if planner.reading.count_unit=='occurrence':
@@ -440,10 +547,19 @@ def retrieve_local_v2(r,question,k,pool_pids,pool_scores,planner_class=MultiOrig
                    for i in planner.event_fact_ids(c,w) if i in delivered}
         for fid in sorted(event_ids):grouped[planner.occurrence_key(fid)].append(fid)
         groups=[{'identity':list(key),'facts':ids,'status':'mention_group_not_verified_occurrence'} for key,ids in grouped.items()]
-    text=planner.reading.instructions()+'\n\nRetrieved facts (joins are unverified candidates):\n'+facts
+    from wrag.witness.temporal_reference import candidate_times
+    reference=planner.reference
+    # Projected event times serve the reflection's date check only. Shown to
+    # the reader they helped on conv03 (+4.7, 20 questions) and hurt on conv07
+    # (-22, 14 questions): the reader's context stays exactly the v2 context.
+    times=(candidate_times(planner,retained)
+           if reference is not None and 'date_question' in planner.reference_applied else [])
+    head=planner.reading.instructions()
+    text=head+'\n\nRetrieved facts (joins are unverified candidates):\n'+facts
     if excerpts:text+='\n\nOriginal source turns:\n'+excerpts
     if support_lines:text+='\n\nAdditional original turns (candidate support, not inferred facts):\n'+'\n'.join(support_lines)
     if groups:text+='\n\nSource mention groups for counting (not a certified count):\n'+'\n'.join(str(g['identity'])+' facts '+str(g['facts']) for g in groups)
+    if table:text+='\n\n'+table
     text+='\n\nPending checks: '+'; '.join(planner.contract.pending+['question_semantics_and_qualifiers_require_reader_check'])
     def describe(item):
         score,c,w,sem,temp=item
@@ -454,6 +570,7 @@ def retrieve_local_v2(r,question,k,pool_pids,pool_scores,planner_class=MultiOrig
                 'score':round(score,6),'semantic':round(sem,6),'temporal':round(temp,6),
                 'contract_checks':planner.checks(c,w),'verified':False}
     diagnostics={'controlador':'local-multiplan-v2','rota':'local','classe_prova':'candidata_nao_verificada',
+                 'study_ablation':cfg.study_ablation or 'full',
                  'motivo_parada':'planos_locais_entregues' if retained else 'recuperacao_local_sem_pacote',
                  'planejamento':{'chamadas':0,'chamadas_plano':0,'chamadas_verificacao':0,'replanejamentos':0,'planos_distintos':len(candidates)},
                  'local_plans':{'version':'v2','contract':planner.reading.to_dict(),'anchors':planner.anchors,
@@ -465,5 +582,8 @@ def retrieve_local_v2(r,question,k,pool_pids,pool_scores,planner_class=MultiOrig
                     'additional_source_turns':[{k:v for k,v in row.items() if k!='text'} for row in supports],
                     'count_groups':groups},
                  'fatos_entregues':info,'trechos_extras':[{'title':'Local logical retrieval','text':text}],
-                 'leitura_fatos':'bitemporal' if cfg.fact_time=='both' else True}
+                 'temporal_reference':reference_diagnostics(planner,times),
+                 'requisitos':requirements,
+                 'leitura_fatos':('atemporal' if cfg.study_ablation=='no-time-model' else
+                                 'bitemporal' if cfg.fact_time=='both' else True)}
     return RetrievalResult(pids=pool_pids[:k],scores=pool_scores[:k],diagnostics=diagnostics)

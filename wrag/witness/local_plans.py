@@ -68,6 +68,12 @@ def contract(question: str, dated) -> Contract:
     expected = ("date" if operation == "date" else "number" if operation in {"count", "duration"} else
                 "place" if re.search(r"^where\b|\b(?:city|country|place|town)\b", low) else
                 "person" if re.search(r"^who\b", low) else "other")
+    if not getattr(dated, "model_time", True):
+        # The reader still sees the unmodified question and literal sources;
+        # the retriever no longer compiles temporal operators or anchors.
+        if operation in {"date", "duration", "first", "last"}:
+            operation = "value"
+        return Contract(question, operation, expected, Period("none", None, ""))
     now = dated.last
     period = Period("now", Interval(now, now) if now else None, "now")
     # Strip directional words so parse_anchor does not interpret an unqualified
@@ -143,9 +149,12 @@ class LocalPlanner:
         self.memo = {}
         self.truncations = []
         self.generation_budget = self.cfg.local_plan_candidates * self.cfg.local_plan_depth * 4
-        self.resolve_event_anchor()
+        if self.cfg.study_ablation != "no-time-model":
+            self.resolve_event_anchor()
         level = "strong" if self.contract.period.kind != "now" or self.contract.temporal_side == "recent" else "normal"
         self.contract.time_weight = self.r._weight_levels().weights(level, "none").time
+        if self.cfg.study_ablation in {"no-time-reference", "no-time-model"}:
+            self.contract.time_weight = 0.0
 
     def node(self, eid):
         return self.searcher._identity(eid) if eid >= 0 else -1
@@ -287,6 +296,8 @@ class LocalPlanner:
         c.score = best
 
     def temporal_score(self, candidate, witness):
+        if self.cfg.study_ablation in {"no-time-reference", "no-time-model"}:
+            return 0.0
         # Witness.facts is sorted by source index, not by atom position.
         atom = candidate.query.atoms[0]
         ids = []
